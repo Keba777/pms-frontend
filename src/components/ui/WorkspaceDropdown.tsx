@@ -21,7 +21,7 @@ const WorkspaceDropdown = () => {
       <button
         onClick={toggleDropdown}
         type="button"
-        className="bg-[#696cff] text-white px-4 py-2 rounded inline-flex items-center"
+        className="w-full bg-cyan-700 hover:bg-cyan-800 text-white px-4 py-2 rounded inline-flex items-center"
       >
         Default Workspace
         <ChevronDown className="ml-2 w-4 h-4" />

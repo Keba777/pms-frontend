@@ -14,7 +14,6 @@ import Image from "next/image";
 const userAvatar =
   "https://raycon.oasismgmt2.com/storage/photos/VoJMiw0IUaj4sLv6KDNAMonMk8bS9hMbJ36igmnd.png";
 
-
 const Header = () => {
   // Dropdown states
   const [showNotifications, setShowNotifications] = useState(false);
@@ -77,12 +76,16 @@ const Header = () => {
             <Search className="w-6 h-6 text-gray-600" />
           </button>
         </div>
-        <div className="hidden md:flex items-center space-x-2 mt-2 md:mt-0">
+        <div
+          className="hidden md:flex items-center space-x-2 mt-2 md:mt-0"
+          suppressHydrationWarning={true}
+        >
           <Search className="w-5 h-5 text-gray-600" />
           <input
             type="text"
             placeholder="Search"
             className="border border-gray-300 rounded-md py-1 px-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            suppressHydrationWarning={true}
           />
         </div>
         <ul className="flex items-center space-x-4 ml-auto mt-2 md:mt-0">
@@ -114,6 +117,7 @@ const Header = () => {
             <button
               onClick={() => setShowLanguage(!showLanguage)}
               className="flex items-center p-2 border border-blue-500 rounded-md hover:bg-blue-50"
+              suppressHydrationWarning={true}
             >
               <Globe className="w-5 h-5 mr-1" />
               <span className="mr-1">English</span>
@@ -152,6 +156,7 @@ const Header = () => {
             <button
               onClick={() => setShowUserDropdown(!showUserDropdown)}
               className="p-2"
+              suppressHydrationWarning={true}
             >
               <Image
                 src={userAvatar}

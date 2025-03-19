@@ -10,10 +10,10 @@ const Sidebar = () => {
   return (
     <aside
       id="layout-menu"
-      className="hidden md:fixed md:top-0 md:bottom-0 md:left-0 md:block md:w-64 bg-white text-gray-700 shadow-md transition-all duration-300 overflow-y-auto"
+      className="hidden lg:fixed lg:top-0 lg:bottom-0 lg:left-0 lg:block lg:w-64 bg-white text-gray-700 shadow-md transition-all duration-300 overflow-y-auto"
     >
       {/* Header with logo and toggle */}
-      <div className="flex items-center justify-between p-4 border-b">
+      <div className="flex items-center justify-between ">
         <Link href="/home" className="flex items-center">
           <Image
             src="https://raycon.oasismgmt2.com/storage/logos/IjqxLcdGRYJsQ2ilNZec5tzOwriycUuY0ug2ZOgQ.jpg"
