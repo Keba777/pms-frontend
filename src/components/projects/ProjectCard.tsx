@@ -9,19 +9,12 @@ import {
   Star,
   CheckCircle,
   Calendar,
-  Settings
+  Settings,
 } from "lucide-react";
 import { Project } from "@/types/project";
 
 interface Member {
-  id: number;
-  name: string;
-  avatar: string;
-  profileLink: string;
-}
-
-interface Client {
-  id: number;
+  id: string; // Assuming members have string IDs
   name: string;
   avatar: string;
   profileLink: string;
@@ -50,29 +43,6 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
     return `${diffDays} days`;
   };
 
-  const members: Member[] = [
-    {
-      id: 1,
-      name: "John Doe",
-      avatar: "https://placehold.co/40x40/000/FFF?text=JD",
-      profileLink: "#",
-    },
-    {
-      id: 2,
-      name: "Jane Smith",
-      avatar: "https://placehold.co/40x40/EEE/333?text=JS",
-      profileLink: "#",
-    },
-  ];
-
-  const clients: Client[] = [
-    {
-      id: 1,
-      name: "Acme Corp",
-      avatar: "https://placehold.co/40x40/AAA/FFF?text=AC",
-      profileLink: "#",
-    },
-  ];
   const duration = getDuration(project.start_date, project.end_date);
 
   const tasksCount = project.tasks ? project.tasks.length : 0;
@@ -143,11 +113,11 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
             className="text-green-700 focus:outline-none"
             onClick={toggleDropdown}
           >
-            <Settings size={18} className="text-bs-success"/>
+            <Settings size={18} className="text-bs-success" />
           </button>
           <button className="text-yellow-500">
             <span title="Click to Mark as Favorite">
-              <Star size={18} className="text-bs-warning"/>
+              <Star size={18} className="text-bs-warning" />
             </span>
           </button>
           {isDropdownOpen && (
@@ -242,37 +212,48 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
           <div className="w-full md:w-1/2 mb-2 md:mb-0">
             <p className="text-sm font-medium text-gray-700">Members:</p>
             <ul className="list-none m-0 p-0 flex items-center">
-              {members.map((member) => (
-                <li key={member.id} className="mr-1" title={member.name}>
-                  <Link href={member.profileLink} target="_blank">
-                    <img
-                      src={member.avatar}
-                      className="rounded-full w-8 h-8"
-                      alt={member.name}
-                    />
-                  </Link>
-                </li>
-              ))}
+              {project.members && project.members.length > 0 ? (
+                project.members.map((memberId) => (
+                  <li key={memberId} className="mr-1" title={memberId}>
+                    {/* Replace with actual member data if available */}
+                    <Link href={`/members/${memberId}`} target="_blank">
+                      <img
+                        src={`https://placehold.co/40x40/000/FFF?text=${memberId.slice(
+                          0,
+                          2
+                        )}`}
+                        className="rounded-full w-8 h-8"
+                        alt={memberId}
+                      />
+                    </Link>
+                  </li>
+                ))
+              ) : (
+                <span className="bg-blue-500 text-white px-2 py-1 rounded text-xs">
+                  Not Assigned
+                </span>
+              )}
               <button className="text-blue-500 hover:text-blue-700 p-1 rounded-full">
                 <Edit size={16} />
               </button>
             </ul>
           </div>
           <div className="w-full md:w-1/2">
-            <p className="text-sm font-medium text-gray-700">Clients:</p>
+            <p className="text-sm font-medium text-gray-700">Client:</p>
             <ul className="list-none m-0 p-0 flex items-center">
-              {clients.length > 0 ? (
-                clients.map((client) => (
-                  <li key={client.id} className="mr-1" title={client.name}>
-                    <Link href={client.profileLink} target="_blank">
-                      <img
-                        src={client.avatar}
-                        className="rounded-full w-8 h-8"
-                        alt={client.name}
-                      />
-                    </Link>
-                  </li>
-                ))
+              {project.client ? (
+                <li className="mr-1" title={project.client}>
+                  <Link href={`/clients/${project.client}`} target="_blank">
+                    <img
+                      src={`https://placehold.co/40x40/AAA/FFF?text=${project.client.slice(
+                        0,
+                        2
+                      )}`}
+                      className="rounded-full w-8 h-8"
+                      alt={project.client}
+                    />
+                  </Link>
+                </li>
               ) : (
                 <span className="bg-blue-500 text-white px-2 py-1 rounded text-xs">
                   Not Assigned
@@ -303,13 +284,15 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
             <div className="bg-gray-200 rounded-full h-2 mb-4">
               <div
                 className="bg-blue-500 h-2 rounded-full"
-                style={{ width: `${project.progress}%` }}
+                style={{ width: `${project.progress || 0}%` }}
                 role="progressbar"
-                aria-valuenow={project.progress}
+                aria-valuenow={project.progress || 0}
                 aria-valuemin={0}
                 aria-valuemax={100}
               >
-                <span className="sr-only">{project.progress}% Complete</span>
+                <span className="sr-only">
+                  {project.progress || 0}% Complete
+                </span>
               </div>
             </div>
           </div>
@@ -321,15 +304,3 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
 
 export default ProjectCard;
 
-const getDuration = (start: string | Date, end: string | Date): string => {
-  const startDate = new Date(start);
-  const endDate = new Date(end);
-
-  if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-    return "Invalid date";
-  }
-
-  const timeDiff = Math.abs(endDate.getTime() - startDate.getTime());
-  const diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24));
-  return `${diffDays} days`;
-};

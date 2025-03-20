@@ -82,18 +82,16 @@ export const useProject = (id: string) => {
 };
 
 // Hook to create a new project and update the store
-export const useCreateProject = (onSuccessCallback?: (project: Project) => void) => {
+export const useCreateProject = (onSuccess?: (project: Project) => void) => {
   const queryClient = useQueryClient();
   const addProject = useProjectStore((state) => state.addProject);
   return useMutation({
     mutationFn: createProject,
     onSuccess: (project) => {
       toast.success("Project created successfully!");
-      // Invalidate queries to refetch if necessary
       queryClient.invalidateQueries({ queryKey: ["projects"] });
-      // Update the store
       addProject(project);
-      if (onSuccessCallback) onSuccessCallback(project);
+      if (onSuccess) onSuccess(project); // Call the onSuccess callback if provided
     },
     onError: () => {
       toast.error("Failed to create project");

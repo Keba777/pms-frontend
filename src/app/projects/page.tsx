@@ -7,8 +7,10 @@ import ProjectFilter from "@/components/projects/ProjectFilters";
 import { useProjects } from "@/hooks/useProjects";
 import { Project } from "@/types/project";
 import { List, PlusIcon } from "lucide-react";
+import ProjectForm from "@/components/forms/ProjectForm";
 
 const ProjectPage = () => {
+  const [showForm, setShowForm] = useState(false);
   const { data: projects, isLoading, isError } = useProjects();
   const [filters, setFilters] = useState({
     status: "",
@@ -32,8 +34,6 @@ const ProjectPage = () => {
     );
   }
 
-  // (Optional) Add sorting logic here
-
   if (isLoading) return <div>Loading...</div>;
   if (isError) return <div>Failed to load projects.</div>;
 
@@ -56,19 +56,30 @@ const ProjectPage = () => {
         <div className="flex space-x-2">
           <button
             className="bg-cyan-700 hover:bg-cyan-800 text-white font-bold py-2 px-3 rounded text-sm"
-            data-bs-toggle="modal"
-            data-bs-target="#create_project_modal"
+            onClick={() => setShowForm(true)}
           >
-            <PlusIcon width={15} height={12}/>
+            <PlusIcon width={15} height={12} />
           </button>
           <Link
             href="/projects/list"
             className="bg-cyan-700 hover:bg-cyan-800 text-white font-bold py-2 px-3 rounded text-sm"
           >
-            <List width={15} height={12}/>
+            <List width={15} height={12} />
           </Link>
         </div>
       </div>
+
+      {/* Modal Overlay and Form */}
+      {showForm && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <ProjectForm
+              onClose={() => setShowForm(false)} // Pass the close function
+            />
+          </div>
+        </div>
+      )}
+
       <ProjectFilter onFilterChange={handleFilterChange} />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
         {filteredProjects.map((project: Project) => (
