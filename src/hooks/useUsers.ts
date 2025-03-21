@@ -14,6 +14,12 @@ interface ApiResponse<T> {
     data: T;
 }
 
+// Fetch all users
+const fetchUsers = async (): Promise<User[]> => {
+    const response = await apiClient.get<ApiResponse<User[]>>("/users");
+    return response.data.data;
+};
+
 // Fetch user details by ID
 const fetchUserById = async (id: string): Promise<User | null> => {
     try {
@@ -37,8 +43,26 @@ const updateUser = async (data: User): Promise<User> => {
 };
 
 // ----------------------------
-// Updated React Query hooks
+// React Query Hooks
 // ----------------------------
+
+// Hook to fetch all users and update the store
+export const useUsers = () => {
+    const setUsers = useUserStore((state) => state.setUsers);
+
+    const query = useQuery({
+        queryKey: ["users"],
+        queryFn: fetchUsers,
+    });
+
+    useEffect(() => {
+        if (query.data) {
+            setUsers(query.data); 
+        }
+    }, [query.data, setUsers]);
+
+    return query;
+};
 
 // Hook to fetch a user by ID and update the store
 export const useUser = (id: string) => {
@@ -58,7 +82,7 @@ export const useUser = (id: string) => {
     return query;
 };
 
-// Hook to create a new user and update the store
+// Hook to create a new user and refresh users list
 export const useCreateUser = (onSuccess?: (user: User) => void) => {
     const queryClient = useQueryClient();
     const setUser = useUserStore((state) => state.setUser);
@@ -67,7 +91,7 @@ export const useCreateUser = (onSuccess?: (user: User) => void) => {
         mutationFn: createUser,
         onSuccess: (user) => {
             toast.success("User created successfully!");
-            queryClient.invalidateQueries({ queryKey: ["user"] });
+            queryClient.invalidateQueries({ queryKey: ["users"] }); // Refetch users
             setUser(user);
             if (onSuccess) onSuccess(user);
         },
@@ -77,7 +101,7 @@ export const useCreateUser = (onSuccess?: (user: User) => void) => {
     });
 };
 
-// Hook to update an existing user and update the store
+// Hook to update an existing user and refresh users list
 export const useUpdateUser = () => {
     const queryClient = useQueryClient();
     const updateUserInStore = useUserStore((state) => state.updateUser);
@@ -86,7 +110,7 @@ export const useUpdateUser = () => {
         mutationFn: updateUser,
         onSuccess: (updatedUser) => {
             toast.success("User updated successfully!");
-            queryClient.invalidateQueries({ queryKey: ["user"] });
+            queryClient.invalidateQueries({ queryKey: ["users"] }); // Refetch users
             updateUserInStore(updatedUser);
         },
         onError: () => {

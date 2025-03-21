@@ -2,49 +2,44 @@
 
 import React from "react";
 import { useForm, Controller } from "react-hook-form";
-import { Plus, List, Info } from "lucide-react";
 import Select from "react-select";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { CreateProjectInput } from "@/types/project";
-import { useCreateProject } from "@/hooks/useProjects";
+import { CreateTaskInput } from "@/types/task"; // adjust path if needed
+import { useCreateTask } from "@/hooks/useTasks"; // hook to create a task
+import { useProjects } from "@/hooks/useProjects"; // hook to fetch projects
 import { toast } from "react-toastify";
-import { useUsers } from "@/hooks/useUsers";
-import { User } from "@/types/user";
-import { useTags } from "@/hooks/useTags";
-import { Tag } from "@/types/tag";
 
-interface ProjectFormProps {
+interface TaskFormProps {
   onClose: () => void; // Function to close the modal
 }
 
-const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
+const TaskForm: React.FC<TaskFormProps> = ({ onClose }) => {
   const {
     register,
     handleSubmit,
     control,
     formState: { errors },
-  } = useForm<CreateProjectInput>();
+  } = useForm<CreateTaskInput>();
 
-  const { mutate: createProject, isPending } = useCreateProject();
+  const { mutate: createTask, isPending } = useCreateTask();
   const {
-    data: users,
-    isLoading: usersLoading,
-    error: usersError,
-  } = useUsers();
-  const { data: tags, isLoading: tagsLoading, error: tagsError } = useTags();
+    data: projects,
+    isLoading: projectsLoading,
+    error: projectsError,
+  } = useProjects();
 
-  const onSubmit = (data: CreateProjectInput) => {
-    createProject(data, {
-      onSuccess: (project) => {
-        toast.success("Project created successfully!");
+  const onSubmit = (data: CreateTaskInput) => {
+    createTask(data, {
+      onSuccess: () => {
+        toast.success("Task created successfully!");
         onClose(); // Close the modal on success
         window.location.reload(); // Reload the page
       },
-    }); // Call the mutation to create the project
+    });
   };
 
-  // Options for dropdowns
+  // Options for status and priority (same as in your ProjectForm)
   const statusOptions = [
     {
       value: "Not Started",
@@ -84,7 +79,11 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
       label: "Critical",
       className: "bg-bs-danger-100 text-bs-danger",
     },
-    { value: "High", label: "High", className: "bg-bs-info-100 text-bs-info" },
+    {
+      value: "High",
+      label: "High",
+      className: "bg-bs-info-100 text-bs-info",
+    },
     {
       value: "Medium",
       label: "Medium",
@@ -97,16 +96,11 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
     },
   ];
 
-  const memberOptions =
-    users?.map((user: User) => ({
-      value: user.id!,
-      label: `${user.first_name} ${user.last_name}`,
-    })) || [];
-
-  const tagOptions =
-    tags?.map((tag: Tag) => ({
-      value: tag.id!,
-      label: tag.name,
+  // Map fetched projects to options for the select
+  const projectOptions =
+    projects?.map((project) => ({
+      value: project.id,
+      label: project.title,
     })) || [];
 
   return (
@@ -115,7 +109,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
       className="bg-white rounded-lg shadow-xl p-6 space-y-6"
     >
       <div className="flex justify-between items-center pb-4 border-b">
-        <h3 className="text-lg font-semibold text-gray-800">Create Project</h3>
+        <h3 className="text-lg font-semibold text-gray-800">Create Task</h3>
         <button
           type="button"
           className="text-gray-500 hover:text-gray-700"
@@ -126,24 +120,70 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
       </div>
 
       <div className="space-y-6">
-        {/* Title Input */}
+        {/* Task Name */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Title <span className="text-red-500">*</span>
+            Task Name <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
-            {...register("title", { required: "Title is required" })}
-            placeholder="Please Enter Title"
+            {...register("task_name", { required: "Task Name is required" })}
+            placeholder="Enter Task Name"
             className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
           />
-          {errors.title && (
-            <p className="text-red-500 text-sm mt-1">{errors.title.message}</p>
+          {errors.task_name && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.task_name.message}
+            </p>
+          )}
+        </div>
+
+        {/* Description */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Description
+          </label>
+          <textarea
+            {...register("description")}
+            placeholder="Enter Task Description"
+            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+            rows={4}
+          />
+        </div>
+
+        {/* Project Select */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Select Project <span className="text-red-500">*</span>
+          </label>
+          <Controller
+            name="project_id"
+            control={control}
+            rules={{ required: "Project is required" }}
+            render={({ field }) => (
+              <Select
+                {...field}
+                options={projectOptions}
+                isLoading={projectsLoading}
+                className="basic-single"
+                classNamePrefix="select"
+                onChange={(selectedOption) =>
+                  field.onChange(selectedOption?.value)
+                }
+                value={projectOptions.find(
+                  (option) => option.value === field.value
+                )}
+              />
+            )}
+          />
+          {projectsError && (
+            <p className="text-red-500 text-sm mt-1">Error loading projects</p>
           )}
         </div>
 
         {/* Status and Priority Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Status */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Status <span className="text-red-500">*</span>
@@ -173,6 +213,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
             )}
           </div>
 
+          {/* Priority */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Priority
@@ -197,30 +238,9 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
           </div>
         </div>
 
-        {/* Budget and Dates Section */}
+        {/* Dates Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Planned Budget
-            </label>
-            <div className="flex">
-              <span className="inline-flex items-center px-3 border border-r-0 rounded-l-md bg-gray-50 text-gray-500">
-                ETB
-              </span>
-              <input
-                type="number"
-                {...register("budget", { required: "Budget is required" })}
-                placeholder="Please Enter Budget"
-                className="flex-1 px-3 py-2 border rounded-r-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-              />
-            </div>
-            {errors.budget && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.budget.message}
-              </p>
-            )}
-          </div>
-
+          {/* Start Date */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Starts At <span className="text-red-500">*</span>
@@ -234,6 +254,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
                   selected={field.value ? new Date(field.value) : null}
                   onChange={(date) => field.onChange(date)}
                   className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+                  dateFormat="MM/dd/yyyy"
                 />
               )}
             />
@@ -244,6 +265,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
             )}
           </div>
 
+          {/* End Date */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Ends At <span className="text-red-500">*</span>
@@ -257,6 +279,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
                   selected={field.value ? new Date(field.value) : null}
                   onChange={(date) => field.onChange(date)}
                   className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+                  dateFormat="MM/dd/yyyy"
                 />
               )}
             />
@@ -268,126 +291,12 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
           </div>
         </div>
 
-        {/* Client and Site Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Client
-            </label>
-            <input
-              type="text"
-              {...register("client", { required: "Client is required" })}
-              placeholder="Enter Client Name"
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-            />
-            {errors.client && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.client.message}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Site
-              <Info className="inline ml-1 text-bs-primary h-4 w-4" />
-            </label>
-            <input
-              type="text"
-              {...register("site", { required: "Site is required" })}
-              placeholder="Enter Site Name"
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-            />
-            {errors.site && (
-              <p className="text-red-500 text-sm mt-1">{errors.site.message}</p>
-            )}
-          </div>
-        </div>
-
-        {/* Members Section */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Select Members
-          </label>
-          <Controller
-            name="members"
-            control={control}
-            render={({ field }) => (
-              <Select
-                isMulti
-                options={memberOptions}
-                isLoading={usersLoading}
-                className="basic-multi-select"
-                classNamePrefix="select"
-                onChange={(selectedOptions) =>
-                  field.onChange(selectedOptions.map((option) => option.value))
-                }
-                value={memberOptions.filter(
-                  (option: { value: string; label: string }) =>
-                    field.value?.includes(option.value)
-                )}
-              />
-            )}
-          />
-          {usersError && (
-            <p className="text-red-500 text-sm mt-1">Error loading users</p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Select Tags
-          </label>
-          <Controller
-            name="tagIds"
-            control={control}
-            render={({ field }) => (
-              <Select
-                isMulti
-                options={tagOptions}
-                isLoading={tagsLoading}
-                className="basic-multi-select"
-                classNamePrefix="select"
-                onChange={(selectedOptions) =>
-                  field.onChange(selectedOptions.map((option) => option.value))
-                }
-                value={tagOptions.filter((option) =>
-                  field.value?.includes(option.value)
-                )}
-              />
-            )}
-          />
-          {tagsError && (
-            <p className="text-red-500 text-sm mt-1">Error loading tags</p>
-          )}
-        </div>
-
-        {/* Description */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Description <span className="text-red-500">*</span>
-          </label>
-          <textarea
-            {...register("description", {
-              required: "Description is required",
-            })}
-            placeholder="Please Enter Description"
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-            rows={5}
-          />
-          {errors.description && (
-            <p className="text-red-500 text-sm mt-1">
-              {errors.description.message}
-            </p>
-          )}
-        </div>
-
         {/* Footer Buttons */}
         <div className="flex justify-end gap-4">
           <button
             type="button"
             className="px-4 py-2 border rounded-md hover:bg-gray-50"
-            onClick={onClose} // Close the modal
+            onClick={onClose}
           >
             Close
           </button>
@@ -404,4 +313,4 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
   );
 };
 
-export default ProjectForm;
+export default TaskForm;
