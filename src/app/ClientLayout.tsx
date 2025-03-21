@@ -22,23 +22,17 @@ export default function ClientLayout({
   const { user, _hasHydrated } = useAuthStore();
 
   useEffect(() => {
-    // Wait until store hydration is complete
     if (!_hasHydrated) return;
-
-    // Handle authentication redirects
     if (!user && pathname !== "/login") {
       router.push("/login");
     } else if (user && pathname === "/login") {
       router.push("/");
     }
-
-    // Only show loading indicator for initial check
     if (isLoading) {
       setIsLoading(false);
     }
   }, [user, pathname, router, _hasHydrated, isLoading]);
 
-  // Show loading state until we finish initial auth check
   if (!_hasHydrated || isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -61,7 +55,7 @@ export default function ClientLayout({
       <ToastContainer />
       <div className="flex">
         <Sidebar />
-        <main className="flex-1 p-4 ml-0 lg:ml-64">
+        <main className="flex-1 p-4 ml-0 lg:ml-64 overflow-x-hidden">
           <Header />
           {children}
         </main>
