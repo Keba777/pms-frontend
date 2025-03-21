@@ -1,4 +1,6 @@
-import React, { useState, useRef, useEffect } from "react";
+"use client";
+
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import Link from "next/link";
 import {
   Menu,
@@ -11,10 +13,26 @@ import {
   LogOut,
 } from "lucide-react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/store/authStore";
+import { useRole } from "@/hooks/useRoles";
+
 const userAvatar =
   "https://raycon.oasismgmt2.com/storage/photos/VoJMiw0IUaj4sLv6KDNAMonMk8bS9hMbJ36igmnd.png";
 
 const Header = () => {
+  const router = useRouter();
+
+  // Get the full auth state, then memoize the values you need.
+  const authState = useAuthStore();
+  const { user, logout } = useMemo(
+    () => ({
+      user: authState.user,
+      logout: authState.logout,
+    }),
+    [authState.user, authState.logout]
+  );
+
   // Dropdown states
   const [showNotifications, setShowNotifications] = useState(false);
   const [showLanguage, setShowLanguage] = useState(false);
@@ -24,6 +42,9 @@ const Header = () => {
   const notificationsRef = useRef<HTMLLIElement>(null);
   const languageRef = useRef<HTMLLIElement>(null);
   const userRef = useRef<HTMLLIElement>(null);
+
+  // Fetch user role using the user's role_id (if available)
+  const { data: role } = useRole(user ? user.role_id : "");
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -44,26 +65,36 @@ const Header = () => {
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    return () =>
+      document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // List of additional languages (adjust as needed)
-  const languages = [
-    "Hindi",
-    "Amharic",
-    "Korean",
-    "Vietnamese",
-    "Portuguese",
-    "Español",
-    "Français",
-    "Arabic",
-    "Dutch",
-    "Turkish",
-    "Indonesia",
-    "Thai",
-    "Hrvatski",
-    "Italian",
-  ];
+  // Memoized list of languages
+  const languages = useMemo(
+    () => [
+      "Hindi",
+      "Amharic",
+      "Korean",
+      "Vietnamese",
+      "Portuguese",
+      "Español",
+      "Français",
+      "Arabic",
+      "Dutch",
+      "Turkish",
+      "Indonesia",
+      "Thai",
+      "Hrvatski",
+      "Italian",
+    ],
+    []
+  );
+
+  // Logout handler
+  const handleLogout = () => {
+    logout();
+    router.push("/login");
+  };
 
   return (
     <nav className="w-full bg-white/95 backdrop-blur-sm shadow-md rounded-md px-4 py-2">
@@ -149,9 +180,11 @@ const Header = () => {
               </div>
             )}
           </li>
-          <li className="hidden md:flex items-center">
-            <p className="text-gray-700">Hi👋 ossis</p>
-          </li>
+          {user && (
+            <li className="hidden md:flex items-center">
+              <p className="text-gray-700">Hi 👋 {user.first_name}</p>
+            </li>
+          )}
           <li className="relative" ref={userRef}>
             <button
               onClick={() => setShowUserDropdown(!showUserDropdown)}
@@ -180,8 +213,12 @@ const Header = () => {
                     className="rounded-full mr-3"
                   />
                   <div>
-                    <span className="font-semibold">ossis ossis</span>
-                    <small className="block text-gray-500">admin</small>
+                    <span className="font-semibold">
+                      {role ? role.name : "User"}
+                    </span>
+                    <small className="block text-gray-500">
+                      {role ? role.name : "User"}
+                    </small>
                   </div>
                 </Link>
                 <div className="border-t border-gray-200"></div>
@@ -193,7 +230,10 @@ const Header = () => {
                   <span>My Profile</span>
                 </Link>
                 <div className="border-t border-gray-200"></div>
-                <button className="p-4 text-red-500 hover:text-red-700 flex items-center">
+                <button
+                  onClick={handleLogout}
+                  className="p-4 text-red-500 hover:text-red-700 flex items-center w-full text-left"
+                >
                   <LogOut className="w-5 h-5 mr-2" />
                   <span>Logout</span>
                 </button>
