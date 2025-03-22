@@ -99,7 +99,7 @@ const TaskTable: React.FC<TaskTableProps> = ({ tasks, projectTitle }) => {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {tasks?.length ? (
-              tasks.map((task, index) => (
+              tasks.map((task) => (
                 <React.Fragment key={task.id}>
                   <tr className="hover:bg-gray-50">
                     <td className="border border-gray-200 pl-5 pr-7 py-2">

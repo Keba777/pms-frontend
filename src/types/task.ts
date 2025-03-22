@@ -33,7 +33,7 @@ export interface CreateTaskInput {
 }
 
 export interface UpdateTaskInput {
-    id: any;
+    id?: string;
     task_name?: string;
     description?: string;
     project_id?: string;

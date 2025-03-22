@@ -12,13 +12,7 @@ import {
   Settings,
 } from "lucide-react";
 import { Project } from "@/types/project";
-
-interface Member {
-  id: string; // Assuming members have string IDs
-  name: string;
-  avatar: string;
-  profileLink: string;
-}
+import Image from "next/image";
 
 export interface ProjectCardProps {
   project: Project;
@@ -217,13 +211,15 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
                   <li key={memberId} className="mr-1" title={memberId}>
                     {/* Replace with actual member data if available */}
                     <Link href={`/members/${memberId}`} target="_blank">
-                      <img
+                      <Image
                         src={`https://placehold.co/40x40/000/FFF?text=${memberId.slice(
                           0,
                           2
                         )}`}
                         className="rounded-full w-8 h-8"
                         alt={memberId}
+                        width={100}
+                        height={100}
                       />
                     </Link>
                   </li>
@@ -244,13 +240,15 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
               {project.client ? (
                 <li className="mr-1" title={project.client}>
                   <Link href={`/clients/${project.client}`} target="_blank">
-                    <img
+                    <Image
                       src={`https://placehold.co/40x40/AAA/FFF?text=${project.client.slice(
                         0,
                         2
                       )}`}
                       className="rounded-full w-8 h-8"
                       alt={project.client}
+                      width={100}
+                      height={100}
                     />
                   </Link>
                 </li>
@@ -303,4 +301,3 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
 };
 
 export default ProjectCard;
-

@@ -24,7 +24,7 @@ export interface CreateRoleInput {
 }
 
 export interface UpdateRoleInput {
-    id: any;
+    id?: string;
     name: string;
 }
 

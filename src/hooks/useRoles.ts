@@ -1,4 +1,4 @@
-import { QueryKey, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import apiClient from "@/services/api-client";
 import { Role, CreateRoleInput, UpdateRoleInput } from "@/types/user";
 import { useRoleStore } from "@/store/roleStore";
@@ -19,6 +19,7 @@ const fetchRoles = async (): Promise<Role[]> => {
         const response = await apiClient.get<ApiResponse<Role[]>>("/roles");
         return response.data.data;
     } catch (error) {
+        console.log(error)
         throw new Error("Failed to fetch roles");
     }
 };

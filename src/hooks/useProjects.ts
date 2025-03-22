@@ -1,4 +1,4 @@
-import { QueryKey, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import apiClient from "@/services/api-client";
 import { Project, CreateProjectInput, UpdateProjectInput } from "@/types/project";
 import { useProjectStore } from "@/store/projectStore";
@@ -19,6 +19,7 @@ const fetchProjects = async (): Promise<Project[]> => {
     const response = await apiClient.get<ApiResponse<Project[]>>("/projects");
     return response.data.data;
   } catch (error) {
+    console.log(error)
     throw new Error("Failed to fetch projects");
   }
 };

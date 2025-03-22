@@ -1,6 +1,6 @@
 // store/authStore.ts
 import { create } from "zustand";
-import { persist, PersistStorage, StorageValue } from "zustand/middleware";
+import { persist, PersistStorage } from "zustand/middleware";
 import { User } from "@/types/user";
 
 interface AuthStore {

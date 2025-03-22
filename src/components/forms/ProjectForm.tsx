@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useForm, Controller } from "react-hook-form";
-import { Plus, List, Info } from "lucide-react";
+import { Info } from "lucide-react";
 import Select from "react-select";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -36,7 +36,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
 
   const onSubmit = (data: CreateProjectInput) => {
     createProject(data, {
-      onSuccess: (project) => {
+      onSuccess: () => {
         toast.success("Project created successfully!");
         onClose(); // Close the modal on success
         window.location.reload(); // Reload the page

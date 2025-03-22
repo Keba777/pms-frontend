@@ -28,7 +28,16 @@ const TagsPage = () => {
       ID: "1",
       Title: "ee",
       Preview: <span className="badge bg-success">ee</span>,
-      Actions: "",
+      Actions: (
+        <button
+          onClick={() =>
+            handleEditTag({ id: "1", title: "ee", color: "success" })
+          }
+          className="text-blue-500 hover:underline"
+        >
+          Edit
+        </button>
+      ),
     },
   ];
 
@@ -39,10 +48,6 @@ const TagsPage = () => {
   const handleEditTag = (tag: { id: string; title: string; color: string }) => {
     setSelectedTag(tag);
     setIsEditModalOpen(true);
-  };
-
-  const handleDeleteTag = (id: string) => {
-    console.log("Delete tag with ID:", id);
   };
 
   return (
@@ -57,15 +62,12 @@ const TagsPage = () => {
         </button>
       </div>
 
-      {/* Table Toolbar */}
       <TableToolbar />
 
-      {/* Table */}
       <div className="bg-white rounded-lg shadow">
         <Table headers={tableHeaders} data={tableData} />
       </div>
 
-      {/* Create Tag Modal */}
       <Modal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
@@ -105,7 +107,6 @@ const TagsPage = () => {
         </form>
       </Modal>
 
-      {/* Edit Tag Modal */}
       <Modal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}

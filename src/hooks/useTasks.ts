@@ -1,4 +1,4 @@
-import { QueryKey, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import apiClient from "@/services/api-client";
 import { Task, CreateTaskInput, UpdateTaskInput } from "@/types/task";
 import { useTaskStore } from "@/store/taskStore";
@@ -19,6 +19,7 @@ const fetchTasks = async (): Promise<Task[]> => {
         const response = await apiClient.get<ApiResponse<Task[]>>("/tasks");
         return response.data.data;
     } catch (error) {
+        console.log(error)
         throw new Error("Failed to fetch tasks");
     }
 };

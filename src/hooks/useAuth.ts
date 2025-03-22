@@ -46,9 +46,14 @@ export const useLogin = () => {
       console.log("Login successful! User data:", data);
       login(data.user, data.token); // Store login info in the state
     },
-    onError: (error: any) => {
-      toast.error("Login failed");
-      console.error("Login error:", error);
+    onError: (error: unknown) => {
+      if (error instanceof Error) {
+        toast.error(`Login failed: ${error.message}`);
+        console.error("Login error:", error.message);
+      } else {
+        toast.error("An unknown error occurred");
+        console.error("Login error:", error);
+      }
     },
   });
 };

@@ -16,6 +16,7 @@ const fetchTags = async (): Promise<Tag[]> => {
         const response = await apiClient.get<ApiResponse<Tag[]>>("/tags");
         return response.data.data;
     } catch (error) {
+        console.log(error)
         throw new Error("Failed to fetch tags");
     }
 };

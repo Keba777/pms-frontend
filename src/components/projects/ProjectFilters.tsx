@@ -1,7 +1,13 @@
 "use client";
 
 import React, { useState } from "react";
-import Select, { MultiValue, OptionsOrGroups, GroupBase } from "react-select";
+import Select, {
+  MultiValue,
+  OptionsOrGroups,
+  GroupBase,
+  CSSObjectWithLabel,
+  StylesConfig,
+} from "react-select";
 import { Filter } from "lucide-react";
 
 interface TagOption {
@@ -10,12 +16,16 @@ interface TagOption {
 }
 
 interface ProjectFilterProps {
-  onFilterChange?: (filters: { status: string; sort: string; tags: TagOption[] }) => void;
+  onFilterChange?: (filters: {
+    status: string;
+    sort: string;
+    tags: TagOption[];
+  }) => void;
 }
 
 const ProjectFilter: React.FC<ProjectFilterProps> = ({ onFilterChange }) => {
-  const [status, setStatus] = useState("");
-  const [sort, setSort] = useState("");
+  const [status, setStatus] = useState<string>("");
+  const [sort, setSort] = useState<string>("");
   const [selectedTags, setSelectedTags] = useState<MultiValue<TagOption>>([]);
 
   const tagOptions: OptionsOrGroups<TagOption, GroupBase<TagOption>> = [
@@ -26,13 +36,23 @@ const ProjectFilter: React.FC<ProjectFilterProps> = ({ onFilterChange }) => {
   ];
 
   const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setStatus(e.target.value);
-    onFilterChange?.({ status: e.target.value, sort, tags: selectedTags as TagOption[] });
+    const newStatus = e.target.value;
+    setStatus(newStatus);
+    onFilterChange?.({
+      status: newStatus,
+      sort,
+      tags: selectedTags as TagOption[],
+    });
   };
 
   const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSort(e.target.value);
-    onFilterChange?.({ status, sort: e.target.value, tags: selectedTags as TagOption[] });
+    const newSort = e.target.value;
+    setSort(newSort);
+    onFilterChange?.({
+      status,
+      sort: newSort,
+      tags: selectedTags as TagOption[],
+    });
   };
 
   const handleTagsChange = (selected: MultiValue<TagOption>) => {
@@ -41,8 +61,8 @@ const ProjectFilter: React.FC<ProjectFilterProps> = ({ onFilterChange }) => {
   };
 
   // Custom styles for react-select to match Tailwind styling
-  const selectStyles = {
-    control: (provided: any, state: any) => ({
+  const selectStyles: StylesConfig<TagOption, true, GroupBase<TagOption>> = {
+    control: (provided: CSSObjectWithLabel, state) => ({
       ...provided,
       border: "1px solid #d1d5db", // Tailwind gray-300
       borderRadius: "0.25rem", // rounded
@@ -54,11 +74,11 @@ const ProjectFilter: React.FC<ProjectFilterProps> = ({ onFilterChange }) => {
         borderColor: "#93c5fd", // Tailwind blue-300
       },
     }),
-    placeholder: (provided: any) => ({
+    placeholder: (provided: CSSObjectWithLabel) => ({
       ...provided,
       color: "#6b7280", // Tailwind gray-500
     }),
-    menu: (provided: any) => ({
+    menu: (provided: CSSObjectWithLabel) => ({
       ...provided,
       zIndex: 9999,
     }),
@@ -75,6 +95,9 @@ const ProjectFilter: React.FC<ProjectFilterProps> = ({ onFilterChange }) => {
           onChange={handleStatusChange}
         >
           <option value="">Filter by Status</option>
+          <option value="active">Active</option>
+          <option value="completed">Completed</option>
+          <option value="pending">Pending</option>
         </select>
       </div>
 

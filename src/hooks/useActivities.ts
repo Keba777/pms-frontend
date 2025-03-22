@@ -1,6 +1,6 @@
 "use client";
 
-import { QueryKey, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import apiClient from "@/services/api-client";
 import { Activity, CreateActivityInput, UpdateActivityInput } from "@/types/activity";
 import { useActivityStore } from "@/store/activityStore";
@@ -21,6 +21,7 @@ const fetchActivities = async (): Promise<Activity[]> => {
     const response = await apiClient.get<ApiResponse<Activity[]>>("/activities");
     return response.data.data;
   } catch (error) {
+    console.log(error)
     throw new Error("Failed to fetch activities");
   }
 };

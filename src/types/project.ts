@@ -36,7 +36,7 @@ export interface CreateProjectInput {
 }
 
 export interface UpdateProjectInput {
-    id: any;
+    id?: string;
     title?: string;
     description?: string;
     priority?: 'Critical' | 'High' | 'Medium' | 'Low';

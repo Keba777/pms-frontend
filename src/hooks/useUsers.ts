@@ -26,6 +26,7 @@ const fetchUserById = async (id: string): Promise<User | null> => {
         const response = await apiClient.get<ApiResponse<User>>(`/users/${id}`);
         return response.data.data;
     } catch (error) {
+        console.log(error)
         throw new Error("Failed to fetch user");
     }
 };
@@ -57,7 +58,7 @@ export const useUsers = () => {
 
     useEffect(() => {
         if (query.data) {
-            setUsers(query.data); 
+            setUsers(query.data);
         }
     }, [query.data, setUsers]);
 

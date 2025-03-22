@@ -1,9 +1,13 @@
 import React from "react";
 import { Edit, Trash2 } from "lucide-react";
 
+interface TableRow {
+  [key: string]: string | number | React.ReactNode;
+}
+
 interface TableProps {
   headers: string[];
-  data: { [key: string]: any }[];
+  data: TableRow[];
 }
 
 const Table: React.FC<TableProps> = ({ headers, data }) => {
@@ -40,7 +44,7 @@ const Table: React.FC<TableProps> = ({ headers, data }) => {
                       </button>
                     </div>
                   ) : (
-                    row[header]
+                    (row[header] as string | number | React.ReactNode)
                   )}
                 </td>
               ))}
