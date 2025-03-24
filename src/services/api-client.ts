@@ -9,7 +9,7 @@ const getToken = () => {
 
 // Create your Axios instance with a base URL
 const apiClient = axios.create({
-  baseURL: "https://pms-backend-t25g.onrender.com/api/v1/",
+  baseURL: "http://pms-backend-t25g.onrender.com/api/v1/",
 });
 
 // Add a request interceptor
