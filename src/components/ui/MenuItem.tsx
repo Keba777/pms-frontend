@@ -1,10 +1,12 @@
-import React, { useState } from "react";
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { ChevronDown } from "lucide-react";
 import Link from "next/link";
 
 interface MenuItemProps {
   item: {
-    active?: boolean;
     submenu?: MenuItemProps["item"][];
     icon?: React.ComponentType<{ className?: string }>;
     link?: string;
@@ -15,9 +17,17 @@ interface MenuItemProps {
 }
 
 const MenuItem: React.FC<MenuItemProps> = ({ item }) => {
-  const [open, setOpen] = useState(item.active || false);
+  const pathname = usePathname();
+  const isActive = item.link ? pathname === item.link : false;
+  const [open, setOpen] = useState(false);
   const hasSubmenu = item.submenu && item.submenu.length > 0;
   const Icon = item.icon;
+
+  useEffect(() => {
+    if (isActive) {
+      setOpen(true); // Expand submenu if active
+    }
+  }, [isActive]);
 
   return (
     <li className="my-1">
@@ -29,8 +39,8 @@ const MenuItem: React.FC<MenuItemProps> = ({ item }) => {
             setOpen(!open);
           }
         }}
-        className={`flex items-center p-2 hover:bg-gray-100 rounded ${
-          item.active ? "bg-gray-200" : ""
+        className={`flex items-center p-2 rounded transition-colors ${
+          isActive ? "bg-gray-200 text-blue-600 font-semibold" : "hover:bg-gray-100"
         }`}
       >
         {Icon && <Icon className={`w-5 h-5 mr-2 ${item.iconColor}`} />}
