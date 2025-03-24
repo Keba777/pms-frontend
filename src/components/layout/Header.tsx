@@ -20,7 +20,11 @@ import { useRole } from "@/hooks/useRoles";
 const userAvatar =
   "https://raycon.oasismgmt2.com/storage/photos/VoJMiw0IUaj4sLv6KDNAMonMk8bS9hMbJ36igmnd.png";
 
-const Header = () => {
+interface HeaderProps {
+  toggleSidebar: () => void;
+}
+
+const Header = ({ toggleSidebar }: HeaderProps) => {
   const router = useRouter();
 
   // Get the full auth state, then memoize the values you need.
@@ -65,8 +69,7 @@ const Header = () => {
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () =>
-      document.removeEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   // Memoized list of languages
@@ -100,7 +103,7 @@ const Header = () => {
     <nav className="w-full bg-white/95 backdrop-blur-sm shadow-md rounded-md px-4 py-2">
       <div className="flex flex-col md:flex-row items-center md:justify-between w-full">
         <div className="flex items-center justify-between w-full md:w-auto">
-          <button className="p-2 md:hidden">
+          <button className="p-2 md:hidden" onClick={toggleSidebar}>
             <Menu className="w-6 h-6" />
           </button>
           <button className="p-2 md:hidden">

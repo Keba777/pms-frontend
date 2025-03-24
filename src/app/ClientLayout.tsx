@@ -20,6 +20,7 @@ export default function ClientLayout({
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const { user, _hasHydrated } = useAuthStore();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (!_hasHydrated) return;
@@ -54,9 +55,12 @@ export default function ClientLayout({
     <QueryClientProvider client={queryClient}>
       <ToastContainer />
       <div className="flex">
-        <Sidebar />
+        <Sidebar 
+        isOpen={isSidebarOpen}
+        toggleSidebar={() => setIsSidebarOpen(false)}
+        />
         <main className="flex-1 p-4 ml-0 lg:ml-64 overflow-x-hidden">
-          <Header />
+          <Header toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}/>
           {children}
         </main>
       </div>
