@@ -1,9 +1,14 @@
+"use client";
+
 import Filters from "@/components/master-schedule/Filters";
 import ProjectTable from "@/components/master-schedule/ProjectTable";
 import { Send, Wrench } from "lucide-react";
+import { useProjects } from "@/hooks/useProjects";
 import React from "react";
 
 const MasterSchedulePage = () => {
+  const { data: projects } = useProjects();
+
   return (
     <section className="pt-6">
       <h2 className="text-4xl font-bold mb-6">Master Schedule</h2>
@@ -17,7 +22,7 @@ const MasterSchedulePage = () => {
           Gantt Chart
         </button>
       </div>
-      <Filters />
+      <Filters projects={projects || []} />
       <ProjectTable />
     </section>
   );
