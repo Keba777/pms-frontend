@@ -44,8 +44,8 @@ const menuItems = [
     iconColor: "text-blue-500",
   },
   {
-    title: "Work Progress",
-    link: "/work-progress",
+    title: "Activities",
+    link: "/activities",
     icon: ClipboardList,
     iconColor: "text-blue-500",
   },

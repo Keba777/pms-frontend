@@ -4,7 +4,7 @@ import DataTableActivities from "@/components/activities/DataTableActivities";
 import Link from "next/link";
 import React from "react";
 
-const WorkProgressPage = () => {
+const ActivitiesPage = () => {
   return (
     <div>
       <div className="mb-5 mt-8">
@@ -16,14 +16,13 @@ const WorkProgressPage = () => {
               </Link>
             </li>
             <li className="text-gray-400">/</li>
-            <li className="text-gray-800">Work Progress</li>
+            <li className="text-gray-800">Activities</li>
           </ol>
         </nav>
       </div>
       <DataTableActivities />
-      {/* <WorkProgressPage/> */}
     </div>
-  );   
+  );
 };
 
-export default WorkProgressPage;
+export default ActivitiesPage;

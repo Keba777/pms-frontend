@@ -1,21 +1,48 @@
 "use client";
 
-import React, { useState } from "react";
-import { ChevronRight } from "lucide-react";
-import { useTaskStore } from "@/store/taskStore";
+import React, { useState, useRef, useEffect } from "react";
+import { ChevronRight, ChevronDown } from "lucide-react";
+import { useTask } from "@/hooks/useTasks";
 import { Activity } from "@/types/activity";
 import ActivityForm from "../forms/ActivityForm";
+import ConfirmModal from "../ui/ConfirmModal";
+import { useRouter } from "next/navigation";
+import { useDeleteActivity } from "@/hooks/useActivities";
 
 interface ActivityTableProps {
   taskId: string;
 }
 
 const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
-  // Fetch the full task details from the store using the task id.
-  const tasks = useTaskStore((state) => state.tasks);
-  const taskDetail = tasks.find((task) => task.id === taskId);
+  const { mutate: deleteActivity } = useDeleteActivity();
+
+  const { data: taskDetail } = useTask(taskId);
 
   const [showForm, setShowForm] = useState(false);
+  const [dropdownActivityId, setDropdownActivityId] = useState<string | null>(
+    null
+  );
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedActivityId, setSelectedActivityId] = useState<string | null>(
+    null
+  );
+  const router = useRouter();
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on click outside.
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setDropdownActivityId(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const formatDate = (date: Date | string | null | undefined): string => {
     if (!date) return "N/A";
@@ -36,6 +63,7 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
     const endDate = typeof end === "string" ? new Date(end) : end;
     if (isNaN(startDate.getTime()) || isNaN(endDate.getTime()))
       return "Invalid Date";
+
     let totalDays = Math.ceil(
       (endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24)
     );
@@ -51,11 +79,35 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
     return parts.join(", ");
   };
 
+  // Early return if task is not found.
   if (!taskDetail) return <div className="p-4">Task not found</div>;
 
-  const activities = taskDetail?.activities as Activity[];
-  const taskName = taskDetail?.task_name || "Unknown Task";
+  const activities = taskDetail.activities as Activity[];
+  const taskName = taskDetail.task_name || "Unknown Task";
   const totalActivities = activities?.length || 0;
+
+  const handleDeleteActivityClick = (activityId: string) => {
+    setSelectedActivityId(activityId);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleDeleteActivity = () => {
+    if (selectedActivityId) {
+      deleteActivity(selectedActivityId, {
+        onSuccess: () => {
+          // Optionally add success notification or refresh logic here
+        },
+        onError: () => {
+          // Optionally add error notification here
+        },
+      });
+      setIsDeleteModalOpen(false);
+    }
+  };
+
+  const handleViewActivity = (activityId: string) => {
+    router.push(`/activities/${activityId}`);
+  };
 
   return (
     <div className="p-4 bg-gray-50 border border-gray-200 rounded">
@@ -90,36 +142,36 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
       <table className="min-w-full border border-gray-200 divide-y divide-gray-200">
         <thead className="bg-emerald-700 text-gray-200">
           <tr>
-            <th className="border border-gray-200 px-4 py-2 text-left text-sm font-medium ">
+            <th className="border border-gray-200 px-4 py-2 text-left text-sm font-medium">
               No
             </th>
-            <th className="border border-gray-200 px-4 py-2 text-left text-sm font-medium ">
+            <th className="border border-gray-200 px-4 py-2 text-left text-sm font-medium">
               Activity
             </th>
-            <th className="border border-gray-200 px-4 py-2 text-left text-sm font-medium ">
+            <th className="border border-gray-200 px-4 py-2 text-left text-sm font-medium">
               Unit
             </th>
-            <th className="border border-gray-200 px-4 py-2 text-left text-sm font-medium ">
+            <th className="border border-gray-200 px-4 py-2 text-left text-sm font-medium">
               Start Date
             </th>
-            <th className="border border-gray-200 px-4 py-2 text-left text-sm font-medium ">
+            <th className="border border-gray-200 px-4 py-2 text-left text-sm font-medium">
               End Date
             </th>
-            <th className="border border-gray-200 px-4 py-2 text-left text-sm font-medium ">
+            <th className="border border-gray-200 px-4 py-2 text-left text-sm font-medium">
               Duration
             </th>
-            <th className="border border-gray-200 px-4 py-2 text-left text-sm font-medium ">
+            <th className="border border-gray-200 px-4 py-2 text-left text-sm font-medium">
               Resource
             </th>
-            <th className="border border-gray-200 px-4 py-2 text-left text-sm font-medium ">
-              Activity
+            <th className="border border-gray-200 px-4 py-2 text-left text-sm font-medium">
+              Actions
             </th>
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
           {activities && activities.length > 0 ? (
             activities.map((activity, index) => (
-              <tr key={activity.id} className="hover:bg-gray-50">
+              <tr key={activity.id} className="hover:bg-gray-50 relative">
                 <td className="border border-gray-200 px-4 py-2">
                   {index + 1}
                 </td>
@@ -147,9 +199,56 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
                   </a>
                 </td>
                 <td className="border border-gray-200 px-4 py-2">
-                  <button className="px-3 py-1 bg-emerald-700 text-white hover:bg-emerald-800 rounded">
-                    Manage
-                  </button>
+                  <div className="relative">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDropdownActivityId(
+                          dropdownActivityId === activity.id
+                            ? null
+                            : activity.id
+                        );
+                      }}
+                      className="flex items-center justify-between gap-1 px-3 py-1 bg-white text-emerald-700 border border-emerald-700 hover:bg-gray-100 rounded w-full"
+                    >
+                      <span>Actions</span>
+                      <ChevronDown className="w-4 h-4 ml-2" />
+                    </button>
+                    {dropdownActivityId === activity.id && (
+                      <div
+                        ref={dropdownRef}
+                        className="absolute left-0 top-full mt-1 w-full bg-white border border-gray-200 rounded shadow-lg z-50"
+                      >
+                        <button
+                          onClick={() => {
+                            setDropdownActivityId(null);
+                            handleViewActivity(activity.id);
+                          }}
+                          className="w-full text-left px-3 py-2 hover:bg-gray-100"
+                        >
+                          View
+                        </button>
+                        <button
+                          onClick={() => {
+                            setDropdownActivityId(null);
+                            // Implement edit functionality as needed
+                          }}
+                          className="w-full text-left px-3 py-2 hover:bg-gray-100"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => {
+                            setDropdownActivityId(null);
+                            handleDeleteActivityClick(activity.id);
+                          }}
+                          className="w-full text-left px-3 py-2 text-red-600 hover:bg-gray-100"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))
@@ -165,6 +264,19 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
           )}
         </tbody>
       </table>
+
+      {isDeleteModalOpen && (
+        <ConfirmModal
+          isVisible={isDeleteModalOpen}
+          title="Confirm Deletion"
+          message="Are you sure you want to delete this activity?"
+          showInput={true}
+          confirmText="DELETE"
+          confirmButtonText="Delete"
+          onClose={() => setIsDeleteModalOpen(false)}
+          onConfirm={handleDeleteActivity}
+        />
+      )}
     </div>
   );
 };

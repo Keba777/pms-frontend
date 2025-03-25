@@ -1,13 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation"; // Importing useRouter for navigation
+import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { useProjects } from "@/hooks/useProjects";
 import { Plus, ChevronDown } from "lucide-react";
 import React from "react";
-import TaskTable from "./TaskTable"; // Adjust the import path as needed
-import { useDeleteProject } from "@/hooks/useProjects"; // Import the hook to delete the project
+import TaskTable from "./TaskTable";
+import { useDeleteProject } from "@/hooks/useProjects";
 import ConfirmModal from "../ui/ConfirmModal";
+import { toast } from "react-toastify";
 
 const ProjectTable = () => {
   const { data: projects, isLoading, isError } = useProjects();
@@ -21,10 +22,26 @@ const ProjectTable = () => {
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
     null
   );
-  const router = useRouter(); // Initialize useRouter hook for navigation
+  const router = useRouter();
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Hook for deleting a project
   const { mutate: deleteProject } = useDeleteProject();
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setDropdownProjectId(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const formatDate = (date: Date | string | null | undefined): string => {
     if (!date) return "N/A";
@@ -61,15 +78,27 @@ const ProjectTable = () => {
     return parts.join(", ");
   };
 
+  const handleDeleteClick = (projectId: string) => {
+    const project = projects?.find((p) => p.id === projectId);
+    if (project?.tasks && project.tasks.length > 0) {
+      toast.error(
+        "Cannot delete project with tasks. Please delete all tasks first."
+      );
+      return;
+    }
+    setSelectedProjectId(projectId);
+    setIsDeleteModalOpen(true);
+  };
+
   const handleDelete = () => {
     if (selectedProjectId) {
-      deleteProject(selectedProjectId); // Call the mutation to delete the project
-      setIsDeleteModalOpen(false); // Close the modal after deletion
+      deleteProject(selectedProjectId);
+      setIsDeleteModalOpen(false);
     }
   };
 
   const handleView = (id: string) => {
-    router.push(`/projects/${id}`); // Redirect to project view page
+    router.push(`/projects/${id}`);
   };
 
   if (isLoading) return <div>Loading...</div>;
@@ -97,7 +126,7 @@ const ProjectTable = () => {
               <th className="border border-gray-200 pl-5 pr-7 py-3 text-left text-sm font-medium text-gray-50">
                 Duration
               </th>
-              <th className="border border-gray-200 pl-5 pr-7 py-3 text-left text-sm font-medium text-gray-50">
+              <th className="border border-gray-200 pl-5 pr-7 py-3 text-left text-sm font-medium text-gray-50 w-32">
                 Action
               </th>
               <th className="border border-gray-200 pl-5 pr-7 py-3 text-left text-sm font-medium text-gray-50">
@@ -139,35 +168,45 @@ const ProjectTable = () => {
                     <td className="border border-gray-200 pl-5 pr-7 py-2">
                       {getDuration(project.start_date, project.end_date)}
                     </td>
-                    <td className="border border-gray-200 pl-5 pr-7 py-2 relative">
+                    <td className="border border-gray-200 pl-5 pr-7 py-2 relative w-32">
                       <button
-                        onClick={() =>
+                        onClick={(e) => {
+                          e.stopPropagation();
                           setDropdownProjectId(
                             dropdownProjectId === project.id ? null : project.id
-                          )
-                        }
-                        className="flex items-center justify-between gap-1 px-3 py-1 bg-cyan-700 text-gray-200 hover:text-cyan-700 hover:bg-gray-200 rounded w-full"
+                          );
+                        }}
+                        className="flex items-center justify-between gap-1 px-3 py-1 bg-white text-cyan-700 border border-cyan-700 hover:bg-gray-100 rounded w-full"
                       >
                         <span>Actions</span>
                         <ChevronDown className="w-4 h-4 ml-2" />
                       </button>
                       {dropdownProjectId === project.id && (
-                        <div className="absolute right-0 mt-1 w-28 bg-white border border-gray-200 rounded shadow-lg z-10">
+                        <div
+                          ref={dropdownRef}
+                          className="absolute left-0 top-0 mt-8 w-full bg-white border border-gray-200 rounded shadow-lg z-50"
+                        >
                           <button
-                            onClick={() => handleView(project.id)} // On click, navigate to the view page
+                            onClick={() => {
+                              setDropdownProjectId(null);
+                              handleView(project.id);
+                            }}
                             className="w-full text-left px-3 py-2 hover:bg-gray-100"
                           >
                             View
                           </button>
-                          <button className="w-full text-left px-3 py-2 hover:bg-gray-100">
+                          <button
+                            onClick={() => setDropdownProjectId(null)}
+                            className="w-full text-left px-3 py-2 hover:bg-gray-100"
+                          >
                             Edit
                           </button>
                           <button
                             onClick={() => {
-                              setSelectedProjectId(project.id);
-                              setIsDeleteModalOpen(true); // Open confirmation modal
+                              setDropdownProjectId(null);
+                              handleDeleteClick(project.id);
                             }}
-                            className="w-full text-left px-3 py-2 hover:bg-gray-100"
+                            className="w-full text-left px-3 py-2 text-red-600 hover:bg-gray-100"
                           >
                             Delete
                           </button>
@@ -210,14 +249,13 @@ const ProjectTable = () => {
         </table>
       </div>
 
-      {/* Confirmation Modal */}
       {isDeleteModalOpen && (
         <ConfirmModal
           isVisible={isDeleteModalOpen}
           title="Confirm Deletion"
           message="Are you sure you want to delete this project?"
-          showInput={false} // Set to true if you want an input field for confirmation
-          confirmText="DELETE" // Used when showInput is true
+          showInput={true}
+          confirmText="DELETE"
           confirmButtonText="Delete"
           onClose={() => setIsDeleteModalOpen(false)}
           onConfirm={handleDelete}

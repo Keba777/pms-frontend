@@ -7,7 +7,7 @@ import { useActivities } from "@/hooks/useActivities";
 
 const DataTableActivities = () => {
   const { data: activities, isLoading, error, refetch } = useActivities();
-
+ 
   if (isLoading) {
     return <div>Loading activities...</div>;
   }

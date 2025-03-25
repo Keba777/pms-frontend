@@ -19,7 +19,7 @@ const Sidebar = ({
       id="layout-menu"
       className={`${
         isOpen ? "fixed top-0 bottom-0 z-50" : "hidden"
-      } lg:fixed lg:top-0 lg:bottom-0 lg:left-0 lg:block lg:w-64 bg-white text-gray-700 shadow-md transition-all duration-300 overflow-y-auto`}
+      } lg:fixed lg:top-0 lg:bottom-0 lg:left-0 lg:block lg:w-64 font-medium bg-white  shadow-md transition-all duration-300 overflow-y-auto`}
     >
       <button
         onClick={toggleSidebar}
