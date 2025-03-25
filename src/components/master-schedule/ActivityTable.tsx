@@ -1,17 +1,21 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { ChevronRight } from "lucide-react";
-import { useTask } from "@/hooks/useTasks";
+import { useTaskStore } from "@/store/taskStore";
 import { Activity } from "@/types/activity";
+import ActivityForm from "../forms/ActivityForm";
 
 interface ActivityTableProps {
   taskId: string;
 }
 
 const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
-  // Fetch the full task details (including activities) using the task id.
-  const { data: taskDetail, isLoading, isError } = useTask(taskId);
+  // Fetch the full task details from the store using the task id.
+  const tasks = useTaskStore((state) => state.tasks);
+  const taskDetail = tasks.find((task) => task.id === taskId);
+
+  const [showForm, setShowForm] = useState(false);
 
   const formatDate = (date: Date | string | null | undefined): string => {
     if (!date) return "N/A";
@@ -47,8 +51,7 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
     return parts.join(", ");
   };
 
-  if (isLoading) return <div className="p-4">Loading activities...</div>;
-  if (isError) return <div className="p-4">Error loading activities</div>;
+  if (!taskDetail) return <div className="p-4">Task not found</div>;
 
   const activities = taskDetail?.activities as Activity[];
   const taskName = taskDetail?.task_name || "Unknown Task";
@@ -65,9 +68,23 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
           Total Activities:{" "}
           <span className="font-normal ml-1">{totalActivities}</span>
         </div>
-        <button className="px-4 py-2 bg-emerald-700 text-white rounded hover:bg-emerald-700">
+        <button
+          onClick={() => setShowForm(true)}
+          className="px-4 py-2 bg-emerald-700 text-white rounded hover:bg-emerald-700"
+        >
           Create Activity
         </button>
+
+        {showForm && (
+          <div className="modal-overlay fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+            <div className="modal-content bg-white rounded-lg shadow-xl p-6">
+              <ActivityForm
+                onClose={() => setShowForm(false)}
+                defaultTaskId={taskId}
+              />
+            </div>
+          </div>
+        )}
       </div>
       {/* Activity Table */}
       <table className="min-w-full border border-gray-200 divide-y divide-gray-200">

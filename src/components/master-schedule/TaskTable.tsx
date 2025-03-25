@@ -4,14 +4,21 @@ import React, { useState } from "react";
 import { Plus } from "lucide-react";
 import ActivityTable from "./ActivityTable";
 import { Task } from "@/types/task";
+import TaskForm from "../forms/TaskForm";
 
 interface TaskTableProps {
   tasks: Task[];
   projectTitle?: string;
+  projectId?: string;
 }
 
-const TaskTable: React.FC<TaskTableProps> = ({ tasks, projectTitle }) => {
+const TaskTable: React.FC<TaskTableProps> = ({
+  tasks,
+  projectTitle,
+  projectId,
+}) => {
   const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
+  const [showForm, setShowForm] = useState(false);
 
   const formatDate = (date: Date | string | null | undefined): string => {
     if (!date) return "N/A";
@@ -65,9 +72,22 @@ const TaskTable: React.FC<TaskTableProps> = ({ tasks, projectTitle }) => {
               {tasks.length}
             </span>
           </div>
-          <button className="px-4 py-2 bg-teal-700 text-white rounded hover:bg-teal-800">
+          <button
+            onClick={() => setShowForm(true)}
+            className="px-4 py-2 bg-teal-700 text-white rounded hover:bg-teal-800"
+          >
             Create Task
           </button>
+        </div>
+      )}
+      {showForm && (
+        <div className="modal-overlay fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="modal-content bg-white rounded-lg shadow-xl p-6">
+            <TaskForm
+              onClose={() => setShowForm(false)}
+              defaultProjectId={projectId}
+            />
+          </div>
         </div>
       )}
       <div className="overflow-x-auto">

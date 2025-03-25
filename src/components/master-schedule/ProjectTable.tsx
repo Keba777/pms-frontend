@@ -189,6 +189,7 @@ const ProjectTable = () => {
                         <TaskTable
                           tasks={project.tasks || []}
                           projectTitle={project.title}
+                          projectId={project.id}
                         />
                       </td>
                     </tr>
