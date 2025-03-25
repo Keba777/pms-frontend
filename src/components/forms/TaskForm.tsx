@@ -12,15 +12,20 @@ import { toast } from "react-toastify";
 
 interface TaskFormProps {
   onClose: () => void; // Function to close the modal
+  defaultProjectId?: string; // Optional default project ID
 }
 
-const TaskForm: React.FC<TaskFormProps> = ({ onClose }) => {
+const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
   const {
     register,
     handleSubmit,
     control,
     formState: { errors },
-  } = useForm<CreateTaskInput>();
+  } = useForm<CreateTaskInput>({
+    defaultValues: {
+      project_id: defaultProjectId || undefined,
+    },
+  });
 
   const { mutate: createTask, isPending } = useCreateTask();
   const {
@@ -30,7 +35,12 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose }) => {
   } = useProjects();
 
   const onSubmit = (data: CreateTaskInput) => {
-    createTask(data, {
+    // If defaultProjectId is provided, use it regardless of form selection
+    const submitData = defaultProjectId
+      ? { ...data, project_id: defaultProjectId }
+      : data;
+
+    createTask(submitData, {
       onSuccess: () => {
         toast.success("Task created successfully!");
         onClose(); // Close the modal on success
@@ -39,7 +49,7 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose }) => {
     });
   };
 
-  // Options for status and priority (same as in your ProjectForm)
+  // Options for status and priority
   const statusOptions = [
     {
       value: "Not Started",
@@ -113,9 +123,9 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose }) => {
         <button
           type="button"
           className="text-gray-500 hover:text-gray-700"
-          onClick={onClose} // Close the modal
+          onClick={onClose}
         >
-          &times; {/* Close icon */}
+          &times;
         </button>
       </div>
 
@@ -151,35 +161,40 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose }) => {
           />
         </div>
 
-        {/* Project Select */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Select Project <span className="text-red-500">*</span>
-          </label>
-          <Controller
-            name="project_id"
-            control={control}
-            rules={{ required: "Project is required" }}
-            render={({ field }) => (
-              <Select
-                {...field}
-                options={projectOptions}
-                isLoading={projectsLoading}
-                className="basic-single"
-                classNamePrefix="select"
-                onChange={(selectedOption) =>
-                  field.onChange(selectedOption?.value)
-                }
-                value={projectOptions.find(
-                  (option) => option.value === field.value
-                )}
-              />
+        {/* Project Select - Only show if no defaultProjectId provided */}
+        {!defaultProjectId && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Select Project (optional)
+            </label>
+            <Controller
+              name="project_id"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  {...field}
+                  options={projectOptions}
+                  isLoading={projectsLoading}
+                  className="basic-single"
+                  classNamePrefix="select"
+                  onChange={(selectedOption) =>
+                    field.onChange(selectedOption?.value)
+                  }
+                  value={projectOptions.find(
+                    (option) => option.value === field.value
+                  )}
+                  isClearable
+                  placeholder="Select a project (optional)"
+                />
+              )}
+            />
+            {projectsError && (
+              <p className="text-red-500 text-sm mt-1">
+                Error loading projects
+              </p>
             )}
-          />
-          {projectsError && (
-            <p className="text-red-500 text-sm mt-1">Error loading projects</p>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Status and Priority Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

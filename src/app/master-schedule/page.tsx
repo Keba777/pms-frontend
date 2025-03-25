@@ -3,11 +3,11 @@
 import Filters from "@/components/master-schedule/Filters";
 import ProjectTable from "@/components/master-schedule/ProjectTable";
 import { Send, Wrench } from "lucide-react";
-import { useProjects } from "@/hooks/useProjects";
+import { useProjectStore } from "@/store/projectStore";
 import React from "react";
 
 const MasterSchedulePage = () => {
-  const { data: projects } = useProjects();
+  const { projects } = useProjectStore();
 
   return (
     <section className="pt-6">

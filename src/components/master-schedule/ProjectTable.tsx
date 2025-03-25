@@ -1,10 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation"; // Importing useRouter for navigation
 import { useProjects } from "@/hooks/useProjects";
 import { Plus, ChevronDown } from "lucide-react";
 import React from "react";
 import TaskTable from "./TaskTable"; // Adjust the import path as needed
+import { useDeleteProject } from "@/hooks/useProjects"; // Import the hook to delete the project
+import ConfirmModal from "../ui/ConfirmModal";
 
 const ProjectTable = () => {
   const { data: projects, isLoading, isError } = useProjects();
@@ -14,6 +17,14 @@ const ProjectTable = () => {
   const [dropdownProjectId, setDropdownProjectId] = useState<string | null>(
     null
   );
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
+    null
+  );
+  const router = useRouter(); // Initialize useRouter hook for navigation
+
+  // Hook for deleting a project
+  const { mutate: deleteProject } = useDeleteProject();
 
   const formatDate = (date: Date | string | null | undefined): string => {
     if (!date) return "N/A";
@@ -50,6 +61,17 @@ const ProjectTable = () => {
     return parts.join(", ");
   };
 
+  const handleDelete = () => {
+    if (selectedProjectId) {
+      deleteProject(selectedProjectId); // Call the mutation to delete the project
+      setIsDeleteModalOpen(false); // Close the modal after deletion
+    }
+  };
+
+  const handleView = (id: string) => {
+    router.push(`/projects/${id}`); // Redirect to project view page
+  };
+
   if (isLoading) return <div>Loading...</div>;
   if (isError) return <div>Error loading projects</div>;
 
@@ -76,10 +98,10 @@ const ProjectTable = () => {
                 Duration
               </th>
               <th className="border border-gray-200 pl-5 pr-7 py-3 text-left text-sm font-medium text-gray-50">
-                Status
+                Action
               </th>
               <th className="border border-gray-200 pl-5 pr-7 py-3 text-left text-sm font-medium text-gray-50">
-                Action
+                Status
               </th>
             </tr>
           </thead>
@@ -117,11 +139,6 @@ const ProjectTable = () => {
                     <td className="border border-gray-200 pl-5 pr-7 py-2">
                       {getDuration(project.start_date, project.end_date)}
                     </td>
-                    <td className="border border-gray-200 pl-5 pr-7 py-2">
-                      <span className="badge bg-label-secondary">
-                        {project.status}
-                      </span>
-                    </td>
                     <td className="border border-gray-200 pl-5 pr-7 py-2 relative">
                       <button
                         onClick={() =>
@@ -136,17 +153,31 @@ const ProjectTable = () => {
                       </button>
                       {dropdownProjectId === project.id && (
                         <div className="absolute right-0 mt-1 w-28 bg-white border border-gray-200 rounded shadow-lg z-10">
-                          <button className="w-full text-left px-3 py-2 hover:bg-gray-100">
+                          <button
+                            onClick={() => handleView(project.id)} // On click, navigate to the view page
+                            className="w-full text-left px-3 py-2 hover:bg-gray-100"
+                          >
                             View
                           </button>
                           <button className="w-full text-left px-3 py-2 hover:bg-gray-100">
                             Edit
                           </button>
-                          <button className="w-full text-left px-3 py-2 hover:bg-gray-100">
+                          <button
+                            onClick={() => {
+                              setSelectedProjectId(project.id);
+                              setIsDeleteModalOpen(true); // Open confirmation modal
+                            }}
+                            className="w-full text-left px-3 py-2 hover:bg-gray-100"
+                          >
                             Delete
                           </button>
                         </div>
                       )}
+                    </td>
+                    <td className="border border-gray-200 pl-5 pr-7 py-2">
+                      <span className="badge bg-label-secondary">
+                        {project.status}
+                      </span>
                     </td>
                   </tr>
                   {expandedProjectId === project.id && (
@@ -177,6 +208,20 @@ const ProjectTable = () => {
           </tbody>
         </table>
       </div>
+
+      {/* Confirmation Modal */}
+      {isDeleteModalOpen && (
+        <ConfirmModal
+          isVisible={isDeleteModalOpen}
+          title="Confirm Deletion"
+          message="Are you sure you want to delete this project?"
+          showInput={false} // Set to true if you want an input field for confirmation
+          confirmText="DELETE" // Used when showInput is true
+          confirmButtonText="Delete"
+          onClose={() => setIsDeleteModalOpen(false)}
+          onConfirm={handleDelete}
+        />
+      )}
     </div>
   );
 };
