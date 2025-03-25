@@ -1,11 +1,13 @@
-// DataTable.tsx
 import { Menu, MenuButton, MenuItems, MenuItem } from "@headlessui/react";
 import { ChevronDown, RefreshCw, Trash2, Search } from "lucide-react";
 import React from "react";
-import { useTasks } from "@/hooks/useTasks"; 
+import { useTaskStore } from "@/store/taskStore";
+import Link from "next/link";
 
 const DataTable = () => {
-  const { data: tasks, isLoading, error, refetch } = useTasks();
+  const tasks = useTaskStore((state) => state.tasks);
+  const isLoading = !tasks; // Check if tasks are loaded
+  const error = !tasks ? "Error fetching tasks." : null;
 
   if (isLoading) {
     return <div>Loading tasks...</div>;
@@ -54,7 +56,7 @@ const DataTable = () => {
 
           <Menu>
             <MenuButton className="flex text-gray-100 items-center gap-16 px-4 py-3 bg-bs-gray-dark rounded">
-              <button onClick={() => refetch()} className="rounded">
+              <button onClick={() => console.log("Fetch")} className="rounded">
                 <RefreshCw size={14} />
               </button>
               <ChevronDown size={14} />
@@ -141,12 +143,12 @@ const DataTable = () => {
                     />
                   </td>
                   <td className="px-4 py-2 whitespace-nowrap">
-                    <a
-                      href="#"
+                    <Link
+                      href={`/tasks/${task.id}`}
                       className="text-bs-primary hover:underline font-medium"
                     >
                       {task.task_name}
-                    </a>
+                    </Link>
                   </td>
                   <td className="px-4 py-2 whitespace-nowrap">
                     <span
