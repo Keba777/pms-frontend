@@ -148,19 +148,6 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
           )}
         </div>
 
-        {/* Description */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Description
-          </label>
-          <textarea
-            {...register("description")}
-            placeholder="Enter Task Description"
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-            rows={4}
-          />
-        </div>
-
         {/* Project Select - Only show if no defaultProjectId provided */}
         {!defaultProjectId && (
           <div>

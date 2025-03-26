@@ -1,9 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { useProjects } from "@/hooks/useProjects";
-import React from "react";
+import { useUser } from "@/hooks/useUsers"; // Hook to fetch user by ID
 import { FaEdit, FaTrash, FaEye } from "react-icons/fa";
+
+// Component to display a single member's name using the useUser hook
+const MemberDisplay: React.FC<{ userId: string }> = ({ userId }) => {
+  const { data: user, isLoading, isError } = useUser(userId);
+
+  if (isLoading) return <span>Loading...</span>;
+  if (isError || !user) return <span>Error</span>;
+
+  return <span>{user.first_name}</span>;
+};
 
 const ProjectSection = () => {
   const { data: projects, isLoading, isError } = useProjects();
@@ -78,7 +88,16 @@ const ProjectSection = () => {
                     {project.title}
                   </td>
                   <td className="border border-gray-200 px-4 py-2">
-                    {project.members?.join(", ") || "N/A"}
+                    {project.members && project.members.length
+                      ? project.members.map((memberId, idx) => (
+                          <span key={memberId}>
+                            <MemberDisplay userId={memberId} />
+                            {project.members &&
+                              idx < project.members.length - 1 &&
+                              ", "}
+                          </span>
+                        ))
+                      : "N/A"}
                   </td>
                   <td className="border border-gray-200 px-4 py-2">
                     {project.client}

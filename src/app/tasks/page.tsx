@@ -30,7 +30,7 @@ const TasksPage = () => {
   if (isLoading) return <div>Loading tasks...</div>;
   if (isError) return <div>Failed to load tasks.</div>;
 
-  return (
+  return ( 
     <div className="mx-auto max-w-full px-4">
       {/* Breadcrumb and Stats Cards */}
       <BreadcrumbTasks onPlusClick={() => setShowForm(true)} />

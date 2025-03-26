@@ -6,12 +6,18 @@ import { useProjects } from "@/hooks/useProjects";
 import { Plus, ChevronDown } from "lucide-react";
 import React from "react";
 import TaskTable from "./TaskTable";
-import { useDeleteProject } from "@/hooks/useProjects";
+import { useDeleteProject, useUpdateProject } from "@/hooks/useProjects";
 import ConfirmModal from "../ui/ConfirmModal";
 import { toast } from "react-toastify";
+import EditProjectForm from "../forms/EditProjectForm";
+import { UpdateProjectInput } from "@/types/project";
+import { useUsers } from "@/hooks/useUsers";
+import { useTags } from "@/hooks/useTags";
 
 const ProjectTable = () => {
   const { data: projects, isLoading, isError } = useProjects();
+  const {data: users} = useUsers();
+  const {data: tags} = useTags();
   const [expandedProjectId, setExpandedProjectId] = useState<string | null>(
     null
   );
@@ -22,10 +28,15 @@ const ProjectTable = () => {
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
     null
   );
+  const [showForm, setShowForm] = useState(false);
+  const [projectToEdit, setProjectToEdit] = useState<UpdateProjectInput | null>(
+    null
+  );
   const router = useRouter();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const { mutate: deleteProject } = useDeleteProject();
+  const { mutate: updateProject } = useUpdateProject();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -99,6 +110,11 @@ const ProjectTable = () => {
 
   const handleView = (id: string) => {
     router.push(`/projects/${id}`);
+  };
+
+  const handleEditSubmit = (data: UpdateProjectInput) => {
+    updateProject(data);
+    setShowForm(false);
   };
 
   if (isLoading) return <div>Loading...</div>;
@@ -196,7 +212,11 @@ const ProjectTable = () => {
                             View
                           </button>
                           <button
-                            onClick={() => setDropdownProjectId(null)}
+                            onClick={() => {
+                              setDropdownProjectId(null);
+                              setProjectToEdit(project);
+                              setShowForm(true);
+                            }}
                             className="w-full text-left px-3 py-2 hover:bg-gray-100"
                           >
                             Edit
@@ -210,6 +230,19 @@ const ProjectTable = () => {
                           >
                             Delete
                           </button>
+                        </div>
+                      )}
+                      {showForm && projectToEdit && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-opacity-6 backdrop-blur-xs overflow-auto">
+                          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-xl m-4 mt-12 max-h-[90vh] overflow-y-auto">
+                            <EditProjectForm
+                              onClose={() => setShowForm(false)}
+                              onSubmit={handleEditSubmit}
+                              project={projectToEdit}
+                              users={users} 
+                              tags={tags} 
+                            />
+                          </div>
                         </div>
                       )}
                     </td>

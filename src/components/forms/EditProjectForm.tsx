@@ -6,105 +6,58 @@ import { Info } from "lucide-react";
 import Select from "react-select";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { CreateProjectInput } from "@/types/project";
-import { useCreateProject } from "@/hooks/useProjects";
-import { toast } from "react-toastify";
-import { useUsers } from "@/hooks/useUsers";
+import { UpdateProjectInput } from "@/types/project";
 import { User } from "@/types/user";
-import { useTags } from "@/hooks/useTags";
 import { Tag } from "@/types/tag";
 
-interface ProjectFormProps {
-  onClose: () => void; // Function to close the modal
+interface EditProjectFormProps {
+  onSubmit: (data: UpdateProjectInput) => void;
+  onClose: () => void;
+  project: UpdateProjectInput;
+  users: User[] | undefined;
+  tags: Tag[] | undefined;
 }
 
-const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
+const EditProjectForm: React.FC<EditProjectFormProps> = ({
+  onSubmit,
+  onClose,
+  project,
+  users,
+  tags,
+}) => {
   const {
     register,
     handleSubmit,
     control,
     formState: { errors },
-  } = useForm<CreateProjectInput>();
+  } = useForm<UpdateProjectInput>({
+    defaultValues: project,
+  });
 
-  const { mutate: createProject, isPending } = useCreateProject();
-  const {
-    data: users,
-    isLoading: usersLoading,
-    error: usersError,
-  } = useUsers();
-  const { data: tags, isLoading: tagsLoading, error: tagsError } = useTags();
-
-  const onSubmit = (data: CreateProjectInput) => {
-    createProject(data, {
-      onSuccess: () => {
-        toast.success("Project created successfully!");
-        onClose(); // Close the modal on success
-        window.location.reload(); // Reload the page
-      },
-    }); // Call the mutation to create the project
-  };
-
-  // Options for dropdowns
   const statusOptions = [
-    {
-      value: "Not Started",
-      label: "Not Started",
-      className: "bg-bs-dark-100 text-bs-dark",
-    },
-    {
-      value: "Started",
-      label: "Started",
-      className: "bg-bs-danger-100 text-bs-danger",
-    },
-    {
-      value: "InProgress",
-      label: "In Progress",
-      className: "bg-bs-secondary-100 text-bs-secondary",
-    },
-    {
-      value: "Canceled",
-      label: "Canceled",
-      className: "bg-bs-danger-100 text-bs-danger",
-    },
-    {
-      value: "Onhold",
-      label: "Onhold",
-      className: "bg-bs-warning-100 text-bs-warning",
-    },
-    {
-      value: "Completed",
-      label: "Completed",
-      className: "bg-bs-success-100 text-bs-success",
-    },
+    { value: "Not Started", label: "Not Started" },
+    { value: "Started", label: "Started" },
+    { value: "InProgress", label: "In Progress" },
+    { value: "Canceled", label: "Canceled" },
+    { value: "Onhold", label: "Onhold" },
+    { value: "Completed", label: "Completed" },
   ];
 
   const priorityOptions = [
-    {
-      value: "Critical",
-      label: "Critical",
-      className: "bg-bs-danger-100 text-bs-danger",
-    },
-    { value: "High", label: "High", className: "bg-bs-info-100 text-bs-info" },
-    {
-      value: "Medium",
-      label: "Medium",
-      className: "bg-bs-dark-100 text-bs-dark",
-    },
-    {
-      value: "Low",
-      label: "Low",
-      className: "bg-bs-warning-100 text-bs-warning",
-    },
+    { value: "Critical", label: "Critical" },
+    { value: "High", label: "High" },
+    { value: "Medium", label: "Medium" },
+    { value: "Low", label: "Low" },
   ];
 
   const memberOptions =
-    users?.map((user: User) => ({
+    users?.map((user) => ({
       value: user.id!,
       label: `${user.first_name} ${user.last_name}`,
     })) || [];
 
   const tagOptions =
-    tags?.map((tag: Tag) => ({
+    tags?.map((tag) => ({
       value: tag.id!,
       label: tag.name,
     })) || [];
@@ -115,13 +68,13 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
       className="bg-white rounded-lg shadow-xl p-6 space-y-6"
     >
       <div className="flex justify-between items-center pb-4 border-b">
-        <h3 className="text-lg font-semibold text-gray-800">Create Project</h3>
+        <h3 className="text-lg font-semibold text-gray-800">Edit Project</h3>
         <button
           type="button"
           className="text-gray-500 hover:text-gray-700"
-          onClick={onClose} // Close the modal
+          onClick={onClose}
         >
-          &times; {/* Close icon */}
+          &times;
         </button>
       </div>
 
@@ -134,7 +87,6 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
           <input
             type="text"
             {...register("title", { required: "Title is required" })}
-            placeholder="Please Enter Title"
             className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
           />
           {errors.title && (
@@ -142,8 +94,8 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
           )}
         </div>
 
-        {/* Status and Priority Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Status, Priority, and Favourite */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Status <span className="text-red-500">*</span>
@@ -195,9 +147,20 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
               )}
             />
           </div>
+
+          <div className="flex items-center mt-5">
+            <label className="flex items-center text-sm font-medium text-gray-700">
+              <input
+                type="checkbox"
+                {...register("isFavourite")}
+                className="h-4 w-4 text-bs-primary focus:ring-bs-primary border-gray-300 rounded mr-2"
+              />
+              Favourite
+            </label>
+          </div>
         </div>
 
-        {/* Budget and Dates Section */}
+        {/* Budget, Progress, and Dates */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -210,7 +173,6 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
               <input
                 type="number"
                 {...register("budget", { required: "Budget is required" })}
-                placeholder="Please Enter Budget"
                 className="flex-1 px-3 py-2 border rounded-r-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
               />
             </div>
@@ -219,6 +181,19 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
                 {errors.budget.message}
               </p>
             )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Progress (%)
+            </label>
+            <input
+              type="number"
+              min="0"
+              max="100"
+              {...register("progress")}
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+            />
           </div>
 
           <div>
@@ -277,7 +252,6 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
             <input
               type="text"
               {...register("client", { required: "Client is required" })}
-              placeholder="Enter Client Name"
               className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
             />
             {errors.client && (
@@ -295,7 +269,6 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
             <input
               type="text"
               {...register("site", { required: "Site is required" })}
-              placeholder="Enter Site Name"
               className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
             />
             {errors.site && (
@@ -307,7 +280,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
         {/* Members Section */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Assigned to
+            Select Members
           </label>
           <Controller
             name="members"
@@ -316,24 +289,20 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
               <Select
                 isMulti
                 options={memberOptions}
-                isLoading={usersLoading}
                 className="basic-multi-select"
                 classNamePrefix="select"
                 onChange={(selectedOptions) =>
                   field.onChange(selectedOptions.map((option) => option.value))
                 }
-                value={memberOptions.filter(
-                  (option: { value: string; label: string }) =>
-                    field.value?.includes(option.value)
+                value={memberOptions.filter((option) =>
+                  field.value?.includes(option.value)
                 )}
               />
             )}
           />
-          {usersError && (
-            <p className="text-red-500 text-sm mt-1">Error loading users</p>
-          )}
         </div>
 
+        {/* Tags Section */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Select Tags
@@ -345,7 +314,6 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
               <Select
                 isMulti
                 options={tagOptions}
-                isLoading={tagsLoading}
                 className="basic-multi-select"
                 classNamePrefix="select"
                 onChange={(selectedOptions) =>
@@ -357,9 +325,6 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
               />
             )}
           />
-          {tagsError && (
-            <p className="text-red-500 text-sm mt-1">Error loading tags</p>
-          )}
         </div>
 
         {/* Description */}
@@ -371,7 +336,6 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
             {...register("description", {
               required: "Description is required",
             })}
-            placeholder="Please Enter Description"
             className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
             rows={5}
           />
@@ -387,16 +351,15 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
           <button
             type="button"
             className="px-4 py-2 border rounded-md hover:bg-gray-50"
-            onClick={onClose} // Close the modal
+            onClick={onClose}
           >
             Close
           </button>
           <button
             type="submit"
             className="px-4 py-2 bg-bs-primary text-white rounded-md hover:bg-bs-primary"
-            disabled={isPending}
           >
-            {isPending ? "Creating..." : "Create"}
+            Update
           </button>
         </div>
       </div>
@@ -404,4 +367,4 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
   );
 };
 
-export default ProjectForm;
+export default EditProjectForm;

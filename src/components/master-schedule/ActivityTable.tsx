@@ -3,11 +3,12 @@
 import React, { useState, useRef, useEffect } from "react";
 import { ChevronRight, ChevronDown } from "lucide-react";
 import { useTask } from "@/hooks/useTasks";
-import { Activity } from "@/types/activity";
+import { Activity, UpdateActivityInput } from "@/types/activity";
 import ActivityForm from "../forms/ActivityForm";
+import EditActivityForm from "../forms/EditActivityForm";
 import ConfirmModal from "../ui/ConfirmModal";
 import { useRouter } from "next/navigation";
-import { useDeleteActivity } from "@/hooks/useActivities";
+import { useDeleteActivity, useUpdateActivity } from "@/hooks/useActivities";
 
 interface ActivityTableProps {
   taskId: string;
@@ -15,10 +16,13 @@ interface ActivityTableProps {
 
 const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
   const { mutate: deleteActivity } = useDeleteActivity();
-
+  const { mutate: updateActivity } = useUpdateActivity();
   const { data: taskDetail } = useTask(taskId);
 
   const [showForm, setShowForm] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [activityToEdit, setActivityToEdit] =
+    useState<UpdateActivityInput | null>(null);
   const [dropdownActivityId, setDropdownActivityId] = useState<string | null>(
     null
   );
@@ -109,6 +113,11 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
     router.push(`/activities/${activityId}`);
   };
 
+  const handleEditSubmit = (data: UpdateActivityInput) => {
+    updateActivity(data);
+    setShowEditForm(false);
+  };
+
   return (
     <div className="p-4 bg-gray-50 border border-gray-200 rounded">
       {/* Header for Activities */}
@@ -126,18 +135,33 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
         >
           Create Activity
         </button>
-
-        {showForm && (
-          <div className="modal-overlay fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-            <div className="modal-content bg-white rounded-lg shadow-xl p-6">
-              <ActivityForm
-                onClose={() => setShowForm(false)}
-                defaultTaskId={taskId}
-              />
-            </div>
-          </div>
-        )}
       </div>
+
+      {/* Create Activity Modal */}
+      {showForm && (
+        <div className="modal-overlay fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="modal-content bg-white rounded-lg shadow-xl p-6">
+            <ActivityForm
+              onClose={() => setShowForm(false)}
+              defaultTaskId={taskId}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Edit Activity Modal */}
+      {showEditForm && activityToEdit && (
+        <div className="modal-overlay fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="modal-content bg-white rounded-lg shadow-xl p-6">
+            <EditActivityForm
+              onClose={() => setShowEditForm(false)}
+              onSubmit={handleEditSubmit}
+              activity={activityToEdit}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Activity Table */}
       <table className="min-w-full border border-gray-200 divide-y divide-gray-200">
         <thead className="bg-emerald-700 text-gray-200">
@@ -231,7 +255,8 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
                         <button
                           onClick={() => {
                             setDropdownActivityId(null);
-                            // Implement edit functionality as needed
+                            setActivityToEdit(activity);
+                            setShowEditForm(true);
                           }}
                           className="w-full text-left px-3 py-2 hover:bg-gray-100"
                         >

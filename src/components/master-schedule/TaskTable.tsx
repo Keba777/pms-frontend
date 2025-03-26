@@ -3,12 +3,14 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Plus, ChevronDown } from "lucide-react";
 import ActivityTable from "./ActivityTable";
-import { Task } from "@/types/task";
+import { Task, UpdateTaskInput } from "@/types/task";
 import TaskForm from "../forms/TaskForm";
+import EditTaskForm from "../forms/EditTaskForm";
 import ConfirmModal from "../ui/ConfirmModal";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
-import { useDeleteTask } from "@/hooks/useTasks";
+import { useDeleteTask, useUpdateTask } from "@/hooks/useTasks";
+import { useUsers } from "@/hooks/useUsers";
 
 interface TaskTableProps {
   tasks: Task[];
@@ -22,13 +24,18 @@ const TaskTable: React.FC<TaskTableProps> = ({
   projectId,
 }) => {
   const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
-  const [showForm, setShowForm] = useState(false);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [taskToEdit, setTaskToEdit] = useState<UpdateTaskInput | null>(null);
   const [dropdownTaskId, setDropdownTaskId] = useState<string | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const router = useRouter();
   const dropdownRef = useRef<HTMLDivElement>(null);
+
   const { mutate: deleteTask } = useDeleteTask();
+  const { mutate: updateTask } = useUpdateTask();
+  const { data: users } = useUsers();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -111,6 +118,11 @@ const TaskTable: React.FC<TaskTableProps> = ({
     router.push(`/tasks/${id}`);
   };
 
+  const handleEditSubmit = (data: UpdateTaskInput) => {
+    updateTask(data);
+    setShowEditForm(false);
+  };
+
   return (
     <div className="ml-3">
       {projectTitle && (
@@ -128,19 +140,32 @@ const TaskTable: React.FC<TaskTableProps> = ({
             </span>
           </div>
           <button
-            onClick={() => setShowForm(true)}
+            onClick={() => setShowCreateForm(true)}
             className="px-4 py-2 bg-teal-700 text-white rounded hover:bg-teal-800"
           >
             Create Task
           </button>
         </div>
       )}
-      {showForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+      {showCreateForm && (
+        <div className="modal-overlay fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="modal-content bg-white rounded-lg shadow-xl p-6">
             <TaskForm
-              onClose={() => setShowForm(false)}
+              onClose={() => setShowCreateForm(false)}
               defaultProjectId={projectId}
+            />
+          </div>
+        </div>
+      )}
+      {showEditForm && taskToEdit && (
+        <div className="modal-overlay fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="modal-content bg-white rounded-lg shadow-xl p-6">
+            <EditTaskForm
+              onClose={() => setShowEditForm(false)}
+              onSubmit={handleEditSubmit}
+              task={taskToEdit}
+              // Optionally, you can pass a users array for the "Assigned To" field:
+              users={users}
             />
           </div>
         </div>
@@ -238,7 +263,11 @@ const TaskTable: React.FC<TaskTableProps> = ({
                               View
                             </button>
                             <button
-                              onClick={() => setDropdownTaskId(null)}
+                              onClick={() => {
+                                setDropdownTaskId(null);
+                                setTaskToEdit(task);
+                                setShowEditForm(true);
+                              }}
                               className="w-full text-left px-3 py-2 hover:bg-gray-100"
                             >
                               Edit
