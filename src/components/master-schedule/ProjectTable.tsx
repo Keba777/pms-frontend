@@ -13,11 +13,12 @@ import EditProjectForm from "../forms/EditProjectForm";
 import { UpdateProjectInput } from "@/types/project";
 import { useUsers } from "@/hooks/useUsers";
 import { useTags } from "@/hooks/useTags";
+import Link from "next/link";
 
 const ProjectTable = () => {
   const { data: projects, isLoading, isError } = useProjects();
-  const {data: users} = useUsers();
-  const {data: tags} = useTags();
+  const { data: users } = useUsers();
+  const { data: tags } = useTags();
   const [expandedProjectId, setExpandedProjectId] = useState<string | null>(
     null
   );
@@ -173,7 +174,9 @@ const ProjectTable = () => {
                       </div>
                     </td>
                     <td className="border border-gray-200 pl-5 pr-7 py-2 font-medium text-bs-primary">
-                      {project.title}
+                      <Link href={`projects/${project.id}`}>
+                        {project.title}
+                      </Link>
                     </td>
                     <td className="border border-gray-200 pl-5 pr-7 py-2">
                       {formatDate(project.start_date)}
@@ -239,8 +242,8 @@ const ProjectTable = () => {
                               onClose={() => setShowForm(false)}
                               onSubmit={handleEditSubmit}
                               project={projectToEdit}
-                              users={users} 
-                              tags={tags} 
+                              users={users}
+                              tags={tags}
                             />
                           </div>
                         </div>

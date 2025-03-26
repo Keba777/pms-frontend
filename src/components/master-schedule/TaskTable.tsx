@@ -11,6 +11,7 @@ import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import { useDeleteTask, useUpdateTask } from "@/hooks/useTasks";
 import { useUsers } from "@/hooks/useUsers";
+import Link from "next/link";
 
 interface TaskTableProps {
   tasks: Task[];
@@ -218,7 +219,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
                       </div>
                     </td>
                     <td className="border border-gray-200 px-4 py-2 font-medium">
-                      {task.task_name}
+                      <Link href={`tasks/${task.id}`}>{task.task_name}</Link>
                     </td>
                     <td className="border border-gray-200 px-4 py-2">
                       {formatDate(task.start_date)}

@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { useProjects } from "@/hooks/useProjects";
 import { useUser } from "@/hooks/useUsers"; // Hook to fetch user by ID
 import { FaEdit, FaTrash, FaEye } from "react-icons/fa";
+import Link from "next/link";
 
 // Component to display a single member's name using the useUser hook
 const MemberDisplay: React.FC<{ userId: string }> = ({ userId }) => {
@@ -17,9 +18,9 @@ const MemberDisplay: React.FC<{ userId: string }> = ({ userId }) => {
 
 const ProjectSection = () => {
   const { data: projects, isLoading, isError } = useProjects();
-  const [statusUpdates, setStatusUpdates] = useState<{ [key: string]: string }>(
-    {}
-  );
+  // const [statusUpdates, setStatusUpdates] = useState<{ [key: string]: string }>(
+  //   {}
+  // );
 
   const formatDate = (date: string | number | Date) => {
     if (!date) return "N/A";
@@ -28,9 +29,9 @@ const ProjectSection = () => {
     return dateObj.toLocaleDateString("en-GB");
   };
 
-  const handleStatusChange = (projectId: string, newStatus: string) => {
-    setStatusUpdates((prev) => ({ ...prev, [projectId]: newStatus }));
-  };
+  // const handleStatusChange = (projectId: string, newStatus: string) => {
+  //   setStatusUpdates((prev) => ({ ...prev, [projectId]: newStatus }));
+  // };
 
   if (isLoading) return <div>Loading...</div>;
   if (isError) return <div>Error loading projects</div>;
@@ -72,9 +73,9 @@ const ProjectSection = () => {
               <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-50">
                 Actions
               </th>
-              <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-50">
+              {/* <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-50">
                 Update Status
-              </th>
+              </th> */}
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -85,7 +86,7 @@ const ProjectSection = () => {
                     {index + 1}
                   </td>
                   <td className="border border-gray-200 text-start px-4 py-2 font-medium text-bs-primary">
-                    {project.title}
+                    <Link href={`projects/${project.id}`}>{project.title}</Link>
                   </td>
                   <td className="border border-gray-200 px-4 py-2">
                     {project.members && project.members.length
@@ -135,7 +136,7 @@ const ProjectSection = () => {
                       </option>
                     </select>
                   </td>
-                  <td className="border border-gray-200 px-4 py-2">
+                  {/* <td className="border border-gray-200 px-4 py-2">
                     <select
                       className="border rounded px-2 py-1"
                       value={statusUpdates[project.id] || project.status}
@@ -156,7 +157,7 @@ const ProjectSection = () => {
                         </option>
                       ))}
                     </select>
-                  </td>
+                  </td> */}
                 </tr>
               ))
             ) : (

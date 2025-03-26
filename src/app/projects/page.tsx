@@ -6,11 +6,14 @@ import ProjectCard from "@/components/projects/ProjectCard";
 import ProjectFilter from "@/components/projects/ProjectFilters";
 import { useProjects } from "@/hooks/useProjects";
 import { Project } from "@/types/project";
-import { List, PlusIcon } from "lucide-react";
+import { List, PlusIcon, Grid } from "lucide-react";
 import ProjectForm from "@/components/forms/ProjectForm";
+import ProjectSection from "@/components/dashboard/ProjectSection";
 
 const ProjectPage = () => {
   const [showForm, setShowForm] = useState(false);
+  // false means grid view, true means list view (ProjectSection)
+  const [isListView, setIsListView] = useState(false);
   const { data: projects, isLoading, isError } = useProjects();
   const [filters, setFilters] = useState({
     status: "",
@@ -60,12 +63,17 @@ const ProjectPage = () => {
           >
             <PlusIcon width={15} height={12} />
           </button>
-          <Link
-            href="/projects/list"
+          {/* Toggle view button */}
+          <button
             className="bg-cyan-700 hover:bg-cyan-800 text-white font-bold py-2 px-3 rounded text-sm"
+            onClick={() => setIsListView((prev) => !prev)}
           >
-            <List width={15} height={12} />
-          </Link>
+            {isListView ? (
+              <Grid width={15} height={12} />
+            ) : (
+              <List width={15} height={12} />
+            )}
+          </button>
         </div>
       </div>
 
@@ -73,19 +81,24 @@ const ProjectPage = () => {
       {showForm && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <ProjectForm
-              onClose={() => setShowForm(false)} // Pass the close function
-            />
+            <ProjectForm onClose={() => setShowForm(false)} />
           </div>
         </div>
       )}
 
       <ProjectFilter onFilterChange={handleFilterChange} />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-        {filteredProjects.map((project: Project) => (
-          <ProjectCard key={project.id} project={project} />
-        ))}
-      </div>
+
+      {isListView ? (
+        // Render list view with ProjectSection (pass projects if needed)
+        <ProjectSection />
+      ) : (
+        // Render grid view with ProjectCard
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+          {filteredProjects.map((project: Project) => (
+            <ProjectCard key={project.id} project={project} />
+          ))}
+        </div>
+      )}
     </div>
   );
 };

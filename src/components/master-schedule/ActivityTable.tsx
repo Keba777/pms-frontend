@@ -9,6 +9,7 @@ import EditActivityForm from "../forms/EditActivityForm";
 import ConfirmModal from "../ui/ConfirmModal";
 import { useRouter } from "next/navigation";
 import { useDeleteActivity, useUpdateActivity } from "@/hooks/useActivities";
+import Link from "next/link";
 
 interface ActivityTableProps {
   taskId: string;
@@ -200,7 +201,9 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
                   {index + 1}
                 </td>
                 <td className="border border-gray-200 px-4 py-2 font-medium">
-                  {activity.activity_name}
+                  <Link href={`activities/${activity.id}`}>
+                    {activity.activity_name}
+                  </Link>
                 </td>
                 <td className="border border-gray-200 px-4 py-2">
                   {activity.unit}

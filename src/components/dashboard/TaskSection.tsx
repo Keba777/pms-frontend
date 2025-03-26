@@ -1,15 +1,15 @@
 "use client";
 
-import { useState } from "react";
 import { useTasks } from "@/hooks/useTasks";
 import React from "react";
 import { FaEdit, FaTrash, FaEye } from "react-icons/fa";
+import Link from "next/link";
 
 const TaskSection = () => {
   const { data: tasks, isLoading, isError } = useTasks();
-  const [statusUpdates, setStatusUpdates] = useState<{ [key: string]: string }>(
-    {}
-  );
+  // const [statusUpdates, setStatusUpdates] = useState<{ [key: string]: string }>(
+  //   {}
+  // );
 
   const formatDate = (date: string | number | Date) => {
     if (!date) return "N/A";
@@ -18,9 +18,9 @@ const TaskSection = () => {
     return dateObj.toLocaleDateString("en-GB");
   };
 
-  const handleStatusChange = (taskId: string, newStatus: string) => {
-    setStatusUpdates((prev) => ({ ...prev, [taskId]: newStatus }));
-  };
+  // const handleStatusChange = (taskId: string, newStatus: string) => {
+  //   setStatusUpdates((prev) => ({ ...prev, [taskId]: newStatus }));
+  // };
 
   if (isLoading) return <div>Loading...</div>;
   if (isError) return <div>Error loading tasks</div>;
@@ -62,9 +62,9 @@ const TaskSection = () => {
               <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-50">
                 Actions
               </th>
-              <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-50">
+              {/* <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-50">
                 Update Status
-              </th>
+              </th> */}
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -75,7 +75,7 @@ const TaskSection = () => {
                     {index + 1}
                   </td>
                   <td className="border border-gray-200 text-start px-4 py-2 font-medium text-bs-primary">
-                    {task.task_name}
+                    <Link href={`tasks/${task.id}`}>{task.task_name}</Link>
                   </td>
 
                   <td className="border border-gray-200 px-4 py-2">
@@ -117,7 +117,7 @@ const TaskSection = () => {
                       </option>
                     </select>
                   </td>
-                  <td className="border border-gray-200 px-4 py-2">
+                  {/* <td className="border border-gray-200 px-4 py-2">
                     <select
                       className="border rounded px-2 py-1"
                       value={statusUpdates[task.id] || task.status}
@@ -138,7 +138,7 @@ const TaskSection = () => {
                         </option>
                       ))}
                     </select>
-                  </td>
+                  </td> */}
                 </tr>
               ))
             ) : (

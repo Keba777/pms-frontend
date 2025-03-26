@@ -1,20 +1,38 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState} from "react";
 import Breadcrumb from "@/components/tags/Breadcrumb";
 import Table from "@/components/tags/Table";
 import Modal from "@/components/tags/Modal";
 import TableToolbar from "@/components/tags/TableToolbar";
 import { Plus } from "lucide-react";
+import { toast } from "react-toastify";
+
+// Import hooks
+import {
+  useTags,
+  useCreateTag,
+  useUpdateTag,
+  useDeleteTag,
+} from "@/hooks/useTags";
+import { Tag } from "@/types/tag";
 
 const TagsPage = () => {
+  // Fetch tags from API and update the store
+  const { data: tags = [], isLoading, isError } = useTags();
+
+  // Local modal state and form fields
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [selectedTag, setSelectedTag] = useState<{
-    id: string;
-    title: string;
-    color: string;
-  } | null>(null);
+  const [selectedTag, setSelectedTag] = useState<Tag | null>(null);
+  const [newTagName, setNewTagName] = useState("");
+  const [editTagName, setEditTagName] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
+
+  // Hooks for mutations
+  const createTagMutation = useCreateTag();
+  const updateTagMutation = useUpdateTag();
+  const deleteTagMutation = useDeleteTag();
 
   const breadcrumbItems = [
     { label: "Home", href: "/home" },
@@ -22,33 +40,91 @@ const TagsPage = () => {
     { label: "Tags" },
   ];
 
-  const tableHeaders = ["ID", "Title", "Preview", "Actions"];
-  const tableData = [
-    {
-      ID: "1",
-      Title: "ee",
-      Preview: <span className="badge bg-success">ee</span>,
-      Actions: (
+  // Handlers for modals
+  const handleCreateTag = () => {
+    setNewTagName("");
+    setIsCreateModalOpen(true);
+  };
+
+  const handleEditTag = (tag: Tag) => {
+    setSelectedTag(tag);
+    setEditTagName(tag.name);
+    setIsEditModalOpen(true);
+  };
+
+  // Form submit handler for creating a tag
+  const handleSubmitCreate = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newTagName.trim() !== "") {
+      setIsCreating(true); // Set loading state
+
+      createTagMutation.mutate(
+        { name: newTagName },
+        {
+          onSuccess: () => {
+            setIsCreateModalOpen(false);
+            setIsCreating(false); // Reset loading state
+          },
+          onError: () => {
+            setIsCreating(false); // Reset if error occurs
+          },
+        }
+      );
+    } else {
+      toast.error("Tag name cannot be empty");
+    }
+  };
+
+  // Form submit handler for updating a tag
+  const handleSubmitUpdate = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (selectedTag && editTagName.trim() !== "") {
+      updateTagMutation.mutate(
+        { id: selectedTag.id, name: editTagName },
+        {
+          onSuccess: () => {
+            setIsEditModalOpen(false);
+            setSelectedTag(null);
+          },
+        }
+      );
+    } else {
+      toast.error("Tag name cannot be empty");
+    }
+  };
+
+  // Handler for deleting a tag
+  const handleDeleteTag = (tag: Tag) => {
+    if (
+      tag.id &&
+      confirm(`Are you sure you want to delete tag "${tag.name}"?`)
+    ) {
+      deleteTagMutation.mutate(tag.id);
+    }
+  };
+
+  // Prepare table data
+  const tableHeaders = ["ID", "Name", "Actions"];
+  const tableData = tags.map((tag, index) => ({
+    "ID": index + 1,
+    Name: tag.name,
+    Actions: (
+      <div className="flex space-x-2">
         <button
-          onClick={() =>
-            handleEditTag({ id: "1", title: "ee", color: "success" })
-          }
+          onClick={() => handleEditTag(tag)}
           className="text-blue-500 hover:underline"
         >
           Edit
         </button>
-      ),
-    },
-  ];
-
-  const handleCreateTag = () => {
-    setIsCreateModalOpen(true);
-  };
-
-  const handleEditTag = (tag: { id: string; title: string; color: string }) => {
-    setSelectedTag(tag);
-    setIsEditModalOpen(true);
-  };
+        <button
+          onClick={() => handleDeleteTag(tag)}
+          className="text-red-500 hover:underline"
+        >
+          Delete
+        </button>
+      </div>
+    ),
+  }));
 
   return (
     <div className="px-4 py-6">
@@ -65,81 +141,64 @@ const TagsPage = () => {
       <TableToolbar />
 
       <div className="bg-white rounded-lg shadow">
-        <Table headers={tableHeaders} data={tableData} />
+        {isLoading ? (
+          <p className="p-4">Loading tags...</p>
+        ) : isError ? (
+          <p className="p-4 text-red-500">Error loading tags</p>
+        ) : (
+          <Table headers={tableHeaders} data={tableData} />
+        )}
       </div>
 
+      {/* Create Tag Modal */}
       <Modal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         title="Create Tag"
       >
-        <form>
+        <form onSubmit={handleSubmitCreate}>
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700">
-              Title
+              Name
             </label>
             <input
               type="text"
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              placeholder="Enter Title"
+              value={newTagName}
+              onChange={(e) => setNewTagName(e.target.value)}
+              className="mt-2 py-2 px-3 block w-full rounded-md border-none shadow-sm focus:outline-none focus:ring-0 focus:border-none"
+              placeholder="Enter Tag Name"
             />
-          </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">
-              Color
-            </label>
-            <select className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-              <option value="primary">Primary</option>
-              <option value="secondary">Secondary</option>
-              <option value="success">Success</option>
-              <option value="danger">Danger</option>
-              <option value="warning">Warning</option>
-              <option value="info">Info</option>
-              <option value="dark">Dark</option>
-            </select>
           </div>
           <button
             type="submit"
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            className={`bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ${
+              isCreating ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+            disabled={isCreating}
           >
-            Create
+            {isCreating ? "Creating..." : "Create"}
           </button>
         </form>
       </Modal>
 
+      {/* Edit Tag Modal */}
       <Modal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         title="Edit Tag"
       >
         {selectedTag && (
-          <form>
+          <form onSubmit={handleSubmitUpdate}>
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700">
-                Title
+                Name
               </label>
               <input
                 type="text"
-                defaultValue={selectedTag.title}
+                value={editTagName}
+                onChange={(e) => setEditTagName(e.target.value)}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               />
-            </div>
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700">
-                Color
-              </label>
-              <select
-                defaultValue={selectedTag.color}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              >
-                <option value="primary">Primary</option>
-                <option value="secondary">Secondary</option>
-                <option value="success">Success</option>
-                <option value="danger">Danger</option>
-                <option value="warning">Warning</option>
-                <option value="info">Info</option>
-                <option value="dark">Dark</option>
-              </select>
             </div>
             <button
               type="submit"
