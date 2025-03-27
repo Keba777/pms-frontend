@@ -9,6 +9,9 @@ import { CreateTaskInput } from "@/types/task"; // adjust path if needed
 import { useCreateTask } from "@/hooks/useTasks"; // hook to create a task
 import { useProjects } from "@/hooks/useProjects"; // hook to fetch projects
 import { toast } from "react-toastify";
+import { useTaskStore } from "@/store/taskStore"; // import task store
+import { formatDate } from "@/utils/formatDate";
+import { ArrowRight, Calendar } from "lucide-react";
 
 interface TaskFormProps {
   onClose: () => void; // Function to close the modal
@@ -33,6 +36,10 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
     isLoading: projectsLoading,
     error: projectsError,
   } = useProjects();
+
+  // Retrieve tasks from the store to show the last created task
+  const { tasks } = useTaskStore();
+  const lastTask = tasks && tasks.length > 0 ? tasks[tasks.length - 1] : null;
 
   const onSubmit = (data: CreateTaskInput) => {
     // If defaultProjectId is provided, use it regardless of form selection
@@ -89,11 +96,7 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
       label: "Critical",
       className: "bg-bs-danger-100 text-bs-danger",
     },
-    {
-      value: "High",
-      label: "High",
-      className: "bg-bs-info-100 text-bs-info",
-    },
+    { value: "High", label: "High", className: "bg-bs-info-100 text-bs-info" },
     {
       value: "Medium",
       label: "Medium",
@@ -118,8 +121,9 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
       onSubmit={handleSubmit(onSubmit)}
       className="bg-white rounded-lg shadow-xl p-6 space-y-6"
     >
+      {/* Header */}
       <div className="flex justify-between items-center pb-4 border-b">
-        <h3 className="text-lg font-semibold text-gray-800">Create Task</h3>
+        <h3 className="text-xl font-semibold text-gray-800">Create Task</h3>
         <button
           type="button"
           className="text-gray-500 hover:text-gray-700"
@@ -139,7 +143,7 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
             type="text"
             {...register("task_name", { required: "Task Name is required" })}
             placeholder="Enter Task Name"
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
           />
           {errors.task_name && (
             <p className="text-red-500 text-sm mt-1">
@@ -152,7 +156,7 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
         {!defaultProjectId && (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Select Project (optional)
+              Select Project
             </label>
             <Controller
               name="project_id"
@@ -171,7 +175,7 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
                     (option) => option.value === field.value
                   )}
                   isClearable
-                  placeholder="Select a project (optional)"
+                  placeholder="Select a project"
                 />
               )}
             />
@@ -183,6 +187,80 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
           </div>
         )}
 
+        {/* Latest Task History Card */}
+        <div className="p-4 rounded-lg shadow-md bg-gradient-to-r from-cyan-500 to-cyan-700 text-white">
+          <h4 className="text-lg font-semibold mb-2">Latest Task</h4>
+          {lastTask ? (
+            <div>
+              <p className="font-medium flex items-center">
+                <Calendar size={16} className="mr-2" />
+                {lastTask.task_name}
+              </p>
+              <div className="flex items-center text-sm mt-1">
+                <Calendar size={16} className="mr-1" />
+                <span>{formatDate(lastTask.start_date)}</span>
+                <ArrowRight size={16} className="mx-2" />
+                <Calendar size={16} className="mr-1" />
+                <span>{formatDate(lastTask.end_date)}</span>
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm">No task history available</p>
+          )}
+        </div>
+
+        {/* Dates Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Start Date */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Starts At <span className="text-red-500">*</span>
+            </label>
+            <Controller
+              name="start_date"
+              control={control}
+              rules={{ required: "Start date is required" }}
+              render={({ field }) => (
+                <DatePicker
+                  selected={field.value ? new Date(field.value) : null}
+                  onChange={(date) => field.onChange(date)}
+                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
+                  dateFormat="MM/dd/yyyy"
+                />
+              )}
+            />
+            {errors.start_date && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.start_date.message}
+              </p>
+            )}
+          </div>
+
+          {/* End Date */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Ends At <span className="text-red-500">*</span>
+            </label>
+            <Controller
+              name="end_date"
+              control={control}
+              rules={{ required: "End date is required" }}
+              render={({ field }) => (
+                <DatePicker
+                  selected={field.value ? new Date(field.value) : null}
+                  onChange={(date) => field.onChange(date)}
+                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
+                  dateFormat="MM/dd/yyyy"
+                />
+              )}
+            />
+            {errors.end_date && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.end_date.message}
+              </p>
+            )}
+          </div>
+        </div>
         {/* Status and Priority Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Status */}
@@ -240,59 +318,6 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
           </div>
         </div>
 
-        {/* Dates Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Start Date */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Starts At <span className="text-red-500">*</span>
-            </label>
-            <Controller
-              name="start_date"
-              control={control}
-              rules={{ required: "Start date is required" }}
-              render={({ field }) => (
-                <DatePicker
-                  selected={field.value ? new Date(field.value) : null}
-                  onChange={(date) => field.onChange(date)}
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-                  dateFormat="MM/dd/yyyy"
-                />
-              )}
-            />
-            {errors.start_date && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.start_date.message}
-              </p>
-            )}
-          </div>
-
-          {/* End Date */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Ends At <span className="text-red-500">*</span>
-            </label>
-            <Controller
-              name="end_date"
-              control={control}
-              rules={{ required: "End date is required" }}
-              render={({ field }) => (
-                <DatePicker
-                  selected={field.value ? new Date(field.value) : null}
-                  onChange={(date) => field.onChange(date)}
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-                  dateFormat="MM/dd/yyyy"
-                />
-              )}
-            />
-            {errors.end_date && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.end_date.message}
-              </p>
-            )}
-          </div>
-        </div>
-
         {/* Footer Buttons */}
         <div className="flex justify-end gap-4">
           <button
@@ -304,7 +329,7 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
           </button>
           <button
             type="submit"
-            className="px-4 py-2 bg-bs-primary text-white rounded-md hover:bg-bs-primary"
+            className="px-4 py-2 bg-cyan-700 text-white rounded-md hover:bg-cyan-800"
             disabled={isPending}
           >
             {isPending ? "Creating..." : "Create"}

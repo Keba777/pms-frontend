@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation";
 import { useDeleteTask, useUpdateTask } from "@/hooks/useTasks";
 import { useUsers } from "@/hooks/useUsers";
 import Link from "next/link";
+import { formatDate } from "@/utils/formatDate";
 
 interface TaskTableProps {
   tasks: Task[];
@@ -53,16 +54,6 @@ const TaskTable: React.FC<TaskTableProps> = ({
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-
-  const formatDate = (date: Date | string | null | undefined): string => {
-    if (!date) return "N/A";
-    const dateObj = typeof date === "string" ? new Date(date) : date;
-    if (isNaN(dateObj.getTime())) return "Invalid Date";
-    const dd = dateObj.getDate().toString().padStart(2, "0");
-    const mm = (dateObj.getMonth() + 1).toString().padStart(2, "0");
-    const yyyy = dateObj.getFullYear();
-    return `${dd}-${mm}-${yyyy}`;
-  };
 
   const getDuration = (
     start: Date | string | null | undefined,

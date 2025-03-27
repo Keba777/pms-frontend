@@ -9,6 +9,9 @@ import { Activity } from "@/types/activity";
 import { useCreateActivity } from "@/hooks/useActivities";
 import { useTasks } from "@/hooks/useTasks";
 import { toast } from "react-toastify";
+import { ArrowRight, Calendar } from "lucide-react";
+import { formatDate } from "@/utils/formatDate";
+import { useActivityStore } from "@/store/activityStore";
 
 interface ActivityFormProps {
   onClose: () => void;
@@ -40,6 +43,11 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
     isLoading: tasksLoading,
     error: tasksError,
   } = useTasks();
+  const { activities } = useActivityStore();
+  const lastActivity =
+    activities && activities.length > 0
+      ? activities[activities.length - 1]
+      : null;
 
   const onSubmit = (data: Activity) => {
     const submitData = defaultTaskId
@@ -122,34 +130,25 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
             )}
           </div>
 
-          {/* Status (Required) */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Status <span className="text-red-500">*</span>
-            </label>
-            <Controller
-              name="status"
-              control={control}
-              rules={{ required: "Status is required" }}
-              render={({ field }) => (
-                <Select
-                  {...field}
-                  options={statusOptions}
-                  className="basic-single"
-                  classNamePrefix="select"
-                  onChange={(selectedOption) =>
-                    field.onChange(selectedOption?.value)
-                  }
-                  value={statusOptions.find(
-                    (option) => option.value === field.value
-                  )}
-                />
-              )}
-            />
-            {errors.status && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.status.message}
-              </p>
+          {/* Latest Task History Card */}
+          <div className="p-4 rounded-lg shadow-md bg-gradient-to-r from-cyan-500 to-cyan-700 text-white">
+            <h4 className="text-lg font-semibold mb-2">Latest Activity</h4>
+            {lastActivity ? (
+              <div>
+                <p className="font-medium flex items-center">
+                  <Calendar size={16} className="mr-2" />
+                  {lastActivity.activity_name}
+                </p>
+                <div className="flex items-center text-sm mt-1">
+                  <Calendar size={16} className="mr-1" />
+                  <span>{formatDate(lastActivity.start_date)}</span>
+                  <ArrowRight size={16} className="mx-2" />
+                  <Calendar size={16} className="mr-1" />
+                  <span>{formatDate(lastActivity.end_date)}</span>
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm">No activity history available</p>
             )}
           </div>
 
@@ -336,8 +335,36 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
             )}
           </div>
         </div>
+        {/* Status (Required) */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Status <span className="text-red-500">*</span>
+          </label>
+          <Controller
+            name="status"
+            control={control}
+            rules={{ required: "Status is required" }}
+            render={({ field }) => (
+              <Select
+                {...field}
+                options={statusOptions}
+                className="basic-single"
+                classNamePrefix="select"
+                onChange={(selectedOption) =>
+                  field.onChange(selectedOption?.value)
+                }
+                value={statusOptions.find(
+                  (option) => option.value === field.value
+                )}
+              />
+            )}
+          />
+          {errors.status && (
+            <p className="text-red-500 text-sm mt-1">{errors.status.message}</p>
+          )}
+        </div>
 
-        {/* Description Field moved to the end */}
+        {/* Description Field  */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Description

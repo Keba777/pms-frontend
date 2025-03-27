@@ -10,6 +10,7 @@ import ConfirmModal from "../ui/ConfirmModal";
 import { useRouter } from "next/navigation";
 import { useDeleteActivity, useUpdateActivity } from "@/hooks/useActivities";
 import Link from "next/link";
+import { formatDate } from "@/utils/formatDate";
 
 interface ActivityTableProps {
   taskId: string;
@@ -48,16 +49,6 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  const formatDate = (date: Date | string | null | undefined): string => {
-    if (!date) return "N/A";
-    const dateObj = typeof date === "string" ? new Date(date) : date;
-    if (isNaN(dateObj.getTime())) return "Invalid Date";
-    const dd = dateObj.getDate().toString().padStart(2, "0");
-    const mm = (dateObj.getMonth() + 1).toString().padStart(2, "0");
-    const yyyy = dateObj.getFullYear();
-    return `${dd}-${mm}-${yyyy}`;
-  };
 
   const getDuration = (
     start: Date | string | null | undefined,

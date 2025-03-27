@@ -142,60 +142,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
           )}
         </div>
 
-        {/* Status and Priority Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Status <span className="text-red-500">*</span>
-            </label>
-            <Controller
-              name="status"
-              control={control}
-              rules={{ required: "Status is required" }}
-              render={({ field }) => (
-                <Select
-                  {...field}
-                  options={statusOptions}
-                  className="w-full"
-                  onChange={(selectedOption) =>
-                    field.onChange(selectedOption?.value)
-                  }
-                  value={statusOptions.find(
-                    (option) => option.value === field.value
-                  )}
-                />
-              )}
-            />
-            {errors.status && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.status.message}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Priority
-            </label>
-            <Controller
-              name="priority"
-              control={control}
-              render={({ field }) => (
-                <Select
-                  {...field}
-                  options={priorityOptions}
-                  className="w-full"
-                  onChange={(selectedOption) =>
-                    field.onChange(selectedOption?.value)
-                  }
-                  value={priorityOptions.find(
-                    (option) => option.value === field.value
-                  )}
-                />
-              )}
-            />
-          </div>
-        </div>
+        
 
         {/* Budget and Dates Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -360,6 +307,60 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
           {tagsError && (
             <p className="text-red-500 text-sm mt-1">Error loading tags</p>
           )}
+        </div>
+        {/* Status and Priority Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Status <span className="text-red-500">*</span>
+            </label>
+            <Controller
+              name="status"
+              control={control}
+              rules={{ required: "Status is required" }}
+              render={({ field }) => (
+                <Select
+                  {...field}
+                  options={statusOptions}
+                  className="w-full"
+                  onChange={(selectedOption) =>
+                    field.onChange(selectedOption?.value)
+                  }
+                  value={statusOptions.find(
+                    (option) => option.value === field.value
+                  )}
+                />
+              )}
+            />
+            {errors.status && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.status.message}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Priority
+            </label>
+            <Controller
+              name="priority"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  {...field}
+                  options={priorityOptions}
+                  className="w-full"
+                  onChange={(selectedOption) =>
+                    field.onChange(selectedOption?.value)
+                  }
+                  value={priorityOptions.find(
+                    (option) => option.value === field.value
+                  )}
+                />
+              )}
+            />
+          </div>
         </div>
 
         {/* Description */}
