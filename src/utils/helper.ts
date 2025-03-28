@@ -7,3 +7,11 @@ export const formatDate = (date: Date | string | null | undefined): string => {
     const yyyy = dateObj.getFullYear();
     return `${dd}-${mm}-${yyyy}`;
 };
+
+export const getDuration = (start: Date | string, end: Date | string) => {
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 3600 * 24));
+    return `${diffDays} D`;
+};

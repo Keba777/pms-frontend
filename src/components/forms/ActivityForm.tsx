@@ -10,7 +10,7 @@ import { useCreateActivity } from "@/hooks/useActivities";
 import { useTasks } from "@/hooks/useTasks";
 import { toast } from "react-toastify";
 import { ArrowRight, Calendar } from "lucide-react";
-import { formatDate } from "@/utils/formatDate";
+import { formatDate } from "@/utils/helper";
 import { useActivityStore } from "@/store/activityStore";
 
 interface ActivityFormProps {

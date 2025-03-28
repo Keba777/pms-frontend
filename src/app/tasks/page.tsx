@@ -4,7 +4,6 @@ import BreadcrumbTasks from "@/components/tasks/BreadcrumbTasks";
 import Card from "@/components/ui/Card";
 import React, { useState } from "react";
 import { CheckCircle, Loader, Clock, XCircle } from "lucide-react";
-import Filters from "@/components/tasks/Filters";
 import DataTable from "@/components/tasks/DataTable";
 import { useTasks } from "@/hooks/useTasks";
 import TaskForm from "@/components/forms/TaskForm";
@@ -72,11 +71,6 @@ const TasksPage = () => {
           </div>
         </div>
       )}
-
-      {/* Filters Section */}
-      <div className="mt-6">
-        <Filters />
-      </div>
 
       {/* Table Section */}
       <div className="mt-6 max-w-full overflow-hidden">

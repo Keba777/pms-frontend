@@ -12,7 +12,7 @@ const BreadcrumbTasks: React.FC<BreadcrumbTasksProps> = ({ onPlusClick }) => {
         <nav aria-label="breadcrumb">
           <ol className="flex space-x-2 text-sm font-semibold ">
             <li>
-              <Link href="/home" className="hover:underline flex items-center">
+              <Link href="/" className="hover:underline flex items-center">
                 Home
               </Link>
             </li>

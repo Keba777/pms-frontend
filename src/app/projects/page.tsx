@@ -47,7 +47,7 @@ const ProjectPage = () => {
           <nav aria-label="breadcrumb">
             <ol className="flex space-x-2">
               <li>
-                <Link href="/home" className="text-blue-600 hover:underline">
+                <Link href="/" className="text-blue-600 hover:underline">
                   Home
                 </Link>
               </li>

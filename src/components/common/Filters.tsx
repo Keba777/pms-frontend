@@ -1,5 +1,3 @@
-import { Printer, FileText, Sheet } from "lucide-react";
-
 export default function Filters() {
   return (
     <div>
@@ -39,7 +37,7 @@ export default function Filters() {
           {/* Add status options */}
         </select>
       </div>
-      <div className="space-y-4">
+      {/* <div className="space-y-4">
         <div className="flex justify-end gap-4">
           <button className="btn-pdf flex items-center gap-2">
             <FileText size={18} /> PDF
@@ -51,7 +49,7 @@ export default function Filters() {
             <Printer size={18} /> Print
           </button>
         </div>
-      </div>
+      </div> */}
 
       {/* Hidden inputs */}
       <input

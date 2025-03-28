@@ -10,7 +10,7 @@ import { useCreateTask } from "@/hooks/useTasks"; // hook to create a task
 import { useProjects } from "@/hooks/useProjects"; // hook to fetch projects
 import { toast } from "react-toastify";
 import { useTaskStore } from "@/store/taskStore"; // import task store
-import { formatDate } from "@/utils/formatDate";
+import { formatDate } from "@/utils/helper";
 import { ArrowRight, Calendar } from "lucide-react";
 
 interface TaskFormProps {

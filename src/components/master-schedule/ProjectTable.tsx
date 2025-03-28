@@ -14,7 +14,7 @@ import { UpdateProjectInput } from "@/types/project";
 import { useUsers } from "@/hooks/useUsers";
 import { useTags } from "@/hooks/useTags";
 import Link from "next/link";
-import { formatDate } from "@/utils/formatDate";
+import { formatDate } from "@/utils/helper";
 
 const ProjectTable = () => {
   const { data: projects, isLoading, isError } = useProjects();

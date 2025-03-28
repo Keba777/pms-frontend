@@ -12,7 +12,7 @@ import { useRouter } from "next/navigation";
 import { useDeleteTask, useUpdateTask } from "@/hooks/useTasks";
 import { useUsers } from "@/hooks/useUsers";
 import Link from "next/link";
-import { formatDate } from "@/utils/formatDate";
+import { formatDate } from "@/utils/helper";
 
 interface TaskTableProps {
   tasks: Task[];

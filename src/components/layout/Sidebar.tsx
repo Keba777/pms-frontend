@@ -29,7 +29,7 @@ const Sidebar = ({
       </button>
       {/* Header with logo and toggle */}
       <div className="flex items-center justify-between">
-        <Link href="/home" className="flex items-center">
+        <Link href="/" className="flex items-center">
           <Image
             src="https://raycon.oasismgmt2.com/storage/logos/IjqxLcdGRYJsQ2ilNZec5tzOwriycUuY0ug2ZOgQ.jpg"
             alt="Logo"

@@ -1,13 +1,13 @@
 import React from "react";
 import { Printer, FileText, Sheet } from "lucide-react";
 import { jsPDF } from "jspdf";
-import autoTable from "jspdf-autotable";
+import autoTable, { RowInput } from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 
 export interface Column<T> {
   header: string;
-  accessor: keyof T | ((row: T) => any);
+  accessor: keyof T | ((row: T) => unknown);
 }
 
 interface GenericDownloadsProps<T> {
@@ -16,25 +16,20 @@ interface GenericDownloadsProps<T> {
   columns: Column<T>[];
 }
 
-const GenericDownloads = <T extends {}>({
+const GenericDownloads = <T,>({
   data,
   title,
   columns,
 }: GenericDownloadsProps<T>) => {
   // Create table rows based on the columns configuration
   const getTableRows = () =>
-    data.map((row, index) =>
+    data.map((row) =>
       columns.map((col) => {
         if (typeof col.accessor === "function") {
           return col.accessor(row);
         }
-        // if the field is a date, you might want to format it
         const value = row[col.accessor];
-        if (
-          value &&
-          typeof value === "string" &&
-          value.match(/^\d{4}-\d{2}-\d{2}T/)
-        ) {
+        if (typeof value === "string" && value.match(/^\d{4}-\d{2}-\d{2}T/)) {
           return new Date(value).toISOString().split("T")[0];
         }
         return value;
@@ -46,26 +41,22 @@ const GenericDownloads = <T extends {}>({
     doc.text(title, 20, 10);
     autoTable(doc, {
       head: [columns.map((col) => col.header)],
-      body: getTableRows(),
+      body: getTableRows() as RowInput[],
     });
     doc.save(`${title}.pdf`);
   };
 
   const exportToExcel = () => {
     // Build an array of objects for Excel using header as key
-    const excelData = data.map((row, index) => {
-      const obj: { [key: string]: any } = {};
+    const excelData = data.map((row) => {
+      const obj: { [key: string]: unknown } = {};
       columns.forEach((col) => {
         let value;
         if (typeof col.accessor === "function") {
           value = col.accessor(row);
         } else {
           value = row[col.accessor];
-          if (
-            value &&
-            typeof value === "string" &&
-            value.match(/^\d{4}-\d{2}-\d{2}T/)
-          ) {
+          if (typeof value === "string" && value.match(/^\d{4}-\d{2}-\d{2}T/)) {
             value = new Date(value).toISOString().split("T")[0];
           }
         }

@@ -10,7 +10,7 @@ import ConfirmModal from "../ui/ConfirmModal";
 import { useRouter } from "next/navigation";
 import { useDeleteActivity, useUpdateActivity } from "@/hooks/useActivities";
 import Link from "next/link";
-import { formatDate } from "@/utils/formatDate";
+import { formatDate } from "@/utils/helper";
 
 interface ActivityTableProps {
   taskId: string;

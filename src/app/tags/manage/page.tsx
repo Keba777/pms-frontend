@@ -35,7 +35,7 @@ const TagsPage = () => {
   const deleteTagMutation = useDeleteTag();
 
   const breadcrumbItems = [
-    { label: "Home", href: "/home" },
+    { label: "Home", href: "/" },
     { label: "Projects", href: "/projects" },
     { label: "Tags" },
   ];
