@@ -1,3 +1,6 @@
+import { Equipment } from "./equipment";
+import { Labor } from "./labor";
+import { Material } from "./material";
 import { Task } from "./task";
 
 export interface Activity {
@@ -7,12 +10,16 @@ export interface Activity {
     task_id: string;
     task?: Task;
     priority: "Critical" | "High" | "Medium" | "Low";
+    quantity?: number;
     unit: string;
     start_date: Date;
     end_date: Date;
     progress: number;
     status: "Not Started" | "Started" | "InProgress" | "Canceled" | "Onhold" | "Completed";
     approvalStatus: "Approved" | "Not Approved" | "Pending";
+    materials?: Material[];
+    equipment?: Equipment[];
+    labors?: Labor[];
 }
 
 export interface CreateActivityInput {
@@ -20,6 +27,7 @@ export interface CreateActivityInput {
     description?: string;
     task_id: string;
     priority: "Critical" | "High" | "Medium" | "Low";
+    quantity?: number;
     unit: string;
     start_date: Date;
     end_date: Date;
@@ -34,6 +42,7 @@ export interface UpdateActivityInput {
     description?: string;
     task_id?: string;
     priority?: "Critical" | "High" | "Medium" | "Low";
+    quantity?: number;
     unit?: string;
     start_date?: Date;
     end_date?: Date;
