@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { ChevronRight, ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { useTask } from "@/hooks/useTasks";
 import { Activity, UpdateActivityInput } from "@/types/activity";
 import ActivityForm from "../forms/ActivityForm";
@@ -168,6 +168,9 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
               Unit
             </th>
             <th className="border border-gray-200 px-4 py-2 text-left text-sm font-medium">
+              QTY
+            </th>
+            <th className="border border-gray-200 px-4 py-2 text-left text-sm font-medium">
               Start Date
             </th>
             <th className="border border-gray-200 px-4 py-2 text-left text-sm font-medium">
@@ -200,6 +203,9 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
                   {activity.unit}
                 </td>
                 <td className="border border-gray-200 px-4 py-2">
+                  {activity.quantity}
+                </td>
+                <td className="border border-gray-200 px-4 py-2">
                   {formatDate(activity.start_date)}
                 </td>
                 <td className="border border-gray-200 px-4 py-2">
@@ -213,7 +219,7 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
                     href={`/resources/${activity.id}`}
                     className="flex items-center text-teal-700 hover:underline"
                   >
-                    View Resource <ChevronRight className="ml-1 w-4 h-4" />
+                    Request
                   </a>
                 </td>
                 <td className="border border-gray-200 px-4 py-2">
