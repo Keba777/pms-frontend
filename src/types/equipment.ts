@@ -9,6 +9,9 @@ export interface Equipment {
     year?: number;
     eqp_condition?: string;
     activity_id: string;
+    financial_status?: "Approved" | "Not Approved";
+    createdAt?: Date;
+    updatedAt?: Date;
 }
 
 export interface CreateEquipmentInput {
@@ -32,4 +35,5 @@ export interface UpdateEquipmentInput {
     year?: number;
     eqp_condition?: string;
     activity_id?: string;
+    financial_status?: "Approved" | "Not Approved";
 }

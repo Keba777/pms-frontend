@@ -6,6 +6,9 @@ export interface Material {
     rate_with_vat: number;
     unit: string;
     activity_id: string;
+    financial_status?: "Approved" | "Not Approved";
+    createdAt?: Date;
+    updatedAt?: Date;
 }
 export interface CreateMaterialInput {
     quantity: number;
@@ -23,4 +26,5 @@ export interface UpdateMaterialInput {
     rate_with_vat?: number;
     unit?: string;
     activity_id?: string;
+    financial_status?: "Approved" | "Not Approved";
 }

@@ -4,6 +4,9 @@ export interface Labor {
     hourly_rate: number;
     skill_level?: string;
     activity_id: string;
+    financial_status?: "Approved" | "Not Approved";
+    createdAt?: Date;
+    updatedAt?: Date;
 }
 export interface CreateLaborInput {
     total_labor: number;
@@ -17,4 +20,5 @@ export interface UpdateLaborInput {
     hourly_rate?: number;
     skill_level?: string;
     activity_id?: string;
+    financial_status?: "Approved" | "Not Approved";
 }
