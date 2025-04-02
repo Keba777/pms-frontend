@@ -169,6 +169,8 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
                     className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
                     dateFormat="MM/dd/yyyy"
                     placeholderText="Select start date"
+                    showYearDropdown
+                    scrollableYearDropdown
                   />
                 )}
               />
@@ -200,6 +202,8 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
                     dateFormat="MM/dd/yyyy"
                     placeholderText="Select end date"
                     minDate={new Date()}
+                    showYearDropdown
+                    scrollableYearDropdown
                   />
                 )}
               />

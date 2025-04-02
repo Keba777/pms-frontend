@@ -142,8 +142,6 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
           )}
         </div>
 
-        
-
         {/* Budget and Dates Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
@@ -181,6 +179,8 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
                   selected={field.value ? new Date(field.value) : null}
                   onChange={(date) => field.onChange(date)}
                   className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+                  showYearDropdown
+                  scrollableYearDropdown
                 />
               )}
             />
@@ -204,6 +204,8 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
                   selected={field.value ? new Date(field.value) : null}
                   onChange={(date) => field.onChange(date)}
                   className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+                  showYearDropdown
+                  scrollableYearDropdown
                 />
               )}
             />

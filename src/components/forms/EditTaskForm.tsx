@@ -59,10 +59,17 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({
     })) || [];
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="bg-white rounded-lg shadow-xl p-6 space-y-4">
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="bg-white rounded-lg shadow-xl p-6 space-y-4"
+    >
       <div className="flex justify-between items-center border-b pb-2 mb-4">
         <h3 className="text-lg font-semibold text-gray-800">Edit Task</h3>
-        <button type="button" className="text-gray-500 hover:text-gray-700" onClick={onClose}>
+        <button
+          type="button"
+          className="text-gray-500 hover:text-gray-700"
+          onClick={onClose}
+        >
           &times;
         </button>
       </div>
@@ -96,8 +103,12 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({
               {...field}
               options={statusOptions}
               className="flex-1"
-              onChange={(selectedOption) => field.onChange(selectedOption?.value)}
-              value={statusOptions.find((option) => option.value === field.value)}
+              onChange={(selectedOption) =>
+                field.onChange(selectedOption?.value)
+              }
+              value={statusOptions.find(
+                (option) => option.value === field.value
+              )}
             />
           )}
         />
@@ -108,7 +119,9 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({
 
       {/* Priority */}
       <div className="flex items-center space-x-4">
-        <label className="w-32 text-sm font-medium text-gray-700">Priority</label>
+        <label className="w-32 text-sm font-medium text-gray-700">
+          Priority
+        </label>
         <Controller
           name="priority"
           control={control}
@@ -117,8 +130,12 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({
               {...field}
               options={priorityOptions}
               className="flex-1"
-              onChange={(selectedOption) => field.onChange(selectedOption?.value)}
-              value={priorityOptions.find((option) => option.value === field.value)}
+              onChange={(selectedOption) =>
+                field.onChange(selectedOption?.value)
+              }
+              value={priorityOptions.find(
+                (option) => option.value === field.value
+              )}
             />
           )}
         />
@@ -126,7 +143,9 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({
 
       {/* Approval Status */}
       <div className="flex items-center space-x-4">
-        <label className="w-32 text-sm font-medium text-gray-700">Approval</label>
+        <label className="w-32 text-sm font-medium text-gray-700">
+          Approval
+        </label>
         <Controller
           name="approvalStatus"
           control={control}
@@ -135,8 +154,12 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({
               {...field}
               options={approvalOptions}
               className="flex-1"
-              onChange={(selectedOption) => field.onChange(selectedOption?.value)}
-              value={approvalOptions.find((option) => option.value === field.value)}
+              onChange={(selectedOption) =>
+                field.onChange(selectedOption?.value)
+              }
+              value={approvalOptions.find(
+                (option) => option.value === field.value
+              )}
             />
           )}
         />
@@ -156,12 +179,16 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({
               selected={field.value ? new Date(field.value) : null}
               onChange={(date) => field.onChange(date)}
               className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+              showYearDropdown
+              scrollableYearDropdown
             />
           )}
         />
       </div>
       {errors.start_date && (
-        <p className="text-red-500 text-sm ml-32">{errors.start_date.message}</p>
+        <p className="text-red-500 text-sm ml-32">
+          {errors.start_date.message}
+        </p>
       )}
 
       {/* End Date */}
@@ -178,6 +205,8 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({
               selected={field.value ? new Date(field.value) : null}
               onChange={(date) => field.onChange(date)}
               className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+              showYearDropdown
+              scrollableYearDropdown
             />
           )}
         />
@@ -188,7 +217,9 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({
 
       {/* Progress */}
       <div className="flex items-center space-x-4">
-        <label className="w-32 text-sm font-medium text-gray-700">Progress (%)</label>
+        <label className="w-32 text-sm font-medium text-gray-700">
+          Progress (%)
+        </label>
         <input
           type="number"
           min="0"
@@ -210,13 +241,17 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({
         />
       </div>
       {errors.description && (
-        <p className="text-red-500 text-sm ml-32">{errors.description.message}</p>
+        <p className="text-red-500 text-sm ml-32">
+          {errors.description.message}
+        </p>
       )}
 
       {/* Assigned To */}
       {users && (
         <div className="flex items-center space-x-4">
-          <label className="w-32 text-sm font-medium text-gray-700">Assigned To</label>
+          <label className="w-32 text-sm font-medium text-gray-700">
+            Assigned To
+          </label>
           <Controller
             name="assignedTo"
             control={control}
@@ -225,8 +260,12 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({
                 {...field}
                 options={userOptions}
                 className="flex-1"
-                onChange={(selectedOption) => field.onChange(selectedOption?.value)}
-                value={userOptions.find((option) => option.value === field.value)}
+                onChange={(selectedOption) =>
+                  field.onChange(selectedOption?.value)
+                }
+                value={userOptions.find(
+                  (option) => option.value === field.value
+                )}
                 isClearable
               />
             )}
@@ -235,10 +274,17 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({
       )}
 
       <div className="flex justify-end space-x-4 mt-4">
-        <button type="button" className="px-4 py-2 border rounded-md hover:bg-gray-50" onClick={onClose}>
+        <button
+          type="button"
+          className="px-4 py-2 border rounded-md hover:bg-gray-50"
+          onClick={onClose}
+        >
           Close
         </button>
-        <button type="submit" className="px-4 py-2 bg-bs-primary text-white rounded-md hover:bg-bs-primary">
+        <button
+          type="submit"
+          className="px-4 py-2 bg-bs-primary text-white rounded-md hover:bg-bs-primary"
+        >
           Update
         </button>
       </div>

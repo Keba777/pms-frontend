@@ -135,6 +135,8 @@ const EditActivityForm: React.FC<{
               selected={field.value ? new Date(field.value) : null}
               onChange={(date) => field.onChange(date)}
               className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+              showYearDropdown
+              scrollableYearDropdown
             />
           )}
         />
@@ -159,6 +161,8 @@ const EditActivityForm: React.FC<{
               selected={field.value ? new Date(field.value) : null}
               onChange={(date) => field.onChange(date)}
               className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+              showYearDropdown
+              scrollableYearDropdown
             />
           )}
         />

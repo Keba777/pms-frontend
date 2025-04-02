@@ -226,6 +226,8 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
                   onChange={(date) => field.onChange(date)}
                   className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
                   dateFormat="MM/dd/yyyy"
+                  showYearDropdown
+                  scrollableYearDropdown
                 />
               )}
             />
@@ -251,6 +253,8 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
                   onChange={(date) => field.onChange(date)}
                   className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
                   dateFormat="MM/dd/yyyy"
+                  showYearDropdown
+                  scrollableYearDropdown
                 />
               )}
             />
