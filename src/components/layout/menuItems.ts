@@ -68,6 +68,31 @@ const menuItems = [
     iconColor: "text-gray-500",
   },
   {
+    title: "Resource",
+    icon: Clipboard,
+    iconColor: "text-yellow-500",
+    submenu: [
+      {
+        title: "Manage Materials",
+        link: "/materials",
+        icon: BoxIcon,
+        iconColor: "text-blue-500",
+      },
+      {
+        title: "Manage Equipment",
+        link: "/equipments",
+        icon: PenTool,
+        iconColor: "text-gray-500",
+      },
+      {
+        title: "Equipment Types",
+        link: "/equipment_types",
+        icon: Settings,
+        iconColor: "text-gray-500",
+      },
+    ],
+  },
+  {
     title: "Requests Resource",
     link: "/resource-requests",
     icon: Folder,
@@ -91,6 +116,12 @@ const menuItems = [
     link: "/mywarehouse",
     icon: ListCheck,
     iconColor: "text-blue-500",
+  },
+  {
+    title: "Department",
+    link: "/departments",
+    icon: Home,
+    iconColor: "text-red-500",
   },
   {
     title: "Priorities",
@@ -133,12 +164,7 @@ const menuItems = [
     iconColor: "text-yellow-500",
   },
   { title: "Sites", link: "/sites", icon: Users, iconColor: "text-yellow-500" },
-  {
-    title: "Department",
-    link: "/departments",
-    icon: Home,
-    iconColor: "text-red-500",
-  },
+
   {
     title: "Contracts",
     icon: FileText,
@@ -178,31 +204,7 @@ const menuItems = [
         icon: Building,
         iconColor: "text-blue-500",
       },
-      {
-        title: "Resource",
-        icon: Clipboard,
-        iconColor: "text-yellow-500",
-        submenu: [
-          {
-            title: "Manage Materials",
-            link: "/materials",
-            icon: BoxIcon,
-            iconColor: "text-blue-500",
-          },
-          {
-            title: "Manage Equipment",
-            link: "/equipments",
-            icon: PenTool,
-            iconColor: "text-gray-500",
-          },
-          {
-            title: "Equipment Types",
-            link: "/equipment_types",
-            icon: Settings,
-            iconColor: "text-gray-500",
-          },
-        ],
-      },
+
       {
         title: "Transfers",
         link: "/transfer",
