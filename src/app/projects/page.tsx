@@ -2,17 +2,17 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { List, PlusIcon, Grid } from "lucide-react";
 import ProjectCard from "@/components/projects/ProjectCard";
 import ProjectFilter from "@/components/projects/ProjectFilters";
 import { useProjects } from "@/hooks/useProjects";
 import { Project } from "@/types/project";
-import { List, PlusIcon, Grid } from "lucide-react";
 import ProjectForm from "@/components/forms/ProjectForm";
 import ProjectSection from "@/components/dashboard/ProjectSection";
+import ProjectCardSkeleton from "@/components/projects/ProjectCardSkeleton";
 
 const ProjectPage = () => {
   const [showForm, setShowForm] = useState(false);
-  // false means grid view, true means list view (ProjectSection)
   const [isListView, setIsListView] = useState(false);
   const { data: projects, isLoading, isError } = useProjects();
   const [filters, setFilters] = useState({
@@ -36,9 +36,6 @@ const ProjectPage = () => {
       (project) => project.status === filters.status
     );
   }
-
-  if (isLoading) return <div>Loading...</div>;
-  if (isError) return <div>Failed to load projects.</div>;
 
   return (
     <div className="p-4">
@@ -88,7 +85,16 @@ const ProjectPage = () => {
 
       <ProjectFilter onFilterChange={handleFilterChange} />
 
-      {isListView ? (
+      {isLoading ? (
+        // When loading, render skeleton cards with grid layout.
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <ProjectCardSkeleton key={index} />
+          ))}
+        </div>
+      ) : isError ? (
+        <div>Failed to load projects.</div>
+      ) : isListView ? (
         // Render list view with ProjectSection (pass projects if needed)
         <ProjectSection />
       ) : (

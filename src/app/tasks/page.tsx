@@ -5,6 +5,7 @@ import Card from "@/components/ui/Card";
 import React, { useState } from "react";
 import { CheckCircle, Loader, Clock, XCircle } from "lucide-react";
 import DataTable from "@/components/tasks/DataTable";
+import DataTableSkeleton from "@/components/tasks/DataTableSkeleton";
 import { useTasks } from "@/hooks/useTasks";
 import TaskForm from "@/components/forms/TaskForm";
 
@@ -26,10 +27,7 @@ const TasksPage = () => {
     }
   );
 
-  if (isLoading) return <div>Loading tasks...</div>;
-  if (isError) return <div>Failed to load tasks.</div>;
-
-  return ( 
+  return (
     <div className="mx-auto max-w-full px-4">
       {/* Breadcrumb and Stats Cards */}
       <BreadcrumbTasks onPlusClick={() => setShowForm(true)} />
@@ -74,7 +72,13 @@ const TasksPage = () => {
 
       {/* Table Section */}
       <div className="mt-6 max-w-full overflow-hidden">
-        <DataTable />
+        {isLoading ? (
+          <DataTableSkeleton />
+        ) : isError ? (
+          <div>Failed to load tasks.</div>
+        ) : (
+          <DataTable />
+        )}
       </div>
     </div>
   );
