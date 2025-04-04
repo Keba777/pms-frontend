@@ -9,7 +9,7 @@ import TaskTable from "@/components/master-schedule/TaskTable";
 import { Task } from "@/types/task";
 
 const ProjectDetailPage = () => {
-  const { id } = useParams();
+  const { id } = useParams() as { id: string };
   const router = useRouter();
   const projects = useProjectStore((state) => state.projects);
 
@@ -203,7 +203,11 @@ const ProjectDetailPage = () => {
         <div className="mt-6 border-t pt-4">
           <h2 className="text-xl font-semibold text-gray-800">Tasks</h2>
           <div className="overflow-x-auto mt-4">
-            <TaskTable projectTitle={project.title} tasks={project.tasks} />
+            <TaskTable
+              projectTitle={project.title}
+              tasks={project.tasks}
+              projectId={id as string}
+            />
           </div>
         </div>
       )}

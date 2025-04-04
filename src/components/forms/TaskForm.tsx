@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import Select from "react-select";
 import DatePicker from "react-datepicker";
@@ -23,6 +23,8 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
     register,
     handleSubmit,
     control,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm<CreateTaskInput>({
     defaultValues: {
@@ -41,8 +43,39 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
   const { tasks } = useTaskStore();
   const lastTask = tasks && tasks.length > 0 ? tasks[tasks.length - 1] : null;
 
+  // Local state for duration (in days). This field is for display/calculation only.
+  const [duration, setDuration] = useState<string>("");
+
+  // Watch start_date and end_date for changes.
+  const startDate = watch("start_date");
+  const endDate = watch("end_date");
+
+  // Calculate duration when start_date or end_date change.
+  useEffect(() => {
+    if (startDate && endDate) {
+      const diffTime =
+        new Date(endDate).getTime() - new Date(startDate).getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      setDuration(diffDays.toString());
+    }
+  }, [startDate, endDate]);
+
+  // When the user types in the duration field, update the end_date automatically.
+  const handleDurationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newDuration = e.target.value;
+    setDuration(newDuration);
+    // If a valid start date exists and duration is a valid number, update the end_date.
+    if (startDate && newDuration && !isNaN(Number(newDuration))) {
+      const calculatedEndDate = new Date(startDate);
+      calculatedEndDate.setDate(
+        calculatedEndDate.getDate() + Number(newDuration)
+      );
+      setValue("end_date", calculatedEndDate);
+    }
+  };
+
   const onSubmit = (data: CreateTaskInput) => {
-    // If defaultProjectId is provided, use it regardless of form selection
+    // If defaultProjectId is provided, use it regardless of form selection.
     const submitData = defaultProjectId
       ? { ...data, project_id: defaultProjectId }
       : data;
@@ -109,7 +142,7 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
     },
   ];
 
-  // Map fetched projects to options for the select
+  // Map fetched projects to options for the select.
   const projectOptions =
     projects?.map((project) => ({
       value: project.id,
@@ -209,8 +242,8 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
           )}
         </div>
 
-        {/* Dates Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Dates Section with Duration */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Start Date */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -238,6 +271,20 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
             )}
           </div>
 
+          {/* Duration Field (Optional - Not Submitted) */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Duration (days) <span className="text-gray-500">(optional)</span>
+            </label>
+            <input
+              type="number"
+              value={duration}
+              onChange={handleDurationChange}
+              placeholder="Enter duration in days"
+              className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
+            />
+          </div>
+
           {/* End Date */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -250,7 +297,18 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
               render={({ field }) => (
                 <DatePicker
                   selected={field.value ? new Date(field.value) : null}
-                  onChange={(date) => field.onChange(date)}
+                  onChange={(date) => {
+                    field.onChange(date);
+                    if (startDate && date) {
+                      const diffTime =
+                        new Date(date).getTime() -
+                        new Date(startDate).getTime();
+                      const diffDays = Math.ceil(
+                        diffTime / (1000 * 60 * 60 * 24)
+                      );
+                      setDuration(diffDays.toString());
+                    }
+                  }}
                   className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
                   dateFormat="MM/dd/yyyy"
                   showYearDropdown
@@ -265,6 +323,7 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
             )}
           </div>
         </div>
+
         {/* Status and Priority Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Status */}

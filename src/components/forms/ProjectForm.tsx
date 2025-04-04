@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { Info } from "lucide-react";
 import Select from "react-select";
@@ -23,6 +23,8 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
     register,
     handleSubmit,
     control,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm<CreateProjectInput>();
 
@@ -34,14 +36,46 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
   } = useUsers();
   const { data: tags, isLoading: tagsLoading, error: tagsError } = useTags();
 
+  // Local state for duration (in days). This field is for display/calculation only.
+  const [duration, setDuration] = useState<string>("");
+
+  // Watch start_date and end_date for changes.
+  const startDate = watch("start_date");
+  const endDate = watch("end_date");
+
+  // Calculate duration when the end date is updated by the user.
+  useEffect(() => {
+    if (startDate && endDate) {
+      const diffTime =
+        new Date(endDate).getTime() - new Date(startDate).getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      setDuration(diffDays.toString());
+    }
+  }, [startDate, endDate]);
+
+  // When the user types in the duration field, update the end_date automatically
+  const handleDurationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newDuration = e.target.value;
+    setDuration(newDuration);
+    // If a valid start date exists and duration is a valid number, update the end_date.
+    if (startDate && newDuration && !isNaN(Number(newDuration))) {
+      const calculatedEndDate = new Date(startDate);
+      calculatedEndDate.setDate(
+        calculatedEndDate.getDate() + Number(newDuration)
+      );
+      setValue("end_date", calculatedEndDate);
+    }
+  };
+
   const onSubmit = (data: CreateProjectInput) => {
+    // data.duration is not part of the CreateProjectInput type so it won't be sent.
     createProject(data, {
       onSuccess: () => {
         toast.success("Project created successfully!");
         onClose(); // Close the modal on success
         window.location.reload(); // Reload the page
       },
-    }); // Call the mutation to create the project
+    });
   };
 
   // Options for dropdowns
@@ -121,7 +155,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
           className="text-gray-500 hover:text-gray-700"
           onClick={onClose} // Close the modal
         >
-          &times; {/* Close icon */}
+          &times;
         </button>
       </div>
 
@@ -191,6 +225,20 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
             )}
           </div>
 
+          {/* Duration Field (Optional - Not Submitted) */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Duration (days) <span className="text-gray-500">(optional)</span>
+            </label>
+            <input
+              type="number"
+              value={duration}
+              onChange={handleDurationChange}
+              placeholder="Enter duration in days"
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+            />
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Ends At <span className="text-red-500">*</span>
@@ -202,7 +250,19 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
               render={({ field }) => (
                 <DatePicker
                   selected={field.value ? new Date(field.value) : null}
-                  onChange={(date) => field.onChange(date)}
+                  // When end_date changes, update the field and duration (if start_date exists)
+                  onChange={(date) => {
+                    field.onChange(date);
+                    if (startDate && date) {
+                      const diffTime =
+                        new Date(date).getTime() -
+                        new Date(startDate).getTime();
+                      const diffDays = Math.ceil(
+                        diffTime / (1000 * 60 * 60 * 24)
+                      );
+                      setDuration(diffDays.toString());
+                    }
+                  }}
                   className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
                   showYearDropdown
                   scrollableYearDropdown
@@ -390,7 +450,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
           <button
             type="button"
             className="px-4 py-2 border rounded-md hover:bg-gray-50"
-            onClick={onClose} // Close the modal
+            onClick={onClose}
           >
             Close
           </button>

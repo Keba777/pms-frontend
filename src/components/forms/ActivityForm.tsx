@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import Select from "react-select";
 import DatePicker from "react-datepicker";
@@ -26,6 +26,8 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
     register,
     handleSubmit,
     control,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm<Activity>({
     defaultValues: {
@@ -48,6 +50,33 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
     activities && activities.length > 0
       ? activities[activities.length - 1]
       : null;
+
+  const [duration, setDuration] = useState<string>("");
+
+  const startDate = watch("start_date");
+  const endDate = watch("end_date");
+
+  useEffect(() => {
+    if (startDate && endDate) {
+      const diffTime =
+        new Date(endDate).getTime() - new Date(startDate).getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      setDuration(diffDays.toString());
+    }
+  }, [startDate, endDate]);
+
+  // Update end_date when the user changes the duration manually.
+  const handleDurationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newDuration = e.target.value;
+    setDuration(newDuration);
+    if (startDate && newDuration && !isNaN(Number(newDuration))) {
+      const calculatedEndDate = new Date(startDate);
+      calculatedEndDate.setDate(
+        calculatedEndDate.getDate() + Number(newDuration)
+      );
+      setValue("end_date", calculatedEndDate);
+    }
+  };
 
   const onSubmit = (data: Activity) => {
     const submitData = defaultTaskId
@@ -130,7 +159,7 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
             )}
           </div>
 
-          {/* Latest Task History Card */}
+          {/* Latest Activity History Card */}
           <div className="p-4 rounded-lg shadow-md bg-gradient-to-r from-cyan-500 to-cyan-700 text-white">
             <h4 className="text-lg font-semibold mb-2">Latest Activity</h4>
             {lastActivity ? (
@@ -152,8 +181,9 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
             )}
           </div>
 
-          {/* Dates (Both Required) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Dates and Duration Section */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Start Date */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Start Date <span className="text-red-500">*</span>
@@ -181,6 +211,22 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
               )}
             </div>
 
+            {/* Duration Field (Optional - Not Submitted) */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Duration (days){" "}
+                <span className="text-gray-500">(optional)</span>
+              </label>
+              <input
+                type="number"
+                value={duration}
+                onChange={handleDurationChange}
+                placeholder="Enter duration in days"
+                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+              />
+            </div>
+
+            {/* End Date */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 End Date <span className="text-red-500">*</span>
@@ -197,7 +243,18 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
                 render={({ field }) => (
                   <DatePicker
                     selected={field.value ? new Date(field.value) : null}
-                    onChange={(date) => field.onChange(date)}
+                    onChange={(date) => {
+                      field.onChange(date);
+                      if (startDate && date) {
+                        const diffTime =
+                          new Date(date).getTime() -
+                          new Date(startDate).getTime();
+                        const diffDays = Math.ceil(
+                          diffTime / (1000 * 60 * 60 * 24)
+                        );
+                        setDuration(diffDays.toString());
+                      }
+                    }}
                     className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
                     dateFormat="MM/dd/yyyy"
                     placeholderText="Select end date"
@@ -216,7 +273,7 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
           </div>
         </div>
 
-        {/* Optional Fields (other than Description) */}
+        {/* Optional Fields */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Task Select (Optional unless defaultTaskId is provided) */}
           {!defaultTaskId && (
@@ -252,7 +309,7 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
           )}
         </div>
 
-        {/* Priority and Approval Status (Optional) */}
+        {/* Priority and Approval Status */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -303,7 +360,7 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
           </div>
         </div>
 
-        {/* Unit and Progress (Optional) */}
+        {/* Unit and Progress */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -339,6 +396,7 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
             )}
           </div>
         </div>
+
         {/* Status (Required) */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -368,7 +426,7 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
           )}
         </div>
 
-        {/* Description Field  */}
+        {/* Description Field */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Description
