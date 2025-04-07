@@ -85,9 +85,9 @@ const menuItems = [
         iconColor: "text-gray-500",
       },
       {
-        title: "Equipment Types",
-        link: "/equipment_types",
-        icon: Settings,
+        title: "Manage Labors",
+        link: "/labors",
+        icon: Users,
         iconColor: "text-gray-500",
       },
     ],
