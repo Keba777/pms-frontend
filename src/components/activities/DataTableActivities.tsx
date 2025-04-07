@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { Menu, MenuButton, MenuItems, MenuItem } from "@headlessui/react";
 import { ChevronDown, RefreshCw, Trash2, Search } from "lucide-react";
@@ -7,7 +7,7 @@ import { useActivities } from "@/hooks/useActivities";
 
 const DataTableActivities = () => {
   const { data: activities, isLoading, error, refetch } = useActivities();
- 
+
   if (isLoading) {
     return <div>Loading activities...</div>;
   }
@@ -104,6 +104,9 @@ const DataTableActivities = () => {
                 Priority
               </th>
               <th className="px-4 py-3 whitespace-nowrap text-left text-sm font-medium text-gray-50">
+                Quantity
+              </th>
+              <th className="px-4 py-3 whitespace-nowrap text-left text-sm font-medium text-gray-50">
                 Unit
               </th>
               <th className="px-4 py-3 whitespace-nowrap text-left text-sm font-medium text-gray-50">
@@ -162,6 +165,9 @@ const DataTableActivities = () => {
                     >
                       {activity.priority}
                     </span>
+                  </td>
+                  <td className="px-4 py-2 whitespace-nowrap">
+                    {activity.quantity !== undefined ? activity.quantity : "–"}
                   </td>
                   <td className="px-4 py-2 whitespace-nowrap">
                     {activity.unit}
@@ -254,7 +260,7 @@ const DataTableActivities = () => {
               ))
             ) : (
               <tr>
-                <td colSpan={11} className="px-4 py-2 text-center">
+                <td colSpan={12} className="px-4 py-2 text-center">
                   No activities found.
                 </td>
               </tr>

@@ -36,6 +36,7 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
       status: "Not Started", // Default value for status
       approvalStatus: "Pending", // Default value for approvalStatus
       progress: 0, // Default progress
+      // quantity remains optional
     },
   });
 
@@ -395,6 +396,19 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
               </p>
             )}
           </div>
+        </div>
+
+        {/* Quantity Field */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Quantity
+          </label>
+          <input
+            type="number"
+            {...register("quantity")}
+            placeholder="Enter quantity"
+            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+          />
         </div>
 
         {/* Status (Required) */}
