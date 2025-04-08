@@ -1,94 +1,77 @@
 "use client";
 
 import { Menu, MenuButton, MenuItems, MenuItem } from "@headlessui/react";
-import { ChevronDown, RefreshCw, Trash2, Search } from "lucide-react";
-import React from "react";
-import { useActivities } from "@/hooks/useActivities";
+import { ChevronDown } from "lucide-react";
+import { useRouter } from "next/navigation";
+import {
+  useActivities,
+  useDeleteActivity,
+  useUpdateActivity,
+} from "@/hooks/useActivities";
+import { useState } from "react";
+import { UpdateActivityInput } from "@/types/activity";
+import { formatDate, getDuration } from "@/utils/helper";
+import EditActivityForm from "../forms/EditActivityForm";
+import ConfirmModal from "../ui/ConfirmModal";
+import ActivityTableSkeleton from "./ActivityTableSkeleton";
 
 const DataTableActivities = () => {
-  const { data: activities, isLoading, error, refetch } = useActivities();
+  const { data: activities, isLoading, error } = useActivities();
+  const { mutate: deleteActivity } = useDeleteActivity();
+  const { mutate: updateActivity } = useUpdateActivity();
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [activityToEdit, setActivityToEdit] =
+    useState<UpdateActivityInput | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedActivityId, setSelectedActivityId] = useState<string | null>(
+    null
+  );
+
+  const router = useRouter();
 
   if (isLoading) {
-    return <div>Loading activities...</div>;
+    return <ActivityTableSkeleton />;
   }
 
   if (error) {
     return <div>Error fetching activities.</div>;
   }
 
-  // Helper function to format dates as dd-MM-yyyy
-  const formatDate = (date: Date | string) => {
-    const d = new Date(date);
-    const day = String(d.getDate()).padStart(2, "0");
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    const year = d.getFullYear();
-    return `${day}-${month}-${year}`;
+  const handleDeleteActivityClick = (activityId: string) => {
+    setSelectedActivityId(activityId);
+    setIsDeleteModalOpen(true);
   };
 
-  // Helper function to calculate duration in days
-  const getDuration = (start: Date | string, end: Date | string) => {
-    const startDate = new Date(start);
-    const endDate = new Date(end);
-    const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 3600 * 24));
-    return `${diffDays} D`;
+  const handleDeleteActivity = () => {
+    if (selectedActivityId) {
+      deleteActivity(selectedActivityId);
+      setIsDeleteModalOpen(false);
+    }
+  };
+
+  const handleViewActivity = (activityId: string) => {
+    router.push(`/activities/${activityId}`);
+  };
+
+  const handleEditSubmit = (data: UpdateActivityInput) => {
+    updateActivity(data);
+    setShowEditForm(false);
   };
 
   return (
-    <div className="rounded-lg border border-gray-200">
-      <div className="flex items-center justify-between p-4">
-        <div className="flex gap-4">
-          <button className="flex items-center px-4 py-2 rounded-lg gap-2 text-red-600 hover:text-gray-100 hover:bg-red-600 border border-red-600">
-            <Trash2 size={18} /> Delete Selected
-          </button>
-        </div>
-
-        <div className="flex items-center gap-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-            <input
-              type="search"
-              placeholder="Search"
-              className="pl-10 pr-4 py-2 border rounded"
+    <div>
+      {/* Edit Activity Modal */}
+      {showEditForm && activityToEdit && (
+        <div className="modal-overlay fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="modal-content bg-white rounded-lg shadow-xl p-6">
+            <EditActivityForm
+              onClose={() => setShowEditForm(false)}
+              onSubmit={handleEditSubmit}
+              activity={activityToEdit}
             />
           </div>
-
-          <Menu>
-            <MenuButton className="flex items-center gap-2 px-4 py-3 bg-gray-700 text-white rounded">
-              <button onClick={() => refetch()} className="rounded">
-                <RefreshCw size={14} />
-              </button>
-              <ChevronDown size={14} />
-            </MenuButton>
-            <MenuItems className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-10">
-              <MenuItem>
-                {({ focus }) => (
-                  <label
-                    className={`flex items-center px-4 py-2 whitespace-nowrap ${
-                      focus ? "bg-blue-100" : ""
-                    }`}
-                  >
-                    <input type="checkbox" className="mr-2" checked readOnly />{" "}
-                    Activity
-                  </label>
-                )}
-              </MenuItem>
-              <MenuItem>
-                {({ focus }) => (
-                  <label
-                    className={`flex items-center px-4 py-2 whitespace-nowrap ${
-                      focus ? "bg-blue-100" : ""
-                    }`}
-                  >
-                    <input type="checkbox" className="mr-2" checked readOnly />{" "}
-                    Priority
-                  </label>
-                )}
-              </MenuItem>
-            </MenuItems>
-          </Menu>
         </div>
-      </div>
+      )}
 
       <div className="overflow-x-auto">
         <table className="min-w-max divide-y divide-gray-200">
@@ -214,6 +197,10 @@ const DataTableActivities = () => {
                                 className={`block w-full px-4 py-2 text-left whitespace-nowrap ${
                                   focus ? "bg-blue-100" : ""
                                 }`}
+                                onClick={() => {
+                                  setActivityToEdit(activity);
+                                  setShowEditForm(true);
+                                }}
                               >
                                 Update
                               </button>
@@ -225,28 +212,24 @@ const DataTableActivities = () => {
                                 className={`block w-full px-4 py-2 text-left whitespace-nowrap ${
                                   focus ? "bg-blue-100" : ""
                                 }`}
+                                onClick={() => {
+                                  handleDeleteActivityClick(activity.id);
+                                }}
                               >
                                 Delete
                               </button>
                             )}
                           </MenuItem>
+
                           <MenuItem>
                             {({ focus }) => (
                               <button
                                 className={`block w-full px-4 py-2 text-left whitespace-nowrap ${
                                   focus ? "bg-blue-100" : ""
                                 }`}
-                              >
-                                Duplicate
-                              </button>
-                            )}
-                          </MenuItem>
-                          <MenuItem>
-                            {({ focus }) => (
-                              <button
-                                className={`block w-full px-4 py-2 text-left whitespace-nowrap ${
-                                  focus ? "bg-blue-100" : ""
-                                }`}
+                                onClick={() => {
+                                  handleViewActivity(activity.id);
+                                }}
                               >
                                 Quick View
                               </button>
@@ -268,6 +251,19 @@ const DataTableActivities = () => {
           </tbody>
         </table>
       </div>
+
+      {isDeleteModalOpen && (
+        <ConfirmModal
+          isVisible={isDeleteModalOpen}
+          title="Confirm Deletion"
+          message="Are you sure you want to delete this activity?"
+          showInput={true}
+          confirmText="DELETE"
+          confirmButtonText="Delete"
+          onClose={() => setIsDeleteModalOpen(false)}
+          onConfirm={handleDeleteActivity}
+        />
+      )}
 
       <div className="flex items-center justify-between p-4">
         <div className="flex items-center gap-4">

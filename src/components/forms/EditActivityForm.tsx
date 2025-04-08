@@ -121,6 +121,21 @@ const EditActivityForm: React.FC<{
         <p className="text-red-500 text-sm ml-32">{errors.unit.message}</p>
       )}
 
+      {/* Quantity */}
+      <div className="flex items-center space-x-4">
+        <label className="w-32 text-sm font-medium text-gray-700">
+          Quantity
+        </label>
+        <input
+          type="number"
+          {...register("quantity")}
+          className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+        />
+      </div>
+      {errors.quantity && (
+        <p className="text-red-500 text-sm ml-32">{errors.quantity.message}</p>
+      )}
+
       {/* Start Date */}
       <div className="flex items-center space-x-4">
         <label className="w-32 text-sm font-medium text-gray-700">
