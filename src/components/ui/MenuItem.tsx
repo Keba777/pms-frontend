@@ -39,7 +39,7 @@ const MenuItem: React.FC<MenuItemProps> = ({ item }) => {
             setOpen(!open);
           }
         }}
-        className={`flex items-center p-2 rounded transition-colors ${
+        className={`flex items-center py-2 px-4 rounded transition-colors ${
           isActive ? "bg-gray-200 text-blue-600 font-semibold" : "hover:bg-gray-100"
         }`}
       >

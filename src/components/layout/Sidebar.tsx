@@ -44,7 +44,7 @@ const Sidebar = ({
       {/* Workspace Dropdown */}
       <WorkspaceDropdown />
       {/* Menu List */}
-      <ul className="py-1 px-2">
+      <ul className="py-1 px-4">
         {menuItems.map((item, index) => (
           <MenuItem key={index} item={item} />
         ))}
