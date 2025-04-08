@@ -1,10 +1,16 @@
 "use client";
 
-import React from "react";
-import { useProjects } from "@/hooks/useProjects";
-import { useUser } from "@/hooks/useUsers"; // Hook to fetch user by ID
+import React, { useState } from "react";
+import { Menu, MenuButton, MenuItems, MenuItem } from "@headlessui/react";
+import { ChevronDown } from "lucide-react";
 import { FaEdit, FaTrash, FaEye } from "react-icons/fa";
+import { useProjects } from "@/hooks/useProjects";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useUser } from "@/hooks/useUsers";
+import ConfirmModal from "../ui/ConfirmModal";
+import EditProjectForm from "../forms/EditProjectForm";
+import { Project } from "@/types/project";
 
 // Component to display a single member's name using the useUser hook
 const MemberDisplay: React.FC<{ userId: string }> = ({ userId }) => {
@@ -18,9 +24,7 @@ const MemberDisplay: React.FC<{ userId: string }> = ({ userId }) => {
 
 const ProjectSection = () => {
   const { data: projects, isLoading, isError } = useProjects();
-  // const [statusUpdates, setStatusUpdates] = useState<{ [key: string]: string }>(
-  //   {}
-  // );
+  const router = useRouter();
 
   const formatDate = (date: string | number | Date) => {
     if (!date) return "N/A";
@@ -29,9 +33,32 @@ const ProjectSection = () => {
     return dateObj.toLocaleDateString("en-GB");
   };
 
-  // const handleStatusChange = (projectId: string, newStatus: string) => {
-  //   setStatusUpdates((prev) => ({ ...prev, [projectId]: newStatus }));
-  // };
+  // State for edit and delete modals
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [projectToEdit, setProjectToEdit] = useState<Project | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [, setSelectedProjectId] = useState<string | null>(null);
+
+  // Handlers for actions
+  const handleEditProject = (project: Project) => {
+    setProjectToEdit(project);
+    setShowEditForm(true);
+  };
+
+  const handleDeleteProjectClick = (projectId: string) => {
+    setSelectedProjectId(projectId);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleDeleteProject = () => {
+    // Insert your delete functionality here. For example:
+    // deleteProject(selectedProjectId);
+    setIsDeleteModalOpen(false);
+  };
+
+  const handleViewProject = (projectId: string) => {
+    router.push(`/projects/${projectId}`);
+  };
 
   if (isLoading) return <div>Loading...</div>;
   if (isError) return <div>Error loading projects</div>;
@@ -39,6 +66,22 @@ const ProjectSection = () => {
   return (
     <div>
       <h2 className="text-3xl font-semibold mb-4 mt-6">Available Projects</h2>
+
+      {/* Edit Project Modal */}
+      {showEditForm && projectToEdit && (
+        <div className="modal-overlay fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="modal-content bg-white rounded-lg shadow-xl p-6">
+            <EditProjectForm
+              onClose={() => setShowEditForm(false)}
+              project={projectToEdit}
+              onSubmit={() => {}}
+              tags={undefined}
+              users={undefined}
+            />
+          </div>
+        </div>
+      )}
+
       <div className="overflow-x-auto">
         <table className="min-w-max border border-gray-200 divide-y divide-gray-200">
           <thead className="bg-cyan-700">
@@ -73,9 +116,6 @@ const ProjectSection = () => {
               <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-50">
                 Actions
               </th>
-              {/* <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-50">
-                Update Status
-              </th> */}
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -121,49 +161,60 @@ const ProjectSection = () => {
                     {formatDate(project.end_date)}
                   </td>
                   <td className="border border-gray-200 px-4 py-2">
-                    <select className="bg-teal-800 text-gray-100 border rounded px-2 py-1">
-                      <option disabled selected>
-                        Action
-                      </option>
-                      <option value="edit">
-                        <FaEdit className="inline mr-2" /> Edit
-                      </option>
-                      <option value="delete">
-                        <FaTrash className="inline mr-2" /> Delete
-                      </option>
-                      <option value="quick-view">
-                        <FaEye className="inline mr-2" /> Quick View
-                      </option>
-                    </select>
+                    <div className="relative inline-block">
+                      <Menu>
+                        <MenuButton className="flex items-center gap-1 px-3 py-1 text-sm bg-cyan-700 text-white rounded hover:bg-cyan-800">
+                          Action <ChevronDown className="w-4 h-4" />
+                        </MenuButton>
+                        <MenuItems className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-10">
+                          <MenuItem>
+                            {({ focus }) => (
+                              <button
+                                className={`block w-full px-4 py-2 text-left whitespace-nowrap ${
+                                  focus ? "bg-blue-100" : ""
+                                }`}
+                                onClick={() => handleEditProject(project)}
+                              >
+                                <FaEdit className="inline mr-2" /> Edit
+                              </button>
+                            )}
+                          </MenuItem>
+                          <MenuItem>
+                            {({ focus }) => (
+                              <button
+                                className={`block w-full px-4 py-2 text-left whitespace-nowrap ${
+                                  focus ? "bg-blue-100" : ""
+                                }`}
+                                onClick={() =>
+                                  handleDeleteProjectClick(project.id)
+                                }
+                              >
+                                <FaTrash className="inline mr-2" /> Delete
+                              </button>
+                            )}
+                          </MenuItem>
+                          <MenuItem>
+                            {({ focus }) => (
+                              <button
+                                className={`block w-full px-4 py-2 text-left whitespace-nowrap ${
+                                  focus ? "bg-blue-100" : ""
+                                }`}
+                                onClick={() => handleViewProject(project.id)}
+                              >
+                                <FaEye className="inline mr-2" /> Quick View
+                              </button>
+                            )}
+                          </MenuItem>
+                        </MenuItems>
+                      </Menu>
+                    </div>
                   </td>
-                  {/* <td className="border border-gray-200 px-4 py-2">
-                    <select
-                      className="border rounded px-2 py-1"
-                      value={statusUpdates[project.id] || project.status}
-                      onChange={(e) =>
-                        handleStatusChange(project.id, e.target.value)
-                      }
-                    >
-                      {[
-                        "Not Started",
-                        "Started",
-                        "InProgress",
-                        "Canceled",
-                        "Onhold",
-                        "Completed",
-                      ].map((status) => (
-                        <option key={status} value={status}>
-                          {status}
-                        </option>
-                      ))}
-                    </select>
-                  </td> */}
                 </tr>
               ))
             ) : (
               <tr>
                 <td
-                  colSpan={11}
+                  colSpan={10}
                   className="border border-gray-200 px-4 py-2 text-center"
                 >
                   No projects found
@@ -173,6 +224,19 @@ const ProjectSection = () => {
           </tbody>
         </table>
       </div>
+
+      {isDeleteModalOpen && (
+        <ConfirmModal
+          isVisible={isDeleteModalOpen}
+          title="Confirm Deletion"
+          message="Are you sure you want to delete this project?"
+          showInput={false}
+          confirmText="DELETE"
+          confirmButtonText="Delete"
+          onClose={() => setIsDeleteModalOpen(false)}
+          onConfirm={handleDeleteProject}
+        />
+      )}
     </div>
   );
 };
