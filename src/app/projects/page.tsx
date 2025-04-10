@@ -12,6 +12,7 @@ import ProjectSection from "@/components/dashboard/ProjectSection";
 import ProjectCardSkeleton from "@/components/projects/ProjectCardSkeleton";
 import GenericDownloads, { Column } from "@/components/common/GenericDownloads";
 import { useProjectStore } from "@/store/projectStore";
+import { usePermissionsStore } from "@/store/permissionsStore";
 
 const ProjectPage = () => {
   const [showForm, setShowForm] = useState(false);
@@ -23,6 +24,7 @@ const ProjectPage = () => {
     tags: [] as { value: number; label: string }[],
   });
   const { projects: storeProjects } = useProjectStore();
+  const hasPermission = usePermissionsStore((state) => state.hasPermission);
 
   const columns: Column<Project>[] = [
     { header: "Project Name", accessor: "title" },
@@ -68,12 +70,15 @@ const ProjectPage = () => {
           </nav>
         </div>
         <div className="flex space-x-2">
-          <button
-            className="bg-cyan-700 hover:bg-cyan-800 text-white font-bold py-2 px-3 rounded text-sm"
-            onClick={() => setShowForm(true)}
-          >
-            <PlusIcon width={15} height={12} />
-          </button>
+          {/* Only render the Add Project button if the user has "create projects" permission */}
+          {hasPermission("create projects") && (
+            <button
+              className="bg-cyan-700 hover:bg-cyan-800 text-white font-bold py-2 px-3 rounded text-sm"
+              onClick={() => setShowForm(true)}
+            >
+              <PlusIcon width={15} height={12} />
+            </button>
+          )}
           {/* Toggle view button */}
           <button
             className="bg-cyan-700 hover:bg-cyan-800 text-white font-bold py-2 px-3 rounded text-sm"
@@ -99,13 +104,12 @@ const ProjectPage = () => {
 
       <ProjectFilter onFilterChange={handleFilterChange} />
       <div className="mt-8 mb-4">
-      <GenericDownloads
-        data={storeProjects}
-        title="Projects"
-        columns={columns}
-      />
+        <GenericDownloads
+          data={storeProjects}
+          title="Projects"
+          columns={columns}
+        />
       </div>
-      
 
       {isLoading ? (
         // When loading, render skeleton cards with grid layout.

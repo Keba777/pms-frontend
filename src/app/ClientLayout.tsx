@@ -7,9 +7,8 @@ import { ToastContainer } from "react-toastify";
 import Footer from "@/components/layout/Footer";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useAuthStore } from "@/store/authStore";
-import { useRoleStore } from "@/store/roleStore";
-import { usePermissionsStore } from "@/store/permissionsStore";
 import { useEffect, useState } from "react";
+import RoleLayout from "./RoleLayout";
 
 const queryClient = new QueryClient();
 
@@ -20,54 +19,39 @@ export default function ClientLayout({
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
   const { user, _hasHydrated } = useAuthStore();
+
+  // Local loading state for the layout.
+  const [isLoading, setIsLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // Retrieve roles from the role store.
-  const { roles } = useRoleStore();
-  // Get the function to update the current role in our permission store.
-  const setPermissionRole = usePermissionsStore((state) => state.setRole);
 
+  // Handle authentication redirection.
   useEffect(() => {
     if (!_hasHydrated) return;
 
-    // Authentication redirects
     if (!user && pathname !== "/login") {
       router.push("/login");
     } else if (user && pathname === "/login") {
       router.push("/");
     }
 
-    // When a user exists, retrieve their role from the role store using user.role_id.
-    if (user) {
-      const roleFromStore = roles.find((role) => role.id === user.role_id);
-      if (roleFromStore) {
-        setPermissionRole(roleFromStore.name as string);
-      }
-    }
-
+    // Mark loading complete once authentication logic has run.
     if (isLoading) {
       setIsLoading(false);
     }
-  }, [
-    user,
-    pathname,
-    router,
-    _hasHydrated,
-    isLoading,
-    roles,
-    setPermissionRole,
-  ]);
+  }, [user, pathname, router, _hasHydrated, isLoading]);
 
+  // Show a loading spinner if authentication state is not ready.
   if (!_hasHydrated || isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500" />
       </div>
     );
   }
 
+  // For the login page, we do not need the sidebar and header.
   if (pathname === "/login") {
     return (
       <QueryClientProvider client={queryClient}>
@@ -87,7 +71,7 @@ export default function ClientLayout({
         />
         <main className="flex-1 p-4 ml-0 lg:ml-64 overflow-x-hidden">
           <Header toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
-          {children}
+          <RoleLayout>{children}</RoleLayout>
         </main>
       </div>
       <Footer />
