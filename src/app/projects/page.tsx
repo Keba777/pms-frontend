@@ -10,6 +10,8 @@ import { Project } from "@/types/project";
 import ProjectForm from "@/components/forms/ProjectForm";
 import ProjectSection from "@/components/dashboard/ProjectSection";
 import ProjectCardSkeleton from "@/components/projects/ProjectCardSkeleton";
+import GenericDownloads, { Column } from "@/components/common/GenericDownloads";
+import { useProjectStore } from "@/store/projectStore";
 
 const ProjectPage = () => {
   const [showForm, setShowForm] = useState(false);
@@ -20,6 +22,18 @@ const ProjectPage = () => {
     sort: "",
     tags: [] as { value: number; label: string }[],
   });
+  const { projects: storeProjects } = useProjectStore();
+
+  const columns: Column<Project>[] = [
+    { header: "Project Name", accessor: "title" },
+    { header: "Priority", accessor: "priority" },
+    { header: "Client", accessor: "client" },
+    { header: "Progress", accessor: "progress" },
+    { header: "Budget", accessor: "budget" },
+    { header: "Start Date", accessor: "start_date" },
+    { header: "End Date", accessor: "end_date" },
+    { header: "Status", accessor: "status" },
+  ];
 
   const handleFilterChange = (filters: {
     status: string;
@@ -84,6 +98,14 @@ const ProjectPage = () => {
       )}
 
       <ProjectFilter onFilterChange={handleFilterChange} />
+      <div className="mt-8 mb-4">
+      <GenericDownloads
+        data={storeProjects}
+        title="Projects"
+        columns={columns}
+      />
+      </div>
+      
 
       {isLoading ? (
         // When loading, render skeleton cards with grid layout.
