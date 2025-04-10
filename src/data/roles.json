@@ -2,7 +2,7 @@
   "Admin": {
     "permissions": ["ALL"]
   },
-  "Member": {
+  "User": {
     "permissions": ["edit tasks", "manage member schedule"]
   },
   "Client": { 
