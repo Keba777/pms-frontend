@@ -1,8 +1,9 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import DataTableActivities from "@/components/activities/DataTableActivities";
+import ActualActivityTable from "@/components/activities/ActualActivityTable"; // Import the planned table component
 import TopBarActions from "@/components/activities/TopBarActions";
 import GenericDownloads, { Column } from "@/components/common/GenericDownloads";
 import { useActivityStore } from "@/store/activityStore";
@@ -10,6 +11,7 @@ import { Activity } from "@/types/activity";
 
 const ActivitiesPage = () => {
   const { activities } = useActivityStore();
+  const [activeTab, setActiveTab] = useState("actual"); // default to Actual
 
   const columns: Column<Activity>[] = [
     { header: "Activity Name", accessor: "activity_name" },
@@ -47,7 +49,36 @@ const ActivitiesPage = () => {
 
       <div className="rounded-lg border border-gray-200">
         <TopBarActions refetch={() => {}} />
-        <DataTableActivities />
+
+        {/* Tabs Navigation moved below TopBarActions */}
+        <div className="flex space-x-4 border-b border-gray-200 mb-4">
+          <button
+            onClick={() => setActiveTab("actual")}
+            className={`py-2 px-4 focus:outline-none ${
+              activeTab === "actual"
+                ? "border-b-2 border-blue-500 font-medium"
+                : "text-gray-600"
+            }`}
+          >
+            Actual
+          </button>
+          <button
+            onClick={() => setActiveTab("planned")}
+            className={`py-2 px-4 focus:outline-none ${
+              activeTab === "planned"
+                ? "border-b-2 border-blue-500 font-medium"
+                : "text-gray-600"
+            }`}
+          >
+            Planned
+          </button>
+        </div>
+
+        {activeTab === "actual" ? (
+          <DataTableActivities />
+        ) : (
+          <ActualActivityTable />
+        )}
       </div>
     </div>
   );
