@@ -13,6 +13,7 @@ import { useDeleteTask, useUpdateTask } from "@/hooks/useTasks";
 import { useUsers } from "@/hooks/useUsers";
 import Link from "next/link";
 import { formatDate } from "@/utils/helper";
+import { usePermissionsStore } from "@/store/permissionsStore";
 
 interface TaskTableProps {
   tasks: Task[];
@@ -38,6 +39,13 @@ const TaskTable: React.FC<TaskTableProps> = ({
   const { mutate: deleteTask } = useDeleteTask();
   const { mutate: updateTask } = useUpdateTask();
   const { data: users } = useUsers();
+
+  // Retrieve permissions check from store.
+  const hasPermission = usePermissionsStore((state) => state.hasPermission);
+  const canView = hasPermission("view tasks");
+  const canEdit = hasPermission("edit tasks");
+  const canDelete = hasPermission("delete tasks");
+  const canCreate = hasPermission("create tasks");
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -107,7 +115,11 @@ const TaskTable: React.FC<TaskTableProps> = ({
   };
 
   const handleView = (id: string) => {
-    router.push(`/tasks/${id}`);
+    if (canView) {
+      router.push(`/tasks/${id}`);
+    } else {
+      toast.error("You do not have permission to view this task.");
+    }
   };
 
   const handleEditSubmit = (data: UpdateTaskInput) => {
@@ -132,8 +144,18 @@ const TaskTable: React.FC<TaskTableProps> = ({
             </span>
           </div>
           <button
-            onClick={() => setShowCreateForm(true)}
-            className="px-4 py-2 bg-teal-700 text-white rounded hover:bg-teal-800"
+            onClick={() => {
+              if (canCreate) {
+                setShowCreateForm(true);
+              } else {
+                toast.error("You do not have permission to create tasks.");
+              }
+            }}
+            className="px-4 py-2 bg-teal-700 text-white rounded hover:bg-teal-800 disabled:opacity-50"
+            disabled={!canCreate}
+            title={
+              !canCreate ? "You do not have permission to create tasks" : ""
+            }
           >
             Create Task
           </button>
@@ -156,7 +178,6 @@ const TaskTable: React.FC<TaskTableProps> = ({
               onClose={() => setShowEditForm(false)}
               onSubmit={handleEditSubmit}
               task={taskToEdit}
-              // Optionally, you can pass a users array for the "Assigned To" field:
               users={users}
             />
           </div>
@@ -250,7 +271,13 @@ const TaskTable: React.FC<TaskTableProps> = ({
                                 setDropdownTaskId(null);
                                 handleView(task.id);
                               }}
-                              className="w-full text-left px-3 py-2 hover:bg-gray-100"
+                              className="w-full text-left px-3 py-2 hover:bg-gray-100 disabled:opacity-50"
+                              disabled={!canView}
+                              title={
+                                !canView
+                                  ? "You do not have permission to view tasks"
+                                  : ""
+                              }
                             >
                               View
                             </button>
@@ -260,7 +287,13 @@ const TaskTable: React.FC<TaskTableProps> = ({
                                 setTaskToEdit(task);
                                 setShowEditForm(true);
                               }}
-                              className="w-full text-left px-3 py-2 hover:bg-gray-100"
+                              className="w-full text-left px-3 py-2 hover:bg-gray-100 disabled:opacity-50"
+                              disabled={!canEdit}
+                              title={
+                                !canEdit
+                                  ? "You do not have permission to edit tasks"
+                                  : ""
+                              }
                             >
                               Edit
                             </button>
@@ -269,7 +302,13 @@ const TaskTable: React.FC<TaskTableProps> = ({
                                 setDropdownTaskId(null);
                                 handleDeleteClick(task.id);
                               }}
-                              className="w-full text-left px-3 py-2 text-red-600 hover:bg-gray-100"
+                              className="w-full text-left px-3 py-2 text-red-600 hover:bg-gray-100 disabled:opacity-50"
+                              disabled={!canDelete}
+                              title={
+                                !canDelete
+                                  ? "You do not have permission to delete tasks"
+                                  : ""
+                              }
                             >
                               Delete
                             </button>

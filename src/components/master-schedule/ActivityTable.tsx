@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import { useDeleteActivity, useUpdateActivity } from "@/hooks/useActivities";
 import Link from "next/link";
 import { formatDate } from "@/utils/helper";
+import { usePermissionsStore } from "@/store/permissionsStore";
 
 interface ActivityTableProps {
   taskId: string;
@@ -20,6 +21,7 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
   const { mutate: deleteActivity } = useDeleteActivity();
   const { mutate: updateActivity } = useUpdateActivity();
   const { data: taskDetail } = useTask(taskId);
+  const router = useRouter();
 
   const [showForm, setShowForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
@@ -32,8 +34,14 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
   const [selectedActivityId, setSelectedActivityId] = useState<string | null>(
     null
   );
-  const router = useRouter();
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Permission checks via the permissions store.
+  const hasPermission = usePermissionsStore((state) => state.hasPermission);
+  const canView = hasPermission("view activities");
+  const canEdit = hasPermission("edit activities");
+  const canDelete = hasPermission("delete activities");
+  const canCreate = hasPermission("create activities");
 
   // Close dropdown on click outside.
   useEffect(() => {
@@ -89,20 +97,17 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
 
   const handleDeleteActivity = () => {
     if (selectedActivityId) {
-      deleteActivity(selectedActivityId, {
-        onSuccess: () => {
-          // Optionally add success notification or refresh logic here
-        },
-        onError: () => {
-          // Optionally add error notification here
-        },
-      });
+      deleteActivity(selectedActivityId);
       setIsDeleteModalOpen(false);
     }
   };
 
   const handleViewActivity = (activityId: string) => {
-    router.push(`/activities/${activityId}`);
+    if (canView) {
+      router.push(`/activities/${activityId}`);
+    } else {
+      alert("You do not have permission to view this activity.");
+    }
   };
 
   const handleEditSubmit = (data: UpdateActivityInput) => {
@@ -122,8 +127,18 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
           <span className="font-normal ml-1">{totalActivities}</span>
         </div>
         <button
-          onClick={() => setShowForm(true)}
-          className="px-4 py-2 bg-emerald-700 text-white rounded hover:bg-emerald-700"
+          onClick={() => {
+            if (canCreate) {
+              setShowForm(true);
+            } else {
+              alert("You do not have permission to create activities.");
+            }
+          }}
+          className="px-4 py-2 bg-emerald-700 text-white rounded hover:bg-emerald-800 disabled:opacity-50"
+          disabled={!canCreate}
+          title={
+            !canCreate ? "You do not have permission to create activities" : ""
+          }
         >
           Create Activity
         </button>
@@ -217,7 +232,7 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
                 <td className="border border-gray-200 px-4 py-2">
                   <a
                     href={`/resources/${activity.id}`}
-                    className="flex items-center text-teal-700 hover:underline"
+                    className="flex items-center text-emerald-700 hover:underline"
                   >
                     Request
                   </a>
@@ -248,7 +263,13 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
                             setDropdownActivityId(null);
                             handleViewActivity(activity.id);
                           }}
-                          className="w-full text-left px-3 py-2 hover:bg-gray-100"
+                          className="w-full text-left px-3 py-2 hover:bg-gray-100 disabled:opacity-50"
+                          disabled={!canView}
+                          title={
+                            !canView
+                              ? "You do not have permission to view activities"
+                              : ""
+                          }
                         >
                           View
                         </button>
@@ -258,7 +279,13 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
                             setActivityToEdit(activity);
                             setShowEditForm(true);
                           }}
-                          className="w-full text-left px-3 py-2 hover:bg-gray-100"
+                          className="w-full text-left px-3 py-2 hover:bg-gray-100 disabled:opacity-50"
+                          disabled={!canEdit}
+                          title={
+                            !canEdit
+                              ? "You do not have permission to edit activities"
+                              : ""
+                          }
                         >
                           Edit
                         </button>
@@ -267,7 +294,13 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
                             setDropdownActivityId(null);
                             handleDeleteActivityClick(activity.id);
                           }}
-                          className="w-full text-left px-3 py-2 text-red-600 hover:bg-gray-100"
+                          className="w-full text-left px-3 py-2 text-red-600 hover:bg-gray-100 disabled:opacity-50"
+                          disabled={!canDelete}
+                          title={
+                            !canDelete
+                              ? "You do not have permission to delete activities"
+                              : ""
+                          }
                         >
                           Delete
                         </button>
@@ -280,7 +313,7 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
           ) : (
             <tr>
               <td
-                colSpan={8}
+                colSpan={9}
                 className="border border-gray-200 px-4 py-2 text-center"
               >
                 No activities found

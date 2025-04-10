@@ -14,6 +14,7 @@ import { formatDate, getDuration } from "@/utils/helper";
 import EditActivityForm from "../forms/EditActivityForm";
 import ConfirmModal from "../ui/ConfirmModal";
 import ActivityTableSkeleton from "./ActivityTableSkeleton";
+import { usePermissionsStore } from "@/store/permissionsStore";
 
 const DataTableActivities = () => {
   const { data: activities, isLoading, error } = useActivities();
@@ -28,6 +29,12 @@ const DataTableActivities = () => {
   );
 
   const router = useRouter();
+
+  // Retrieve permission checking from permissions store.
+  const hasPermission = usePermissionsStore((state) => state.hasPermission);
+  const canView = hasPermission("view activities");
+  const canUpdate = hasPermission("edit activities");
+  const canDelete = hasPermission("delete activities");
 
   if (isLoading) {
     return <ActivityTableSkeleton />;
@@ -50,7 +57,11 @@ const DataTableActivities = () => {
   };
 
   const handleViewActivity = (activityId: string) => {
-    router.push(`/activities/${activityId}`);
+    if (canView) {
+      router.push(`/activities/${activityId}`);
+    } else {
+      alert("You do not have permission to view this activity.");
+    }
   };
 
   const handleEditSubmit = (data: UpdateActivityInput) => {
@@ -198,9 +209,21 @@ const DataTableActivities = () => {
                                   focus ? "bg-blue-100" : ""
                                 }`}
                                 onClick={() => {
-                                  setActivityToEdit(activity);
-                                  setShowEditForm(true);
+                                  if (canUpdate) {
+                                    setActivityToEdit(activity);
+                                    setShowEditForm(true);
+                                  } else {
+                                    alert(
+                                      "You do not have permission to update activities."
+                                    );
+                                  }
                                 }}
+                                disabled={!canUpdate}
+                                title={
+                                  !canUpdate
+                                    ? "You do not have permission to update activities"
+                                    : ""
+                                }
                               >
                                 Update
                               </button>
@@ -213,14 +236,25 @@ const DataTableActivities = () => {
                                   focus ? "bg-blue-100" : ""
                                 }`}
                                 onClick={() => {
-                                  handleDeleteActivityClick(activity.id);
+                                  if (canDelete) {
+                                    handleDeleteActivityClick(activity.id);
+                                  } else {
+                                    alert(
+                                      "You do not have permission to delete activities."
+                                    );
+                                  }
                                 }}
+                                disabled={!canDelete}
+                                title={
+                                  !canDelete
+                                    ? "You do not have permission to delete activities"
+                                    : ""
+                                }
                               >
                                 Delete
                               </button>
                             )}
                           </MenuItem>
-
                           <MenuItem>
                             {({ focus }) => (
                               <button
@@ -228,8 +262,20 @@ const DataTableActivities = () => {
                                   focus ? "bg-blue-100" : ""
                                 }`}
                                 onClick={() => {
-                                  handleViewActivity(activity.id);
+                                  if (canView) {
+                                    handleViewActivity(activity.id);
+                                  } else {
+                                    alert(
+                                      "You do not have permission to view activities."
+                                    );
+                                  }
                                 }}
+                                disabled={!canView}
+                                title={
+                                  !canView
+                                    ? "You do not have permission to view activities"
+                                    : ""
+                                }
                               >
                                 Quick View
                               </button>
@@ -276,7 +322,6 @@ const DataTableActivities = () => {
             <option>50</option>
           </select>
         </div>
-
         <div className="flex gap-2">
           <button className="px-3 py-1 rounded border hover:bg-gray-50">
             &lsaquo;

@@ -15,27 +15,27 @@ import { useUsers } from "@/hooks/useUsers";
 import { useTags } from "@/hooks/useTags";
 import Link from "next/link";
 import { formatDate } from "@/utils/helper";
+import { usePermissionsStore } from "@/store/permissionsStore";
 
 const ProjectTable = () => {
   const { data: projects, isLoading, isError } = useProjects();
   const { data: users } = useUsers();
   const { data: tags } = useTags();
-  const [expandedProjectId, setExpandedProjectId] = useState<string | null>(
-    null
-  );
-  const [dropdownProjectId, setDropdownProjectId] = useState<string | null>(
-    null
-  );
+  const [expandedProjectId, setExpandedProjectId] = useState<string | null>(null);
+  const [dropdownProjectId, setDropdownProjectId] = useState<string | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
-    null
-  );
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [projectToEdit, setProjectToEdit] = useState<UpdateProjectInput | null>(
-    null
-  );
+  const [projectToEdit, setProjectToEdit] = useState<UpdateProjectInput | null>(null);
   const router = useRouter();
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Get permission checking function from the permissions store.
+  const hasPermission = usePermissionsStore((state) => state.hasPermission);
+  // Determine specific permissions for this table.
+  const canView = hasPermission("view projects");
+  const canEdit = hasPermission("edit projects");
+  const canDelete = hasPermission("delete projects");
 
   const { mutate: deleteProject } = useDeleteProject();
   const { mutate: updateProject } = useUpdateProject();
@@ -101,7 +101,12 @@ const ProjectTable = () => {
   };
 
   const handleView = (id: string) => {
-    router.push(`/projects/${id}`);
+    // Check permission before viewing
+    if (canView) {
+      router.push(`/projects/${id}`);
+    } else {
+      toast.error("You do not have permission to view this project.");
+    }
   };
 
   const handleEditSubmit = (data: UpdateProjectInput) => {
@@ -201,7 +206,9 @@ const ProjectTable = () => {
                               setDropdownProjectId(null);
                               handleView(project.id);
                             }}
-                            className="w-full text-left px-3 py-2 hover:bg-gray-100"
+                            className="w-full text-left px-3 py-2 hover:bg-gray-100 disabled:opacity-50"
+                            disabled={!canView}
+                            title={!canView ? "You do not have permission to view projects" : ""}
                           >
                             View
                           </button>
@@ -211,7 +218,9 @@ const ProjectTable = () => {
                               setProjectToEdit(project);
                               setShowForm(true);
                             }}
-                            className="w-full text-left px-3 py-2 hover:bg-gray-100"
+                            className="w-full text-left px-3 py-2 hover:bg-gray-100 disabled:opacity-50"
+                            disabled={!canEdit}
+                            title={!canEdit ? "You do not have permission to edit projects" : ""}
                           >
                             Edit
                           </button>
@@ -220,7 +229,9 @@ const ProjectTable = () => {
                               setDropdownProjectId(null);
                               handleDeleteClick(project.id);
                             }}
-                            className="w-full text-left px-3 py-2 text-red-600 hover:bg-gray-100"
+                            className="w-full text-left px-3 py-2 text-red-600 hover:bg-gray-100 disabled:opacity-50"
+                            disabled={!canDelete}
+                            title={!canDelete ? "You do not have permission to delete projects" : ""}
                           >
                             Delete
                           </button>
