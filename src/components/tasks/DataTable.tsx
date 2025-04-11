@@ -52,9 +52,15 @@ const DataTable = () => {
   const columns = [
     { header: "Task", accessor: (task: Task) => task.task_name },
     { header: "Priority", accessor: (task: Task) => task.priority },
-    { header: "Start Date", accessor: (task: Task) => formatDate(task.start_date) },
+    {
+      header: "Start Date",
+      accessor: (task: Task) => formatDate(task.start_date),
+    },
     { header: "End Date", accessor: (task: Task) => formatDate(task.end_date) },
-    { header: "Duration", accessor: (task: Task) => getDuration(task.start_date, task.end_date) },
+    {
+      header: "Duration",
+      accessor: (task: Task) => getDuration(task.start_date, task.end_date),
+    },
     { header: "Progress", accessor: (task: Task) => task.progress },
     { header: "Status", accessor: (task: Task) => task.status },
     { header: "Approval", accessor: (task: Task) => task.approvalStatus },
@@ -134,6 +140,9 @@ const DataTable = () => {
                 Task
               </th>
               <th className="px-4 py-3 whitespace-nowrap text-left text-sm font-medium text-gray-50">
+                Assigned To
+              </th>
+              <th className="px-4 py-3 whitespace-nowrap text-left text-sm font-medium text-gray-50">
                 Priority
               </th>
               <th className="px-4 py-3 whitespace-nowrap text-left text-sm font-medium text-gray-50">
@@ -167,7 +176,10 @@ const DataTable = () => {
               filteredTasks.map((task) => (
                 <tr key={task.id} className="hover:bg-gray-50">
                   <td className="px-4 py-2 whitespace-nowrap">
-                    <input type="checkbox" className="rounded border-gray-300" />
+                    <input
+                      type="checkbox"
+                      className="rounded border-gray-300"
+                    />
                   </td>
                   <td className="px-4 py-2 whitespace-nowrap">
                     <Link
@@ -176,6 +188,9 @@ const DataTable = () => {
                     >
                       {task.task_name}
                     </Link>
+                  </td>
+                  <td className="px-4 py-2 whitespace-nowrap">
+                    {task.assignedTo || "N/A"}
                   </td>
                   <td className="px-4 py-2 whitespace-nowrap">
                     <span
@@ -218,7 +233,9 @@ const DataTable = () => {
                       {task.status}
                     </span>
                   </td>
-                  <td className="px-4 py-2 whitespace-nowrap">{task.approvalStatus}</td>
+                  <td className="px-4 py-2 whitespace-nowrap">
+                    {task.approvalStatus}
+                  </td>
                   <td className="px-4 py-2 whitespace-nowrap">
                     {task.assignedTo || "Not Assigned"}
                   </td>
@@ -239,7 +256,9 @@ const DataTable = () => {
                                   if (canUpdate) {
                                     handleUpdateTask(task);
                                   } else {
-                                    alert("You do not have permission to update tasks.");
+                                    alert(
+                                      "You do not have permission to update tasks."
+                                    );
                                   }
                                 }}
                                 disabled={!canUpdate}
@@ -263,7 +282,9 @@ const DataTable = () => {
                                   if (canDelete) {
                                     handleDeleteTaskClick(task.id);
                                   } else {
-                                    alert("You do not have permission to delete tasks.");
+                                    alert(
+                                      "You do not have permission to delete tasks."
+                                    );
                                   }
                                 }}
                                 disabled={!canDelete}
@@ -287,7 +308,9 @@ const DataTable = () => {
                                   if (canView) {
                                     handleViewTask(task.id);
                                   } else {
-                                    alert("You do not have permission to view tasks.");
+                                    alert(
+                                      "You do not have permission to view tasks."
+                                    );
                                   }
                                 }}
                                 disabled={!canView}
