@@ -13,6 +13,8 @@ import { useUsers } from "@/hooks/useUsers";
 import { User } from "@/types/user";
 import { useTags } from "@/hooks/useTags";
 import { Tag } from "@/types/tag";
+import { useRoles } from "@/hooks/useRoles";
+import { Role } from "@/types/user";
 
 interface ProjectFormProps {
   onClose: () => void; // Function to close the modal
@@ -29,12 +31,16 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
   } = useForm<CreateProjectInput>();
 
   const { mutate: createProject, isPending } = useCreateProject();
+
   const {
     data: users,
     isLoading: usersLoading,
     error: usersError,
   } = useUsers();
+
   const { data: tags, isLoading: tagsLoading, error: tagsError } = useTags();
+
+  const { data: roles } = useRoles();
 
   // Local state for duration (in days). This field is for display/calculation only.
   const [duration, setDuration] = useState<string>("");
@@ -131,11 +137,19 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
     },
   ];
 
+  // Map fetched users to options for the multi-select.
+  // Each option now displays user's first name along with their role (from the roles store) in parentheses.
   const memberOptions =
-    users?.map((user: User) => ({
-      value: user.id!,
-      label: `${user.first_name} ${user.last_name}`,
-    })) || [];
+    users?.map((user: User) => {
+      const roleObj: Role | undefined = roles?.find(
+        (r) => r.id === user.role_id
+      );
+      const roleName = roleObj ? roleObj.name : "No Role";
+      return {
+        value: user.id!,
+        label: `${user.first_name} (${roleName})`,
+      };
+    }) || [];
 
   const tagOptions =
     tags?.map((tag: Tag) => ({
@@ -250,7 +264,6 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
               render={({ field }) => (
                 <DatePicker
                   selected={field.value ? new Date(field.value) : null}
-                  // When end_date changes, update the field and duration (if start_date exists)
                   onChange={(date) => {
                     field.onChange(date);
                     if (startDate && date) {
@@ -328,6 +341,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
                 isLoading={usersLoading}
                 className="basic-multi-select"
                 classNamePrefix="select"
+                // Only send the user ids (the role is only displayed in the label)
                 onChange={(selectedOptions) =>
                   field.onChange(selectedOptions.map((option) => option.value))
                 }
@@ -343,6 +357,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
           )}
         </div>
 
+        {/* Tags Section */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Select Tags
@@ -370,6 +385,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
             <p className="text-red-500 text-sm mt-1">Error loading tags</p>
           )}
         </div>
+
         {/* Status and Priority Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
