@@ -1,30 +1,37 @@
 export interface Material {
     id: string;
-    quantity: number;
-    warehouse_id: string;
+    activityId: string;
+    requestId: string;
+    warehouseId?: string;
     item: string;
-    rate_with_vat: number;
     unit: string;
-    activity_id: string;
-    financial_status?: "Approved" | "Not Approved";
+    requestQuantity: number;
+    minQuantity: number;
+    rate: number;
+    totalAmount: number;
     createdAt?: Date;
     updatedAt?: Date;
 }
 export interface CreateMaterialInput {
-    quantity: number;
-    warehouse_id: string;
+    activityId: string;
+    requestId: string;
+    warehouseId?: string;
     item: string;
-    rate_with_vat: number;
     unit: string;
-    activity_id: string;
+    requestQuantity: number;
+    minQuantity: number;
+    rate: number;
+    totalAmount: number;
 }
 export interface UpdateMaterialInput {
     id: string;
-    quantity?: number;
-    warehouse_id?: string;
-    item?: string;
-    rate_with_vat?: number;
-    unit?: string;
-    activity_id?: string;
-    financial_status?: "Approved" | "Not Approved";
+    activityId: string;
+    requestId: string;
+    warehouseId?: string;
+    item: string;
+    unit: string;
+    requestQuantity: number;
+    minQuantity: number;
+    rate: number;
+    totalAmount: number;
 }

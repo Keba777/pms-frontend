@@ -1,39 +1,43 @@
 
 export interface Equipment {
     id: string;
+    activityId: string;
+    requestId: string;
+
     item: string;
-    rate_with_vat: number;
-    reorder_quantity: number;
-    min_quantity: number;
-    manufacturer?: string;
-    year?: number;
-    eqp_condition?: string;
-    activity_id: string;
-    financial_status?: "Approved" | "Not Approved";
+    unit: string;
+    requestQuantity: number;
+    minQuantity: number;
+    estimatedHours: number;
+    rate: number;
+    totalAmount: number;
     createdAt?: Date;
     updatedAt?: Date;
 }
 
 export interface CreateEquipmentInput {
+    activityId: string;
+    requestId: string;
+
     item: string;
-    rate_with_vat: number;
-    reorder_quantity: number;
-    min_quantity: number;
-    manufacturer?: string;
-    year?: number;
-    eqp_condition?: string;
-    activity_id: string;
+    unit: string;
+    requestQuantity: number;
+    minQuantity: number;
+    estimatedHours: number;
+    rate: number;
+    totalAmount: number;
 }
 
 export interface UpdateEquipmentInput {
     id: string;
-    item?: string;
-    rate_with_vat?: number;
-    reorder_quantity?: number;
-    min_quantity?: number;
-    manufacturer?: string;
-    year?: number;
-    eqp_condition?: string;
-    activity_id?: string;
-    financial_status?: "Approved" | "Not Approved";
+    activityId: string;
+    requestId: string;
+
+    item: string;
+    unit: string;
+    requestQuantity: number;
+    minQuantity: number;
+    estimatedHours: number;
+    rate: number;
+    totalAmount: number;
 }

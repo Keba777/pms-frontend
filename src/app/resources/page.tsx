@@ -1,7 +1,7 @@
 import React from "react";
 
-const ResourcesPag = () => {
-  return <div>ResourcesPag</div>;
+const ResourcesPage = () => {
+  return <div>ResourcesPage</div>;
 };
 
-export default ResourcesPag;
+export default ResourcesPage;

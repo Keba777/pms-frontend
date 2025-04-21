@@ -39,7 +39,7 @@ const WarehouseTable: React.FC<WarehouseTableProps> = ({
             <th className="px-4 py-3 whitespace-nowrap text-left text-sm font-medium text-gray-50">
               Equipment
             </th>
-            <th className="px-4 py-3 whitespace-nowrap text-left text-sm font-medium text-gray-50">
+            {/* <th className="px-4 py-3 whitespace-nowrap text-left text-sm font-medium text-gray-50">
               Manufacturer
             </th>
             <th className="px-4 py-3 whitespace-nowrap text-left text-sm font-medium text-gray-50">
@@ -47,7 +47,7 @@ const WarehouseTable: React.FC<WarehouseTableProps> = ({
             </th>
             <th className="px-4 py-3 whitespace-nowrap text-left text-sm font-medium text-gray-50">
               Condition
-            </th>
+            </th> */}
             <th className="px-4 py-3 whitespace-nowrap text-left text-sm font-medium text-gray-50">
               Type
             </th>
@@ -97,7 +97,7 @@ const WarehouseTable: React.FC<WarehouseTableProps> = ({
                     {equipment ? equipment.item : "N/A"}
                   </td>
 
-                  <td className="px-4 py-2 whitespace-nowrap text-sm">
+                  {/* <td className="px-4 py-2 whitespace-nowrap text-sm">
                     {equipment?.manufacturer ?? "N/A"}
                   </td>
 
@@ -107,7 +107,7 @@ const WarehouseTable: React.FC<WarehouseTableProps> = ({
 
                   <td className="px-4 py-2 whitespace-nowrap text-sm">
                     {equipment?.eqp_condition ?? "N/A"}
-                  </td>
+                  </td> */}
 
                   <td className="px-4 py-2 whitespace-nowrap text-sm">
                     {warehouse.type}
@@ -132,8 +132,8 @@ const WarehouseTable: React.FC<WarehouseTableProps> = ({
                   </td>
 
                   <td className="px-4 py-2 whitespace-nowrap text-sm">
-                    {equipment && equipment.rate_with_vat !== undefined
-                      ? equipment.rate_with_vat
+                    {equipment && equipment.rate !== undefined
+                      ? equipment.rate
                       : "N/A"}
                   </td>
 

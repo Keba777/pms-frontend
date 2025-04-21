@@ -16,7 +16,6 @@ const RequestPage = () => {
         activity: string;
         type: string;
         date: Date;
-        financeStatus: string;
       }[] = [];
 
       if (activity.materials?.length) {
@@ -25,7 +24,6 @@ const RequestPage = () => {
             activity: activity.activity_name,
             type: "Material",
             date: material.updatedAt || new Date(),
-            financeStatus: material.financial_status || "Pending",
           });
         });
       }
@@ -36,7 +34,6 @@ const RequestPage = () => {
             activity: activity.activity_name,
             type: "Equipment",
             date: equipment.updatedAt || new Date(),
-            financeStatus: equipment.financial_status || "Pending",
           });
         });
       }
@@ -47,7 +44,6 @@ const RequestPage = () => {
             activity: activity.activity_name,
             type: "Labor",
             date: labor.updatedAt || new Date(),
-            financeStatus: labor.financial_status || "Pending",
           });
         });
       }
@@ -67,7 +63,6 @@ const RequestPage = () => {
             activity={request.activity}
             type={request.type}
             date={request.date}
-            financeStatus={request.financeStatus}
           />
         ))}
       </div>

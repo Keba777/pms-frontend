@@ -5,15 +5,9 @@ interface RequestCardProps {
   activity: string;
   type: string;
   date: Date;
-  financeStatus: string;
 }
 
-const RequestCard = ({
-  activity,
-  type,
-  date,
-  financeStatus,
-}: RequestCardProps) => {
+const RequestCard = ({ activity, type, date }: RequestCardProps) => {
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
@@ -33,9 +27,7 @@ const RequestCard = ({
         <p className="text-gray-700 font-medium">
           <span className="font-semibold">Date:</span> {formatDate(date)}
         </p>
-        <p className="text-gray-700 font-medium  ">
-          <span className="font-semibold">Finance Status:</span> {financeStatus}
-        </p>
+
         <div className="mt-6 text-xs flex justify-between items-center">
           <button className="flex items-center gap-2 bg-cyan-700 hover:bg-cyan-600 text-white px-4 py-2 rounded-lg shadow-md transition-all">
             View Details
