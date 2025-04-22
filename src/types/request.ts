@@ -1,25 +1,37 @@
 export interface Request {
     id: string;
-    reqNumber: string;
-    date: Date;
     userId: string;
-    departmentId: string;
+    departmentId?: string;
+    materialCount?: number;
+    laborCount?: number;
+    equipmentCount?: number;
     status: "Pending" | "In Progress" | "Completed" | "Rejected";
+    laborIds?: string[];
+    materialIds?: string[];
+    equipmentIds?: string[];
 }
 
 export interface CreateRequestInput {
-    reqNumber: string;
-    date: Date;
     userId: string;
-    departmentId: string;
+    departmentId?: string;
+    materialCount?: number;
+    laborCount?: number;
+    equipmentCount?: number;
     status: "Pending" | "In Progress" | "Completed" | "Rejected";
+    laborIds?: string[];
+    materialIds?: string[];
+    equipmentIds?: string[];
 }
 
 export interface UpdateRequestInput {
     id: string;
-    reqNumber: string;
-    date: Date;
-    userId: string;
-    departmentId: string;
-    status: "Pending" | "In Progress" | "Completed" | "Rejected";
+    userId?: string;
+    departmentId?: string;
+    materialCount?: number;
+    laborCount?: number;
+    equipmentCount?: number;
+    status?: "Pending" | "In Progress" | "Completed" | "Rejected";
+    laborIds?: string[];
+    materialIds?: string[];
+    equipmentIds?: string[];
 }

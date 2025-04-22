@@ -1,6 +1,5 @@
 export interface Warehouse {
     id: string;
-    equipment_id: string;
     type: string;
     owner: string;
     workingStatus: 'Operational' | 'Non-Operational';
@@ -9,8 +8,8 @@ export interface Warehouse {
     remark?: string;
     status: 'Active' | 'Inactive' | 'Under Maintenance';
 }
+
 export interface CreateWarehouseInput {
-    equipment_id: string;
     type: string;
     owner: string;
     workingStatus: 'Operational' | 'Non-Operational';
@@ -19,9 +18,9 @@ export interface CreateWarehouseInput {
     remark?: string;
     status: 'Active' | 'Inactive' | 'Under Maintenance';
 }
+
 export interface UpdateWarehouseInput {
     id: string;
-    equipment_id?: string;
     type?: string;
     owner?: string;
     workingStatus?: 'Operational' | 'Non-Operational';

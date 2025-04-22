@@ -1,43 +1,36 @@
-
 export interface Equipment {
     id: string;
-    activityId: string;
-    requestId: string;
-
     item: string;
     unit: string;
-    requestQuantity: number;
-    minQuantity: number;
-    estimatedHours: number;
-    rate: number;
-    totalAmount: number;
+    manufacturer?: string;
+    year?: string;
+    minQuantity?: number;
+    estimatedHours?: number;
+    rate?: number;
+    totalAmount?: number;
     createdAt?: Date;
     updatedAt?: Date;
 }
 
 export interface CreateEquipmentInput {
-    activityId: string;
-    requestId: string;
-
     item: string;
     unit: string;
-    requestQuantity: number;
-    minQuantity: number;
-    estimatedHours: number;
-    rate: number;
-    totalAmount: number;
+    manufacturer?: string;
+    year?: string;
+    minQuantity?: number;
+    estimatedHours?: number;
+    rate?: number;
+    totalAmount?: number;
 }
 
 export interface UpdateEquipmentInput {
     id: string;
-    activityId: string;
-    requestId: string;
-
-    item: string;
-    unit: string;
-    requestQuantity: number;
-    minQuantity: number;
-    estimatedHours: number;
-    rate: number;
-    totalAmount: number;
+    item?: string;
+    unit?: string;
+    manufacturer?: string;
+    year?: string;
+    minQuantity?: number;
+    estimatedHours?: number;
+    rate?: number;
+    totalAmount?: number;
 }
