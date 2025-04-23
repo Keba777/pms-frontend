@@ -2,15 +2,20 @@
 
 import React, { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
-import { CreateMaterialInput } from "@/types/material";
-import { useCreateMaterial } from "@/hooks/useMaterials";
+import { UpdateMaterialInput } from "@/types/material";
 import { useWarehouses } from "@/hooks/useWarehouses";
 
-interface MaterialFormProps {
+interface EditMaterialFormProps {
+  material: UpdateMaterialInput;
+  onSubmit: (data: UpdateMaterialInput) => void;
   onClose: () => void;
 }
 
-const MaterialForm: React.FC<MaterialFormProps> = ({ onClose }) => {
+const EditMaterialForm: React.FC<EditMaterialFormProps> = ({
+  material,
+  onSubmit,
+  onClose,
+}) => {
   const { data: warehouses, isLoading: whLoading } = useWarehouses();
 
   const {
@@ -20,9 +25,7 @@ const MaterialForm: React.FC<MaterialFormProps> = ({ onClose }) => {
     setValue,
     control,
     formState: { errors },
-  } = useForm<CreateMaterialInput>();
-
-  const { mutate: createMaterial, isPending } = useCreateMaterial();
+  } = useForm<UpdateMaterialInput>({ defaultValues: material });
 
   // Auto-calculate totalAmount = minQuantity * rate
   const minQuantity = watch("minQuantity");
@@ -34,23 +37,18 @@ const MaterialForm: React.FC<MaterialFormProps> = ({ onClose }) => {
     setValue("totalAmount", q * r);
   }, [minQuantity, rate, setValue]);
 
-  const onSubmit = (data: CreateMaterialInput) => {
-    createMaterial(data, {
-      onSuccess: () => {
-        onClose();
-        window.location.reload();
-      },
-    });
+  const submitHandler = (data: UpdateMaterialInput) => {
+    onSubmit(data);
   };
 
   return (
     <form
-      onSubmit={handleSubmit(onSubmit)}
+      onSubmit={handleSubmit(submitHandler)}
       className="bg-white rounded-lg shadow-xl p-6 space-y-6"
     >
       {/* Header */}
       <div className="flex justify-between items-center pb-4 border-b">
-        <h3 className="text-lg font-semibold text-gray-800">Create Material</h3>
+        <h3 className="text-lg font-semibold text-gray-800">Edit Material</h3>
         <button
           type="button"
           className="text-gray-500 hover:text-gray-700"
@@ -59,6 +57,8 @@ const MaterialForm: React.FC<MaterialFormProps> = ({ onClose }) => {
           &times;
         </button>
       </div>
+
+      <input type="hidden" {...register("id")} />
 
       <div className="space-y-4">
         {/* Warehouse Site Selector */}
@@ -75,7 +75,7 @@ const MaterialForm: React.FC<MaterialFormProps> = ({ onClose }) => {
                   {...field}
                   className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
                 >
-                  <option value="">Select Warehouse Site</option>
+                  <option value="">Select Warehouse Site (optional)</option>
                   {warehouses.map((wh) => (
                     <option key={wh.id} value={wh.id}>
                       {wh.currentWorkingSite}
@@ -95,7 +95,6 @@ const MaterialForm: React.FC<MaterialFormProps> = ({ onClose }) => {
           <input
             type="text"
             {...register("item", { required: "Item is required" })}
-            placeholder="Enter Item Name"
             className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
           />
           {errors.item && (
@@ -111,7 +110,6 @@ const MaterialForm: React.FC<MaterialFormProps> = ({ onClose }) => {
           <input
             type="text"
             {...register("unit", { required: "Unit is required" })}
-            placeholder="Enter Unit (e.g., pcs, kg)"
             className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
           />
           {errors.unit && (
@@ -119,7 +117,7 @@ const MaterialForm: React.FC<MaterialFormProps> = ({ onClose }) => {
           )}
         </div>
 
-        {/* Min Quantity and Rate */}
+        {/* Min Quantity & Rate */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -131,7 +129,6 @@ const MaterialForm: React.FC<MaterialFormProps> = ({ onClose }) => {
                 required: "Minimum quantity is required",
                 valueAsNumber: true,
               })}
-              placeholder="Enter Minimum Quantity"
               className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
             />
             {errors.minQuantity && (
@@ -155,7 +152,6 @@ const MaterialForm: React.FC<MaterialFormProps> = ({ onClose }) => {
                   required: "Rate is required",
                   valueAsNumber: true,
                 })}
-                placeholder="Enter Rate"
                 className="flex-1 px-3 py-2 border rounded-r-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
               />
             </div>
@@ -195,9 +191,8 @@ const MaterialForm: React.FC<MaterialFormProps> = ({ onClose }) => {
           <button
             type="submit"
             className="px-4 py-2 bg-bs-primary text-white rounded-md hover:bg-bs-primary"
-            disabled={isPending}
           >
-            {isPending ? "Saving..." : "Save"}
+            Update
           </button>
         </div>
       </div>
@@ -205,4 +200,4 @@ const MaterialForm: React.FC<MaterialFormProps> = ({ onClose }) => {
   );
 };
 
-export default MaterialForm;
+export default EditMaterialForm;

@@ -1,36 +1,76 @@
 "use client";
 
+import React, { useState } from "react";
 import MaterialForm from "@/components/forms/MaterialForm";
-import { useMaterials } from "@/hooks/useMaterials";
+import EditMaterialForm from "@/components/forms/EditMaterialForm";
+import ConfirmModal from "@/components/ui/ConfirmModal";
+import {
+  useMaterials,
+  useUpdateMaterial,
+  useDeleteMaterial,
+} from "@/hooks/useMaterials";
+import { useWarehouses } from "@/hooks/useWarehouses";
 import { usePermissionsStore } from "@/store/permissionsStore";
 import { Menu, MenuButton, MenuItems, MenuItem } from "@headlessui/react";
 import { ChevronDown, Edit, PlusIcon, Trash2 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { Material, UpdateMaterialInput } from "@/types/material";
 
 const MaterialsPage = () => {
   const { data: materials, isLoading, error } = useMaterials();
+  const { data: warehouses } = useWarehouses();
   const hasPermission = usePermissionsStore((state) => state.hasPermission);
-  const [showForm, setShowForm] = useState(false);
+
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedMaterial, setSelectedMaterial] = useState<Material | null>(
+    null
+  );
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteId, setDeleteId] = useState<string>("");
+
+  const updateMaterial = useUpdateMaterial();
+  const deleteMaterial = useDeleteMaterial();
+
+  const handleAdd = () => setShowAddModal(true);
 
   const handleEdit = (id: string) => {
-    // TODO: open edit form/modal
-    console.log("Edit material", id);
+    const mat = materials?.find((m) => m.id === id) ?? null;
+    if (mat) {
+      setSelectedMaterial(mat);
+      setShowEditModal(true);
+    }
   };
 
   const handleDelete = (id: string) => {
-    // TODO: confirm & delete
-    console.log("Delete material", id);
+    setDeleteId(id);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = () => {
+    deleteMaterial.mutate(deleteId, {
+      onSuccess: () => setShowDeleteModal(false),
+    });
+  };
+
+  const handleUpdateSubmit = (data: UpdateMaterialInput) => {
+    updateMaterial.mutate(data, {
+      onSuccess: () => setShowEditModal(false),
+    });
   };
 
   if (isLoading) return <div>Loading materials...</div>;
   if (error) return <div>Error loading materials.</div>;
 
+  // Display the warehouse's current working site
+  const getWarehouseSite = (id?: string) =>
+    warehouses?.find((w) => w.id === id)?.currentWorkingSite ?? "—";
+
   const headers = [
-    "No",
-    "Materials",
+    "ID",
+    "Warehouse Site",
+    "Item",
     "Unit",
-    "Req Quantity",
     "Min Quantity",
     "Rate",
     "Total Amount",
@@ -39,49 +79,72 @@ const MaterialsPage = () => {
 
   return (
     <div>
-      <div className="flex flex-wrap justify-between mb-2 mt-4">
-        <div>
-          <nav aria-label="breadcrumb">
-            <ol className="flex space-x-2">
-              <li>
-                <Link href="/" className="text-blue-600 hover:underline">
-                  Home
-                </Link>
-              </li>
-              <li className="text-gray-500">/</li>
-              <li className="text-gray-900 font-semibold">Materials</li>
-            </ol>
-          </nav>
-        </div>
-        <div className="flex space-x-2">
-          {/* Only render the Add Project button if the user has "create projects" permission */}
-          {hasPermission("create projects") && (
-            <button
-              className="bg-cyan-700 hover:bg-cyan-800 text-white font-bold py-2 px-3 rounded text-sm"
-              onClick={() => setShowForm(true)}
-            >
-              <PlusIcon width={15} height={12} />
-            </button>
-          )}
-        </div>
-
-        {/* Modal Overlay and Form */}
-        {showForm && (
-          <div className="modal-overlay">
-            <div className="modal-content">
-              <MaterialForm onClose={() => setShowForm(false)} />
-            </div>
-          </div>
+      {/* Breadcrumb & Add Button */}
+      <div className="flex justify-between mb-4 mt-4">
+        <nav aria-label="breadcrumb">
+          <ol className="flex space-x-2">
+            <li>
+              <Link href="/" className="text-blue-600 hover:underline">
+                Home
+              </Link>
+            </li>
+            <li className="text-gray-500">/</li>
+            <li className="text-gray-900 font-semibold">Materials</li>
+          </ol>
+        </nav>
+        {hasPermission("create projects") && (
+          <button
+            className="bg-cyan-700 hover:bg-cyan-800 text-white font-bold py-2 px-3 rounded text-sm"
+            onClick={handleAdd}
+          >
+            <PlusIcon width={15} height={12} />
+          </button>
         )}
       </div>
+
+      {/* Add Material Modal */}
+      {showAddModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <MaterialForm onClose={() => setShowAddModal(false)} />
+          </div>
+        </div>
+      )}
+
+      {/* Edit Material Modal */}
+      {showEditModal && selectedMaterial && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <EditMaterialForm
+              material={selectedMaterial}
+              onClose={() => setShowEditModal(false)}
+              onSubmit={handleUpdateSubmit}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isVisible={showDeleteModal}
+        title="Delete Material"
+        message="Are you sure you want to delete this material? This action cannot be undone."
+        showInput={true}
+        confirmText="DELETE"
+        confirmButtonText="Delete"
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={confirmDelete}
+      />
+
+      {/* Materials Table */}
       <div className="p-4 overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200 border border-gray-200">
-          <thead className="bg-gray-50">
+          <thead className="bg-cyan-700">
             <tr>
               {headers.map((h) => (
                 <th
                   key={h}
-                  className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border border-gray-200"
+                  className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase tracking-wider border border-gray-200"
                 >
                   {h}
                 </th>
@@ -91,9 +154,12 @@ const MaterialsPage = () => {
           <tbody className="bg-white divide-y divide-gray-200">
             {materials && materials.length > 0 ? (
               materials.map((mat, idx) => (
-                <tr key={`${mat.activityId}-${mat.requestId}-${idx}`}>
+                <tr key={mat.id}>
                   <td className="px-4 py-2 border border-gray-200">
                     {idx + 1}
+                  </td>
+                  <td className="px-4 py-2 border border-gray-200">
+                    {getWarehouseSite(mat.warehouseId)}
                   </td>
                   <td className="px-4 py-2 border border-gray-200">
                     {mat.item}
@@ -102,16 +168,13 @@ const MaterialsPage = () => {
                     {mat.unit}
                   </td>
                   <td className="px-4 py-2 border border-gray-200">
-                    {mat.requestQuantity}
+                    {mat.minQuantity ?? "—"}
                   </td>
                   <td className="px-4 py-2 border border-gray-200">
-                    {mat.minQuantity}
+                    {mat.rate ?? "—"}
                   </td>
                   <td className="px-4 py-2 border border-gray-200">
-                    {mat.rate}
-                  </td>
-                  <td className="px-4 py-2 border border-gray-200">
-                    {mat.totalAmount}
+                    {mat.totalAmount ?? "—"}
                   </td>
                   <td className="px-4 py-2 border border-gray-200">
                     <Menu as="div" className="relative inline-block text-left">
@@ -127,8 +190,7 @@ const MaterialsPage = () => {
                                 active ? "bg-gray-100" : ""
                               }`}
                             >
-                              <Edit size={16} className="mr-2" />
-                              Edit
+                              <Edit size={16} className="mr-2" /> Edit
                             </button>
                           )}
                         </MenuItem>
@@ -140,8 +202,7 @@ const MaterialsPage = () => {
                                 active ? "bg-gray-100" : ""
                               }`}
                             >
-                              <Trash2 size={16} className="mr-2" />
-                              Delete
+                              <Trash2 size={16} className="mr-2" /> Delete
                             </button>
                           )}
                         </MenuItem>
@@ -153,8 +214,8 @@ const MaterialsPage = () => {
             ) : (
               <tr>
                 <td
+                  colSpan={headers.length}
                   className="px-4 py-2 text-center border border-gray-200"
-                  colSpan={8}
                 >
                   No materials available.
                 </td>

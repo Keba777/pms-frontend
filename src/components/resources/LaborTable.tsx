@@ -5,24 +5,26 @@ interface LaborProps {
 }
 
 const LaborTable = ({ labor }: LaborProps) => {
+  const headers = [
+    "No",
+    "Labor",
+    "Unit",
+    "Skill Level",
+    "Min Quantity",
+    "Estimated Hour",
+    "Rate",
+    "Total Amount",
+  ];
+
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full border border-gray-200">
-        <thead className="bg-gray-50">
+        <thead className="bg-cyan-700">
           <tr>
-            {[
-              "No",
-              "Labor",
-              "Unit",
-              "Request Quantity",
-              "Min Quantity",
-              "Estimated Hour",
-              "Rate",
-              "Total Amount",
-            ].map((heading) => (
+            {headers.map((heading) => (
               <th
                 key={heading}
-                className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border border-gray-200"
+                className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase tracking-wider border border-gray-200"
               >
                 {heading}
               </th>
@@ -33,25 +35,24 @@ const LaborTable = ({ labor }: LaborProps) => {
         <tbody className="bg-white">
           {labor && labor.length > 0 ? (
             labor.map((lab, idx) => (
-              <tr
-                key={lab.activity_id + lab.requestId + idx}
-                className="border border-gray-200"
-              >
+              <tr key={lab.id + idx} className="border border-gray-200">
                 <td className="px-4 py-2 border border-gray-200">{idx + 1}</td>
                 <td className="px-4 py-2 border border-gray-200">{lab.role}</td>
                 <td className="px-4 py-2 border border-gray-200">{lab.unit}</td>
                 <td className="px-4 py-2 border border-gray-200">
-                  {lab.requestQuantity}
+                  {lab.skill_level ?? "-"}
                 </td>
                 <td className="px-4 py-2 border border-gray-200">
-                  {lab.minQuantity}
+                  {lab.minQuantity ?? "-"}
                 </td>
                 <td className="px-4 py-2 border border-gray-200">
-                  {lab.estimatedHours}
+                  {lab.estimatedHours ?? "-"}
                 </td>
-                <td className="px-4 py-2 border border-gray-200">{lab.rate}</td>
                 <td className="px-4 py-2 border border-gray-200">
-                  {lab.totalAmount}
+                  {lab.rate ?? "-"}
+                </td>
+                <td className="px-4 py-2 border border-gray-200">
+                  {lab.totalAmount ?? "-"}
                 </td>
               </tr>
             ))
@@ -59,7 +60,7 @@ const LaborTable = ({ labor }: LaborProps) => {
             <tr className="border border-gray-200">
               <td
                 className="px-4 py-2 border border-gray-200 text-center"
-                colSpan={9}
+                colSpan={headers.length}
               >
                 No labor records available.
               </td>

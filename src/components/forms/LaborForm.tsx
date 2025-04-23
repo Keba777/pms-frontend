@@ -4,7 +4,6 @@ import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { CreateLaborInput } from "@/types/labor";
 import { useCreateLabor } from "@/hooks/useLabors";
-import { toast } from "react-toastify";
 
 interface LaborFormProps {
   onClose: () => void;
@@ -21,22 +20,21 @@ const LaborForm: React.FC<LaborFormProps> = ({ onClose }) => {
 
   const { mutate: createLabor, isPending } = useCreateLabor();
 
-  // Compute total amount: requestQuantity * estimatedHours * rate
-  const quantity = watch("requestQuantity");
-  const hours = watch("estimatedHours");
+  // Auto-calculate totalAmount = minQuantity * estimatedHours * rate
+  const minQuantity = watch("minQuantity");
+  const estimatedHours = watch("estimatedHours");
   const rate = watch("rate");
 
   useEffect(() => {
-    const q = Number(quantity || 0);
-    const h = Number(hours || 0);
+    const q = Number(minQuantity || 0);
+    const h = Number(estimatedHours || 0);
     const r = Number(rate || 0);
     setValue("totalAmount", q * h * r);
-  }, [quantity, hours, rate, setValue]);
+  }, [minQuantity, estimatedHours, rate, setValue]);
 
   const onSubmit = (data: CreateLaborInput) => {
     createLabor(data, {
       onSuccess: () => {
-        toast.success("Labor created successfully!");
         onClose();
         window.location.reload();
       },
@@ -48,6 +46,7 @@ const LaborForm: React.FC<LaborFormProps> = ({ onClose }) => {
       onSubmit={handleSubmit(onSubmit)}
       className="bg-white rounded-lg shadow-xl p-6 space-y-6"
     >
+      {/* Header */}
       <div className="flex justify-between items-center pb-4 border-b">
         <h3 className="text-lg font-semibold text-gray-800">Create Labor</h3>
         <button
@@ -60,102 +59,43 @@ const LaborForm: React.FC<LaborFormProps> = ({ onClose }) => {
       </div>
 
       <div className="space-y-4">
-        {/* Activity ID */}
+        {/* Role */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Activity ID <span className="text-red-500">*</span>
+            Role <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
-            {...register("activity_id", {
-              required: "Activity ID is required",
-            })}
-            placeholder="Enter Activity ID"
+            {...register("role", { required: "Role is required" })}
+            placeholder="Enter Role"
             className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
           />
-          {errors.activity_id && (
-            <p className="text-red-500 text-sm mt-1">
-              {errors.activity_id.message}
-            </p>
+          {errors.role && (
+            <p className="text-red-500 text-sm mt-1">{errors.role.message}</p>
           )}
         </div>
 
-        {/* Request ID */}
+        {/* Unit */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Request ID <span className="text-red-500">*</span>
+            Unit <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
-            {...register("requestId", { required: "Request ID is required" })}
-            placeholder="Enter Request ID"
+            {...register("unit", { required: "Unit is required" })}
+            placeholder="Enter Unit (e.g., hrs)"
             className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
           />
-          {errors.requestId && (
-            <p className="text-red-500 text-sm mt-1">
-              {errors.requestId.message}
-            </p>
+          {errors.unit && (
+            <p className="text-red-500 text-sm mt-1">{errors.unit.message}</p>
           )}
         </div>
 
-        {/* Role and Unit */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Role <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              {...register("role", { required: "Role is required" })}
-              placeholder="Enter Role"
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-            />
-            {errors.role && (
-              <p className="text-red-500 text-sm mt-1">{errors.role.message}</p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Unit <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              {...register("unit", { required: "Unit is required" })}
-              placeholder="Enter Unit (e.g., hrs)"
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-            />
-            {errors.unit && (
-              <p className="text-red-500 text-sm mt-1">{errors.unit.message}</p>
-            )}
-          </div>
-        </div>
-
-        {/* Quantities and Hours */}
+        {/* Min Quantity, Estimated Hours, Rate */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Request Quantity <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="number"
-              {...register("requestQuantity", {
-                required: "Requested quantity is required",
-                valueAsNumber: true,
-              })}
-              placeholder="Enter Quantity"
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-            />
-            {errors.requestQuantity && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.requestQuantity.message}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Minimum Quantity <span className="text-red-500">*</span>
+              Min Quantity <span className="text-red-500">*</span>
             </label>
             <input
               type="number"
@@ -192,10 +132,7 @@ const LaborForm: React.FC<LaborFormProps> = ({ onClose }) => {
               </p>
             )}
           </div>
-        </div>
 
-        {/* Rate and Total Amount */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Rate <span className="text-red-500">*</span>
@@ -218,26 +155,27 @@ const LaborForm: React.FC<LaborFormProps> = ({ onClose }) => {
               <p className="text-red-500 text-sm mt-1">{errors.rate.message}</p>
             )}
           </div>
+        </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Total Amount
-            </label>
-            <div className="flex">
-              <span className="inline-flex items-center px-3 border border-r-0 rounded-l-md bg-gray-50 text-gray-500">
-                ETB
-              </span>
-              <input
-                type="number"
-                {...register("totalAmount")}
-                readOnly
-                className="flex-1 px-3 py-2 border rounded-r-md bg-gray-100 focus:outline-none"
-              />
-            </div>
+        {/* Total Amount (Read-only) */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Total Amount
+          </label>
+          <div className="flex">
+            <span className="inline-flex items-center px-3 border border-r-0 rounded-l-md bg-gray-50 text-gray-500">
+              ETB
+            </span>
+            <input
+              type="number"
+              {...register("totalAmount")}
+              readOnly
+              className="flex-1 px-3 py-2 border rounded-r-md bg-gray-100 focus:outline-none"
+            />
           </div>
         </div>
 
-        {/* Optional Skill Level */}
+        {/* Skill Level (optional) */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Skill Level

@@ -1,88 +1,142 @@
 "use client";
 
+import React, { useState } from "react";
 import EquipmentForm from "@/components/forms/EquipmentForm";
-import { useEquipments } from "@/hooks/useEquipments";
+import EditEquipmentForm from "@/components/forms/EditEquipmentForm";
+import ConfirmModal from "@/components/ui/ConfirmModal";
+import {
+  useEquipments,
+  useDeleteEquipment,
+  useUpdateEquipment,
+} from "@/hooks/useEquipments";
 import { usePermissionsStore } from "@/store/permissionsStore";
 import { Menu, MenuButton, MenuItems, MenuItem } from "@headlessui/react";
 import { ChevronDown, Edit, PlusIcon, Trash2 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { Equipment, UpdateEquipmentInput } from "@/types/equipment";
 
 const EquipmentPage = () => {
   const { data: equipments, isLoading, error } = useEquipments();
   const hasPermission = usePermissionsStore((state) => state.hasPermission);
-  const [showForm, setShowForm] = useState(false);
+
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedEquip, setSelectedEquip] = useState<Equipment | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteId, setDeleteId] = useState<string>("");
+
+  const updateEquipment = useUpdateEquipment();
+  const deleteEquipment = useDeleteEquipment();
 
   const handleEdit = (id: string) => {
-    // TODO: open edit form/modal
-    console.log("Edit equipment", id);
+    const eq = equipments?.find((e) => e.id === id) ?? null;
+    if (eq) {
+      setSelectedEquip(eq);
+      setShowEditModal(true);
+    }
   };
+
   const handleDelete = (id: string) => {
-    // TODO: confirm & delete
-    console.log("Delete equipment", id);
+    setDeleteId(id);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = () => {
+    deleteEquipment.mutate(deleteId, {
+      onSuccess: () => setShowDeleteModal(false),
+    });
+  };
+
+  const handleUpdateSubmit = (data: UpdateEquipmentInput) => {
+    updateEquipment.mutate(data, {
+      onSuccess: () => setShowEditModal(false),
+    });
   };
 
   if (isLoading) return <div>Loading equipment...</div>;
   if (error) return <div>Error loading equipment.</div>;
 
   const headers = [
-    "#",
-    "Equipment",
+    "ID",
+    "Item",
     "Unit",
-    "Req Quantity",
+    "Manufacturer",
+    "Year",
     "Min Quantity",
-    "Estimated Hour",
+    "Estimated Hours",
     "Rate",
-    "Total",
+    "Total Amount",
     "Actions",
   ];
 
   return (
     <div>
-      <div className="flex flex-wrap justify-between mb-2 mt-4">
-        <div>
-          <nav aria-label="breadcrumb">
-            <ol className="flex space-x-2">
-              <li>
-                <Link href="/" className="text-blue-600 hover:underline">
-                  Home
-                </Link>
-              </li>
-              <li className="text-gray-500">/</li>
-              <li className="text-gray-900 font-semibold">Equipments</li>
-            </ol>
-          </nav>
-        </div>
-        <div className="flex space-x-2">
-          {/* Only render the Add Project button if the user has "create projects" permission */}
-          {hasPermission("create projects") && (
-            <button
-              className="bg-cyan-700 hover:bg-cyan-800 text-white font-bold py-2 px-3 rounded text-sm"
-              onClick={() => setShowForm(true)}
-            >
-              <PlusIcon width={15} height={12} />
-            </button>
-          )}
-        </div>
-
-        {/* Modal Overlay and Form */}
-        {showForm && (
-          <div className="modal-overlay">
-            <div className="modal-content">
-              <EquipmentForm onClose={() => setShowForm(false)} />
-            </div>
-          </div>
+      {/* Breadcrumb & Add Button */}
+      <div className="flex justify-between mb-4 mt-4">
+        <nav aria-label="breadcrumb">
+          <ol className="flex space-x-2">
+            <li>
+              <Link href="/" className="text-blue-600 hover:underline">
+                Home
+              </Link>
+            </li>
+            <li className="text-gray-500">/</li>
+            <li className="text-gray-900 font-semibold">Equipments</li>
+          </ol>
+        </nav>
+        {hasPermission("create projects") && (
+          <button
+            className="bg-cyan-700 hover:bg-cyan-800 text-white font-bold py-2 px-3 rounded text-sm"
+            onClick={() => setShowAddModal(true)}
+          >
+            <PlusIcon width={15} height={12} />
+          </button>
         )}
       </div>
 
+      {/* Add Equipment Modal */}
+      {showAddModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <EquipmentForm onClose={() => setShowAddModal(false)} />
+          </div>
+        </div>
+      )}
+
+      {/* Edit Equipment Modal */}
+      {showEditModal && selectedEquip && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <EditEquipmentForm
+              equipment={selectedEquip}
+              onClose={() => setShowEditModal(false)}
+              onSubmit={handleUpdateSubmit}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isVisible={showDeleteModal}
+        title="Delete Equipment"
+        message="Are you sure you want to delete this equipment? This action cannot be undone."
+        showInput={true}
+        confirmText="DELETE"
+        confirmButtonText="Delete"
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={confirmDelete}
+      />
+
+      {/* Equipment Table */}
       <div className="p-4 overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200 border border-gray-200">
-          <thead className="bg-gray-50">
+          <thead className="bg-cyan-700">
             <tr>
               {headers.map((h) => (
                 <th
                   key={h}
-                  className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border border-gray-200"
+                  className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase tracking-wider border border-gray-200"
                 >
                   {h}
                 </th>
@@ -92,7 +146,7 @@ const EquipmentPage = () => {
           <tbody className="bg-white divide-y divide-gray-200">
             {equipments && equipments.length > 0 ? (
               equipments.map((eqp, idx) => (
-                <tr key={`${eqp.activityId}-${eqp.requestId}-${idx}`}>
+                <tr key={eqp.id}>
                   <td className="px-4 py-2 border border-gray-200">
                     {idx + 1}
                   </td>
@@ -103,19 +157,22 @@ const EquipmentPage = () => {
                     {eqp.unit}
                   </td>
                   <td className="px-4 py-2 border border-gray-200">
-                    {eqp.requestQuantity}
+                    {eqp.manufacturer ?? "—"}
                   </td>
                   <td className="px-4 py-2 border border-gray-200">
-                    {eqp.minQuantity}
+                    {eqp.year ?? "—"}
                   </td>
                   <td className="px-4 py-2 border border-gray-200">
-                    {eqp.estimatedHours}
+                    {eqp.minQuantity ?? "—"}
                   </td>
                   <td className="px-4 py-2 border border-gray-200">
-                    {eqp.rate}
+                    {eqp.estimatedHours ?? "—"}
                   </td>
                   <td className="px-4 py-2 border border-gray-200">
-                    {eqp.totalAmount}
+                    {eqp.rate ?? "—"}
+                  </td>
+                  <td className="px-4 py-2 border border-gray-200">
+                    {eqp.totalAmount ?? "—"}
                   </td>
                   <td className="px-4 py-2 border border-gray-200">
                     <Menu as="div" className="relative inline-block text-left">
@@ -131,8 +188,7 @@ const EquipmentPage = () => {
                                 active ? "bg-gray-100" : ""
                               }`}
                             >
-                              <Edit size={16} className="mr-2" />
-                              Edit
+                              <Edit size={16} className="mr-2" /> Edit
                             </button>
                           )}
                         </MenuItem>
@@ -144,8 +200,7 @@ const EquipmentPage = () => {
                                 active ? "bg-gray-100" : ""
                               }`}
                             >
-                              <Trash2 size={16} className="mr-2" />
-                              Delete
+                              <Trash2 size={16} className="mr-2" /> Delete
                             </button>
                           )}
                         </MenuItem>
@@ -157,8 +212,8 @@ const EquipmentPage = () => {
             ) : (
               <tr>
                 <td
+                  colSpan={headers.length}
                   className="px-4 py-2 text-center border border-gray-200"
-                  colSpan={9}
                 >
                   No equipment records available.
                 </td>

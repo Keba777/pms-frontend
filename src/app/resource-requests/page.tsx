@@ -155,7 +155,7 @@ const ResourceRequestsPage = () => {
                   </span>
                 </td>
                 <td className="border border-gray-300 p-2">
-                  <Link href={`/request-task/${project.id}`}>
+                  <Link href={`/requests`}>
                     <span className="inline-flex flex-col items-center bg-cyan-700 text-white px-4 py-2 rounded hover:bg-cyan-600 transition-colors cursor-pointer">
                       <ClipboardList className="w-4 h-4 mb-1" />
                       Request

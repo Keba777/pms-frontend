@@ -68,7 +68,13 @@ const menuItems = [
     iconColor: "text-gray-500",
   },
   {
-    title: "Resource",
+    title: "Resources",
+    link: "/resources",
+    icon: Grid,
+    iconColor: "text-blue-500",
+  },
+  {
+    title: "Manage Resources",
     icon: Clipboard,
     iconColor: "text-yellow-500",
     submenu: [
@@ -111,12 +117,12 @@ const menuItems = [
     icon: ListCheck,
     iconColor: "text-blue-500",
   },
-  {
-    title: "Warehouse Balance",
-    link: "/mywarehouse",
-    icon: ListCheck,
-    iconColor: "text-blue-500",
-  },
+  // {
+  //   title: "Warehouse Balance",
+  //   link: "/mywarehouse",
+  //   icon: ListCheck,
+  //   iconColor: "text-blue-500",
+  // },
   {
     title: "Department",
     link: "/departments",

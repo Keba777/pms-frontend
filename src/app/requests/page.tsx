@@ -1,70 +1,123 @@
 "use client";
 
-import RequestCard from "@/components/requests/RequestCard";
-import { useActivities } from "@/hooks/useActivities";
-import { Activity } from "@/types/activity";
+import React from "react";
+import {
+  useRequests,
+  useCreateRequest,
+  useDeleteRequest,
+  useUpdateRequest,
+} from "@/hooks/useRequests";
+import { Request } from "@/types/request";
 
+// RequestPage Component
 const RequestPage = () => {
-  const { data: activities, isLoading, error } = useActivities();
+  const { data, isLoading, error } = useRequests();
+  const { mutate: createRequest } = useCreateRequest();
+  const { mutate: updateRequest } = useUpdateRequest();
+  const { mutate: deleteRequest } = useDeleteRequest();
 
-  if (isLoading) return <p>Loading...</p>;
-  if (error) return <p>Error loading activities.</p>;
+  const handleCreateRequest = () => {
+    createRequest({ userId: "1", status: "Pending" });
+  };
 
-  const requestData =
-    activities?.flatMap((activity: Activity) => {
-      const requestCards: {
-        activity: string;
-        type: string;
-        date: Date;
-      }[] = [];
+  const handleUpdateRequest = (request: Request) => {
+    updateRequest({ id: request.id, status: "In Progress" }); // example update
+  };
 
-      if (activity.materials?.length) {
-        activity.materials.forEach((material) => {
-          requestCards.push({
-            activity: activity.activity_name,
-            type: "Material",
-            date: material.updatedAt || new Date(),
-          });
-        });
-      }
+  const handleDeleteRequest = (id: string) => {
+    deleteRequest(id);
+  };
 
-      if (activity.equipment?.length) {
-        activity.equipment.forEach((equipment) => {
-          requestCards.push({
-            activity: activity.activity_name,
-            type: "Equipment",
-            date: equipment.updatedAt || new Date(),
-          });
-        });
-      }
-
-      if (activity.labors?.length) {
-        activity.labors.forEach((labor) => {
-          requestCards.push({
-            activity: activity.activity_name,
-            type: "Labor",
-            date: labor.updatedAt || new Date(),
-          });
-        });
-      }
-
-      return requestCards;
-    }) || [];
+  // Displaying error or loading state
+  if (isLoading)
+    return <p className="text-center text-xl text-gray-500">Loading...</p>;
+  if (error)
+    return (
+      <p className="text-center text-xl text-red-500">
+        Error fetching requests: {error.message}
+      </p>
+    );
 
   return (
-    <div className="mt-12 p-4 bg-transparent shadow-lg rounded-lg">
-      <h1 className="text-4xl text-center text-bs-green font-bold mb-6">
-        Incoming Requests
-      </h1>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {requestData.map((request, index) => (
-          <RequestCard
-            key={index}
-            activity={request.activity}
-            type={request.type}
-            date={request.date}
-          />
+    <div className="container mx-auto p-4">
+      <button
+        className="mb-6 px-6 py-2 bg-cyan-700 text-white font-semibold rounded-md hover:bg-cyan-800"
+        onClick={handleCreateRequest}
+      >
+        Create Request
+      </button>
+
+      <h2 className="text-3xl font-bold mb-6 text-cyan-800">Requests</h2>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {data?.map((request) => (
+          <div key={request.id} className="bg-white p-6 rounded-lg shadow-lg">
+            <h3 className="text-xl font-semibold text-cyan-800">
+              Status: {request.status}
+            </h3>
+            <p className="text-gray-700">
+              Material Count: {request.materialCount}
+            </p>
+            <p className="text-gray-700">Labor Count: {request.laborCount}</p>
+            <p className="text-gray-700">
+              Equipment Count: {request.equipmentCount}
+            </p>
+            <div className="mt-4 flex space-x-3">
+              <button
+                className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600"
+                onClick={() => handleUpdateRequest(request)}
+              >
+                Update Status
+              </button>
+              <button
+                className="px-4 py-2 bg-gray-400 text-white rounded-md hover:bg-gray-500"
+                onClick={() => handleDeleteRequest(request.id)}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
         ))}
+      </div>
+
+      <div className="mt-8 overflow-x-auto bg-white shadow-lg rounded-lg">
+        <table className="min-w-full table-auto">
+          <thead className="bg-cyan-700 text-white">
+            <tr>
+              <th className="px-6 py-3 text-left">Status</th>
+              <th className="px-6 py-3 text-left">Material Count</th>
+              <th className="px-6 py-3 text-left">Labor Count</th>
+              <th className="px-6 py-3 text-left">Equipment Count</th>
+              <th className="px-6 py-3 text-left">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data?.map((request) => (
+              <tr key={request.id} className="border-b hover:bg-gray-50">
+                <td className="px-6 py-4">{request.status}</td>
+                <td className="px-6 py-4">{request.materialCount}</td>
+                <td className="px-6 py-4">{request.laborCount}</td>
+                <td className="px-6 py-4">{request.equipmentCount}</td>
+                <td className="px-6 py-4">
+                  <div className="flex space-x-3">
+                    <button
+                      className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600"
+                      onClick={() => handleUpdateRequest(request)}
+                    >
+                      Update
+                    </button>
+                    <button
+                      className="px-4 py-2 bg-gray-400 text-white rounded-md hover:bg-gray-500"
+                      onClick={() => handleDeleteRequest(request.id)}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );
