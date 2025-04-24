@@ -17,8 +17,7 @@ import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
 import { useRole } from "@/hooks/useRoles";
 
-const userAvatar =
-  "https://raycon.oasismgmt2.com/storage/photos/VoJMiw0IUaj4sLv6KDNAMonMk8bS9hMbJ36igmnd.png";
+import userAvatar from "@/../public/images/user.png";
 
 interface HeaderProps {
   toggleSidebar: () => void;
