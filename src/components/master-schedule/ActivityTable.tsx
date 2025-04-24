@@ -10,7 +10,7 @@ import ConfirmModal from "../ui/ConfirmModal";
 import { useRouter } from "next/navigation";
 import { useDeleteActivity, useUpdateActivity } from "@/hooks/useActivities";
 import Link from "next/link";
-import { formatDate } from "@/utils/helper";
+import { formatDate, getDateDuration } from "@/utils/helper";
 import { usePermissionsStore } from "@/store/permissionsStore";
 
 interface ActivityTableProps {
@@ -20,7 +20,7 @@ interface ActivityTableProps {
 const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
   const { mutate: deleteActivity } = useDeleteActivity();
   const { mutate: updateActivity } = useUpdateActivity();
-  const { data: taskDetail } = useTask(taskId);
+  const { data: taskDetail, isLoading: taskLoading } = useTask(taskId);
   const router = useRouter();
 
   const [showForm, setShowForm] = useState(false);
@@ -58,32 +58,8 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const getDuration = (
-    start: Date | string | null | undefined,
-    end: Date | string | null | undefined
-  ): string => {
-    if (!start || !end) return "N/A";
-    const startDate = typeof start === "string" ? new Date(start) : start;
-    const endDate = typeof end === "string" ? new Date(end) : end;
-    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime()))
-      return "Invalid Date";
+  if (taskLoading) return <div className="p-4">Loading...</div>;
 
-    let totalDays = Math.ceil(
-      (endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24)
-    );
-    const years = Math.floor(totalDays / 365);
-    totalDays %= 365;
-    const months = Math.floor(totalDays / 30);
-    const days = totalDays % 30;
-    const parts = [];
-    if (years > 0) parts.push(`${years} ${years === 1 ? "Y" : "Ys"}`);
-    if (months > 0) parts.push(`${months} ${months === 1 ? "M" : "Ms"}`);
-    if (days > 0 || parts.length === 0)
-      parts.push(`${days} ${days === 1 ? "D" : "Ds"}`);
-    return parts.join(", ");
-  };
-
-  // Early return if task is not found.
   if (!taskDetail) return <div className="p-4">Task not found</div>;
 
   const activities = taskDetail.activities as Activity[];
@@ -227,7 +203,7 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
                   {formatDate(activity.end_date)}
                 </td>
                 <td className="border border-gray-200 px-4 py-2">
-                  {getDuration(activity.start_date, activity.end_date)}
+                  {getDateDuration(activity.start_date, activity.end_date)}
                 </td>
                 <td className="border border-gray-200 px-4 py-2">
                   <a

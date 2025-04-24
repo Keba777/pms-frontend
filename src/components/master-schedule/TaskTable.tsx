@@ -12,7 +12,7 @@ import { useRouter } from "next/navigation";
 import { useDeleteTask, useUpdateTask } from "@/hooks/useTasks";
 import { useUsers } from "@/hooks/useUsers";
 import Link from "next/link";
-import { formatDate } from "@/utils/helper";
+import { formatDate, getDateDuration } from "@/utils/helper";
 import { usePermissionsStore } from "@/store/permissionsStore";
 
 interface TaskTableProps {
@@ -62,31 +62,6 @@ const TaskTable: React.FC<TaskTableProps> = ({
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-
-  const getDuration = (
-    start: Date | string | null | undefined,
-    end: Date | string | null | undefined
-  ): string => {
-    if (!start || !end) return "N/A";
-    const startDate = typeof start === "string" ? new Date(start) : start;
-    const endDate = typeof end === "string" ? new Date(end) : end;
-    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime()))
-      return "Invalid Date";
-
-    let totalDays = Math.ceil(
-      (endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24)
-    );
-    const years = Math.floor(totalDays / 365);
-    totalDays %= 365;
-    const months = Math.floor(totalDays / 30);
-    const days = totalDays % 30;
-    const parts = [];
-    if (years > 0) parts.push(`${years} ${years === 1 ? "Y" : "Ys"}`);
-    if (months > 0) parts.push(`${months} ${months === 1 ? "M" : "Ms"}`);
-    if (days > 0 || parts.length === 0)
-      parts.push(`${days} ${days === 1 ? "D" : "Ds"}`);
-    return parts.join(", ");
-  };
 
   const handleDeleteClick = (taskId: string) => {
     const task = tasks.find((t) => t.id === taskId);
@@ -240,7 +215,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
                       {formatDate(task.end_date)}
                     </td>
                     <td className="border border-gray-200 px-4 py-2">
-                      {getDuration(task.start_date, task.end_date)}
+                      {getDateDuration(task.start_date, task.end_date)}
                     </td>
                     <td className="border border-gray-200 px-4 py-2">
                       <span className="badge bg-label-secondary">

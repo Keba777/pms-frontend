@@ -14,19 +14,27 @@ import { UpdateProjectInput } from "@/types/project";
 import { useUsers } from "@/hooks/useUsers";
 import { useTags } from "@/hooks/useTags";
 import Link from "next/link";
-import { formatDate } from "@/utils/helper";
+import { formatDate, getDateDuration } from "@/utils/helper";
 import { usePermissionsStore } from "@/store/permissionsStore";
 
 const ProjectTable = () => {
   const { data: projects, isLoading, isError } = useProjects();
   const { data: users } = useUsers();
   const { data: tags } = useTags();
-  const [expandedProjectId, setExpandedProjectId] = useState<string | null>(null);
-  const [dropdownProjectId, setDropdownProjectId] = useState<string | null>(null);
+  const [expandedProjectId, setExpandedProjectId] = useState<string | null>(
+    null
+  );
+  const [dropdownProjectId, setDropdownProjectId] = useState<string | null>(
+    null
+  );
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
+    null
+  );
   const [showForm, setShowForm] = useState(false);
-  const [projectToEdit, setProjectToEdit] = useState<UpdateProjectInput | null>(null);
+  const [projectToEdit, setProjectToEdit] = useState<UpdateProjectInput | null>(
+    null
+  );
   const router = useRouter();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -55,31 +63,6 @@ const ProjectTable = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-
-  const getDuration = (
-    start: Date | string | null | undefined,
-    end: Date | string | null | undefined
-  ): string => {
-    if (!start || !end) return "N/A";
-    const startDate = typeof start === "string" ? new Date(start) : start;
-    const endDate = typeof end === "string" ? new Date(end) : end;
-    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime()))
-      return "Invalid Date";
-
-    let totalDays = Math.ceil(
-      (endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24)
-    );
-    const years = Math.floor(totalDays / 365);
-    totalDays %= 365;
-    const months = Math.floor(totalDays / 30);
-    const days = totalDays % 30;
-    const parts = [];
-    if (years > 0) parts.push(`${years} ${years === 1 ? "Y" : "Ys"}`);
-    if (months > 0) parts.push(`${months} ${months === 1 ? "M" : "Ms"}`);
-    if (days > 0 || parts.length === 0)
-      parts.push(`${days} ${days === 1 ? "D" : "Ds"}`);
-    return parts.join(", ");
-  };
 
   const handleDeleteClick = (projectId: string) => {
     const project = projects?.find((p) => p.id === projectId);
@@ -139,11 +122,11 @@ const ProjectTable = () => {
               <th className="border border-gray-200 pl-5 pr-7 py-3 text-left text-sm font-medium text-gray-50">
                 Duration
               </th>
-              <th className="border border-gray-200 pl-5 pr-7 py-3 text-left text-sm font-medium text-gray-50 w-32">
-                Action
-              </th>
               <th className="border border-gray-200 pl-5 pr-7 py-3 text-left text-sm font-medium text-gray-50">
                 Status
+              </th>
+              <th className="border border-gray-200 pl-5 pr-7 py-3 text-left text-sm font-medium text-gray-50 w-32">
+                Action
               </th>
             </tr>
           </thead>
@@ -181,7 +164,12 @@ const ProjectTable = () => {
                       {formatDate(project.end_date)}
                     </td>
                     <td className="border border-gray-200 pl-5 pr-7 py-2">
-                      {getDuration(project.start_date, project.end_date)}
+                      {getDateDuration(project.start_date, project.end_date)}
+                    </td>
+                    <td className="border border-gray-200 pl-5 pr-7 py-2">
+                      <span className="badge bg-label-secondary">
+                        {project.status}
+                      </span>
                     </td>
                     <td className="border border-gray-200 pl-5 pr-7 py-2 relative w-32">
                       <button
@@ -208,7 +196,11 @@ const ProjectTable = () => {
                             }}
                             className="w-full text-left px-3 py-2 hover:bg-gray-100 disabled:opacity-50"
                             disabled={!canView}
-                            title={!canView ? "You do not have permission to view projects" : ""}
+                            title={
+                              !canView
+                                ? "You do not have permission to view projects"
+                                : ""
+                            }
                           >
                             View
                           </button>
@@ -220,7 +212,11 @@ const ProjectTable = () => {
                             }}
                             className="w-full text-left px-3 py-2 hover:bg-gray-100 disabled:opacity-50"
                             disabled={!canEdit}
-                            title={!canEdit ? "You do not have permission to edit projects" : ""}
+                            title={
+                              !canEdit
+                                ? "You do not have permission to edit projects"
+                                : ""
+                            }
                           >
                             Edit
                           </button>
@@ -231,7 +227,11 @@ const ProjectTable = () => {
                             }}
                             className="w-full text-left px-3 py-2 text-red-600 hover:bg-gray-100 disabled:opacity-50"
                             disabled={!canDelete}
-                            title={!canDelete ? "You do not have permission to delete projects" : ""}
+                            title={
+                              !canDelete
+                                ? "You do not have permission to delete projects"
+                                : ""
+                            }
                           >
                             Delete
                           </button>
@@ -250,11 +250,6 @@ const ProjectTable = () => {
                           </div>
                         </div>
                       )}
-                    </td>
-                    <td className="border border-gray-200 pl-5 pr-7 py-2">
-                      <span className="badge bg-label-secondary">
-                        {project.status}
-                      </span>
                     </td>
                   </tr>
                   {expandedProjectId === project.id && (
