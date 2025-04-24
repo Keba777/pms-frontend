@@ -55,16 +55,24 @@ const deleteTask = async (id: string): Promise<{ message: string }> => {
 
 // Hook to fetch all tasks and update the store
 export const useTasks = () => {
-    const setTasks = useTaskStore((state) => state.setTasks);
-    const query = useQuery({
+    const setTasks = useTaskStore((s) => s.setTasks);
+
+    const query = useQuery<Task[], Error>({
         queryKey: ["tasks"],
         queryFn: fetchTasks,
+        select: (tasks) =>
+            tasks
+                .slice()
+                .sort(
+                    (a, b) =>
+                        new Date(a.createdAt!).getTime() -
+                        new Date(b.createdAt!).getTime()
+                ),
     });
 
     useEffect(() => {
-        if (query.data) setTasks(query.data);
+        if (query.data) { setTasks(query.data); }
     }, [query.data, setTasks]);
-
     return query;
 };
 

@@ -15,6 +15,8 @@ export interface Task {
     approvalStatus: 'Approved' | 'Not Approved' | 'Pending';
     assignedTo: string | null;
     activities?: Activity[];
+    createdAt?: Date;
+    updatedAt?: Date;
 }
 
 export interface CreateTaskInput {

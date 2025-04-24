@@ -1,6 +1,3 @@
-import { Equipment } from "./equipment";
-import { Labor } from "./labor";
-import { Material } from "./material";
 import { Task } from "./task";
 
 export interface Activity {
@@ -17,9 +14,11 @@ export interface Activity {
     progress: number;
     status: "Not Started" | "Started" | "InProgress" | "Canceled" | "Onhold" | "Completed";
     approvalStatus: "Approved" | "Not Approved" | "Pending";
-    materials?: Material[];
-    equipment?: Equipment[];
-    labors?: Labor[];
+    // materials?: Material[];
+    // equipment?: Equipment[];
+    // labors?: Labor[];
+    createdAt?: Date;
+    updatedAt?: Date;
 }
 
 export interface CreateActivityInput {

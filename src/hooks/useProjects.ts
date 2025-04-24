@@ -60,10 +60,18 @@ const deleteProject = async (id: string): Promise<{ message: string }> => {
 
 // Hook to fetch all Projects and update the store
 export const useProjects = () => {
-  const setProjects = useProjectStore((state) => state.setProjects);
-  const query = useQuery({
+  const setProjects = useProjectStore((s) => s.setProjects);
+  const query = useQuery<Project[], Error>({
     queryKey: ["projects"],
     queryFn: fetchProjects,
+    select: (projects) =>
+      projects
+        .slice()
+        .sort(
+          (a, b) =>
+            new Date(a.createdAt!).getTime() -
+            new Date(b.createdAt!).getTime()
+        ),
   });
 
   useEffect(() => {

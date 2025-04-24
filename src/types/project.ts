@@ -16,6 +16,8 @@ export interface Project {
     members?: string[];  // Optional array of member IDs
     tagIds?: string[];  // Optional array of tag IDs
     tasks?: Task[];
+    createdAt?: Date;
+    updatedAt?: Date;
 }
 
 export interface CreateProjectInput {

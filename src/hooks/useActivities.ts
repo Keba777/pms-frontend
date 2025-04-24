@@ -57,10 +57,19 @@ const deleteActivity = async (id: string): Promise<{ message: string }> => {
 
 // Hook to fetch all Activities and update the store
 export const useActivities = () => {
-  const setActivities = useActivityStore((state) => state.setActivities);
-  const query = useQuery({
+  const setActivities = useActivityStore((s) => s.setActivities);
+
+  const query = useQuery<Activity[], Error>({
     queryKey: ["activities"],
     queryFn: fetchActivities,
+    select: (activities) =>
+      activities
+        .slice()
+        .sort(
+          (a, b) =>
+            new Date(a.createdAt!).getTime() -
+            new Date(b.createdAt!).getTime()
+        ),
   });
 
   useEffect(() => {
