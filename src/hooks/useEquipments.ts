@@ -17,7 +17,7 @@ const fetchEquipments = async (): Promise<Equipment[]> => {
     return response.data.data;
 };
 
-const fetchEquipmentById = async (id: string): Promise<Equipment | null> => {
+export const fetchEquipmentById = async (id: string): Promise<Equipment | null> => {
     const response = await apiClient.get<ApiResponse<Equipment>>(`/equipments/${id}`);
     return response.data.data;
 };

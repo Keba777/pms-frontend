@@ -17,7 +17,7 @@ const fetchLabors = async (): Promise<Labor[]> => {
     return response.data.data;
 };
 
-const fetchLaborById = async (id: string): Promise<Labor | null> => {
+export const fetchLaborById = async (id: string): Promise<Labor | null> => {
     const response = await apiClient.get<ApiResponse<Labor>>(`/labors/${id}`);
     return response.data.data;
 };

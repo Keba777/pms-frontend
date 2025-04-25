@@ -17,7 +17,7 @@ const fetchMaterials = async (): Promise<Material[]> => {
     return response.data.data;
 };
 
-const fetchMaterialById = async (id: string): Promise<Material | null> => {
+export const fetchMaterialById = async (id: string): Promise<Material | null> => {
     const response = await apiClient.get<ApiResponse<Material>>(`/materials/${id}`);
     return response.data.data;
 };
