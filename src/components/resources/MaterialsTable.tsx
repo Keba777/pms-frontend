@@ -6,6 +6,7 @@ interface MaterialProps {
 
 const MaterialsTable = ({ materials }: MaterialProps) => {
   const headers = [
+    "Select",
     "No",
     "Materials",
     "Unit",
@@ -37,6 +38,12 @@ const MaterialsTable = ({ materials }: MaterialProps) => {
                 key={mat.id + mat.warehouseId + idx}
                 className="border border-gray-200"
               >
+                <td className="px-4 py-2 border border-gray-200">
+                  <input
+                    type="checkbox"
+                    className="form-checkbox h-4 w-4 text-cyan-600 border-gray-300 rounded focus:ring-cyan-500"
+                  />
+                </td>
                 <td className="px-4 py-2 border border-gray-200">{idx + 1}</td>
                 <td className="px-4 py-2 border border-gray-200">{mat.item}</td>
                 <td className="px-4 py-2 border border-gray-200">{mat.unit}</td>
@@ -68,6 +75,11 @@ const MaterialsTable = ({ materials }: MaterialProps) => {
           )}
         </tbody>
       </table>
+      <div className="flex justify-end mt-4">
+        <button className="px-4 py-2 rounded-lg bg-cyan-700 text-gray-100">
+          Send to Request
+        </button>
+      </div>
     </div>
   );
 };

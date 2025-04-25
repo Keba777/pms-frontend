@@ -6,6 +6,7 @@ interface EquipmentProps {
 
 const EquipmentTable = ({ equipment }: EquipmentProps) => {
   const headers = [
+    "Select",
     "ID",
     "Equipment",
     "Unit",
@@ -34,6 +35,12 @@ const EquipmentTable = ({ equipment }: EquipmentProps) => {
           {equipment && equipment.length > 0 ? (
             equipment.map((eqp, idx) => (
               <tr key={eqp.id + idx} className="border border-gray-200">
+                <td className="px-4 py-2 border border-gray-200">
+                  <input
+                    type="checkbox"
+                    className="form-checkbox h-4 w-4 text-cyan-600 border-gray-300 rounded focus:ring-cyan-500"
+                  />
+                </td>
                 <td className="px-4 py-2 border border-gray-200">{idx + 1}</td>
                 <td className="px-4 py-2 border border-gray-200">{eqp.item}</td>
                 <td className="px-4 py-2 border border-gray-200">{eqp.unit}</td>
@@ -63,6 +70,11 @@ const EquipmentTable = ({ equipment }: EquipmentProps) => {
           )}
         </tbody>
       </table>
+      <div className="flex justify-end mt-4">
+        <button className="px-4 py-2 bg-cyan-700 text-white rounded-md hover:bg-cyan-800">
+          Add Equipment
+        </button>
+      </div>
     </div>
   );
 };
