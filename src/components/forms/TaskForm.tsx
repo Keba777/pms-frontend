@@ -384,9 +384,7 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
             Description <span className="text-red-500">*</span>
           </label>
           <textarea
-            {...register("description", {
-              required: "Description is required",
-            })}
+            {...register("description")}
             placeholder="Please Enter Description"
             className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
             rows={5}
