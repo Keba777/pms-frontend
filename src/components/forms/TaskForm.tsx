@@ -218,6 +218,62 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
           </div>
         )}
 
+        {/* Status and Priority Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Priority */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Priority
+            </label>
+            <Controller
+              name="priority"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  {...field}
+                  options={priorityOptions}
+                  className="w-full"
+                  onChange={(selectedOption) =>
+                    field.onChange(selectedOption?.value)
+                  }
+                  value={priorityOptions.find(
+                    (option) => option.value === field.value
+                  )}
+                />
+              )}
+            />
+          </div>
+          {/* Status */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Status <span className="text-red-500">*</span>
+            </label>
+            <Controller
+              name="status"
+              control={control}
+              rules={{ required: "Status is required" }}
+              render={({ field }) => (
+                <Select
+                  {...field}
+                  options={statusOptions}
+                  className="w-full"
+                  onChange={(selectedOption) =>
+                    field.onChange(selectedOption?.value)
+                  }
+                  value={statusOptions.find(
+                    (option) => option.value === field.value
+                  )}
+                />
+              )}
+            />
+            {errors.status && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.status.message}
+              </p>
+            )}
+          </div>
+        </div>
+
         {/* Latest Task History Card */}
         <div className="p-4 rounded-lg shadow-md bg-gradient-to-r from-cyan-500 to-cyan-700 text-white">
           <h4 className="text-lg font-semibold mb-2">Latest Task</h4>
@@ -322,61 +378,24 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
           </div>
         </div>
 
-        {/* Status and Priority Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Status */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Status <span className="text-red-500">*</span>
-            </label>
-            <Controller
-              name="status"
-              control={control}
-              rules={{ required: "Status is required" }}
-              render={({ field }) => (
-                <Select
-                  {...field}
-                  options={statusOptions}
-                  className="w-full"
-                  onChange={(selectedOption) =>
-                    field.onChange(selectedOption?.value)
-                  }
-                  value={statusOptions.find(
-                    (option) => option.value === field.value
-                  )}
-                />
-              )}
-            />
-            {errors.status && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.status.message}
-              </p>
-            )}
-          </div>
-
-          {/* Priority */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Priority
-            </label>
-            <Controller
-              name="priority"
-              control={control}
-              render={({ field }) => (
-                <Select
-                  {...field}
-                  options={priorityOptions}
-                  className="w-full"
-                  onChange={(selectedOption) =>
-                    field.onChange(selectedOption?.value)
-                  }
-                  value={priorityOptions.find(
-                    (option) => option.value === field.value
-                  )}
-                />
-              )}
-            />
-          </div>
+        {/* Description */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Description <span className="text-red-500">*</span>
+          </label>
+          <textarea
+            {...register("description", {
+              required: "Description is required",
+            })}
+            placeholder="Please Enter Description"
+            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+            rows={5}
+          />
+          {errors.description && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.description.message}
+            </p>
+          )}
         </div>
 
         {/* Footer Buttons */}

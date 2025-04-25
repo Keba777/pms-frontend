@@ -137,17 +137,21 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
 
   // Map fetched users to options for the multi-select.
   // Each option now displays user's first name along with their role (from the roles store) in parentheses.
+  const CLIENT_ROLE_ID = "aa192529-c692-458e-bf96-42b7d4782c3d";
+
   const memberOptions =
-    users?.map((user: User) => {
-      const roleObj: Role | undefined = roles?.find(
-        (r) => r.id === user.role_id
-      );
-      const roleName = roleObj ? roleObj.name : "No Role";
-      return {
-        value: user.id!,
-        label: `${user.first_name} (${roleName})`,
-      };
-    }) || [];
+    users
+      ?.filter((user: User) => user.role_id !== CLIENT_ROLE_ID)
+      .map((user: User) => {
+        const roleObj: Role | undefined = roles?.find(
+          (r) => r.id === user.role_id
+        );
+        const roleName = roleObj ? roleObj.name : "No Role";
+        return {
+          value: user.id!,
+          label: `${user.first_name} (${roleName})`,
+        };
+      }) || [];
 
   const tagOptions =
     tags?.map((tag: Tag) => ({
@@ -186,6 +190,59 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
           {errors.title && (
             <p className="text-red-500 text-sm mt-1">{errors.title.message}</p>
           )}
+        </div>
+        {/* Status and Priority Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Priority
+            </label>
+            <Controller
+              name="priority"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  {...field}
+                  options={priorityOptions}
+                  className="w-full"
+                  onChange={(selectedOption) =>
+                    field.onChange(selectedOption?.value)
+                  }
+                  value={priorityOptions.find(
+                    (option) => option.value === field.value
+                  )}
+                />
+              )}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Status <span className="text-red-500">*</span>
+            </label>
+            <Controller
+              name="status"
+              control={control}
+              rules={{ required: "Status is required" }}
+              render={({ field }) => (
+                <Select
+                  {...field}
+                  options={statusOptions}
+                  className="w-full"
+                  onChange={(selectedOption) =>
+                    field.onChange(selectedOption?.value)
+                  }
+                  value={statusOptions.find(
+                    (option) => option.value === field.value
+                  )}
+                />
+              )}
+            />
+            {errors.status && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.status.message}
+              </p>
+            )}
+          </div>
         </div>
 
         {/* Budget and Dates Section */}
@@ -382,61 +439,6 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
           {tagsError && (
             <p className="text-red-500 text-sm mt-1">Error loading tags</p>
           )}
-        </div>
-
-        {/* Status and Priority Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Status <span className="text-red-500">*</span>
-            </label>
-            <Controller
-              name="status"
-              control={control}
-              rules={{ required: "Status is required" }}
-              render={({ field }) => (
-                <Select
-                  {...field}
-                  options={statusOptions}
-                  className="w-full"
-                  onChange={(selectedOption) =>
-                    field.onChange(selectedOption?.value)
-                  }
-                  value={statusOptions.find(
-                    (option) => option.value === field.value
-                  )}
-                />
-              )}
-            />
-            {errors.status && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.status.message}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Priority
-            </label>
-            <Controller
-              name="priority"
-              control={control}
-              render={({ field }) => (
-                <Select
-                  {...field}
-                  options={priorityOptions}
-                  className="w-full"
-                  onChange={(selectedOption) =>
-                    field.onChange(selectedOption?.value)
-                  }
-                  value={priorityOptions.find(
-                    (option) => option.value === field.value
-                  )}
-                />
-              )}
-            />
-          </div>
         </div>
 
         {/* Description */}
