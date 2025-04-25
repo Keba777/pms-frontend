@@ -137,14 +137,16 @@ const DataTableActivities = () => {
                       className="rounded border-gray-300"
                     />
                   </td>
-                  <td className="px-4 py-2 whitespace-nowrap">
+                  <td className="px-4 py-2  w-[60px]">
                     <a
                       href="#"
-                      className="text-bs-primary hover:underline font-medium"
+                      className="text-bs-primary hover:underline font-medium block truncate"
+                      title={activity.activity_name}
                     >
                       {activity.activity_name}
                     </a>
                   </td>
+
                   <td className="px-4 py-2 whitespace-nowrap">
                     <span
                       className={`badge ${

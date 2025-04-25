@@ -53,16 +53,6 @@ const ActivitiesPage = () => {
         {/* Tabs Navigation moved below TopBarActions */}
         <div className="flex space-x-4 border-b border-gray-200 mb-4">
           <button
-            onClick={() => setActiveTab("actual")}
-            className={`py-2 px-4 focus:outline-none ${
-              activeTab === "actual"
-                ? "border-b-2 border-blue-500 font-medium"
-                : "text-gray-600"
-            }`}
-          >
-            Actual
-          </button>
-          <button
             onClick={() => setActiveTab("planned")}
             className={`py-2 px-4 focus:outline-none ${
               activeTab === "planned"
@@ -71,6 +61,16 @@ const ActivitiesPage = () => {
             }`}
           >
             Planned
+          </button>
+          <button
+            onClick={() => setActiveTab("actual")}
+            className={`py-2 px-4 focus:outline-none ${
+              activeTab === "actual"
+                ? "border-b-2 border-blue-500 font-medium"
+                : "text-gray-600"
+            }`}
+          >
+            Actual
           </button>
         </div>
 

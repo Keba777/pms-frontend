@@ -178,6 +178,9 @@ const TaskTable: React.FC<TaskTableProps> = ({
                 Duration
               </th>
               <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-50">
+                Progress
+              </th>
+              <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-50">
                 Status
               </th>
               <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-50 w-32">
@@ -216,6 +219,9 @@ const TaskTable: React.FC<TaskTableProps> = ({
                     </td>
                     <td className="border border-gray-200 px-4 py-2">
                       {getDateDuration(task.start_date, task.end_date)}
+                    </td>
+                    <td className="border border-gray-200 px-4 py-2">
+                      {task.progress}%
                     </td>
                     <td className="border border-gray-200 px-4 py-2">
                       <span className="badge bg-label-secondary">
