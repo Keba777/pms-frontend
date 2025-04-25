@@ -8,7 +8,6 @@ import "react-datepicker/dist/react-datepicker.css";
 import { CreateTaskInput } from "@/types/task"; // adjust path if needed
 import { useCreateTask } from "@/hooks/useTasks"; // hook to create a task
 import { useProjects } from "@/hooks/useProjects"; // hook to fetch projects
-import { toast } from "react-toastify";
 import { useTaskStore } from "@/store/taskStore"; // import task store
 import { formatDate } from "@/utils/helper";
 import { ArrowRight, Calendar } from "lucide-react";
@@ -82,7 +81,6 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
 
     createTask(submitData, {
       onSuccess: () => {
-        toast.success("Task created successfully!");
         onClose(); // Close the modal on success
         window.location.reload(); // Reload the page
       },

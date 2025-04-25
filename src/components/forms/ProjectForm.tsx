@@ -8,7 +8,6 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { CreateProjectInput } from "@/types/project";
 import { useCreateProject } from "@/hooks/useProjects";
-import { toast } from "react-toastify";
 import { useUsers } from "@/hooks/useUsers";
 import { User } from "@/types/user";
 import { useTags } from "@/hooks/useTags";
@@ -77,7 +76,6 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
     // data.duration is not part of the CreateProjectInput type so it won't be sent.
     createProject(data, {
       onSuccess: () => {
-        toast.success("Project created successfully!");
         onClose(); // Close the modal on success
         window.location.reload(); // Reload the page
       },

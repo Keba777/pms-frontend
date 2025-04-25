@@ -8,7 +8,6 @@ import "react-datepicker/dist/react-datepicker.css";
 import { Activity } from "@/types/activity";
 import { useCreateActivity } from "@/hooks/useActivities";
 import { useTasks } from "@/hooks/useTasks";
-import { toast } from "react-toastify";
 import { ArrowRight, Calendar } from "lucide-react";
 import { formatDate } from "@/utils/helper";
 import { useActivityStore } from "@/store/activityStore";
@@ -86,7 +85,6 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
 
     createActivity(submitData, {
       onSuccess: () => {
-        toast.success("Activity created successfully!");
         onClose();
         window.location.reload();
       },
