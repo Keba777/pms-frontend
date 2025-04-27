@@ -1,5 +1,6 @@
 import { Activity } from "./activity";
 import { Project } from "./project";
+import { User } from "./user";
 
 export interface Task {
     id: string;
@@ -13,7 +14,7 @@ export interface Task {
     progress?: number;
     status: 'Not Started' | 'Started' | 'InProgress' | 'Canceled' | 'Onhold' | 'Completed';
     approvalStatus: 'Approved' | 'Not Approved' | 'Pending';
-    assignedTo: string | null;
+    assignedUsers?: User[];
     activities?: Activity[];
     createdAt?: Date;
     updatedAt?: Date;
@@ -30,8 +31,7 @@ export interface CreateTaskInput {
     progress?: number;
     status: 'Not Started' | 'Started' | 'InProgress' | 'Canceled' | 'Onhold' | 'Completed';
     approvalStatus: 'Approved' | 'Not Approved' | 'Pending';
-    assignedTo: string | null;
-    activities?: Activity[];
+    assignedUsers?: string[];
 }
 
 export interface UpdateTaskInput {
@@ -46,6 +46,5 @@ export interface UpdateTaskInput {
     progress?: number;
     status?: 'Not Started' | 'Started' | 'InProgress' | 'Canceled' | 'Onhold' | 'Completed';
     approvalStatus?: 'Approved' | 'Not Approved' | 'Pending';
-    assignedTo?: string | null;
-    activities?: Activity[];
+    assignedUsers?: string[];
 }

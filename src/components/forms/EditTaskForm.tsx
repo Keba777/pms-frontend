@@ -246,32 +246,30 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({
         </p>
       )}
 
-      {/* Assigned To */}
-      {users && (
-        <div className="flex items-center space-x-4">
-          <label className="w-32 text-sm font-medium text-gray-700">
-            Assigned To
-          </label>
-          <Controller
-            name="assignedTo"
-            control={control}
-            render={({ field }) => (
-              <Select
-                {...field}
-                options={userOptions}
-                className="flex-1"
-                onChange={(selectedOption) =>
-                  field.onChange(selectedOption?.value)
-                }
-                value={userOptions.find(
-                  (option) => option.value === field.value
-                )}
-                isClearable
-              />
-            )}
-          />
-        </div>
-      )}
+      {/* AssignedUsers */}
+      <div className="flex items-center space-x-4">
+        <label className="w-32 text-sm font-medium text-gray-700">
+          Assigned Users
+        </label>
+        <Controller
+          name="assignedUsers"
+          control={control}
+          render={({ field }) => (
+            <Select
+              {...field}
+              options={userOptions}
+              isMulti
+              className="flex-1"
+              onChange={(selectedOptions) =>
+                field.onChange(selectedOptions.map((option) => option.value))
+              }
+              value={userOptions.filter((option) =>
+                field.value?.includes(option.value)
+              )}
+            />
+          )}
+        />
+      </div>
 
       <div className="flex justify-end space-x-4 mt-4">
         <button

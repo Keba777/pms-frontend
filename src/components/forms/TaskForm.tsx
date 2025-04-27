@@ -11,6 +11,9 @@ import { useProjects } from "@/hooks/useProjects"; // hook to fetch projects
 import { useTaskStore } from "@/store/taskStore"; // import task store
 import { formatDate } from "@/utils/helper";
 import { ArrowRight, Calendar } from "lucide-react";
+import { useUsers } from "@/hooks/useUsers";
+import { Role, User } from "@/types/user";
+import { useRoles } from "@/hooks/useRoles";
 
 interface TaskFormProps {
   onClose: () => void; // Function to close the modal
@@ -41,6 +44,12 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
   // Retrieve tasks from the store to show the last created task
   const { tasks } = useTaskStore();
   const lastTask = tasks && tasks.length > 0 ? tasks[tasks.length - 1] : null;
+  const {
+    data: users,
+    isLoading: usersLoading,
+    error: usersError,
+  } = useUsers();
+  const { data: roles } = useRoles();
 
   // Local state for duration (in days). This field is for display/calculation only.
   const [duration, setDuration] = useState<string>("");
@@ -146,6 +155,22 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
       value: project.id,
       label: project.title,
     })) || [];
+
+  const CLIENT_ROLE_ID = "aa192529-c692-458e-bf96-42b7d4782c3d";
+
+  const assignedUsersOptions =
+    users
+      ?.filter((user: User) => user.role_id !== CLIENT_ROLE_ID)
+      .map((user: User) => {
+        const roleObj: Role | undefined = roles?.find(
+          (r) => r.id === user.role_id
+        );
+        const roleName = roleObj ? roleObj.name : "No Role";
+        return {
+          value: user.id!,
+          label: `${user.first_name} (${roleName})`,
+        };
+      }) || [];
 
   return (
     <form
@@ -376,6 +401,37 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
               </p>
             )}
           </div>
+        </div>
+
+        {/* AssignedUsers Section */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Assigned to
+          </label>
+          <Controller
+            name="assignedUsers"
+            control={control}
+            render={({ field }) => (
+              <Select
+                isMulti
+                options={assignedUsersOptions}
+                isLoading={usersLoading}
+                className="basic-multi-select"
+                classNamePrefix="select"
+                // Only send the user ids (the role is only displayed in the label)
+                onChange={(selectedOptions) =>
+                  field.onChange(selectedOptions.map((option) => option.value))
+                }
+                value={assignedUsersOptions.filter(
+                  (option: { value: string; label: string }) =>
+                    field.value?.includes(option.value)
+                )}
+              />
+            )}
+          />
+          {usersError && (
+            <p className="text-red-500 text-sm mt-1">Error loading users</p>
+          )}
         </div>
 
         {/* Description */}

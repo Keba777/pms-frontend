@@ -79,7 +79,12 @@ export default function ClientTaskDetail({ taskId }: ClientTaskDetailProps) {
             {/* Assigned To */}
             <div className="flex items-center">
               <span className="bg-indigo-100 text-indigo-700 px-4 py-2 rounded-full text-sm font-semibold">
-                Assigned to: {task.assignedTo}
+                Assigned to:{" "}
+                {(task.assignedUsers ?? []).length > 0
+                  ? task.assignedUsers
+                      ?.map((user) => user.first_name)
+                      .join(", ")
+                  : "N/A"}
               </span>
             </div>
 

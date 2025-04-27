@@ -4,12 +4,10 @@ import { useTasks } from "@/hooks/useTasks";
 import React from "react";
 import { FaEdit, FaTrash, FaEye } from "react-icons/fa";
 import Link from "next/link";
+import RoleName from "../common/RoleName";
 
 const TaskSection = () => {
   const { data: tasks, isLoading, isError } = useTasks();
-  // const [statusUpdates, setStatusUpdates] = useState<{ [key: string]: string }>(
-  //   {}
-  // );
 
   const formatDate = (date: string | number | Date) => {
     if (!date) return "N/A";
@@ -17,10 +15,6 @@ const TaskSection = () => {
     if (isNaN(dateObj.getTime())) return "Invalid Date";
     return dateObj.toLocaleDateString("en-GB");
   };
-
-  // const handleStatusChange = (taskId: string, newStatus: string) => {
-  //   setStatusUpdates((prev) => ({ ...prev, [taskId]: newStatus }));
-  // };
 
   if (isLoading) return <div>Loading...</div>;
   if (isError) return <div>Error loading tasks</div>;
@@ -62,9 +56,6 @@ const TaskSection = () => {
               <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-50">
                 Actions
               </th>
-              {/* <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-50">
-                Update Status
-              </th> */}
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -77,9 +68,19 @@ const TaskSection = () => {
                   <td className="border border-gray-200 text-start px-4 py-2 font-medium text-bs-primary">
                     <Link href={`tasks/${task.id}`}>{task.task_name}</Link>
                   </td>
-
                   <td className="border border-gray-200 px-4 py-2">
-                    {task.assignedTo || "N/A"}
+                    {task.assignedUsers && task.assignedUsers.length > 0 ? (
+                      <ul className="list-none space-y-1">
+                        {task.assignedUsers.map((user) => (
+                          <li key={user.id}>
+                            {user.first_name} {user.last_name} (
+                            <RoleName roleId={user.role_id} />)
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      "N/A"
+                    )}
                   </td>
                   <td className="border border-gray-200 px-4 py-2">
                     {task.priority}
@@ -117,28 +118,6 @@ const TaskSection = () => {
                       </option>
                     </select>
                   </td>
-                  {/* <td className="border border-gray-200 px-4 py-2">
-                    <select
-                      className="border rounded px-2 py-1"
-                      value={statusUpdates[task.id] || task.status}
-                      onChange={(e) =>
-                        handleStatusChange(task.id, e.target.value)
-                      }
-                    >
-                      {[
-                        "Not Started",
-                        "Started",
-                        "InProgress",
-                        "Canceled",
-                        "Onhold",
-                        "Completed",
-                      ].map((status) => (
-                        <option key={status} value={status}>
-                          {status}
-                        </option>
-                      ))}
-                    </select>
-                  </td> */}
                 </tr>
               ))
             ) : (

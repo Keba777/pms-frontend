@@ -12,7 +12,6 @@ import {
   Settings,
 } from "lucide-react";
 import { Project } from "@/types/project";
-import { useUsers } from "@/hooks/useUsers";
 import { useRoles } from "@/hooks/useRoles";
 
 export interface ProjectCardProps {
@@ -26,7 +25,6 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
   const dropdownRef = useRef<HTMLUListElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
-  const { data: users = [] } = useUsers();
   const { data: roles = [] } = useRoles();
 
   const getDuration = (start: string | Date, end: string | Date): string => {
@@ -71,14 +69,13 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
     setIsDropdownOpen((o) => !o);
   };
 
-  // Map member IDs to "Name (Role)"
+  // Map full User objects to display strings
   const memberDetails =
-    project.members?.map((memberId) => {
-      const user = users.find((u) => u.id === memberId);
-      const role = roles.find((r) => r.id === user?.role_id);
-      const name = user ? `${user.first_name} ${user.last_name}` : memberId;
+    project.members?.map((member) => {
+      const role = roles.find((r) => r.id === member.role_id);
+      const name = `${member.first_name} ${member.last_name}`;
       return role ? `${name} (${role.name})` : name;
-    }) || [];
+    }) ?? [];
 
   // close dropdown on outside click
   useEffect(() => {

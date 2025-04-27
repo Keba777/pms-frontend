@@ -3,7 +3,6 @@
 import React from "react";
 import { Menu, MenuButton, MenuItems, MenuItem } from "@headlessui/react";
 import { ChevronDown } from "lucide-react";
-import { stat } from "fs";
 
 const sampleData = [
   {

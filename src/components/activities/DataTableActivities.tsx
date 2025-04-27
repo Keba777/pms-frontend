@@ -15,6 +15,8 @@ import EditActivityForm from "../forms/EditActivityForm";
 import ConfirmModal from "../ui/ConfirmModal";
 import ActivityTableSkeleton from "./ActivityTableSkeleton";
 import { usePermissionsStore } from "@/store/permissionsStore";
+import Link from "next/link";
+import RoleName from "../common/RoleName";
 
 const DataTableActivities = () => {
   const { data: activities, isLoading, error } = useActivities();
@@ -94,6 +96,9 @@ const DataTableActivities = () => {
               <th className="px-4 py-3 whitespace-nowrap text-left text-sm font-medium text-gray-50">
                 Activity
               </th>
+              <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-50">
+                Assigned To
+              </th>
               <th className="px-4 py-3 whitespace-nowrap text-left text-sm font-medium text-gray-50">
                 Priority
               </th>
@@ -138,13 +143,28 @@ const DataTableActivities = () => {
                     />
                   </td>
                   <td className="px-4 py-2  w-[60px]">
-                    <a
-                      href="#"
+                    <Link
+                      href={`activities/${activity.id}`}
                       className="text-bs-primary hover:underline font-medium block truncate"
                       title={activity.activity_name}
                     >
                       {activity.activity_name}
-                    </a>
+                    </Link>
+                  </td>
+                  <td className="px-4 py-2 whitespace-nowrap">
+                    {activity.assignedUsers &&
+                    activity.assignedUsers.length > 0 ? (
+                      <ul className="list-none space-y-1">
+                        {activity.assignedUsers.map((user) => (
+                          <li key={user.id}>
+                            {user.first_name} {user.last_name} (
+                            <RoleName roleId={user.role_id} />)
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      "N/A"
+                    )}
                   </td>
 
                   <td className="px-4 py-2 whitespace-nowrap">
@@ -212,7 +232,13 @@ const DataTableActivities = () => {
                                 }`}
                                 onClick={() => {
                                   if (canUpdate) {
-                                    setActivityToEdit(activity);
+                                    setActivityToEdit({
+                                      ...activity,
+                                      assignedUsers:
+                                        activity.assignedUsers?.map(
+                                          (user) => user.id
+                                        ),
+                                    });
                                     setShowEditForm(true);
                                   } else {
                                     alert(

@@ -15,6 +15,7 @@ import { useDeleteTask, useUpdateTask } from "@/hooks/useTasks";
 import { usePermissionsStore } from "@/store/permissionsStore";
 import EditTaskForm from "@/components/forms/EditTaskForm";
 import ConfirmModal from "@/components/ui/ConfirmModal";
+import RoleName from "../common/RoleName";
 
 const DataTable = () => {
   const tasks = useTaskStore((state) => state.tasks) as Task[];
@@ -24,7 +25,7 @@ const DataTable = () => {
 
   // States for handling update and delete modals.
   const [showEditForm, setShowEditForm] = useState(false);
-  const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
+  const [taskToEdit, setTaskToEdit] = useState<UpdateTaskInput | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
 
@@ -64,7 +65,7 @@ const DataTable = () => {
     { header: "Progress", accessor: (task: Task) => task.progress },
     { header: "Status", accessor: (task: Task) => task.status },
     { header: "Approval", accessor: (task: Task) => task.approvalStatus },
-    { header: "Assigned To", accessor: (task: Task) => task.assignedTo },
+    { header: "Assigned To", accessor: (task: Task) => task.assignedUsers },
   ];
 
   // Handlers for task actions.
@@ -76,7 +77,7 @@ const DataTable = () => {
     }
   };
 
-  const handleUpdateTask = (task: Task) => {
+  const handleUpdateTask = (task: UpdateTaskInput) => {
     if (canUpdate) {
       setTaskToEdit(task);
       setShowEditForm(true);
@@ -164,9 +165,6 @@ const DataTable = () => {
                 Approval
               </th>
               <th className="px-4 py-3 whitespace-nowrap text-left text-sm font-medium text-gray-50">
-                Assigned To
-              </th>
-              <th className="px-4 py-3 whitespace-nowrap text-left text-sm font-medium text-gray-50">
                 Actions
               </th>
             </tr>
@@ -189,8 +187,19 @@ const DataTable = () => {
                       {task.task_name}
                     </Link>
                   </td>
-                  <td className="px-4 py-2 whitespace-nowrap">
-                    {task.assignedTo || "N/A"}
+                  <td className="border border-gray-200 px-4 py-2">
+                    {task.assignedUsers && task.assignedUsers.length > 0 ? (
+                      <ul className="list-none space-y-1">
+                        {task.assignedUsers.map((user) => (
+                          <li key={user.id}>
+                            {user.first_name} {user.last_name} (
+                            <RoleName roleId={user.role_id} />)
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      "N/A"
+                    )}
                   </td>
                   <td className="px-4 py-2 whitespace-nowrap">
                     <span
@@ -237,9 +246,6 @@ const DataTable = () => {
                     {task.approvalStatus}
                   </td>
                   <td className="px-4 py-2 whitespace-nowrap">
-                    {task.assignedTo || "Not Assigned"}
-                  </td>
-                  <td className="px-4 py-2 whitespace-nowrap">
                     <div className="relative inline-block">
                       <Menu>
                         <MenuButton className="flex items-center gap-1 px-3 py-1 text-sm bg-cyan-700 text-white rounded hover:bg-cyan-800">
@@ -254,7 +260,12 @@ const DataTable = () => {
                                 }`}
                                 onClick={() => {
                                   if (canUpdate) {
-                                    handleUpdateTask(task);
+                                    handleUpdateTask({
+                                      ...task,
+                                      assignedUsers: task.assignedUsers?.map(
+                                        (user) => user.id
+                                      ),
+                                    });
                                   } else {
                                     alert(
                                       "You do not have permission to update tasks."

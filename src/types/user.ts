@@ -1,5 +1,10 @@
+import { Activity } from "./activity";
+import { Project } from "./project";
+import { Request } from "./request";
+import { Task } from "./task";
+
 export interface User {
-    id?: string;
+    id: string;
     first_name: string;
     last_name: string;
     phone: string;
@@ -7,11 +12,12 @@ export interface User {
     email: string;
     password: string;
     profile_picture?: string;
-    country_code: string;
-    country: string;
-    state: string;
-    city: string;
-    zip: string;
+    department_id?: string;
+    status?: "Active" | "InActive";
+    projects?: Project[];
+    tasks?: Task[];
+    activities?: Activity[];
+    requests?: Request[];
 }
 
 export interface Role {

@@ -1,4 +1,6 @@
+import { Request } from "./request";
 import { Task } from "./task";
+import { User } from "./user";
 
 export interface Activity {
     id: string;
@@ -14,9 +16,8 @@ export interface Activity {
     progress: number;
     status: "Not Started" | "Started" | "InProgress" | "Canceled" | "Onhold" | "Completed";
     approvalStatus: "Approved" | "Not Approved" | "Pending";
-    // materials?: Material[];
-    // equipment?: Equipment[];
-    // labors?: Labor[];
+    assignedUsers?: User[];
+    requests?: Request[];
     createdAt?: Date;
     updatedAt?: Date;
 }
@@ -33,6 +34,7 @@ export interface CreateActivityInput {
     progress: number;
     status: "Not Started" | "Started" | "InProgress" | "Canceled" | "Onhold" | "Completed";
     approvalStatus: "Approved" | "Not Approved" | "Pending";
+    assignedUsers?: string[];
 }
 
 export interface UpdateActivityInput {
@@ -48,4 +50,5 @@ export interface UpdateActivityInput {
     progress?: number;
     status?: "Not Started" | "Started" | "InProgress" | "Canceled" | "Onhold" | "Completed";
     approvalStatus?: "Approved" | "Not Approved" | "Pending";
+    assignedUsers?: string[];
 }

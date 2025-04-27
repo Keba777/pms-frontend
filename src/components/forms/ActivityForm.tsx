@@ -5,12 +5,15 @@ import { useForm, Controller } from "react-hook-form";
 import Select from "react-select";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { Activity } from "@/types/activity";
+import { CreateActivityInput } from "@/types/activity";
 import { useCreateActivity } from "@/hooks/useActivities";
 import { useTasks } from "@/hooks/useTasks";
 import { ArrowRight, Calendar } from "lucide-react";
 import { formatDate } from "@/utils/helper";
 import { useActivityStore } from "@/store/activityStore";
+import { useUsers } from "@/hooks/useUsers";
+import { useRoles } from "@/hooks/useRoles";
+import { Role, User } from "@/types/user";
 
 interface ActivityFormProps {
   onClose: () => void;
@@ -28,7 +31,7 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
     watch,
     setValue,
     formState: { errors },
-  } = useForm<Activity>({
+  } = useForm<CreateActivityInput>({
     defaultValues: {
       task_id: defaultTaskId || undefined,
       priority: "Medium", // Default value for priority
@@ -51,6 +54,12 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
       ? activities[activities.length - 1]
       : null;
 
+  const {
+    data: users,
+    isLoading: usersLoading,
+    error: usersError,
+  } = useUsers();
+  const { data: roles } = useRoles();
   const [duration, setDuration] = useState<string>("");
 
   const startDate = watch("start_date");
@@ -78,7 +87,7 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
     }
   };
 
-  const onSubmit = (data: Activity) => {
+  const onSubmit = (data: CreateActivityInput) => {
     const submitData = defaultTaskId
       ? { ...data, task_id: defaultTaskId }
       : data;
@@ -107,11 +116,27 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
     { value: "Low", label: "Low" },
   ];
 
-  const approvalStatusOptions = [
-    { value: "Approved", label: "Approved" },
-    { value: "Not Approved", label: "Not Approved" },
-    { value: "Pending", label: "Pending" },
-  ];
+  // const approvalStatusOptions = [
+  //   { value: "Approved", label: "Approved" },
+  //   { value: "Not Approved", label: "Not Approved" },
+  //   { value: "Pending", label: "Pending" },
+  // ];
+
+  const CLIENT_ROLE_ID = "aa192529-c692-458e-bf96-42b7d4782c3d";
+
+  const assignedUsersOptions =
+    users
+      ?.filter((user: User) => user.role_id !== CLIENT_ROLE_ID)
+      .map((user: User) => {
+        const roleObj: Role | undefined = roles?.find(
+          (r) => r.id === user.role_id
+        );
+        const roleName = roleObj ? roleObj.name : "No Role";
+        return {
+          value: user.id!,
+          label: `${user.first_name} (${roleName})`,
+        };
+      }) || [];
 
   const taskOptions =
     tasks?.map((task) => ({
@@ -272,6 +297,37 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
           </div>
         </div>
 
+        {/* AssignedUsers Section */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Assigned to
+          </label>
+          <Controller
+            name="assignedUsers"
+            control={control}
+            render={({ field }) => (
+              <Select
+                isMulti
+                options={assignedUsersOptions}
+                isLoading={usersLoading}
+                className="basic-multi-select"
+                classNamePrefix="select"
+                // Only send the user ids (the role is only displayed in the label)
+                onChange={(selectedOptions) =>
+                  field.onChange(selectedOptions.map((option) => option.value))
+                }
+                value={assignedUsersOptions.filter(
+                  (option: { value: string; label: string }) =>
+                    field.value?.includes(option.value)
+                )}
+              />
+            )}
+          />
+          {usersError && (
+            <p className="text-red-500 text-sm mt-1">Error loading users</p>
+          )}
+        </div>
+
         {/* Optional Fields */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Task Select (Optional unless defaultTaskId is provided) */}
@@ -334,7 +390,38 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
             />
           </div>
 
+          {/* Status (Required) */}
           <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Status <span className="text-red-500">*</span>
+            </label>
+            <Controller
+              name="status"
+              control={control}
+              rules={{ required: "Status is required" }}
+              render={({ field }) => (
+                <Select
+                  {...field}
+                  options={statusOptions}
+                  className="basic-single"
+                  classNamePrefix="select"
+                  onChange={(selectedOption) =>
+                    field.onChange(selectedOption?.value)
+                  }
+                  value={statusOptions.find(
+                    (option) => option.value === field.value
+                  )}
+                />
+              )}
+            />
+            {errors.status && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.status.message}
+              </p>
+            )}
+          </div>
+
+          {/* <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Approval Status
             </label>
@@ -356,7 +443,7 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
                 />
               )}
             />
-          </div>
+          </div> */}
         </div>
 
         {/* Unit and Progress */}
@@ -407,35 +494,6 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
             placeholder="Enter quantity"
             className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
           />
-        </div>
-
-        {/* Status (Required) */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Status <span className="text-red-500">*</span>
-          </label>
-          <Controller
-            name="status"
-            control={control}
-            rules={{ required: "Status is required" }}
-            render={({ field }) => (
-              <Select
-                {...field}
-                options={statusOptions}
-                className="basic-single"
-                classNamePrefix="select"
-                onChange={(selectedOption) =>
-                  field.onChange(selectedOption?.value)
-                }
-                value={statusOptions.find(
-                  (option) => option.value === field.value
-                )}
-              />
-            )}
-          />
-          {errors.status && (
-            <p className="text-red-500 text-sm mt-1">{errors.status.message}</p>
-          )}
         </div>
 
         {/* Description Field */}

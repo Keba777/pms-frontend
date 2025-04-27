@@ -16,6 +16,7 @@ import { useTags } from "@/hooks/useTags";
 import Link from "next/link";
 import { formatDate, getDateDuration } from "@/utils/helper";
 import { usePermissionsStore } from "@/store/permissionsStore";
+import ProjectTableSkeleton from "./ProjectTableSkeleton";
 
 const ProjectTable = () => {
   const { data: projects, isLoading, isError } = useProjects();
@@ -97,7 +98,7 @@ const ProjectTable = () => {
     setShowForm(false);
   };
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) return <ProjectTableSkeleton />;
   if (isError) return <div>Error loading projects</div>;
 
   return (
@@ -207,7 +208,12 @@ const ProjectTable = () => {
                           <button
                             onClick={() => {
                               setDropdownProjectId(null);
-                              setProjectToEdit(project);
+                              setProjectToEdit({
+                                ...project,
+                                members: project.members?.map(
+                                  (member) => member.id
+                                ),
+                              });
                               setShowForm(true);
                             }}
                             className="w-full text-left px-3 py-2 hover:bg-gray-100 disabled:opacity-50"

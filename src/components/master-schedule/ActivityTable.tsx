@@ -252,7 +252,13 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
                         <button
                           onClick={() => {
                             setDropdownActivityId(null);
-                            setActivityToEdit(activity);
+                            setActivityToEdit({
+                              ...activity,
+                              assignedUsers:
+                                activity.assignedUsers?.map(
+                                  (user) => user.id
+                                ) || [],
+                            });
                             setShowEditForm(true);
                           }}
                           className="w-full text-left px-3 py-2 hover:bg-gray-100 disabled:opacity-50"

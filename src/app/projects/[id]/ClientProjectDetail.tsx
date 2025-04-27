@@ -3,9 +3,16 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useProjectStore } from "@/store/projectStore";
-import { useUsers } from "@/hooks/useUsers";
 import { useRoles } from "@/hooks/useRoles";
-import { ArrowLeft, ListChecks, CheckCircle, Plus } from "lucide-react";
+import { useTags } from "@/hooks/useTags"; 
+import {
+  ArrowLeft,
+  ListChecks,
+  CheckCircle,
+  Plus,
+  User,
+  Tag,
+} from "lucide-react"; 
 import StatsCard from "@/components/dashboard/StatsCard";
 import TaskTable from "@/components/master-schedule/TaskTable";
 import { Task } from "@/types/task";
@@ -29,9 +36,8 @@ export default function ClientProjectDetail({
   const hasPermission = usePermissionsStore((state) => state.hasPermission);
   const canCreate = hasPermission("create tasks");
 
-  // Fetch users and roles
-  const { data: users = [] } = useUsers();
   const { data: roles = [] } = useRoles();
+  const { data: tags = [] } = useTags(); 
 
   if (!project) {
     return (
@@ -96,14 +102,22 @@ export default function ClientProjectDetail({
       ? getDateDuration(project.start_date, project.end_date)
       : null;
 
-  // Map member IDs to "Name (Role)"
+  // Map member IDs to "Name (Role)" - ✅ IMPROVED LOOK
   const memberDetails =
-    project.members?.map((memberId) => {
-      const user = users.find((u) => u.id === memberId);
-      const role = roles.find((r) => r.id === user?.role_id);
-      const name = user ? `${user.first_name} ${user.last_name}` : memberId;
-      return role ? `${name} (${role.name})` : name;
-    }) || [];
+    project.members?.map((member) => {
+      const role = roles.find((r) => r.id === member.role_id);
+      const name = `${member.first_name} ${member.last_name}`;
+      return role ? { name, role: role.name } : { name, role: null };
+    }) ?? [];
+
+  // Map tagIds to tag names - ✅
+  const projectTags =
+    project.tagIds
+      ?.map((tagId) => {
+        const tag = tags.find((t) => t.id === tagId);
+        return tag ? tag.name : null;
+      })
+      .filter(Boolean) ?? [];
 
   return (
     <div className="max-w-6xl mx-auto p-6 bg-white shadow-lg rounded-lg mt-6">
@@ -209,20 +223,45 @@ export default function ClientProjectDetail({
                 </div>
               )}
 
-              <div className="flex items-center">
-                <span className="bg-gray-100 text-gray-700 px-4 py-2 rounded-full text-sm font-semibold">
-                  Assigned to:{" "}
-                  {memberDetails.length > 0
-                    ? memberDetails.join(", ")
-                    : "N/A"}
+              {/* Members display improved */}
+              <div className="flex flex-col">
+                <span className="flex items-center mb-1 text-gray-700 font-semibold">
+                  <User className="w-4 h-4 mr-2" />
+                  Assigned to:
                 </span>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {memberDetails.length > 0 ? (
+                    memberDetails.map((member, index) => (
+                      <span
+                        key={index}
+                        className="inline-block bg-gray-200 text-gray-800 px-3 py-1 rounded-full text-xs"
+                      >
+                        {member.name} {member.role && `(${member.role})`}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-sm text-gray-500">N/A</span>
+                  )}
+                </div>
               </div>
 
-              {project.tagIds && project.tagIds.length > 0 && (
-                <div className="flex items-center">
-                  <span className="bg-teal-100 text-teal-700 px-4 py-2 rounded-full text-sm font-semibold">
-                    Tags: {project.tagIds.join(", ")}
+              {/* Tags display improved */}
+              {projectTags.length > 0 && (
+                <div className="flex flex-col">
+                  <span className="flex items-center mb-1 text-gray-700 font-semibold">
+                    <Tag className="w-4 h-4 mr-2" />
+                    Tags:
                   </span>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {projectTags.map((tagName, index) => (
+                      <span
+                        key={index}
+                        className="inline-block bg-teal-200 text-teal-800 px-3 py-1 rounded-full text-xs"
+                      >
+                        {tagName}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
@@ -235,7 +274,6 @@ export default function ClientProjectDetail({
         <h2 className="text-xl font-semibold text-gray-800">Tasks</h2>
 
         {project.tasks && project.tasks.length > 0 ? (
-          // If there are tasks, show the table
           <div className="overflow-x-auto mt-4">
             <TaskTable
               projectTitle={project.title}
@@ -244,7 +282,6 @@ export default function ClientProjectDetail({
             />
           </div>
         ) : (
-          // If no tasks, show the Create Task button
           <div className="flex justify-center mt-4">
             <button
               onClick={() => {
