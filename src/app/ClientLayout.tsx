@@ -8,7 +8,6 @@ import Footer from "@/components/layout/Footer";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useAuthStore } from "@/store/authStore";
 import { useEffect, useState } from "react";
-import RoleLayout from "./RoleLayout";
 
 const queryClient = new QueryClient();
 
@@ -24,7 +23,6 @@ export default function ClientLayout({
   // Local loading state for the layout.
   const [isLoading, setIsLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
 
   // Handle authentication redirection.
   useEffect(() => {
@@ -71,7 +69,7 @@ export default function ClientLayout({
         />
         <main className="flex-1 p-4 ml-0 lg:ml-64 overflow-x-hidden">
           <Header toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
-          <RoleLayout>{children}</RoleLayout>
+          {children}
         </main>
       </div>
       <Footer />

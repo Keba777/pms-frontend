@@ -9,6 +9,7 @@ export interface User {
     last_name: string;
     phone: string;
     role_id: string;
+    role?: Role;
     email: string;
     password: string;
     profile_picture?: string;
@@ -20,18 +21,27 @@ export interface User {
     requests?: Request[];
 }
 
+export type PermissionActions = "create" | "update" | "delete" | "manage";
+
+export interface Permissions {
+    [resource: string]: Partial<Record<PermissionActions, boolean>> | null;
+}
+
 export interface Role {
     id?: string;
     name: string;
+    permissions?: Permissions | null;
 }
 
 export interface CreateRoleInput {
     name: string;
+    permissions?: Permissions | null;
 }
 
 export interface UpdateRoleInput {
     id?: string;
     name: string;
+    permissions?: Permissions | null;
 }
 
 

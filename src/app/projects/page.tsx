@@ -12,7 +12,7 @@ import ProjectSection from "@/components/dashboard/ProjectSection";
 import ProjectCardSkeleton from "@/components/projects/ProjectCardSkeleton";
 import GenericDownloads, { Column } from "@/components/common/GenericDownloads";
 import { useProjectStore } from "@/store/projectStore";
-import { usePermissionsStore } from "@/store/permissionsStore";
+import { useAuthStore } from "@/store/authStore";
 
 const ProjectPage = () => {
   const [showForm, setShowForm] = useState(false);
@@ -24,26 +24,32 @@ const ProjectPage = () => {
     tags: [] as { value: number; label: string }[],
   });
   const { projects: storeProjects } = useProjectStore();
-  const hasPermission = usePermissionsStore((state) => state.hasPermission);
+
+  // Grab hasPermission from auth store
+  const hasPermission = useAuthStore((state) => state.hasPermission);
+
+  // Define permission flags for this page context (resource = "projects")
+  const canCreate = hasPermission("projects", "create");
+  // const canEdit   = hasPermission("projects", "edit");
+  // const canDelete = hasPermission("projects", "delete");
+  const canManage = hasPermission("projects", "manage");
 
   const columns: Column<Project>[] = [
     { header: "Project Name", accessor: "title" },
-    { header: "Priority", accessor: "priority" },
-    { header: "Client", accessor: "client" },
-    { header: "Progress", accessor: "progress" },
-    { header: "Budget", accessor: "budget" },
-    { header: "Start Date", accessor: "start_date" },
-    { header: "End Date", accessor: "end_date" },
-    { header: "Status", accessor: "status" },
+    { header: "Priority",     accessor: "priority" },
+    { header: "Client",       accessor: "client" },
+    { header: "Progress",     accessor: "progress" },
+    { header: "Budget",       accessor: "budget" },
+    { header: "Start Date",   accessor: "start_date" },
+    { header: "End Date",     accessor: "end_date" },
+    { header: "Status",       accessor: "status" },
   ];
 
   const handleFilterChange = (filters: {
     status: string;
     sort: string;
     tags: { value: number; label: string }[];
-  }) => {
-    setFilters(filters);
-  };
+  }) => setFilters(filters);
 
   // Filter the projects based on selected status.
   let filteredProjects: Project[] = projects || [];
@@ -56,6 +62,7 @@ const ProjectPage = () => {
   return (
     <div className="p-4">
       <div className="flex flex-wrap justify-between mb-2 mt-4">
+        {/* Breadcrumb */}
         <div>
           <nav aria-label="breadcrumb">
             <ol className="flex space-x-2">
@@ -69,9 +76,11 @@ const ProjectPage = () => {
             </ol>
           </nav>
         </div>
+
+        {/* Action Buttons */}
         <div className="flex space-x-2">
-          {/* Only render the Add Project button if the user has "create projects" permission */}
-          {hasPermission("create projects") && (
+          {/* Create */}
+          {canCreate && (
             <button
               className="bg-cyan-700 hover:bg-cyan-800 text-white font-bold py-2 px-3 rounded text-sm"
               onClick={() => setShowForm(true)}
@@ -79,7 +88,8 @@ const ProjectPage = () => {
               <PlusIcon width={15} height={12} />
             </button>
           )}
-          {/* Toggle view button */}
+
+          {/* Toggle View */}
           <button
             className="bg-cyan-700 hover:bg-cyan-800 text-white font-bold py-2 px-3 rounded text-sm"
             onClick={() => setIsListView((prev) => !prev)}
@@ -90,11 +100,20 @@ const ProjectPage = () => {
               <List width={15} height={12} />
             )}
           </button>
+
+          {/* Manage: e.g. export/downloads button */}
+          {canManage && (
+            <GenericDownloads
+              data={storeProjects}
+              title="Projects Export"
+              columns={columns}
+            />
+          )}
         </div>
       </div>
 
       {/* Modal Overlay and Form */}
-      {showForm && (
+      {showForm && canCreate && (
         <div className="modal-overlay">
           <div className="modal-content">
             <ProjectForm onClose={() => setShowForm(false)} />
@@ -102,32 +121,34 @@ const ProjectPage = () => {
         </div>
       )}
 
+      {/* Filters */}
       <ProjectFilter onFilterChange={handleFilterChange} />
-      <div className="mt-8 mb-4">
-        <GenericDownloads
-          data={storeProjects}
-          title="Projects"
-          columns={columns}
-        />
-      </div>
 
       {isLoading ? (
-        // When loading, render skeleton cards with grid layout.
+        // Loading skeletons
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-          {Array.from({ length: 4 }).map((_, index) => (
-            <ProjectCardSkeleton key={index} />
+          {Array.from({ length: 4 }).map((_, idx) => (
+            <ProjectCardSkeleton key={idx} />
           ))}
         </div>
       ) : isError ? (
         <div>Failed to load projects.</div>
       ) : isListView ? (
-        // Render list view with ProjectSection (pass projects if needed)
-        <ProjectSection />
+        // List view: pass edit/delete flags into the section
+        <ProjectSection 
+        // canEdit={canEdit} 
+        // canDelete={canDelete} 
+        />
       ) : (
-        // Render grid view with ProjectCard
+        // Grid view: pass flags into each card
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
           {filteredProjects.map((project: Project) => (
-            <ProjectCard key={project.id} project={project} />
+            <ProjectCard
+              key={project.id}
+              project={project}
+              // canEdit={canEdit}
+              // canDelete={canDelete}
+            />
           ))}
         </div>
       )}
