@@ -37,8 +37,13 @@ export const useAuthStore = create<AuthStore>()(
             setHasHydrated: (state) => set({ _hasHydrated: state }),
 
             hasPermission: (resource, action) => {
-                const resourcePerms =
-                    (get().permissions?.[resource] as Record<string, boolean> | undefined) || {};
+                const { user, permissions } = get();
+
+                if (user?.role?.name?.toLowerCase() === "admin") {
+                    return true;
+                }
+
+                const resourcePerms = (permissions?.[resource] as Record<string, boolean> | undefined) || {};
                 return Boolean(resourcePerms[action]);
             },
         }),

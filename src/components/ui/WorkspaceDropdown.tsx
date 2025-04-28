@@ -17,7 +17,7 @@ const WorkspaceDropdown = () => {
   const toggleDropdown = () => setOpen(!open);
 
   return (
-    <div className="relative px-2 my-4">
+    <div className="relative px-2 mb-4">
       <button
         onClick={toggleDropdown}
         type="button"

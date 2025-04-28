@@ -6,6 +6,8 @@ import menuItems from "./menuItems";
 import Link from "next/link";
 import Image from "next/image";
 import { FiX } from "react-icons/fi";
+import logo from "@/../public/images/logo.jpg";
+import { useAuthStore } from "@/store/authStore";
 
 const Sidebar = ({
   isOpen,
@@ -14,6 +16,40 @@ const Sidebar = ({
   isOpen: boolean;
   toggleSidebar: () => void;
 }) => {
+  const { hasPermission } = useAuthStore();
+
+  // Filter menu items based on permissions
+  const filteredMenuItems = menuItems.filter((item) => {
+    // Always show dashboard
+    if (item.link === "/") return true;
+
+    // Check if the item has submenu
+    if (item.submenu) {
+      // Filter submenu items first
+      const filteredSubmenu = item.submenu.filter((subItem) => {
+        const resource = subItem.link?.split("/")[1]; // Get resource from link
+        return resource
+          ? hasPermission(resource, "manage") ||
+              hasPermission(resource, "delete") ||
+              hasPermission(resource, "edit") ||
+              hasPermission(resource, "create")
+          : true;
+      });
+
+      // Only show the parent item if there are visible subitems
+      return filteredSubmenu.length > 0;
+    }
+
+    // For regular items, check permission based on the link
+    const resource = item.link?.split("/")[1]; // Get resource from link
+    return resource
+      ? hasPermission(resource, "manage") ||
+          hasPermission(resource, "delete") ||
+          hasPermission(resource, "edit") ||
+          hasPermission(resource, "create")
+      : true;
+  });
+
   return (
     <aside
       id="layout-menu"
@@ -31,10 +67,11 @@ const Sidebar = ({
       <div className="flex items-center justify-between">
         <Link href="/" className="flex items-center">
           <Image
-            src="https://raycon.oasismgmt2.com/storage/logos/IjqxLcdGRYJsQ2ilNZec5tzOwriycUuY0ug2ZOgQ.jpg"
+            src={logo}
             alt="Logo"
             width={200}
             height={50}
+            className="w-20"
           />
         </Link>
         <button className="xl:hidden">
@@ -45,7 +82,7 @@ const Sidebar = ({
       <WorkspaceDropdown />
       {/* Menu List */}
       <ul className="py-1 px-4">
-        {menuItems.map((item, index) => (
+        {filteredMenuItems.map((item, index) => (
           <MenuItem key={index} item={item} />
         ))}
       </ul>
