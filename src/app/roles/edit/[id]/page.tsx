@@ -1,12 +1,30 @@
 import React from "react";
 import ClientEditRole from "./ClientEditRole";
+import apiClient from "@/services/api-client";
+import { Role } from "@/types/user";
 
-type Params = Promise<{ id: string }>;
+//–– 1) Scope your params to a plain object, not a Promise
+type RoleParams = { id: string };
 
+//–– 2) generateStaticParams must return an array of { id } objects
+export async function generateStaticParams(): Promise<RoleParams[]> {
+  const response = await apiClient.get<{ success: boolean; data: Role[] }>(
+    "/api/roles"
+  );
+  const payload = response.data;
 
-export default async function EditRolePage(segmentData: { params: Params }) {
-    const params = await segmentData.params;
-    const { id } = params;
+  if (!payload.success) {
+    return [];
+  }
 
-  return <ClientEditRole roleId={id} />;
+  return payload.data.map((role) => ({
+    // ensure it’s a string
+    id: (role.id ?? "").toString(),
+  }));
+}
+
+//–– 3) Your actual page component takes { params } and returns JSX
+//    Notice: it’s now *synchronous* (no `async`), so TS sees it returns JSX, not a Promise.
+export default function Page({ params }: { params: RoleParams }) {
+  return <ClientEditRole roleId={params.id} />;
 }
