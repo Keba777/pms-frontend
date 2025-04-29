@@ -1,4 +1,5 @@
 import { Activity } from "./activity";
+import { Department } from "./department";
 import { Project } from "./project";
 import { Request } from "./request";
 import { Task } from "./task";
@@ -14,6 +15,7 @@ export interface User {
     password: string;
     profile_picture?: string;
     department_id?: string;
+    department?: Department
     status?: "Active" | "InActive";
     projects?: Project[];
     tasks?: Task[];

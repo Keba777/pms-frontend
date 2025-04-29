@@ -192,6 +192,9 @@ const UsersPage = () => {
                 Name
               </th>
               <th className="border border-gray-200 px-6 py-4 whitespace-nowrap text-left text-sm font-medium text-gray-50">
+                Department
+              </th>
+              <th className="border border-gray-200 px-6 py-4 whitespace-nowrap text-left text-sm font-medium text-gray-50">
                 Role
               </th>
               <th className="border border-gray-200 px-6 py-4 whitespace-nowrap text-left text-sm font-medium text-gray-50">
@@ -224,6 +227,9 @@ const UsersPage = () => {
                   >
                     {`${user.first_name} ${user.last_name}`}
                   </Link>
+                </td>
+                <td className="border border-gray-200 px-6 py-3 whitespace-nowrap">
+                  {user.department?.name || "—"}
                 </td>
                 <td className="border border-gray-200 px-6 py-3 whitespace-nowrap">
                   {user.role?.name || "—"}
