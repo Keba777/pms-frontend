@@ -12,9 +12,7 @@ import {
   PenTool,
   Settings,
   FileText,
-  DollarSign,
   Box as BoxIcon,
-  BookOpen,
   ArrowRight,
   LineChart,
   ArrowUp,
@@ -166,27 +164,27 @@ const menuItems = [
     iconColor: "text-yellow-500",
   },
   { title: "Sites", link: "/sites", icon: Users, iconColor: "text-yellow-500" },
-  {
-    title: "Contracts",
-    icon: FileText,
-    iconColor: "text-green-500",
-    submenu: [
-      { title: "Manage Contracts", link: "/contracts" },
-      { title: "Contract Types", link: "/contracts/contract-types" },
-    ],
-  },
-  {
-    title: "Budget",
-    link: "/budget/allocate",
-    icon: DollarSign,
-    iconColor: "text-yellow-500",
-  },
-  {
-    title: "Budget Overview",
-    link: "/budgets/overview",
-    icon: DollarSign,
-    iconColor: "text-yellow-500",
-  },
+  // {
+  //   title: "Contracts",
+  //   icon: FileText,
+  //   iconColor: "text-green-500",
+  //   submenu: [
+  //     { title: "Manage Contracts", link: "/contracts" },
+  //     { title: "Contract Types", link: "/contracts/contract-types" },
+  //   ],
+  // },
+  // {
+  //   title: "Budget",
+  //   link: "/budget/allocate",
+  //   icon: DollarSign,
+  //   iconColor: "text-yellow-500",
+  // },
+  // {
+  //   title: "Budget Overview",
+  //   link: "/budgets/overview",
+  //   icon: DollarSign,
+  //   iconColor: "text-yellow-500",
+  // },
   {
     title: "Resource Allocation",
     link: "/resource-allocation",
@@ -251,12 +249,12 @@ const menuItems = [
     icon: Users,
     iconColor: "text-yellow-500",
   },
-  {
-    title: "Job Position",
-    link: "/employee_possition",
-    icon: Users,
-    iconColor: "text-yellow-500",
-  },
+  // {
+  //   title: "Job Position",
+  //   link: "/employee_possition",
+  //   icon: Users,
+  //   iconColor: "text-yellow-500",
+  // },
   // {
   //   title: "Labor",
   //   link: "/labors",
@@ -287,12 +285,12 @@ const menuItems = [
   //     { title: "Items", link: "/items" },
   //   ],
   // },
-  {
-    title: "Notes",
-    link: "/notes",
-    icon: BookOpen, // replaced Note with BookOpen
-    iconColor: "text-blue-500",
-  },
+  // {
+  //   title: "Notes",
+  //   link: "/notes",
+  //   icon: BookOpen, // replaced Note with BookOpen
+  //   iconColor: "text-blue-500",
+  // },
   {
     title: "Leave Requests",
     link: "/leave-requests",
@@ -316,10 +314,10 @@ const menuItems = [
       { title: "Languages", link: "/settings/languages" },
       { title: "E-mail", link: "/settings/email" },
       { title: "SMS Gateway", link: "/settings/sms-gateway" },
-      { title: "Pusher", link: "/settings/pusher" },
+      // { title: "Pusher", link: "/settings/pusher" },
       { title: "Media Storage", link: "/settings/media-storage" },
       { title: "Templates", link: "/settings/templates" },
-      { title: "System Updater", link: "/settings/system-updater" },
+      // { title: "System Updater", link: "/settings/system-updater" },
     ],
   },
   {
