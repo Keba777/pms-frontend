@@ -19,7 +19,11 @@ interface SelectOption {
   label: string;
 }
 
-const EditUserForm: React.FC<EditUserFormProps> = ({ onSubmit, onClose, user }) => {
+const EditUserForm: React.FC<EditUserFormProps> = ({
+  onSubmit,
+  onClose,
+  user,
+}) => {
   const {
     register,
     handleSubmit,
@@ -35,7 +39,7 @@ const EditUserForm: React.FC<EditUserFormProps> = ({ onSubmit, onClose, user }) 
       phone: user.phone,
       department_id: user.department_id || undefined,
       status: user.status,
-      role_id: user.role?.id,
+      role_id: user.role_id,
     },
   });
 
@@ -202,7 +206,11 @@ const EditUserForm: React.FC<EditUserFormProps> = ({ onSubmit, onClose, user }) 
                 />
               )}
             />
-            {depsError && <p className="text-red-500 text-sm mt-1">Error loading departments</p>}
+            {depsError && (
+              <p className="text-red-500 text-sm mt-1">
+                Error loading departments
+              </p>
+            )}
           </div>
 
           <div>
