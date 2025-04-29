@@ -74,7 +74,7 @@ const ActivitiesPage = () => {
           </button>
         </div>
 
-        {activeTab === "actual" ? (
+        {activeTab === "planned" ? (
           <DataTableActivities />
         ) : (
           <ActualActivityTable />

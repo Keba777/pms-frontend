@@ -15,8 +15,6 @@ import {
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
-import { useRole } from "@/hooks/useRoles";
-
 import userAvatar from "@/../public/images/user.png";
 
 interface HeaderProps {
@@ -46,8 +44,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
   const languageRef = useRef<HTMLLIElement>(null);
   const userRef = useRef<HTMLLIElement>(null);
 
-  // Fetch user role using the user's role_id (if available)
-  const { data: role } = useRole(user ? user.role_id : "");
+  const role = user?.role?.name || "User";
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -100,17 +97,17 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
 
   return (
     <nav className="w-full bg-white/95 backdrop-blur-sm shadow-md rounded-md px-4 py-2">
-      <div className="flex flex-col md:flex-row items-center md:justify-between w-full">
-        <div className="flex items-center justify-between w-full md:w-auto">
-          <button className="p-2 md:hidden" onClick={toggleSidebar}>
+      <div className="flex flex-col lg:flex-row items-center lg:justify-between w-full">
+        <div className="flex items-center justify-between w-full lg:w-auto">
+          <button className="p-2 lg:hidden" onClick={toggleSidebar}>
             <Menu className="w-6 h-6" />
           </button>
-          <button className="p-2 md:hidden">
+          <button className="p-2 lg:hidden">
             <Search className="w-6 h-6 text-gray-600" />
           </button>
         </div>
         <div
-          className="hidden md:flex items-center space-x-2 mt-2 md:mt-0"
+          className="hidden lg:flex items-center space-x-2 mt-2 md:mt-0"
           suppressHydrationWarning={true}
         >
           <Search className="w-5 h-5 text-gray-600" />
@@ -121,7 +118,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
             suppressHydrationWarning={true}
           />
         </div>
-        <ul className="flex items-center space-x-4 ml-auto mt-2 md:mt-0">
+        <ul className="flex items-center space-x-4 ml-auto mt-2 lg:mt-0">
           <li className="relative" ref={notificationsRef}>
             <button
               onClick={() => setShowNotifications(!showNotifications)}
@@ -215,17 +212,13 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
                     className="rounded-full mr-3"
                   />
                   <div>
-                    <span className="font-semibold">
-                      {role ? role.name : "User"}
-                    </span>
-                    <small className="block text-gray-500">
-                      {role ? role.name : "User"}
-                    </small>
+                    <span className="font-semibold">{role}</span>
+                    <small className="block text-gray-500">{role}</small>
                   </div>
                 </Link>
                 <div className="border-t border-gray-200"></div>
                 <Link
-                  href="/account/2"
+                  href={`/users/profile/${user?.id}`}
                   className="flex items-center p-4 hover:bg-gray-100"
                 >
                   <User className="w-5 h-5 mr-2" />

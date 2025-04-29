@@ -1,8 +1,8 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import apiClient from "@/services/api-client";
 import { useAuthStore } from "@/store/authStore";
 import { toast } from "react-toastify";
-import { UserLogin, User } from "@/types/user";
+import { UserLogin, User, CreateUserInput } from "@/types/user";
 
 // ----------------------------
 // API Response Type
@@ -24,8 +24,8 @@ const loginUser = async (email: string, password: string): Promise<UserLogin> =>
   return { user, token };
 };
 
-const registerUser = async (email: string, password: string, firstName: string, lastName: string): Promise<UserLogin> => {
-  const response = await apiClient.post<ApiResponse<User & { token: string }>>("/auth/register", { email, password, firstName, lastName });
+const registerUser = async (data: CreateUserInput): Promise<UserLogin> => {
+  const response = await apiClient.post<ApiResponse<User & { token: string }>>("/auth/register", data);
   const userWithToken = response.data.user;
   const { token, ...user } = userWithToken;
   return { user, token };
@@ -59,14 +59,13 @@ export const useLogin = () => {
 };
 
 export const useRegister = () => {
-  const login = useAuthStore((state) => state.login);
+  const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ email, password, firstName, lastName }: { email: string; password: string; firstName: string; lastName: string }) =>
-      registerUser(email, password, firstName, lastName),
-    onSuccess: (data: UserLogin) => {
+    mutationFn: registerUser,
+    onSuccess: () => {
       toast.success("Registration successful!");
-      login(data.user, data.token); // Store registration info in the state
+      queryClient.invalidateQueries({ queryKey: ["users"] });
     },
     onError: () => {
       toast.error("Registration failed");

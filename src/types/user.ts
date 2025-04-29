@@ -21,6 +21,30 @@ export interface User {
     requests?: Request[];
 }
 
+export interface CreateUserInput {
+    first_name: string;
+    last_name: string;
+    phone: string;
+    email: string;
+    password: string;
+    department_id?: string;
+    status?: "Active" | "InActive";
+    role_name: string;
+}
+
+export interface UpdateUserInput {
+    id?: string;
+    first_name?: string;
+    last_name?: string;
+    phone?: string;
+    email?: string;
+    password?: string;
+    profile_picture?: string;
+    department_id?: string;
+    status?: "Active" | "InActive";
+    role_name?: string;
+}
+
 export type PermissionActions = "create" | "update" | "delete" | "manage";
 
 export interface Permissions {

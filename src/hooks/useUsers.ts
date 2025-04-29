@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import apiClient from "@/services/api-client";
-import { User } from "@/types/user";
+import { UpdateUserInput, User } from "@/types/user";
 import { useUserStore } from "@/store/userStore";
 import { toast } from "react-toastify";
 import { useEffect } from "react";
@@ -38,8 +38,14 @@ const createUser = async (data: Omit<User, "id">): Promise<User> => {
 };
 
 // Update an existing user
-const updateUser = async (data: User): Promise<User> => {
+const updateUser = async (data: UpdateUserInput): Promise<User> => {
     const response = await apiClient.put<ApiResponse<User>>(`/users/${data.id}`, data);
+    return response.data.data;
+};
+
+// Delete a user
+const deleteUser = async (id: string): Promise<{ message: string }> => {
+    const response = await apiClient.delete<ApiResponse<{ message: string }>>(`/users/${id}`);
     return response.data.data;
 };
 
@@ -119,3 +125,21 @@ export const useUpdateUser = () => {
         },
     });
 };
+
+// Hook to delete a user and refresh users list
+export const useDeleteUser = () => {
+    const queryClient = useQueryClient();
+    const deleteUserFromStore = useUserStore((state) => state.deleteUser);
+
+    return useMutation({
+        mutationFn: deleteUser,
+        onSuccess: (_, variables) => {
+            toast.success("User deleted successfully!");
+            queryClient.invalidateQueries({ queryKey: ["users"] });
+            deleteUserFromStore(variables);
+        },
+        onError: () => {
+            toast.error("Failed to delete user");
+        }
+    });
+}

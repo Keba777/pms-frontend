@@ -1,5 +1,4 @@
 import React from "react";
-import { ChevronLeft } from "lucide-react";
 import WorkspaceDropdown from "@/components/ui/WorkspaceDropdown";
 import MenuItem from "@/components/ui/MenuItem";
 import menuItems from "./menuItems";
@@ -64,24 +63,21 @@ const Sidebar = ({
         <FiX size={24} />
       </button>
       {/* Header with logo and toggle */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-center">
         <Link href="/" className="flex items-center">
           <Image
             src={logo}
             alt="Logo"
             width={200}
             height={50}
-            className="w-20"
+            className="w-24"
           />
         </Link>
-        <button className="xl:hidden">
-          <ChevronLeft className="w-6 h-6" />
-        </button>
       </div>
       {/* Workspace Dropdown */}
       <WorkspaceDropdown />
       {/* Menu List */}
-      <ul className="py-1 px-4">
+      <ul className="py-1 px-3">
         {filteredMenuItems.map((item, index) => (
           <MenuItem key={index} item={item} />
         ))}

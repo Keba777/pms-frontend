@@ -11,6 +11,7 @@ interface UserStore {
     setUsers: (users: User[]) => void;
     updateUser: (updatedUser: User) => void;
     updateUserInList: (updatedUser: User) => void;
+    deleteUser: (userId: string) => void;
     clearUser: () => void;
     setRole: (role: Role) => void;
     clearRole: () => void;
@@ -31,6 +32,10 @@ export const useUserStore = create<UserStore>()(
                     users: state.users.map((user) =>
                         user.id === updatedUser.id ? updatedUser : user
                     ),
+                })),
+            deleteUser: (userId) =>
+                set((state) => ({
+                    users: state.users.filter((user) => user.id !== userId),
                 })),
             clearUser: () => set({ user: null }),
             setRole: (role) => set({ role }),
