@@ -35,7 +35,7 @@ const EditUserForm: React.FC<EditUserFormProps> = ({ onSubmit, onClose, user }) 
       phone: user.phone,
       department_id: user.department_id || undefined,
       status: user.status,
-      role_name: user.role?.name,
+      role_id: user.role?.id,
     },
   });
 
@@ -56,7 +56,9 @@ const EditUserForm: React.FC<EditUserFormProps> = ({ onSubmit, onClose, user }) 
     departments?.map((dep) => ({ value: dep.id, label: dep.name })) || [];
 
   const roleOptions: SelectOption[] =
-    roles?.map((role) => ({ value: role.name, label: role.name })) || [];
+    roles
+      ?.filter((role) => role.id !== undefined)
+      .map((role) => ({ value: role.id as string, label: role.name })) || [];
 
   const statusOptions: SelectOption[] = [
     { value: "Active", label: "Active" },
@@ -66,7 +68,7 @@ const EditUserForm: React.FC<EditUserFormProps> = ({ onSubmit, onClose, user }) 
   // ensure the role select shows existing value once roles load
   useEffect(() => {
     if (roles && user.role) {
-      setValue("role_name", user.role.name);
+      setValue("role_id", user.role.id);
     }
   }, [roles, user.role, setValue]);
 
@@ -208,7 +210,7 @@ const EditUserForm: React.FC<EditUserFormProps> = ({ onSubmit, onClose, user }) 
               Role <span className="text-red-500">*</span>
             </label>
             <Controller
-              name="role_name"
+              name="role_id"
               control={control}
               rules={{ required: "Role is required" }}
               render={({ field }) => (
@@ -224,9 +226,9 @@ const EditUserForm: React.FC<EditUserFormProps> = ({ onSubmit, onClose, user }) 
                 />
               )}
             />
-            {(errors.role_name || rolesError) && (
+            {(errors.role_id || rolesError) && (
               <p className="text-red-500 text-sm mt-1">
-                {errors.role_name?.message || "Error loading roles"}
+                {errors.role_id?.message || "Error loading roles"}
               </p>
             )}
           </div>

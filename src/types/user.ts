@@ -42,7 +42,7 @@ export interface UpdateUserInput {
     profile_picture?: string;
     department_id?: string;
     status?: "Active" | "InActive";
-    role_name?: string;
+    role_id?: string;
 }
 
 export type PermissionActions = "create" | "update" | "delete" | "manage";
