@@ -5,6 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import { useUserStore } from "@/store/userStore";
 import { User } from "@/types/user";
 import { useEffect } from "react";
+import Image from "next/image";
 
 interface ClientProfileDetailProps {
   userId: string;
@@ -59,7 +60,7 @@ export default function ClientProfileDetail({
         </p>
       )}
       {user.profile_picture && (
-        <img
+        <Image
           src={user.profile_picture}
           alt={`${user.first_name} ${user.last_name}`}
           className="mt-4 rounded-full w-32 h-32 object-cover"

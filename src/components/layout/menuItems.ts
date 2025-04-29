@@ -8,19 +8,15 @@ import {
   ListCheck,
   MessageSquare,
   Users,
-  Building,
   Clipboard,
   PenTool,
   Settings,
-  ArrowRightLeft,
-  History,
   FileText,
   DollarSign,
   Box as BoxIcon,
   BookOpen,
   ArrowRight,
   LineChart,
-  CreditCard,
   ArrowUp,
   Hexagon,
 } from "lucide-react";
@@ -67,12 +63,12 @@ const menuItems = [
     icon: Grid,
     iconColor: "text-gray-500",
   },
-  {
-    title: "Resources",
-    link: "/resources",
-    icon: Grid,
-    iconColor: "text-blue-500",
-  },
+  // {
+  //   title: "Resources",
+  //   link: "/resources",
+  //   icon: Grid,
+  //   iconColor: "text-blue-500",
+  // },
   {
     title: "Manage Resources",
     icon: Clipboard,
@@ -123,6 +119,7 @@ const menuItems = [
   //   icon: ListCheck,
   //   iconColor: "text-blue-500",
   // },
+  { title: "Users", link: "/users", icon: Users, iconColor: "text-blue-500" },
   {
     title: "Department",
     link: "/departments",
@@ -162,7 +159,6 @@ const menuItems = [
     iconColor: "text-green-500",
     badge: 0,
   },
-  { title: "Users", link: "/users", icon: Users, iconColor: "text-blue-500" },
   {
     title: "Clients",
     link: "/clients",
@@ -170,7 +166,6 @@ const menuItems = [
     iconColor: "text-yellow-500",
   },
   { title: "Sites", link: "/sites", icon: Users, iconColor: "text-yellow-500" },
-
   {
     title: "Contracts",
     icon: FileText,
@@ -199,57 +194,57 @@ const menuItems = [
     iconColor: "text-blue-500",
     badge: 0,
   },
-  {
-    title: "Inventories",
-    icon: BoxIcon,
-    iconColor: "text-green-500",
-    submenu: [
-      {
-        title: "Manage Warehouses",
-        link: "/warehouses",
-        icon: Building,
-        iconColor: "text-blue-500",
-      },
+  // {
+  //   title: "Inventories",
+  //   icon: BoxIcon,
+  //   iconColor: "text-green-500",
+  //   submenu: [
+  //     {
+  //       title: "Manage Warehouses",
+  //       link: "/warehouses",
+  //       icon: Building,
+  //       iconColor: "text-blue-500",
+  //     },
 
-      {
-        title: "Transfers",
-        link: "/transfer",
-        icon: ArrowRightLeft, // replaced Transfer with ArrowsRightLeft
-        iconColor: "text-gray-500",
-      },
-      {
-        title: "Incoming Transfer",
-        link: "/incoming/transfer",
-        badge: 3,
-      },
-      {
-        title: "Dispatch",
-        link: "/dispatch",
-        icon: ArrowRightLeft,
-        iconColor: "text-gray-500",
-      },
-      { title: "Delivery (GRN)", link: "/delivery" },
-      { title: "Purchase Requisition", link: "/transfer" },
-      {
-        title: "Damages & Return",
-        link: "/damages",
-        icon: ListCheck,
-        iconColor: "text-gray-800",
-      },
-      {
-        title: "Inventory History",
-        link: "/inventory-history",
-        icon: History,
-        iconColor: "text-gray-800",
-      },
-      {
-        title: "Report",
-        link: "/inventory-report",
-        icon: FileText,
-        iconColor: "text-gray-400",
-      },
-    ],
-  },
+  //     {
+  //       title: "Transfers",
+  //       link: "/transfer",
+  //       icon: ArrowRightLeft, // replaced Transfer with ArrowsRightLeft
+  //       iconColor: "text-gray-500",
+  //     },
+  //     {
+  //       title: "Incoming Transfer",
+  //       link: "/incoming/transfer",
+  //       badge: 3,
+  //     },
+  //     {
+  //       title: "Dispatch",
+  //       link: "/dispatch",
+  //       icon: ArrowRightLeft,
+  //       iconColor: "text-gray-500",
+  //     },
+  //     { title: "Delivery (GRN)", link: "/delivery" },
+  //     { title: "Purchase Requisition", link: "/transfer" },
+  //     {
+  //       title: "Damages & Return",
+  //       link: "/damages",
+  //       icon: ListCheck,
+  //       iconColor: "text-gray-800",
+  //     },
+  //     {
+  //       title: "Inventory History",
+  //       link: "/inventory-history",
+  //       icon: History,
+  //       iconColor: "text-gray-800",
+  //     },
+  //     {
+  //       title: "Report",
+  //       link: "/inventory-report",
+  //       icon: FileText,
+  //       iconColor: "text-gray-400",
+  //     },
+  //   ],
+  // },
   {
     title: "Hr Dashboard",
     link: "/hrm",
@@ -262,36 +257,36 @@ const menuItems = [
     icon: Users,
     iconColor: "text-yellow-500",
   },
-  {
-    title: "Labor",
-    link: "/labors",
-    icon: Users,
-    iconColor: "text-yellow-500",
-  },
-  {
-    title: "Payslips",
-    icon: BoxIcon,
-    iconColor: "text-yellow-500",
-    submenu: [
-      { title: "Manage Payslips", link: "/payslips" },
-      { title: "Allowances", link: "/allowances" },
-      { title: "Deductions", link: "/deductions" },
-    ],
-  },
-  {
-    title: "Finance",
-    icon: CreditCard,
-    iconColor: "text-green-500",
-    submenu: [
-      { title: "Expenses", link: "/expenses" },
-      { title: "Estimates/Invoices", link: "/estimates-invoices" },
-      { title: "Payments", link: "/payments" },
-      { title: "Payment Methods", link: "/payment-methods" },
-      { title: "Taxes", link: "/taxes" },
-      { title: "Units", link: "/units" },
-      { title: "Items", link: "/items" },
-    ],
-  },
+  // {
+  //   title: "Labor",
+  //   link: "/labors",
+  //   icon: Users,
+  //   iconColor: "text-yellow-500",
+  // },
+  // {
+  //   title: "Payslips",
+  //   icon: BoxIcon,
+  //   iconColor: "text-yellow-500",
+  //   submenu: [
+  //     { title: "Manage Payslips", link: "/payslips" },
+  //     { title: "Allowances", link: "/allowances" },
+  //     { title: "Deductions", link: "/deductions" },
+  //   ],
+  // },
+  // {
+  //   title: "Finance",
+  //   icon: CreditCard,
+  //   iconColor: "text-green-500",
+  //   submenu: [
+  //     { title: "Expenses", link: "/expenses" },
+  //     { title: "Estimates/Invoices", link: "/estimates-invoices" },
+  //     { title: "Payments", link: "/payments" },
+  //     { title: "Payment Methods", link: "/payment-methods" },
+  //     { title: "Taxes", link: "/taxes" },
+  //     { title: "Units", link: "/units" },
+  //     { title: "Items", link: "/items" },
+  //   ],
+  // },
   {
     title: "Notes",
     link: "/notes",
@@ -316,7 +311,7 @@ const menuItems = [
     icon: Settings,
     iconColor: "text-green-500",
     submenu: [
-      { title: "General", link: "/settings/general" },
+      { title: "General", link: "/settings" },
       { title: "Permissions", link: "/settings/permission" },
       { title: "Languages", link: "/settings/languages" },
       { title: "E-mail", link: "/settings/email" },

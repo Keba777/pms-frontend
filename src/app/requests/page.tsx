@@ -3,7 +3,6 @@
 import React from "react";
 import {
   useRequests,
-  useCreateRequest,
   useDeleteRequest,
   useUpdateRequest,
 } from "@/hooks/useRequests";
@@ -12,13 +11,8 @@ import { Request } from "@/types/request";
 // RequestPage Component
 const RequestPage = () => {
   const { data, isLoading, error } = useRequests();
-  const { mutate: createRequest } = useCreateRequest();
   const { mutate: updateRequest } = useUpdateRequest();
   const { mutate: deleteRequest } = useDeleteRequest();
-
-  const handleCreateRequest = () => {
-    createRequest({ userId: "1", status: "Pending" });
-  };
 
   const handleUpdateRequest = (request: Request) => {
     updateRequest({ id: request.id, status: "In Progress" }); // example update
@@ -39,14 +33,7 @@ const RequestPage = () => {
     );
 
   return (
-    <div className="container mx-auto p-4">
-      <button
-        className="mb-6 px-6 py-2 bg-cyan-700 text-white font-semibold rounded-md hover:bg-cyan-800"
-        onClick={handleCreateRequest}
-      >
-        Create Request
-      </button>
-
+    <div className="container mx-auto px-4 py-6">
       <h2 className="text-3xl font-bold mb-6 text-cyan-800">Requests</h2>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
