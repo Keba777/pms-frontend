@@ -4,17 +4,29 @@ import React, { useState } from "react";
 import { Menu, MenuButton, MenuItems, MenuItem } from "@headlessui/react";
 import { ChevronDown } from "lucide-react";
 import { FaEdit, FaTrash, FaEye } from "react-icons/fa";
-import { useProjects } from "@/hooks/useProjects";
+import {
+  useDeleteProject,
+  useProjects,
+  useUpdateProject,
+} from "@/hooks/useProjects";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import ConfirmModal from "../ui/ConfirmModal";
 import EditProjectForm from "../forms/EditProjectForm";
 import { UpdateProjectInput } from "@/types/project";
 import RoleName from "../common/RoleName";
+import { toast } from "react-toastify";
+import { useUsers } from "@/hooks/useUsers";
+import { useTags } from "@/hooks/useTags";
 
 const ProjectSection: React.FC = () => {
-  const { data: projects, isLoading, isError } = useProjects();
   const router = useRouter();
+  const { data: projects, isLoading, isError } = useProjects();
+  const { data: users } = useUsers();
+  const { data: tags } = useTags();
+
+  const { mutate: deleteProject } = useDeleteProject();
+  const { mutate: updateProject } = useUpdateProject();
 
   const formatDate = (date: string | number | Date) => {
     if (!date) return "N/A";
@@ -29,21 +41,33 @@ const ProjectSection: React.FC = () => {
     null
   );
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [, setSelectedProjectId] = useState<string | null>(null);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
+    null
+  );
 
   const handleEditProject = (proj: UpdateProjectInput) => {
     setProjectToEdit(proj);
+    updateProject(proj);
     setShowEditForm(true);
   };
 
   const handleDeleteProjectClick = (projectId: string) => {
+    const project = projects?.find((p) => p.id === projectId);
+    if (project?.tasks && project.tasks.length > 0) {
+      toast.error(
+        "Cannot delete project with tasks. Please delete all tasks first."
+      );
+      return;
+    }
     setSelectedProjectId(projectId);
     setIsDeleteModalOpen(true);
   };
 
   const handleDeleteProject = () => {
-    // TODO: call your delete mutation with the selected project ID
-    setIsDeleteModalOpen(false);
+    if (selectedProjectId) {
+      deleteProject(selectedProjectId);
+      setIsDeleteModalOpen(false);
+    }
   };
 
   const handleViewProject = (projectId: string) => {
@@ -65,8 +89,8 @@ const ProjectSection: React.FC = () => {
               project={projectToEdit}
               onSubmit={() => {}}
               onClose={() => setShowEditForm(false)}
-              tags={undefined}
-              users={undefined}
+              users={users}
+              tags={tags}
             />
           </div>
         </div>
@@ -169,12 +193,15 @@ const ProjectSection: React.FC = () => {
                               className={`block w-full px-4 py-2 text-left whitespace-nowrap ${
                                 active ? "bg-blue-100" : ""
                               }`}
-                              onClick={() =>
-                                handleEditProject({
+                              onClick={() => {
+                                setProjectToEdit({
                                   ...project,
-                                  members: project.members?.map((m) => m.id),
-                                })
-                              }
+                                  members: project.members?.map(
+                                    (member) => member.id
+                                  ),
+                                });
+                                setShowEditForm(true);
+                              }}
                             >
                               <FaEdit className="inline mr-2" /> Edit
                             </button>
@@ -231,7 +258,7 @@ const ProjectSection: React.FC = () => {
           isVisible={isDeleteModalOpen}
           title="Confirm Deletion"
           message="Are you sure you want to delete this project?"
-          showInput={false}
+          showInput={true}
           confirmText="DELETE"
           confirmButtonText="Delete"
           onClose={() => setIsDeleteModalOpen(false)}
