@@ -8,7 +8,7 @@ export const permissionTable = [
     { key: "clients", label: "Clients" },
     { key: "roles", label: "Roles" },
     { key: "workspaces", label: "Workspaces" },
-    { key: "masterschedule", label: "Master Schedule" },
+    { key: "master-schedule", label: "Master Schedule" },
     { key: "meetings", label: "Meetings" },
     { key: "contracts", label: "Contracts" },
     { key: "timesheet", label: "Timesheet" },
