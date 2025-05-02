@@ -14,6 +14,7 @@ import { useTags } from "@/hooks/useTags";
 import { Tag } from "@/types/tag";
 import { useRoles } from "@/hooks/useRoles";
 import { Role } from "@/types/user";
+import { useCreateNotification } from "@/hooks/useNotifications";
 
 interface ProjectFormProps {
   onClose: () => void; // Function to close the modal
@@ -30,17 +31,14 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
   } = useForm<CreateProjectInput>();
 
   const { mutate: createProject, isPending } = useCreateProject();
-
+  const { mutate: createNotification } = useCreateNotification();
   const {
     data: users,
     isLoading: usersLoading,
     error: usersError,
   } = useUsers();
-
   const { data: tags, isLoading: tagsLoading, error: tagsError } = useTags();
-
   const { data: roles } = useRoles();
-
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -79,12 +77,24 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
     }
   };
 
-  const onSubmit = (data: CreateProjectInput) => {
-    // data.duration is not part of the CreateProjectInput type so it won't be sent.
+  const onSubmit = (data: CreateProjectInput & { members?: string[] }) => {
     createProject(data, {
-      onSuccess: () => {
-        onClose(); // Close the modal on success
-        window.location.reload(); // Reload the page
+      onSuccess: (project) => {
+        onClose();
+        window.location.reload();
+        // Send a notification to each assigned member
+        if (data.members?.length) {
+          data.members.forEach((userId) => {
+            createNotification({
+              user_id: userId,
+              type: "project.assigned",
+              data: {
+                projectId: project.id,
+                projectName: project.title,
+              },
+            });
+          });
+        }
       },
     });
   };
