@@ -87,7 +87,7 @@ const ProjectSection: React.FC = () => {
           <div className="modal-content bg-white rounded-lg shadow-xl p-6">
             <EditProjectForm
               project={projectToEdit}
-              onSubmit={() => {}}
+              onSubmit={() => handleEditProject(projectToEdit)}
               onClose={() => setShowEditForm(false)}
               users={users}
               tags={tags}
