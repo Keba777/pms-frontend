@@ -16,6 +16,7 @@ export interface User {
     profile_picture?: string;
     department_id?: string;
     department?: Department
+    site?: string;
     status?: "Active" | "InActive";
     projects?: Project[];
     tasks?: Task[];

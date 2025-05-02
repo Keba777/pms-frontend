@@ -192,10 +192,16 @@ const UsersPage = () => {
                 Name
               </th>
               <th className="border border-gray-200 px-6 py-4 whitespace-nowrap text-left text-sm font-medium text-gray-50">
+                Role
+              </th>
+              <th className="border border-gray-200 px-6 py-4 whitespace-nowrap text-left text-sm font-medium text-gray-50">
+                Permission Level
+              </th>
+              <th className="border border-gray-200 px-6 py-4 whitespace-nowrap text-left text-sm font-medium text-gray-50">
                 Department
               </th>
               <th className="border border-gray-200 px-6 py-4 whitespace-nowrap text-left text-sm font-medium text-gray-50">
-                Role
+                Site
               </th>
               <th className="border border-gray-200 px-6 py-4 whitespace-nowrap text-left text-sm font-medium text-gray-50">
                 Email
@@ -229,10 +235,20 @@ const UsersPage = () => {
                   </Link>
                 </td>
                 <td className="border border-gray-200 px-6 py-3 whitespace-nowrap">
+                  {user.role?.name || "—"}
+                </td>
+                <td className="border border-gray-200 px-6 py-3 whitespace-nowrap">
+                  {user.role?.name === "Admin"
+                    ? "Full access"
+                    : user.role?.name === "User"
+                    ? "Low access"
+                    : "Average access"}
+                </td>
+                <td className="border border-gray-200 px-6 py-3 whitespace-nowrap">
                   {user.department?.name || "—"}
                 </td>
                 <td className="border border-gray-200 px-6 py-3 whitespace-nowrap">
-                  {user.role?.name || "—"}
+                  {user?.site || "—"}
                 </td>
                 <td className="border border-gray-200 px-6 py-3 whitespace-nowrap">
                   {user.email}

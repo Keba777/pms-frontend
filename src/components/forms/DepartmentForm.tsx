@@ -3,16 +3,27 @@
 import React from "react";
 import { useForm, Controller } from "react-hook-form";
 import Select from "react-select";
-import { CreateDepartmentInput, UpdateDepartmentInput, Department } from "@/types/department";
-import { useCreateDepartment } from "@/hooks/useDepartments"; 
-import { useUpdateDepartment } from "@/hooks/useDepartments";
+import {
+  CreateDepartmentInput,
+  UpdateDepartmentInput,
+  Department,
+} from "@/types/department";
+import {
+  useCreateDepartment,
+  useUpdateDepartment,
+} from "@/hooks/useDepartments";
 
 interface DepartmentFormProps {
   onClose: () => void;
   defaultDepartment?: Department;
 }
 
-const DepartmentForm: React.FC<DepartmentFormProps> = ({ onClose, defaultDepartment }) => {
+type OptionType = { label: string; value: string };
+
+const DepartmentForm: React.FC<DepartmentFormProps> = ({
+  onClose,
+  defaultDepartment,
+}) => {
   const isEdit = Boolean(defaultDepartment?.id);
 
   const {
@@ -34,13 +45,13 @@ const DepartmentForm: React.FC<DepartmentFormProps> = ({ onClose, defaultDepartm
   const { mutate: createDepartment } = useCreateDepartment();
   const { mutate: updateDepartment } = useUpdateDepartment();
 
-  const statusOptions = [
+  const statusOptions: OptionType[] = [
     { value: "Active", label: "Active" },
     { value: "Inactive", label: "Inactive" },
     { value: "Pending", label: "Pending" },
   ];
 
-  const onSubmit = (data: any) => {
+  const onSubmit = (data: UpdateDepartmentInput | CreateDepartmentInput) => {
     if (isEdit) {
       updateDepartment(data as UpdateDepartmentInput, {
         onSuccess: () => {
@@ -59,12 +70,19 @@ const DepartmentForm: React.FC<DepartmentFormProps> = ({ onClose, defaultDepartm
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="bg-white rounded-lg shadow-xl p-6 space-y-6">
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="bg-white rounded-lg shadow-xl p-6 space-y-6"
+    >
       <div className="flex justify-between items-center pb-4 border-b">
         <h3 className="text-xl font-semibold text-gray-800">
           {isEdit ? "Update Department" : "Create Department"}
         </h3>
-        <button type="button" onClick={onClose} className="text-gray-500 hover:text-gray-700">
+        <button
+          type="button"
+          onClick={onClose}
+          className="text-gray-500 hover:text-gray-700"
+        >
           &times;
         </button>
       </div>
@@ -81,12 +99,16 @@ const DepartmentForm: React.FC<DepartmentFormProps> = ({ onClose, defaultDepartm
             placeholder="Enter Department Name"
             className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
           />
-          {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>}
+          {errors.name && (
+            <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
+          )}
         </div>
 
         {/* Description */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Description
+          </label>
           <textarea
             {...register("description")}
             placeholder="Optional description"
@@ -97,7 +119,9 @@ const DepartmentForm: React.FC<DepartmentFormProps> = ({ onClose, defaultDepartm
 
         {/* Status */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Status
+          </label>
           <Controller
             name="status"
             control={control}
@@ -105,7 +129,9 @@ const DepartmentForm: React.FC<DepartmentFormProps> = ({ onClose, defaultDepartm
               <Select
                 {...field}
                 options={statusOptions}
-                onChange={(option: any) => field.onChange(option.value)}
+                onChange={(option: OptionType | null) => {
+                  field.onChange(option?.value ?? "");
+                }}
                 value={statusOptions.find((opt) => opt.value === field.value)}
               />
             )}
@@ -114,9 +140,13 @@ const DepartmentForm: React.FC<DepartmentFormProps> = ({ onClose, defaultDepartm
 
         {/* Sub-department */}
         <fieldset className="space-y-4">
-          <legend className="text-sm font-medium text-gray-700">Sub-department (optional)</legend>
+          <legend className="text-sm font-medium text-gray-700">
+            Sub-department (optional)
+          </legend>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Name
+            </label>
             <input
               type="text"
               {...register("subDepartment.name")}
@@ -125,7 +155,9 @@ const DepartmentForm: React.FC<DepartmentFormProps> = ({ onClose, defaultDepartm
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Description
+            </label>
             <textarea
               {...register("subDepartment.description")}
               placeholder="Optional description"
@@ -137,7 +169,11 @@ const DepartmentForm: React.FC<DepartmentFormProps> = ({ onClose, defaultDepartm
 
         {/* Actions */}
         <div className="flex justify-end gap-4">
-          <button type="button" onClick={onClose} className="px-4 py-2 border rounded-md hover:bg-gray-50">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2 border rounded-md hover:bg-gray-50"
+          >
             Cancel
           </button>
           <button
@@ -145,7 +181,13 @@ const DepartmentForm: React.FC<DepartmentFormProps> = ({ onClose, defaultDepartm
             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
             disabled={isSubmitting}
           >
-            {isSubmitting ? (isEdit ? "Updating..." : "Creating...") : isEdit ? "Update" : "Create"}
+            {isSubmitting
+              ? isEdit
+                ? "Updating..."
+                : "Creating..."
+              : isEdit
+              ? "Update"
+              : "Create"}
           </button>
         </div>
       </div>
