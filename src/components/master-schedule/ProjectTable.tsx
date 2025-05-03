@@ -1,31 +1,39 @@
-"use client";
-
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { ChevronDown, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useProjects } from "@/hooks/useProjects";
-import { Plus, ChevronDown } from "lucide-react";
-import React from "react";
-import TaskTable from "./TaskTable";
-import { useDeleteProject, useUpdateProject } from "@/hooks/useProjects";
-import ConfirmModal from "../ui/ConfirmModal";
+import Link from "next/link";
 import { toast } from "react-toastify";
+import { Menu } from "@headlessui/react";
+
+import { Project, UpdateProjectInput } from "@/types/project";
+import { formatDate, getDateDuration } from "@/utils/helper";
+
+import TaskTable from "./TaskTable";
+import ProjectTableSkeleton from "./ProjectTableSkeleton";
+import ConfirmModal from "../ui/ConfirmModal";
 import EditProjectForm from "../forms/EditProjectForm";
-import { UpdateProjectInput } from "@/types/project";
+
+import { usePermissionsStore } from "@/store/permissionsStore";
+import { useDeleteProject, useUpdateProject } from "@/hooks/useProjects";
 import { useUsers } from "@/hooks/useUsers";
 import { useTags } from "@/hooks/useTags";
-import Link from "next/link";
-import { formatDate, getDateDuration } from "@/utils/helper";
-import { usePermissionsStore } from "@/store/permissionsStore";
-import ProjectTableSkeleton from "./ProjectTableSkeleton";
+import { Task } from "@/types/task";
 
-const ProjectTable = () => {
-  const { data: projects, isLoading, isError } = useProjects();
-  const { data: users } = useUsers();
-  const { data: tags } = useTags();
+interface ProjectTableProps {
+  projects: Project[];
+  isLoading?: boolean;
+  isError?: boolean;
+}
+
+const ProjectTable: React.FC<ProjectTableProps> = ({
+  projects,
+  isLoading = false,
+  isError = false,
+}) => {
+  const router = useRouter();
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
   const [expandedProjectId, setExpandedProjectId] = useState<string | null>(
-    null
-  );
-  const [dropdownProjectId, setDropdownProjectId] = useState<string | null>(
     null
   );
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -36,16 +44,16 @@ const ProjectTable = () => {
   const [projectToEdit, setProjectToEdit] = useState<UpdateProjectInput | null>(
     null
   );
-  const router = useRouter();
-  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Get permission checking function from the permissions store.
+  // Permissions
   const hasPermission = usePermissionsStore((state) => state.hasPermission);
-  // Determine specific permissions for this table.
   const canView = hasPermission("view projects");
   const canEdit = hasPermission("edit projects");
   const canDelete = hasPermission("delete projects");
 
+  const { data: users } = useUsers();
+  const { data: tags } = useTags();
+  // Mutations
   const { mutate: deleteProject } = useDeleteProject();
   const { mutate: updateProject } = useUpdateProject();
 
@@ -55,19 +63,15 @@ const ProjectTable = () => {
         dropdownRef.current &&
         !dropdownRef.current.contains(event.target as Node)
       ) {
-        setDropdownProjectId(null);
+        // no-op, headlessui handles click outside
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleDeleteClick = (projectId: string) => {
-    const project = projects?.find((p) => p.id === projectId);
-    if (project?.tasks && project.tasks.length > 0) {
+  const handleDeleteClick = (projectId: string, tasks: Task[]) => {
+    if (tasks.length > 0) {
       toast.error(
         "Cannot delete project with tasks. Please delete all tasks first."
       );
@@ -77,15 +81,12 @@ const ProjectTable = () => {
     setIsDeleteModalOpen(true);
   };
 
-  const handleDelete = () => {
-    if (selectedProjectId) {
-      deleteProject(selectedProjectId);
-      setIsDeleteModalOpen(false);
-    }
+  const handleDeleteConfirm = () => {
+    if (selectedProjectId) deleteProject(selectedProjectId);
+    setIsDeleteModalOpen(false);
   };
 
   const handleView = (id: string) => {
-    // Check permission before viewing
     if (canView) {
       router.push(`/projects/${id}`);
     } else {
@@ -132,7 +133,7 @@ const ProjectTable = () => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {projects?.length ? (
+            {projects.length ? (
               projects.map((project, index) => (
                 <React.Fragment key={project.id}>
                   <tr className="hover:bg-gray-50">
@@ -173,78 +174,77 @@ const ProjectTable = () => {
                       </span>
                     </td>
                     <td className="border border-gray-200 pl-5 pr-7 py-2 relative w-32">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setDropdownProjectId(
-                            dropdownProjectId === project.id ? null : project.id
-                          );
-                        }}
-                        className="flex items-center justify-between gap-1 px-3 py-1 bg-white text-cyan-700 border border-cyan-700 hover:bg-gray-100 rounded w-full"
+                      <Menu
+                        as="div"
+                        className="relative inline-block text-left"
                       >
-                        <span>Actions</span>
-                        <ChevronDown className="w-4 h-4 ml-2" />
-                      </button>
-                      {dropdownProjectId === project.id && (
-                        <div
-                          ref={dropdownRef}
-                          className="absolute left-0 top-0 mt-8 w-full bg-white border border-gray-200 rounded shadow-lg z-50"
-                        >
-                          <button
-                            onClick={() => {
-                              setDropdownProjectId(null);
-                              handleView(project.id);
-                            }}
-                            className="w-full text-left px-3 py-2 hover:bg-gray-100 disabled:opacity-50"
-                            disabled={!canView}
-                            title={
-                              !canView
-                                ? "You do not have permission to view projects"
-                                : ""
-                            }
-                          >
-                            View
-                          </button>
-                          <button
-                            onClick={() => {
-                              setDropdownProjectId(null);
-                              setProjectToEdit({
-                                ...project,
-                                members: project.members?.map(
-                                  (member) => member.id
-                                ),
-                              });
-                              setShowForm(true);
-                            }}
-                            className="w-full text-left px-3 py-2 hover:bg-gray-100 disabled:opacity-50"
-                            disabled={!canEdit}
-                            title={
-                              !canEdit
-                                ? "You do not have permission to edit projects"
-                                : ""
-                            }
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => {
-                              setDropdownProjectId(null);
-                              handleDeleteClick(project.id);
-                            }}
-                            className="w-full text-left px-3 py-2 text-red-600 hover:bg-gray-100 disabled:opacity-50"
-                            disabled={!canDelete}
-                            title={
-                              !canDelete
-                                ? "You do not have permission to delete projects"
-                                : ""
-                            }
-                          >
-                            Delete
-                          </button>
+                        <div>
+                          <Menu.Button className="flex items-center justify-between gap-1 px-3 py-1 bg-white text-cyan-700 border border-cyan-700 hover:bg-gray-100 rounded w-full">
+                            <span>Actions</span>
+                            <ChevronDown className="w-4 h-4 ml-2" />
+                          </Menu.Button>
                         </div>
-                      )}
+
+                        <Menu.Items className="absolute left-0 mt-2 w-full origin-top-left bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow-lg focus:outline-none z-50">
+                          <div className="py-1">
+                            <Menu.Item>
+                              {({ active }) => (
+                                <button
+                                  onClick={() => handleView(project.id)}
+                                  className={`${
+                                    active ? "bg-gray-100" : ""
+                                  } w-full text-left px-3 py-2 text-sm text-gray-700 disabled:opacity-50"`}
+                                  disabled={!canView}
+                                >
+                                  View
+                                </button>
+                              )}
+                            </Menu.Item>
+                            <Menu.Item>
+                              {({ active }) => (
+                                <button
+                                  onClick={() => {
+                                    setProjectToEdit({
+                                      ...project,
+                                      members: project.members?.map(
+                                        (m) => m.id
+                                      ),
+                                    });
+                                    setShowForm(true);
+                                  }}
+                                  className={`${
+                                    active ? "bg-gray-100" : ""
+                                  } w-full text-left px-3 py-2 text-sm text-gray-700 disabled:opacity-50"`}
+                                  disabled={!canEdit}
+                                >
+                                  Edit
+                                </button>
+                              )}
+                            </Menu.Item>
+                            <Menu.Item>
+                              {({ active }) => (
+                                <button
+                                  onClick={() =>
+                                    handleDeleteClick(
+                                      project.id,
+                                      project.tasks || []
+                                    )
+                                  }
+                                  className={`${
+                                    active ? "bg-gray-100" : ""
+                                  } w-full text-left px-3 py-2 text-sm text-red-600 disabled:opacity-50"`}
+                                  disabled={!canDelete}
+                                >
+                                  Delete
+                                </button>
+                              )}
+                            </Menu.Item>
+                          </div>
+                        </Menu.Items>
+                      </Menu>
+
                       {showForm && projectToEdit && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-opacity-6 backdrop-blur-xs overflow-auto">
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-opacity-60 backdrop-blur-sm overflow-auto">
                           <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-xl m-4 mt-12 max-h-[90vh] overflow-y-auto">
                             <EditProjectForm
                               onClose={() => setShowForm(false)}
@@ -297,7 +297,7 @@ const ProjectTable = () => {
           confirmText="DELETE"
           confirmButtonText="Delete"
           onClose={() => setIsDeleteModalOpen(false)}
-          onConfirm={handleDelete}
+          onConfirm={handleDeleteConfirm}
         />
       )}
     </div>
