@@ -9,6 +9,7 @@ interface AuthStore {
     user: User | null;
     token: string | null;
     permissions: Permissions | null;
+    expiresAt: number | null;
     _hasHydrated: boolean;
     login: (user: User, token: string) => void;
     logout: () => void;
@@ -22,28 +23,35 @@ export const useAuthStore = create<AuthStore>()(
             user: null,
             token: null,
             permissions: null,
+            expiresAt: null,
             _hasHydrated: false,
 
             login: (user, token) => {
+                const expiresAt = Date.now() + 24 * 60 * 60 * 1000;
                 set({
                     user,
                     token,
                     permissions: user.role?.permissions ?? null,
+                    expiresAt,
                 });
             },
 
-            logout: () => set({ user: null, token: null, permissions: null }),
+            logout: () =>
+                set({
+                    user: null,
+                    token: null,
+                    permissions: null,
+                    expiresAt: null,
+                }),
 
             setHasHydrated: (state) => set({ _hasHydrated: state }),
 
             hasPermission: (resource, action) => {
                 const { user, permissions } = get();
-
-                if (user?.role?.name?.toLowerCase() === "admin") {
-                    return true;
-                }
-
-                const resourcePerms = (permissions?.[resource] as Record<string, boolean> | undefined) || {};
+                if (user?.role?.name?.toLowerCase() === "admin") return true;
+                const resourcePerms =
+                    (permissions?.[resource] as Record<string, boolean> | undefined) ||
+                    {};
                 return Boolean(resourcePerms[action]);
             },
         }),

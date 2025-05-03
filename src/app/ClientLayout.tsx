@@ -1,3 +1,4 @@
+// app/(client)/ClientLayout.tsx
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
@@ -7,8 +8,7 @@ import { ToastContainer } from "react-toastify";
 import Footer from "@/components/layout/Footer";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useAuthStore } from "@/store/authStore";
-import { useEffect, useState } from "react";
-import 'gantt-task-react/dist/index.css';
+import { useEffect, useState, useRef } from "react";
 
 const queryClient = new QueryClient();
 
@@ -19,29 +19,51 @@ export default function ClientLayout({
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, _hasHydrated } = useAuthStore();
-
-  // Local loading state for the layout.
+  const { user, expiresAt, logout, _hasHydrated } = useAuthStore();
   const [isLoading, setIsLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const logoutTimer = useRef<number | null>(null);
 
-  // Handle authentication redirection.
   useEffect(() => {
     if (!_hasHydrated) return;
 
+    if (user && (!expiresAt || Date.now() >= expiresAt)) {
+      logout();
+      router.push("/login");
+      return;
+    }
+
+    // if user exists and expiresAt is in the future, schedule a timeout
+    if (user && expiresAt) {
+      const msUntilExpiry = expiresAt - Date.now();
+      logoutTimer.current = window.setTimeout(() => {
+        logout();
+        router.push("/login");
+      }, msUntilExpiry);
+    }
+
+    // cleanup on unmount or when user changes
+    return () => {
+      if (logoutTimer.current) {
+        clearTimeout(logoutTimer.current);
+        logoutTimer.current = null;
+      }
+    };
+  }, [_hasHydrated, user, expiresAt, logout, router]);
+
+  // existing auth redirection & loading logic
+  useEffect(() => {
+    if (!_hasHydrated) return;
     if (!user && pathname !== "/login") {
       router.push("/login");
     } else if (user && pathname === "/login") {
       router.push("/");
     }
-
-    // Mark loading complete once authentication logic has run.
     if (isLoading) {
       setIsLoading(false);
     }
   }, [user, pathname, router, _hasHydrated, isLoading]);
 
-  // Show a loading spinner if authentication state is not ready.
   if (!_hasHydrated || isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -50,7 +72,6 @@ export default function ClientLayout({
     );
   }
 
-  // For the login page, we do not need the sidebar and header.
   if (pathname === "/login") {
     return (
       <QueryClientProvider client={queryClient}>
