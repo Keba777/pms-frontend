@@ -196,7 +196,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
         {/* Title Input */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Title <span className="text-red-500">*</span>
+            Project Title <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
@@ -427,6 +427,28 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
           {usersError && (
             <p className="text-red-500 text-sm mt-1">Error loading users</p>
           )}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Contractor
+          </label>
+          <input type="text"  placeholder="Enter Contactor"
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"/>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Sub-Contractor
+          </label>
+          <input type="text"  placeholder="Enter Sub-Contactor"
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"/>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Consultant
+          </label>
+          <input type="text"  placeholder="Enter Consultant"
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"/>
         </div>
 
         {/* Tags Section */}

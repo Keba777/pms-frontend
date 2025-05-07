@@ -189,14 +189,25 @@ const EditActivityForm: React.FC<{
       {/* Progress */}
       <div className="flex items-center space-x-4">
         <label className="w-32 text-sm font-medium text-gray-700">
-          Progress (%)
+          Progress (%):
         </label>
-        <input
-          type="number"
-          min="0"
-          max="100"
-          {...register("progress")}
-          className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+        <Controller
+          name="progress"
+          control={control}
+          defaultValue={activity.progress ?? 0}
+          render={({ field }) => (
+            <div className="flex-1 flex items-center space-x-2">
+              <input
+                type="range"
+                min={0}
+                max={100}
+                {...field}
+                className="flex-1"
+                onChange={(e) => field.onChange(parseInt(e.target.value, 10))}
+              />
+              <span className="w-12 text-right">{field.value}%</span>
+            </div>
+          )}
         />
       </div>
 
@@ -264,9 +275,7 @@ const EditActivityForm: React.FC<{
           Description<span className="text-red-500">*</span>
         </label>
         <textarea
-          {...register("description", {
-            required: "Description is required",
-          })}
+          {...register("description")}
           rows={3}
           className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
         />

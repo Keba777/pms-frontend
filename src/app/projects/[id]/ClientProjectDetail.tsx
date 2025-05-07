@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useProjectStore } from "@/store/projectStore";
 import { useRoles } from "@/hooks/useRoles";
-import { useTags } from "@/hooks/useTags"; 
+import { useTags } from "@/hooks/useTags";
 import {
   ArrowLeft,
   ListChecks,
@@ -12,7 +12,7 @@ import {
   Plus,
   User,
   Tag,
-} from "lucide-react"; 
+} from "lucide-react";
 import StatsCard from "@/components/dashboard/StatsCard";
 import TaskTable from "@/components/master-schedule/TaskTable";
 import { Task } from "@/types/task";
@@ -37,7 +37,7 @@ export default function ClientProjectDetail({
   const canCreate = hasPermission("create tasks");
 
   const { data: roles = [] } = useRoles();
-  const { data: tags = [] } = useTags(); 
+  const { data: tags = [] } = useTags();
 
   if (!project) {
     return (
@@ -267,6 +267,14 @@ export default function ClientProjectDetail({
             </div>
           </div>
         </div>
+      </div>
+
+      <div className="mt-6 flex space-x-4">
+        <span className="bg-gray-200 py-2 px-5">Discussion</span>
+        <span className="bg-gray-200 py-2 px-5">Issue</span>
+        <span className="bg-gray-200 py-2 px-5">Files</span>
+        <span className="bg-gray-200 py-2 px-5">Notification</span>
+        <span className="bg-gray-200 py-2 px-5">Activity Log</span>
       </div>
 
       {/* TASKS SECTION */}

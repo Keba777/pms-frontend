@@ -82,7 +82,7 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
         {/* Title Input */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Title <span className="text-red-500">*</span>
+            Project Title <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
@@ -96,6 +96,29 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
 
         {/* Status, Priority, and Favourite */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Priority
+            </label>
+            <Controller
+              name="priority"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  {...field}
+                  options={priorityOptions}
+                  className="w-full"
+                  onChange={(selectedOption) =>
+                    field.onChange(selectedOption?.value)
+                  }
+                  value={priorityOptions.find(
+                    (option) => option.value === field.value
+                  )}
+                />
+              )}
+            />
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Status <span className="text-red-500">*</span>
@@ -125,28 +148,7 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
             )}
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Priority
-            </label>
-            <Controller
-              name="priority"
-              control={control}
-              render={({ field }) => (
-                <Select
-                  {...field}
-                  options={priorityOptions}
-                  className="w-full"
-                  onChange={(selectedOption) =>
-                    field.onChange(selectedOption?.value)
-                  }
-                  value={priorityOptions.find(
-                    (option) => option.value === field.value
-                  )}
-                />
-              )}
-            />
-          </div>
+         
 
           <div className="flex items-center mt-5">
             <label className="flex items-center text-sm font-medium text-gray-700">
@@ -194,6 +196,8 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
               {...register("progress")}
               className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
             />
+
+            
           </div>
 
           <div>

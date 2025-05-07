@@ -25,7 +25,7 @@ const LaborTable: React.FC<LaborTableProps> = ({
           <th className="px-3 py-2">Role</th>
           <th className="px-3 py-2">Unit</th>
           <th className="px-3 py-2">Skill</th>
-          <th className="px-3 py-2">Min Qty</th>
+          <th className="px-3 py-2">Qty</th>
           <th className="px-3 py-2">Rate</th>
           <th className="px-3 py-2">Required Qty</th>
         </tr>

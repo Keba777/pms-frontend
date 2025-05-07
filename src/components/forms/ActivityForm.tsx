@@ -87,6 +87,13 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
     }
   };
 
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files ? Array.from(event.target.files) : [];
+    setSelectedFiles(files);
+  };
+
   const onSubmit = (data: CreateActivityInput) => {
     const submitData = defaultTaskId
       ? { ...data, task_id: defaultTaskId }
@@ -153,7 +160,7 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
         <h3 className="text-lg font-semibold text-gray-800">Create Activity</h3>
         <button
           type="button"
-          className="text-gray-500 hover:text-gray-700"
+          className="text-3xl text-red-500 hover:text-red-600"
           onClick={onClose}
         >
           &times;
@@ -459,41 +466,18 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
               className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
             />
           </div>
-
+          {/* Quantity Field */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Progress (%)
+              Quantity
             </label>
             <input
-              type="number"
-              {...register("progress", {
-                min: { value: 0, message: "Progress cannot be less than 0" },
-                max: { value: 100, message: "Progress cannot exceed 100" },
-              })}
-              placeholder="Enter progress (0-100)"
+              // type="number"
+              {...register("quantity")}
+              placeholder="Enter quantity"
               className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-              min="0"
-              max="100"
             />
-            {errors.progress && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.progress.message}
-              </p>
-            )}
           </div>
-        </div>
-
-        {/* Quantity Field */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Quantity
-          </label>
-          <input
-            type="number"
-            {...register("quantity")}
-            placeholder="Enter quantity"
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-          />
         </div>
 
         {/* Description Field */}
@@ -506,6 +490,150 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
             placeholder="Enter Activity Description"
             className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
             rows={4}
+          />
+        </div>
+
+        <div className="mt-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Attach Files
+          </label>
+
+          <div className="w-full border-2 border-dashed border-gray-300 rounded-md p-4 bg-gray-50 hover:border-bs-primary transition-colors duration-300">
+            <input
+              type="file"
+              multiple
+              onChange={handleFileChange}
+              className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 
+                     file:rounded-md file:border-0 
+                     file:text-sm file:font-semibold 
+                     file:bg-bs-primary file:text-white 
+                     hover:file:bg-bs-primary/90"
+            />
+            <p className="mt-2 text-sm text-gray-500">
+              You can select multiple files.
+            </p>
+          </div>
+
+          {/* File list */}
+          {selectedFiles.length > 0 && (
+            <div className="mt-4">
+              <h4 className="text-sm font-semibold text-gray-700 mb-2">
+                Files Selected:
+              </h4>
+              <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+                {selectedFiles.map((file, index) => (
+                  <li key={index}>
+                    {file.name} ({(file.size / 1024).toFixed(2)} KB)
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+
+        <h2 className="text-xl font-bold text-center underline">
+          Basic Assumptions
+        </h2>
+        <div>
+          <h3 className="font-semibold">Labor</h3>
+          <div className="my-1">
+            <label htmlFor="">1. Index factor:- </label>
+            <input
+              type="text"
+              // placeholder="Index factor:-"
+              className="ml-[88px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+            />
+          </div>
+          <div className="my-1 ">
+            <label htmlFor="">2. Utilization Factor:- </label>
+            <input
+              type="text"
+              // placeholder="UF"
+              className="ml-14 px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="">3. Working hours per day:- </label>
+            <input
+              type="text"
+              // placeholder="Working hours per day"
+              className="ml-4 px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+            />
+          </div>
+          <button className="bg-cyan-700 text-gray-100 px-4 py-2 rounded-md">
+            Add More
+          </button>
+        </div>
+
+        <div>
+          <h3 className="font-semibold">Machinery</h3>
+          <div className="my-1">
+            <label htmlFor="">1. Index factor:- </label>
+            <input
+              type="text"
+              // placeholder="Index factor:-"
+              className="ml-[88px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+            />
+          </div>
+          <div className="my-1 ">
+            <label htmlFor="">2. Utilization Factor:- </label>
+            <input
+              type="text"
+              // placeholder="UF"
+              className="ml-14 px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="">3. Working hours per day:- </label>
+            <input
+              type="text"
+              // placeholder="Working hours per day"
+              className="ml-4 px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+            />
+          </div>
+          <button className="bg-cyan-700 text-gray-100 px-4 py-2 rounded-md">
+            Add More
+          </button>
+        </div>
+
+        {/* Progress */}
+        <div className="flex items-center space-x-4">
+          <label className="w-32 text-sm font-medium text-gray-700">
+            Progress (%):
+          </label>
+          <Controller
+            name="progress"
+            control={control}
+            defaultValue={0}
+            render={({ field }) => (
+              <div className="flex-1 flex items-center space-x-2">
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  {...field}
+                  className="flex-1"
+                  onChange={(e) => field.onChange(parseInt(e.target.value, 10))}
+                />
+                <span className="w-12 text-right">{field.value}%</span>
+              </div>
+            )}
+          />
+        </div>
+        <div>
+          <label htmlFor="">Checked by:- </label>
+          <input
+            type="text"
+            // placeholder="Checked by:-"
+            className="ml-4 px-3 border  focus:outline-none focus:ring-2 focus:ring-bs-primary"
+          />
+          <input
+            type="date"
+            name=""
+            id=""
+            className="ml-4 px-3 border  focus:outline-none focus:ring-2 focus:ring-bs-primary"
           />
         </div>
 

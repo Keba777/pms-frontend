@@ -25,7 +25,7 @@ const MaterialsTable: React.FC<MaterialsTableProps> = ({
             <th className="px-3 py-2">No</th>
             <th className="px-3 py-2">Item</th>
             <th className="px-3 py-2">Unit</th>
-            <th className="px-3 py-2">Min Qty</th>
+            <th className="px-3 py-2">Qty</th>
             <th className="px-3 py-2">Rate</th>
             <th className="px-3 py-2">Required Qty</th>
           </tr>
