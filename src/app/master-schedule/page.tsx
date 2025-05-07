@@ -2,14 +2,15 @@
 
 import React, { useState, useMemo } from "react";
 import { Wrench, Send } from "lucide-react";
+import { ViewMode } from "gantt-task-react";
 import { useProjectStore } from "@/store/projectStore";
 import Filters, { FilterValues } from "@/components/master-schedule/Filters";
 import ProjectTable from "@/components/master-schedule/ProjectTable";
 import GenericDownloads, { Column } from "@/components/common/GenericDownloads";
 import { Project } from "@/types/project";
-import GanttChart from "@/components/master-schedule/ProjectGanttChart";
+import ProjectGanttChart from "@/components/master-schedule/ProjectGanttChart";
 
-const MasterSchedulePage = () => {
+const MasterSchedulePage: React.FC = () => {
   const { projects = [] } = useProjectStore();
   const [view, setView] = useState<"schedule" | "gantt">("schedule");
   const [filters, setFilters] = useState<FilterValues>({
@@ -22,12 +23,9 @@ const MasterSchedulePage = () => {
   const filtered = useMemo(() => {
     return projects.filter((p) => {
       if (filters.status && p.status !== filters.status) return false;
-      if (filters.priority && p.priority !== filters.priority)
-        return false;
-      if (filters.startDate && p.start_date < new Date(filters.startDate))
-        return false;
-      if (filters.endDate && p.end_date > new Date(filters.endDate))
-        return false;
+      if (filters.priority && p.priority !== filters.priority) return false;
+      if (filters.startDate && new Date(p.start_date) < new Date(filters.startDate)) return false;
+      if (filters.endDate && new Date(p.end_date) > new Date(filters.endDate)) return false;
       return true;
     });
   }, [projects, filters]);
@@ -55,7 +53,6 @@ const MasterSchedulePage = () => {
     <section className="pt-6">
       <h2 className="text-4xl font-bold mb-6">Master Schedule</h2>
 
-      {/* Toggle Buttons */}
       <div className="flex mb-8 gap-4">
         <button
           onClick={() => setView("schedule")}
@@ -71,7 +68,9 @@ const MasterSchedulePage = () => {
         <button
           onClick={() => setView("gantt")}
           className={`flex items-center px-4 py-2 rounded shadow ${
-            view === "gantt" ? "bg-white border border-gray-300" : "bg-gray-200"
+            view === "gantt"
+              ? "bg-white border border-gray-300"
+              : "bg-gray-200"
           }`}
         >
           <Send size={18} className="mr-2 text-emerald-600" />
@@ -81,7 +80,6 @@ const MasterSchedulePage = () => {
 
       <Filters projects={projects} onChange={setFilters} />
 
-      {/* Conditional View Rendering */}
       {view === "schedule" ? (
         <>
           <GenericDownloads<Project>
@@ -92,7 +90,7 @@ const MasterSchedulePage = () => {
           <ProjectTable projects={filtered} />
         </>
       ) : (
-        <GanttChart projects={filtered} />
+        <ProjectGanttChart projects={filtered} viewMode={ViewMode.Week} />
       )}
     </section>
   );
