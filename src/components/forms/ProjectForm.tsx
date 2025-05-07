@@ -81,7 +81,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
     createProject(data, {
       onSuccess: (project) => {
         onClose();
-        window.location.reload();
+        // window.location.reload();
         // Send a notification to each assigned member
         if (data.members?.length) {
           data.members.forEach((userId) => {

@@ -306,7 +306,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
                   {expandedTaskId === task.id && (
                     <tr>
                       <td
-                        colSpan={7}
+                        colSpan={8}
                         className="border border-gray-200 px-4 py-2 bg-gray-50"
                       >
                         <ActivityTable taskId={task.id} />

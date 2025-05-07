@@ -91,7 +91,7 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
     createTask(submitData, {
       onSuccess: () => {
         onClose(); // Close the modal on success
-        window.location.reload(); // Reload the page
+        // window.location.reload(); 
       },
     });
   };

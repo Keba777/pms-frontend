@@ -102,7 +102,7 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
     createActivity(submitData, {
       onSuccess: () => {
         onClose();
-        window.location.reload();
+        // window.location.reload();
       },
     });
   };
