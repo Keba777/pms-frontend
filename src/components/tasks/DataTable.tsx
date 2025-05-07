@@ -23,6 +23,23 @@ const DataTable = () => {
   const error = !tasks ? "Error fetching tasks." : null;
   const [search, setSearch] = useState("");
 
+  // badge class mappings for priority and status
+  const priorityBadgeClasses: Record<Task["priority"], string> = {
+    Critical: "bg-red-100 text-red-800",
+    High: "bg-orange-100 text-orange-800",
+    Medium: "bg-yellow-100 text-yellow-800",
+    Low: "bg-green-100 text-green-800",
+  };
+  
+  const statusBadgeClasses: Record<Task["status"], string> = {
+    "Not Started": "bg-gray-100 text-gray-800",
+    Started: "bg-blue-100 text-blue-800",
+    InProgress: "bg-yellow-100 text-yellow-800",
+    Onhold: "bg-amber-100 text-amber-800",
+    Canceled: "bg-red-100 text-red-800",
+    Completed: "bg-green-100 text-green-800",
+  };
+
   // States for handling update and delete modals.
   const [showEditForm, setShowEditForm] = useState(false);
   const [taskToEdit, setTaskToEdit] = useState<UpdateTaskInput | null>(null);
@@ -203,15 +220,9 @@ const DataTable = () => {
                   </td>
                   <td className="px-4 py-2 whitespace-nowrap">
                     <span
-                      className={`badge ${
-                        task.priority === "Critical"
-                          ? "text-red-600"
-                          : task.priority === "High"
-                          ? "text-orange-500"
-                          : task.priority === "Medium"
-                          ? "text-yellow-500"
-                          : "text-green-500"
-                      } bg-gray-100 px-2 py-1 rounded`}
+                      className={`px-2 py-1 rounded-full text-sm font-medium ${
+                        priorityBadgeClasses[task.priority]
+                      }`}
                     >
                       {task.priority}
                     </span>
@@ -228,7 +239,7 @@ const DataTable = () => {
                   <td className="px-4 py-2 whitespace-nowrap">
                     <div className="relative h-5 bg-gray-200 rounded">
                       <div
-                        className="absolute h-full bg-blue-600 rounded"
+                        className="absolute h-full rounded bg-blue-600"
                         style={{ width: `${task.progress ?? 0}%` }}
                       >
                         <span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-white">
@@ -238,7 +249,11 @@ const DataTable = () => {
                     </div>
                   </td>
                   <td className="px-4 py-2 whitespace-nowrap">
-                    <span className="badge bg-label-secondary">
+                    <span
+                      className={`px-2 py-1 rounded-full text-sm font-medium ${
+                        statusBadgeClasses[task.status]
+                      }`}
+                    >
                       {task.status}
                     </span>
                   </td>

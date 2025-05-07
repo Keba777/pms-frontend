@@ -5,9 +5,28 @@ import React from "react";
 import { FaEdit, FaTrash, FaEye } from "react-icons/fa";
 import Link from "next/link";
 import RoleName from "../common/RoleName";
+import { Task } from "@/types/task";
 
-const TaskSection = () => {
+const TaskSection: React.FC = () => {
   const { data: tasks, isLoading, isError } = useTasks();
+
+  // mapping badge classes for priority
+  const priorityBadgeClasses: Record<Task["priority"], string> = {
+    Critical: "bg-red-100 text-red-800",
+    High: "bg-orange-100 text-orange-800",
+    Medium: "bg-yellow-100 text-yellow-800",
+    Low: "bg-green-100 text-green-800",
+  };
+
+  // mapping badge classes for status
+  const statusBadgeClasses: Record<Task["status"], string> = {
+    "Not Started": "bg-gray-100 text-gray-800",
+    Started: "bg-blue-100 text-blue-800",
+    InProgress: "bg-yellow-100 text-yellow-800",
+    Onhold: "bg-amber-100 text-amber-800",
+    Canceled: "bg-red-100 text-red-800",
+    Completed: "bg-green-100 text-green-800",
+  };
 
   const formatDate = (date: string | number | Date) => {
     if (!date) return "N/A";
@@ -69,7 +88,7 @@ const TaskSection = () => {
                     <Link href={`tasks/${task.id}`}>{task.task_name}</Link>
                   </td>
                   <td className="border border-gray-200 px-4 py-2">
-                    {task.assignedUsers && task.assignedUsers.length > 0 ? (
+                    {task.assignedUsers?.length ? (
                       <ul className="list-none space-y-1">
                         {task.assignedUsers.map((user) => (
                           <li key={user.id}>
@@ -83,7 +102,13 @@ const TaskSection = () => {
                     )}
                   </td>
                   <td className="border border-gray-200 px-4 py-2">
-                    {task.priority}
+                    <span
+                      className={`px-2 py-1 rounded-full text-sm font-medium ${
+                        priorityBadgeClasses[task.priority]
+                      }`}
+                    >
+                      {task.priority}
+                    </span>
                   </td>
                   <td className="border border-gray-200 px-4 py-2">
                     {task.progress || 0}%
@@ -95,7 +120,11 @@ const TaskSection = () => {
                     {formatDate(task.end_date)}
                   </td>
                   <td className="border border-gray-200 px-4 py-2">
-                    <span className="px-2 py-1 rounded-full bg-blue-100 text-blue-700 text-sm">
+                    <span
+                      className={`px-2 py-1 rounded-full text-sm font-medium ${
+                        statusBadgeClasses[task.status]
+                      }`}
+                    >
                       {task.status}
                     </span>
                   </td>
@@ -104,7 +133,7 @@ const TaskSection = () => {
                   </td>
                   <td className="border border-gray-200 px-4 py-2">
                     <select className="bg-teal-800 text-gray-100 border rounded px-2 py-1">
-                      <option disabled selected>
+                      <option disabled value="">
                         Action
                       </option>
                       <option value="edit">
@@ -123,8 +152,8 @@ const TaskSection = () => {
             ) : (
               <tr>
                 <td
-                  colSpan={12}
-                  className="border border-gray-200 px-4 py-2 text-center"
+                  colSpan={10}
+                  className="border border-gray-200 px-4 py-2 text-center text-gray-500"
                 >
                   No tasks found
                 </td>

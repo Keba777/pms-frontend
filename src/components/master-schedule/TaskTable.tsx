@@ -21,6 +21,16 @@ interface TaskTableProps {
   projectId?: string;
 }
 
+// Badge class mapping for task status
+const statusBadgeClasses: Record<Task["status"], string> = {
+  "Not Started": "bg-gray-100 text-gray-800",
+  Started: "bg-blue-100 text-blue-800",
+  InProgress: "bg-yellow-100 text-yellow-800",
+  Onhold: "bg-amber-100 text-amber-800",
+  Canceled: "bg-red-100 text-red-800",
+  Completed: "bg-green-100 text-green-800",
+};
+
 const TaskTable: React.FC<TaskTableProps> = ({
   tasks,
   projectTitle,
@@ -40,7 +50,6 @@ const TaskTable: React.FC<TaskTableProps> = ({
   const { mutate: updateTask } = useUpdateTask();
   const { data: users } = useUsers();
 
-  // Retrieve permissions check from store.
   const hasPermission = usePermissionsStore((state) => state.hasPermission);
   const canView = hasPermission("view tasks");
   const canEdit = hasPermission("edit tasks");
@@ -78,12 +87,8 @@ const TaskTable: React.FC<TaskTableProps> = ({
   const handleDelete = () => {
     if (selectedTaskId) {
       deleteTask(selectedTaskId, {
-        onSuccess: () => {
-          toast.success("Task deleted successfully!");
-        },
-        onError: () => {
-          toast.error("Failed to delete task");
-        },
+        onSuccess: () => toast.success("Task deleted successfully!"),
+        onError: () => toast.error("Failed to delete task"),
       });
       setIsDeleteModalOpen(false);
     }
@@ -107,35 +112,30 @@ const TaskTable: React.FC<TaskTableProps> = ({
       {projectTitle && (
         <div className="bg-white py-2 rounded-lg flex items-center justify-between mb-4 px-4">
           <div className="font-bold text-xl text-teal-700">
-            Project:{" "}
+            Project:
             <span className="font-semibold ml-1 text-bs-gray-dark">
               {projectTitle}
             </span>
           </div>
           <div className="font-bold text-xl text-teal-700">
-            Total Tasks:{" "}
+            Total Tasks:
             <span className="font-semibold ml-1 text-bs-gray-dark">
               {tasks.length}
             </span>
           </div>
           <button
             onClick={() => {
-              if (canCreate) {
-                setShowCreateForm(true);
-              } else {
-                toast.error("You do not have permission to create tasks.");
-              }
+              if (canCreate) setShowCreateForm(true);
+              else toast.error("You do not have permission to create tasks.");
             }}
             className="px-4 py-2 bg-teal-700 text-white rounded hover:bg-teal-800 disabled:opacity-50"
             disabled={!canCreate}
-            title={
-              !canCreate ? "You do not have permission to create tasks" : ""
-            }
           >
             Create Task
           </button>
         </div>
       )}
+
       {showCreateForm && (
         <div className="modal-overlay fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="modal-content bg-white rounded-lg shadow-xl p-6">
@@ -146,6 +146,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
           </div>
         </div>
       )}
+
       {showEditForm && taskToEdit && (
         <div className="modal-overlay fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="modal-content bg-white rounded-lg shadow-xl p-6">
@@ -158,6 +159,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
           </div>
         </div>
       )}
+
       <div className="overflow-x-auto">
         <table className="min-w-full border border-gray-200 divide-y divide-gray-200">
           <thead className="bg-teal-700">
@@ -189,7 +191,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {tasks?.length ? (
+            {tasks.length ? (
               tasks.map((task, index) => (
                 <React.Fragment key={task.id}>
                   <tr className="hover:bg-gray-50 relative">
@@ -209,7 +211,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
                       </div>
                     </td>
                     <td className="border border-gray-200 px-4 py-2 font-medium">
-                      <Link href={`tasks/${task.id}`}>{task.task_name}</Link>
+                      <Link href={`/tasks/${task.id}`}>{task.task_name}</Link>
                     </td>
                     <td className="border border-gray-200 px-4 py-2">
                       {formatDate(task.start_date)}
@@ -224,7 +226,11 @@ const TaskTable: React.FC<TaskTableProps> = ({
                       {task.progress}%
                     </td>
                     <td className="border border-gray-200 px-4 py-2">
-                      <span className="badge bg-label-secondary">
+                      <span
+                        className={`px-2 py-1 rounded-full text-sm font-medium ${
+                          statusBadgeClasses[task.status]
+                        }`}
+                      >
                         {task.status}
                       </span>
                     </td>
@@ -254,11 +260,6 @@ const TaskTable: React.FC<TaskTableProps> = ({
                               }}
                               className="w-full text-left px-3 py-2 hover:bg-gray-100 disabled:opacity-50"
                               disabled={!canView}
-                              title={
-                                !canView
-                                  ? "You do not have permission to view tasks"
-                                  : ""
-                              }
                             >
                               View
                             </button>
@@ -268,18 +269,13 @@ const TaskTable: React.FC<TaskTableProps> = ({
                                 setTaskToEdit({
                                   ...task,
                                   assignedUsers: task.assignedUsers?.map(
-                                    (user) => user.id
+                                    (u) => u.id
                                   ),
                                 });
                                 setShowEditForm(true);
                               }}
                               className="w-full text-left px-3 py-2 hover:bg-gray-100 disabled:opacity-50"
                               disabled={!canEdit}
-                              title={
-                                !canEdit
-                                  ? "You do not have permission to edit tasks"
-                                  : ""
-                              }
                             >
                               Edit
                             </button>
@@ -290,11 +286,6 @@ const TaskTable: React.FC<TaskTableProps> = ({
                               }}
                               className="w-full text-left px-3 py-2 text-red-600 hover:bg-gray-100 disabled:opacity-50"
                               disabled={!canDelete}
-                              title={
-                                !canDelete
-                                  ? "You do not have permission to delete tasks"
-                                  : ""
-                              }
                             >
                               Delete
                             </button>
@@ -318,7 +309,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
             ) : (
               <tr>
                 <td
-                  colSpan={7}
+                  colSpan={8}
                   className="border border-gray-200 px-4 py-2 text-center"
                 >
                   No tasks found

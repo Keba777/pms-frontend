@@ -25,6 +25,23 @@ interface ProjectTableProps {
   isError?: boolean;
 }
 
+// Badge class mappings for priority and status
+const priorityBadgeClasses: Record<Project["priority"], string> = {
+  Critical: "bg-red-100 text-red-800",
+  High: "bg-orange-100 text-orange-800",
+  Medium: "bg-yellow-100 text-yellow-800",
+  Low: "bg-green-100 text-green-800",
+};
+
+const statusBadgeClasses: Record<Project["status"], string> = {
+  "Not Started": "bg-gray-100 text-gray-800",
+  Started: "bg-blue-100 text-blue-800",
+  InProgress: "bg-yellow-100 text-yellow-800",
+  Canceled: "bg-red-100 text-red-800",
+  Onhold: "bg-amber-100 text-amber-800",
+  Completed: "bg-green-100 text-green-800",
+};
+
 const ProjectTable: React.FC<ProjectTableProps> = ({
   projects,
   isLoading = false,
@@ -63,7 +80,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
         dropdownRef.current &&
         !dropdownRef.current.contains(event.target as Node)
       ) {
-        // no-op, headlessui handles click outside
+        // headlessui handles outside clicks
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -116,6 +133,9 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                 PROJECTS
               </th>
               <th className="border border-gray-200 pl-5 pr-7 py-3 text-left text-sm font-medium text-gray-50">
+                Priority
+              </th>
+              <th className="border border-gray-200 pl-5 pr-7 py-3 text-left text-sm font-medium text-gray-50">
                 Start Date
               </th>
               <th className="border border-gray-200 pl-5 pr-7 py-3 text-left text-sm font-medium text-gray-50">
@@ -160,6 +180,15 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                       </Link>
                     </td>
                     <td className="border border-gray-200 pl-5 pr-7 py-2">
+                      <span
+                        className={`px-2 py-1 rounded-full text-sm font-medium ${
+                          priorityBadgeClasses[project.priority]
+                        }`}
+                      >
+                        {project.priority}
+                      </span>
+                    </td>
+                    <td className="border border-gray-200 pl-5 pr-7 py-2">
                       {formatDate(project.start_date)}
                     </td>
                     <td className="border border-gray-200 pl-5 pr-7 py-2">
@@ -169,8 +198,13 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                       {getDateDuration(project.start_date, project.end_date)}
                     </td>
                     <td className="border border-gray-200 pl-5 pr-7 py-2">
-                      <span className="badge bg-label-secondary">
-                        {project.status}
+                      <span
+                        className={`px-2 py-1 rounded-full text-sm font-medium ${
+                          statusBadgeClasses[project.status]
+                        }`}
+                      >
+                        {" "}
+                        {project.status}{" "}
                       </span>
                     </td>
                     <td className="border border-gray-200 pl-5 pr-7 py-2 relative w-32">
@@ -261,7 +295,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                   {expandedProjectId === project.id && (
                     <tr>
                       <td
-                        colSpan={7}
+                        colSpan={8}
                         className="border border-gray-200 pl-5 pr-7 py-2 bg-gray-50"
                       >
                         <TaskTable
@@ -277,7 +311,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
             ) : (
               <tr>
                 <td
-                  colSpan={7}
+                  colSpan={8}
                   className="border border-gray-200 pl-5 pr-7 py-2 text-center"
                 >
                   No projects found
