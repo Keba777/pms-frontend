@@ -3,7 +3,7 @@ import { ChevronDown, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "react-toastify";
-import { Menu } from "@headlessui/react";
+import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 
 import { Project, UpdateProjectInput } from "@/types/project";
 import { formatDate, getDateDuration } from "@/utils/helper";
@@ -13,7 +13,6 @@ import ProjectTableSkeleton from "./ProjectTableSkeleton";
 import ConfirmModal from "../ui/ConfirmModal";
 import EditProjectForm from "../forms/EditProjectForm";
 
-import { usePermissionsStore } from "@/store/permissionsStore";
 import { useDeleteProject, useUpdateProject } from "@/hooks/useProjects";
 import { useUsers } from "@/hooks/useUsers";
 import { useTags } from "@/hooks/useTags";
@@ -62,12 +61,6 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
     null
   );
 
-  // Permissions
-  const hasPermission = usePermissionsStore((state) => state.hasPermission);
-  const canView = hasPermission("view projects");
-  const canEdit = hasPermission("edit projects");
-  const canDelete = hasPermission("delete projects");
-
   const { data: users } = useUsers();
   const { data: tags } = useTags();
   // Mutations
@@ -104,11 +97,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
   };
 
   const handleView = (id: string) => {
-    if (canView) {
-      router.push(`/projects/${id}`);
-    } else {
-      toast.error("You do not have permission to view this project.");
-    }
+    router.push(`/projects/${id}`);
   };
 
   const handleEditSubmit = (data: UpdateProjectInput) => {
@@ -207,34 +196,30 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                         {project.status}{" "}
                       </span>
                     </td>
-                    <td className="border border-gray-200 pl-5 pr-7 py-2 relative w-32">
+                    <td className="border border-gray-200  pl-5 pr-7 py-2 relative w-32">
                       <Menu
                         as="div"
                         className="relative inline-block text-left"
                       >
-                        <div>
-                          <Menu.Button className="flex items-center justify-between gap-1 px-3 py-1 bg-white text-cyan-700 border border-cyan-700 hover:bg-gray-100 rounded w-full">
-                            <span>Actions</span>
-                            <ChevronDown className="w-4 h-4 ml-2" />
-                          </Menu.Button>
-                        </div>
+                        <MenuButton className="flex items-center gap-1 px-3 py-1 text-sm bg-cyan-700 text-white rounded hover:bg-cyan-800">
+                          Action <ChevronDown className="w-4 h-4" />
+                        </MenuButton>
 
-                        <Menu.Items className="absolute left-0 mt-2 w-full origin-top-left bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow-lg focus:outline-none z-50">
+                        <MenuItems className="absolute left-0 mt-2 w-full origin-top-left bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow-lg focus:outline-none z-50">
                           <div className="py-1">
-                            <Menu.Item>
+                            <MenuItem>
                               {({ active }) => (
                                 <button
                                   onClick={() => handleView(project.id)}
                                   className={`${
                                     active ? "bg-gray-100" : ""
                                   } w-full text-left px-3 py-2 text-sm text-gray-700 disabled:opacity-50"`}
-                                  disabled={!canView}
                                 >
                                   View
                                 </button>
                               )}
-                            </Menu.Item>
-                            <Menu.Item>
+                            </MenuItem>
+                            <MenuItem>
                               {({ active }) => (
                                 <button
                                   onClick={() => {
@@ -249,13 +234,12 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                                   className={`${
                                     active ? "bg-gray-100" : ""
                                   } w-full text-left px-3 py-2 text-sm text-gray-700 disabled:opacity-50"`}
-                                  disabled={!canEdit}
                                 >
                                   Edit
                                 </button>
                               )}
-                            </Menu.Item>
-                            <Menu.Item>
+                            </MenuItem>
+                            <MenuItem>
                               {({ active }) => (
                                 <button
                                   onClick={() =>
@@ -267,14 +251,26 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                                   className={`${
                                     active ? "bg-gray-100" : ""
                                   } w-full text-left px-3 py-2 text-sm text-red-600 disabled:opacity-50"`}
-                                  disabled={!canDelete}
                                 >
                                   Delete
                                 </button>
                               )}
-                            </Menu.Item>
+                            </MenuItem>
+
+                            <MenuItem>
+                              {({ active }) => (
+                                <button
+                                  onClick={() => console.log("Manage clicked")}
+                                  className={`${
+                                    active ? "bg-gray-100" : ""
+                                  } w-full text-left px-3 py-2 text-sm text-gray-700 disabled:opacity-50"`}
+                                >
+                                  Manage
+                                </button>
+                              )}
+                            </MenuItem>
                           </div>
-                        </Menu.Items>
+                        </MenuItems>
                       </Menu>
 
                       {showForm && projectToEdit && (

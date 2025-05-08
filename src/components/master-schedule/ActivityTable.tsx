@@ -11,7 +11,6 @@ import { useRouter } from "next/navigation";
 import { useDeleteActivity, useUpdateActivity } from "@/hooks/useActivities";
 import Link from "next/link";
 import { formatDate, getDateDuration } from "@/utils/helper";
-import { usePermissionsStore } from "@/store/permissionsStore";
 
 interface ActivityTableProps {
   taskId: string;
@@ -35,13 +34,6 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
     null
   );
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Permission checks via the permissions store.
-  const hasPermission = usePermissionsStore((state) => state.hasPermission);
-  const canView = hasPermission("view activities");
-  const canEdit = hasPermission("edit activities");
-  const canDelete = hasPermission("delete activities");
-  const canCreate = hasPermission("create activities");
 
   // Close dropdown on click outside.
   useEffect(() => {
@@ -79,11 +71,7 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
   };
 
   const handleViewActivity = (activityId: string) => {
-    if (canView) {
-      router.push(`/activities/${activityId}`);
-    } else {
-      alert("You do not have permission to view this activity.");
-    }
+    router.push(`/activities/${activityId}`);
   };
 
   const handleEditSubmit = (data: UpdateActivityInput) => {
@@ -104,17 +92,9 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
         </div>
         <button
           onClick={() => {
-            if (canCreate) {
-              setShowForm(true);
-            } else {
-              alert("You do not have permission to create activities.");
-            }
+            setShowForm(true);
           }}
           className="px-4 py-2 bg-emerald-700 text-white rounded hover:bg-emerald-800 disabled:opacity-50"
-          disabled={!canCreate}
-          title={
-            !canCreate ? "You do not have permission to create activities" : ""
-          }
         >
           Create Activity
         </button>
@@ -224,7 +204,7 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
                             : activity.id
                         );
                       }}
-                      className="flex items-center justify-between gap-1 px-3 py-1 bg-white text-emerald-700 border border-emerald-700 hover:bg-gray-100 rounded w-full"
+                      className="flex items-center justify-between gap-1 px-3 py-1 bg-emerald-700 text-white border border-gray-100 hover:bg-emerald-800 rounded w-full"
                     >
                       <span>Actions</span>
                       <ChevronDown className="w-4 h-4 ml-2" />
@@ -240,12 +220,6 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
                             handleViewActivity(activity.id);
                           }}
                           className="w-full text-left px-3 py-2 hover:bg-gray-100 disabled:opacity-50"
-                          disabled={!canView}
-                          title={
-                            !canView
-                              ? "You do not have permission to view activities"
-                              : ""
-                          }
                         >
                           View
                         </button>
@@ -262,12 +236,6 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
                             setShowEditForm(true);
                           }}
                           className="w-full text-left px-3 py-2 hover:bg-gray-100 disabled:opacity-50"
-                          disabled={!canEdit}
-                          title={
-                            !canEdit
-                              ? "You do not have permission to edit activities"
-                              : ""
-                          }
                         >
                           Edit
                         </button>
@@ -277,14 +245,16 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
                             handleDeleteActivityClick(activity.id);
                           }}
                           className="w-full text-left px-3 py-2 text-red-600 hover:bg-gray-100 disabled:opacity-50"
-                          disabled={!canDelete}
-                          title={
-                            !canDelete
-                              ? "You do not have permission to delete activities"
-                              : ""
-                          }
                         >
                           Delete
+                        </button>
+                        <button
+                          onClick={() => {
+                            console.log("Manage clicked");
+                          }}
+                          className="w-full text-left px-3 py-2 hover:bg-gray-100 disabled:opacity-50"
+                        >
+                          Manage
                         </button>
                       </div>
                     )}

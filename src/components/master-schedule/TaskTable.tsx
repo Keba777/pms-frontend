@@ -13,7 +13,6 @@ import { useDeleteTask, useUpdateTask } from "@/hooks/useTasks";
 import { useUsers } from "@/hooks/useUsers";
 import Link from "next/link";
 import { formatDate, getDateDuration } from "@/utils/helper";
-import { usePermissionsStore } from "@/store/permissionsStore";
 
 interface TaskTableProps {
   tasks: Task[];
@@ -49,12 +48,6 @@ const TaskTable: React.FC<TaskTableProps> = ({
   const { mutate: deleteTask } = useDeleteTask();
   const { mutate: updateTask } = useUpdateTask();
   const { data: users } = useUsers();
-
-  const hasPermission = usePermissionsStore((state) => state.hasPermission);
-  const canView = hasPermission("view tasks");
-  const canEdit = hasPermission("edit tasks");
-  const canDelete = hasPermission("delete tasks");
-  const canCreate = hasPermission("create tasks");
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -95,11 +88,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
   };
 
   const handleView = (id: string) => {
-    if (canView) {
-      router.push(`/tasks/${id}`);
-    } else {
-      toast.error("You do not have permission to view this task.");
-    }
+    router.push(`/tasks/${id}`);
   };
 
   const handleEditSubmit = (data: UpdateTaskInput) => {
@@ -125,11 +114,9 @@ const TaskTable: React.FC<TaskTableProps> = ({
           </div>
           <button
             onClick={() => {
-              if (canCreate) setShowCreateForm(true);
-              else toast.error("You do not have permission to create tasks.");
+              setShowCreateForm(true);
             }}
             className="px-4 py-2 bg-teal-700 text-white rounded hover:bg-teal-800 disabled:opacity-50"
-            disabled={!canCreate}
           >
             Create Task
           </button>
@@ -243,7 +230,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
                               dropdownTaskId === task.id ? null : task.id
                             );
                           }}
-                          className="flex items-center justify-between gap-1 px-3 py-1 bg-white text-teal-700 border border-teal-700 hover:bg-gray-100 rounded w-full"
+                          className="flex items-center justify-between gap-1 px-3 py-1 bg-teal-700 text-white border border-gray-100 hover:bg-teal-800 rounded w-full"
                         >
                           <span>Actions</span>
                           <ChevronDown className="w-4 h-4 ml-2" />
@@ -259,7 +246,6 @@ const TaskTable: React.FC<TaskTableProps> = ({
                                 handleView(task.id);
                               }}
                               className="w-full text-left px-3 py-2 hover:bg-gray-100 disabled:opacity-50"
-                              disabled={!canView}
                             >
                               View
                             </button>
@@ -275,7 +261,6 @@ const TaskTable: React.FC<TaskTableProps> = ({
                                 setShowEditForm(true);
                               }}
                               className="w-full text-left px-3 py-2 hover:bg-gray-100 disabled:opacity-50"
-                              disabled={!canEdit}
                             >
                               Edit
                             </button>
@@ -285,9 +270,16 @@ const TaskTable: React.FC<TaskTableProps> = ({
                                 handleDeleteClick(task.id);
                               }}
                               className="w-full text-left px-3 py-2 text-red-600 hover:bg-gray-100 disabled:opacity-50"
-                              disabled={!canDelete}
                             >
                               Delete
+                            </button>
+                            <button
+                              onClick={() => {
+                                console.log("Manage clicked");
+                              }}
+                              className="w-full text-left px-3 py-2 hover:bg-gray-100 disabled:opacity-50"
+                            >
+                              Manage
                             </button>
                           </div>
                         )}
