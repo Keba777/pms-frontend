@@ -1,9 +1,18 @@
 "use client";
 
-import { useForm } from "react-hook-form";
-import { useState } from "react";
+import Image from "next/image";
+import { useForm, SubmitHandler } from "react-hook-form";
+import { useState, useEffect } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { useLogin } from "@/hooks/useAuth";
 import { LoginCredential } from "@/types/user";
+
+// Public folder image paths
+const images: string[] = [
+  "/images/IMG-1.jpg",
+  "/images/IMG-2.jpg",
+  "/images/IMG-3.jpg",
+];
 
 export default function LoginPage() {
   const {
@@ -12,62 +21,121 @@ export default function LoginPage() {
     formState: { errors },
   } = useForm<LoginCredential>();
 
-  const [showPassword, setShowPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [currentIdx, setCurrentIdx] = useState<number>(0);
   const loginMutation = useLogin();
 
-  const onSubmit = (data: LoginCredential) => {
-    if (loginMutation.isPending) return; // Prevent submitting while the mutation is loading
-    loginMutation.mutate(data); // Trigger the login mutation
+  const onSubmit: SubmitHandler<LoginCredential> = (data) => {
+    if (loginMutation.isPending) return;
+    loginMutation.mutate(data);
   };
 
+  useEffect(() => {
+    const interval = setInterval(
+      () => setCurrentIdx((prev) => (prev + 1) % images.length),
+      5000
+    );
+    return () => clearInterval(interval);
+  }, []);
+
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100">
-      <div className="w-full max-w-md bg-white p-6 rounded-lg shadow-lg">
-        <h2 className="font-bold mb-6">Sign into your account</h2>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div>
-            <label className="block font-medium text-xs mb-1">EMAIL</label>
-            <input
-              type="email"
-              {...register("email", { required: "Email is required" })}
-              className="w-full p-2 border rounded-md focus:outline-none focus:ring focus:ring-blue-300"
-            />
-            {errors.email && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.email.message}
-              </p>
-            )}
-          </div>
+    <div className="min-h-screen flex bg-gray-100">
+      {/* Image Carousel Section */}
+      <div className="hidden md:flex flex-1 relative overflow-hidden min-h-screen">
+        <AnimatePresence>
+          {images.map((src, idx) =>
+            idx === currentIdx ? (
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 1 }}
+                className="absolute inset-0 w-full h-full"
+              >
+                <Image
+                  src={src}
+                  alt={`carousel-${idx}`}
+                  fill
+                  style={{ objectFit: "cover" }}
+                  priority={idx === 0}
+                />
+              </motion.div>
+            ) : null
+          )}
+        </AnimatePresence>
+      </div>
 
-          <div>
-            <label className="block font-medium text-xs mb-1">PASSWORD</label>
-            <div className="flex items-center border rounded-md p-2">
+      {/* Login Form Section */}
+      <div className="flex-1 flex items-center justify-center px-4">
+        <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-lg">
+          <h2 className="text-3xl font-semibold text-center mb-8 text-gray-800">
+            Sign in to your account
+          </h2>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            {/* Email Field */}
+            <div>
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Email
+              </label>
               <input
-                type={showPassword ? "text" : "password"}
-                {...register("password", { required: "Password is required" })}
-                className="w-full focus:outline-none"
+                id="email"
+                type="email"
+                {...register("email", { required: "Email is required" })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
               />
-              <input
-                type="checkbox"
-                className="ml-2"
-                onChange={() => setShowPassword(!showPassword)}
-              />
+              {errors.email && (
+                <p className="text-red-600 text-sm mt-1">
+                  {errors.email.message}
+                </p>
+              )}
             </div>
-            {errors.password && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.password.message}
-              </p>
-            )}
-          </div>
 
-          <button
-            type="submit"
-            className="w-full bg-cyan-700 text-white p-2 rounded-md hover:bg-cyan-800"
-            disabled={loginMutation.isPending} // Disable button during mutation
-          >
-            {loginMutation.isPending ? "Logging in..." : "Login"}
-          </button>
-        </form>
+            {/* Password Field */}
+            <div>
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Password
+              </label>
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  {...register("password", {
+                    required: "Password is required",
+                  })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-600"
+                >
+                  {showPassword ? "Hide" : "Show"}
+                </button>
+              </div>
+              {errors.password && (
+                <p className="text-red-600 text-sm mt-1">
+                  {errors.password.message}
+                </p>
+              )}
+            </div>
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              className="w-full py-3 rounded-lg bg-cyan-600 text-white font-semibold hover:bg-cyan-700 transition-colors"
+              disabled={loginMutation.isPending}
+            >
+              {loginMutation.isPending ? "Logging in..." : "Login"}
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );

@@ -1,12 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import {
-  ArrowRight,
-  ClipboardList,
-  Home,
-  ChevronRight,
-} from "lucide-react";
+import { ArrowRight, ClipboardList, Home, ChevronRight } from "lucide-react";
 import { useActivity } from "@/hooks/useActivities";
 import { useTask } from "@/hooks/useTasks";
 import { useProject } from "@/hooks/useProjects";
@@ -30,7 +25,6 @@ interface ClientActivityResourcesPageProps {
   activityId: string;
 }
 
-// Generic option type for react-select
 interface SelectOption {
   value: string;
   label: string;
@@ -41,6 +35,10 @@ export default function ClientActivityResourcesPage({
 }: ClientActivityResourcesPageProps) {
   const router = useRouter();
 
+  // Step state: 1=select resources, 2=select department
+  const [step, setStep] = useState<1 | 2>(1);
+
+  // Fetch activity, task, project
   const { data: activity, isLoading: isActivityLoading } =
     useActivity(activityId);
   const taskId = activity?.task_id ?? "";
@@ -48,11 +46,7 @@ export default function ClientActivityResourcesPage({
   const projectId = task?.project_id ?? "";
   const { data: project, isLoading: isProjectLoading } = useProject(projectId);
 
-  // Auth
-  const user = useAuthStore((state) => state.user);
-  const userId = user?.id ?? "";
-
-  // Fetch departments
+  // Departments
   const {
     data: departments = [],
     isLoading: isDeptLoading,
@@ -66,7 +60,7 @@ export default function ClientActivityResourcesPage({
     departments[0]?.id || ""
   );
 
-  // Fetch all resources
+  // Resources
   const { data: materials = [], isLoading: isMaterialsLoading } =
     useMaterials();
   const { data: equipments = [], isLoading: isEquipmentsLoading } =
@@ -82,7 +76,7 @@ export default function ClientActivityResourcesPage({
     isEquipmentsLoading ||
     isLaborsLoading;
 
-  // Selection and quantities
+  // Selection
   const [selMats, setSelMats] = useState<string[]>([]);
   const [matCounts, setMatCounts] = useState<Record<string, number>>({});
   const [selEquips, setSelEquips] = useState<string[]>([]);
@@ -100,8 +94,9 @@ export default function ClientActivityResourcesPage({
 
   const handleCount =
     (setter: React.Dispatch<React.SetStateAction<Record<string, number>>>) =>
-    (id: string, count: number) =>
+    (id: string, count: number) => {
       setter((prev) => ({ ...prev, [id]: count }));
+    };
 
   // Request mutation
   const { mutate: createReq, isPending: isReqLoading } = useCreateRequest();
@@ -109,7 +104,7 @@ export default function ClientActivityResourcesPage({
   const handleRequest = () => {
     if (!activity) return;
     const payload: CreateRequestInput = {
-      userId,
+      userId: useAuthStore.getState().user?.id || "",
       departmentId: selectedDept,
       materialIds: selMats,
       equipmentIds: selEquips,
@@ -121,15 +116,16 @@ export default function ClientActivityResourcesPage({
       activityId: activity.id,
     };
     createReq(payload, {
-      onSuccess: () => {
-        router.push("/resource-requests");
-      },
+      onSuccess: () => router.push("/resource-requests"),
     });
   };
 
-  if (isLoading) {
-    return <LoadingSkeleton />;
-  }
+  // Tab state: 'materials' | 'equipment' | 'labor'
+  const [activeTab, setActiveTab] = useState<
+    "materials" | "equipment" | "labor"
+  >("materials");
+
+  if (isLoading) return <LoadingSkeleton />;
 
   return (
     <div className="p-6">
@@ -153,12 +149,14 @@ export default function ClientActivityResourcesPage({
         {/* Activity header */}
         <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-cyan-600 to-blue-500 text-white rounded-lg">
           <ClipboardList size={28} />
-          <h2 className="text-2xl font-bold">{activity?.activity_name}</h2>
+          <h2 className="text-2xl font-bold">
+            {activity?.activity_name || "Activity Name Unavailable"}
+          </h2>
         </div>
 
-        {/* Project & Task */}
+        {/* Project & Task Cards */}
         <div className="mt-4 flex flex-col md:flex-row md:gap-10">
-          {project ? (
+          {project && (
             <div className="flex-1 p-4 bg-white shadow rounded-xl">
               <p className="text-cyan-700 font-bold">Project</p>
               <p className="text-gray-800 text-lg font-medium">
@@ -170,11 +168,8 @@ export default function ClientActivityResourcesPage({
                 {formatDate(project.end_date)}
               </div>
             </div>
-          ) : (
-            <p className="text-red-500">Project not found.</p>
           )}
-
-          {task ? (
+          {task && (
             <div className="flex-1 p-4 bg-white shadow rounded-xl">
               <p className="text-blue-700 font-bold">Task</p>
               <p className="text-gray-800 text-lg font-medium">
@@ -186,71 +181,123 @@ export default function ClientActivityResourcesPage({
                 {formatDate(task.end_date)}
               </div>
             </div>
-          ) : (
-            <p className="text-red-500">Task not found.</p>
           )}
         </div>
 
-        {/* Department select */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Department
-          </label>
-          <Select<SelectOption, false, GroupBase<SelectOption>>
-            options={departmentOptions}
-            isLoading={isDeptLoading}
-            value={
-              departmentOptions.find((opt) => opt.value === selectedDept) ||
-              null
-            }
-            onChange={(opt) => setSelectedDept(opt?.value || "")}
-            placeholder="Select Department"
-            className="w-full"
-          />
-          {deptError && (
-            <p className="text-red-500 text-sm mt-1">
-              Error loading departments
-            </p>
-          )}
-        </div>
+        {/* Step 1: Resource Selection */}
+        {step === 1 && (
+          <>
+            {/* Tab Navigation */}
+            <div className="mt-6 border-b border-gray-200">
+              <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+                {(["materials", "equipment", "labor"] as const).map(
+                  (tab: "materials" | "equipment" | "labor") => {
+                    const label = tab.charAt(0).toUpperCase() + tab.slice(1);
+                    return (
+                      <button
+                        key={tab}
+                        onClick={() => setActiveTab(tab)}
+                        className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm focus:outline-none ${
+                          activeTab === tab
+                            ? "border-cyan-500 text-cyan-600"
+                            : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    );
+                  }
+                )}
+              </nav>
+            </div>
 
-        {/* Tables */}
-        <div className="mt-6 space-y-6">
-          <MaterialsTable
-            materials={materials}
-            selectedIds={selMats}
-            counts={matCounts}
-            onSelect={handleSelect(setSelMats)}
-            onCount={handleCount(setMatCounts)}
-          />
+            {/* Conditional Table Rendering */}
+            <div className="mt-6">
+              {activeTab === "materials" && (
+                <MaterialsTable
+                  materials={materials}
+                  selectedIds={selMats}
+                  counts={matCounts}
+                  onSelect={handleSelect(setSelMats)}
+                  onCount={handleCount(setMatCounts)}
+                />
+              )}
+              {activeTab === "equipment" && (
+                <EquipmentTable
+                  equipment={equipments}
+                  selectedIds={selEquips}
+                  counts={equipCounts}
+                  onSelect={handleSelect(setSelEquips)}
+                  onCount={handleCount(setEquipCounts)}
+                />
+              )}
+              {activeTab === "labor" && (
+                <LaborTable
+                  labor={labors}
+                  selectedIds={selLabors}
+                  counts={laborCounts}
+                  onSelect={handleSelect(setSelLabors)}
+                  onCount={handleCount(setLaborCounts)}
+                />
+              )}
+            </div>
 
-          <EquipmentTable
-            equipment={equipments}
-            selectedIds={selEquips}
-            counts={equipCounts}
-            onSelect={handleSelect(setSelEquips)}
-            onCount={handleCount(setEquipCounts)}
-          />
+            {/* Next Button */}
+            <div className="flex justify-end mt-4">
+              <button
+                onClick={() => setStep(2)}
+                className="px-6 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600"
+              >
+                Next
+              </button>
+            </div>
+          </>
+        )}
 
-          <LaborTable
-            labor={labors}
-            selectedIds={selLabors}
-            counts={laborCounts}
-            onSelect={handleSelect(setSelLabors)}
-            onCount={handleCount(setLaborCounts)}
-          />
-        </div>
+        {/* Step 2: Department + Request */}
+        {step === 2 && (
+          <>
+            {/* Department select */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Department
+              </label>
+              <Select<SelectOption, false, GroupBase<SelectOption>>
+                options={departmentOptions}
+                isLoading={isDeptLoading}
+                value={
+                  departmentOptions.find((opt) => opt.value === selectedDept) ||
+                  null
+                }
+                onChange={(opt) => setSelectedDept(opt?.value || "")}
+                placeholder="Select Department"
+                className="w-full"
+              />
+              {deptError && (
+                <p className="text-red-500 text-sm mt-1">
+                  Error loading departments
+                </p>
+              )}
+            </div>
 
-        {/* Request Button */}
-        <div className="flex justify-end mt-4">
-          <button
-            disabled={isReqLoading}
-            onClick={handleRequest}
-            className="px-6 py-2 bg-cyan-700 text-white rounded-md hover:bg-cyan-800 disabled:opacity-50"
-          >
-            {isReqLoading ? "Requesting…" : "Request"}
-          </button>
-        </div>
+            {/* Back & Request Buttons */}
+            <div className="flex justify-between mt-4">
+              <button
+                onClick={() => setStep(1)}
+                className="px-6 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
+              >
+                Back
+              </button>
+              <button
+                disabled={isReqLoading}
+                onClick={handleRequest}
+                className="px-6 py-2 bg-cyan-700 text-white rounded-md hover:bg-cyan-800 disabled:opacity-50"
+              >
+                {isReqLoading ? "Requesting…" : "Request"}
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

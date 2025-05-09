@@ -14,7 +14,6 @@ import { formatDate, getDuration } from "@/utils/helper";
 import EditActivityForm from "../forms/EditActivityForm";
 import ConfirmModal from "../ui/ConfirmModal";
 import ActivityTableSkeleton from "./ActivityTableSkeleton";
-import { usePermissionsStore } from "@/store/permissionsStore";
 import Link from "next/link";
 import RoleName from "../common/RoleName";
 
@@ -31,12 +30,6 @@ const DataTableActivities = () => {
   );
 
   const router = useRouter();
-
-  // Retrieve permission checking from permissions store.
-  const hasPermission = usePermissionsStore((state) => state.hasPermission);
-  const canView = hasPermission("view activities");
-  const canUpdate = hasPermission("edit activities");
-  const canDelete = hasPermission("delete activities");
 
   if (isLoading) {
     return <ActivityTableSkeleton />;
@@ -59,11 +52,7 @@ const DataTableActivities = () => {
   };
 
   const handleViewActivity = (activityId: string) => {
-    if (canView) {
-      router.push(`/activities/${activityId}`);
-    } else {
-      alert("You do not have permission to view this activity.");
-    }
+    router.push(`/activities/${activityId}`);
   };
 
   const handleEditSubmit = (data: UpdateActivityInput) => {
@@ -231,27 +220,28 @@ const DataTableActivities = () => {
                                   focus ? "bg-blue-100" : ""
                                 }`}
                                 onClick={() => {
-                                  if (canUpdate) {
-                                    setActivityToEdit({
-                                      ...activity,
-                                      assignedUsers:
-                                        activity.assignedUsers?.map(
-                                          (user) => user.id
-                                        ),
-                                    });
-                                    setShowEditForm(true);
-                                  } else {
-                                    alert(
-                                      "You do not have permission to update activities."
-                                    );
-                                  }
+                                  handleViewActivity(activity.id);
                                 }}
-                                disabled={!canUpdate}
-                                title={
-                                  !canUpdate
-                                    ? "You do not have permission to update activities"
-                                    : ""
-                                }
+                              >
+                                Quick View
+                              </button>
+                            )}
+                          </MenuItem>
+                          <MenuItem>
+                            {({ focus }) => (
+                              <button
+                                className={`block w-full px-4 py-2 text-left whitespace-nowrap ${
+                                  focus ? "bg-blue-100" : ""
+                                }`}
+                                onClick={() => {
+                                  setActivityToEdit({
+                                    ...activity,
+                                    assignedUsers: activity.assignedUsers?.map(
+                                      (user) => user.id
+                                    ),
+                                  });
+                                  setShowEditForm(true);
+                                }}
                               >
                                 Update
                               </button>
@@ -264,25 +254,14 @@ const DataTableActivities = () => {
                                   focus ? "bg-blue-100" : ""
                                 }`}
                                 onClick={() => {
-                                  if (canDelete) {
-                                    handleDeleteActivityClick(activity.id);
-                                  } else {
-                                    alert(
-                                      "You do not have permission to delete activities."
-                                    );
-                                  }
+                                  handleDeleteActivityClick(activity.id);
                                 }}
-                                disabled={!canDelete}
-                                title={
-                                  !canDelete
-                                    ? "You do not have permission to delete activities"
-                                    : ""
-                                }
                               >
                                 Delete
                               </button>
                             )}
                           </MenuItem>
+
                           <MenuItem>
                             {({ focus }) => (
                               <button
@@ -290,22 +269,10 @@ const DataTableActivities = () => {
                                   focus ? "bg-blue-100" : ""
                                 }`}
                                 onClick={() => {
-                                  if (canView) {
-                                    handleViewActivity(activity.id);
-                                  } else {
-                                    alert(
-                                      "You do not have permission to view activities."
-                                    );
-                                  }
+                                  console.log("Manage clicked");
                                 }}
-                                disabled={!canView}
-                                title={
-                                  !canView
-                                    ? "You do not have permission to view activities"
-                                    : ""
-                                }
                               >
-                                Quick View
+                                Manage
                               </button>
                             )}
                           </MenuItem>
