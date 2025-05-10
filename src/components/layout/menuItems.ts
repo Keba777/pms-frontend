@@ -109,6 +109,13 @@ const menuItems = [
     badge: 5,
   },
   {
+    title: "Resource Allocation",
+    link: "/resource-allocation",
+    icon: ListCheck,
+    iconColor: "text-blue-500",
+    badge: 0,
+  },
+  {
     title: "My Warehouse",
     link: "/mywarehouse",
     icon: ListCheck,
@@ -160,12 +167,7 @@ const menuItems = [
     iconColor: "text-green-500",
     badge: 0,
   },
-  {
-    title: "Clients",
-    link: "/clients",
-    icon: Users,
-    iconColor: "text-yellow-500",
-  },
+
   // { title: "Sites", link: "/sites", icon: Users, iconColor: "text-yellow-500" },
   // {
   //   title: "Contracts",
@@ -188,13 +190,7 @@ const menuItems = [
   //   icon: DollarSign,
   //   iconColor: "text-yellow-500",
   // },
-  {
-    title: "Resource Allocation",
-    link: "/resource-allocation",
-    icon: ListCheck,
-    iconColor: "text-blue-500",
-    badge: 0,
-  },
+
   // {
   //   title: "Inventories",
   //   icon: BoxIcon,
@@ -333,6 +329,12 @@ const menuItems = [
         link: "/status/manage",
         icon: Grid,
         iconColor: "text-gray-500",
+      },
+      {
+        title: "Clients",
+        link: "/clients",
+        icon: Users,
+        iconColor: "text-yellow-500",
       },
       { title: "Sites", link: "/sites", icon: Users, iconColor: "text-yellow-500" },
       { title: "Languages", link: "/settings/languages", icon: Languages, iconColor: "text-cyan-600" },

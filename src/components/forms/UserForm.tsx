@@ -26,7 +26,7 @@ const UserForm: React.FC<UserFormProps> = ({ onClose }) => {
     formState: { errors },
   } = useForm<CreateUserInput>();
 
-  const { mutate: createUser, isPending } = useRegister()
+  const { mutate: createUser, isPending } = useRegister();
 
   const {
     data: departments,
@@ -72,7 +72,7 @@ const UserForm: React.FC<UserFormProps> = ({ onClose }) => {
         <h3 className="text-lg font-semibold text-gray-800">Create User</h3>
         <button
           type="button"
-          className="text-gray-500 hover:text-gray-700"
+          className="text-3xl text-red-500 hover:text-red-600"
           onClick={onClose}
         >
           &times;

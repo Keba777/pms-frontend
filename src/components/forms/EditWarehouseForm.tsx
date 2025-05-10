@@ -36,8 +36,8 @@ const EditWarehouseForm: React.FC<EditWarehouseFormProps> = ({
         <h3 className="text-lg font-semibold text-gray-800">Edit Warehouse</h3>
         <button
           type="button"
+          className="text-3xl text-red-500 hover:text-red-600"
           onClick={onClose}
-          className="text-gray-500 hover:text-gray-700"
         >
           &times;
         </button>

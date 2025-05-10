@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import { useDeleteActivity, useUpdateActivity } from "@/hooks/useActivities";
 import Link from "next/link";
 import { formatDate, getDateDuration } from "@/utils/helper";
+import ManageActivityForm from "../forms/ManageActivityForm";
 
 interface ActivityTableProps {
   taskId: string;
@@ -24,6 +25,7 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
 
   const [showForm, setShowForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
+  const [showManageForm, setShowManageForm] = useState(false);
   const [activityToEdit, setActivityToEdit] =
     useState<UpdateActivityInput | null>(null);
   const [dropdownActivityId, setDropdownActivityId] = useState<string | null>(
@@ -79,6 +81,11 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
     setShowEditForm(false);
   };
 
+  const handleManageProgress = (data: UpdateActivityInput) => {
+    updateActivity(data);
+    setShowEditForm(false);
+  };
+
   return (
     <div className="p-4 bg-gray-50 border border-gray-200 rounded">
       {/* Header for Activities */}
@@ -119,6 +126,18 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
             <EditActivityForm
               onClose={() => setShowEditForm(false)}
               onSubmit={handleEditSubmit}
+              activity={activityToEdit}
+            />
+          </div>
+        </div>
+      )}
+
+      {showManageForm && activityToEdit && (
+        <div className="modal-overlay fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="modal-content bg-white rounded-lg shadow-xl p-6">
+            <ManageActivityForm
+              onClose={() => setShowManageForm(false)}
+              onSubmit={handleManageProgress}
               activity={activityToEdit}
             />
           </div>
@@ -250,7 +269,8 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
                         </button>
                         <button
                           onClick={() => {
-                            console.log("Manage clicked");
+                            setDropdownActivityId(null);
+                            setShowManageForm(true);
                           }}
                           className="w-full text-left px-3 py-2 hover:bg-gray-100 disabled:opacity-50"
                         >

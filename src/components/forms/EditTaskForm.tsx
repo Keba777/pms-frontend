@@ -67,7 +67,7 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({
         <h3 className="text-lg font-semibold text-gray-800">Edit Task</h3>
         <button
           type="button"
-          className="text-gray-500 hover:text-gray-700"
+          className="text-3xl text-red-500 hover:text-red-600"
           onClick={onClose}
         >
           &times;

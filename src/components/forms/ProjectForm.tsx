@@ -185,8 +185,8 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
         <h3 className="text-lg font-semibold text-gray-800">Create Project</h3>
         <button
           type="button"
-          className="text-gray-500 hover:text-gray-700"
-          onClick={onClose} // Close the modal
+          className="text-3xl text-red-500 hover:text-red-600"
+          onClick={onClose}
         >
           &times;
         </button>
@@ -433,22 +433,31 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Contractor
           </label>
-          <input type="text"  placeholder="Enter Contactor"
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"/>
+          <input
+            type="text"
+            placeholder="Enter Contactor"
+            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+          />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Sub-Contractor
           </label>
-          <input type="text"  placeholder="Enter Sub-Contactor"
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"/>
+          <input
+            type="text"
+            placeholder="Enter Sub-Contactor"
+            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+          />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Consultant
           </label>
-          <input type="text"  placeholder="Enter Consultant"
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"/>
+          <input
+            type="text"
+            placeholder="Enter Consultant"
+            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+          />
         </div>
 
         {/* Tags Section */}

@@ -39,7 +39,7 @@ const WarehouseForm: React.FC<WarehouseFormProps> = ({ onClose }) => {
         </h3>
         <button
           type="button"
-          className="text-gray-500 hover:text-gray-700"
+          className="text-3xl text-red-500 hover:text-red-600"
           onClick={onClose}
         >
           &times;

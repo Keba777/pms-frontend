@@ -91,7 +91,7 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
     createTask(submitData, {
       onSuccess: () => {
         onClose(); // Close the modal on success
-        // window.location.reload(); 
+        // window.location.reload();
       },
     });
   };
@@ -182,7 +182,7 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
         <h3 className="text-xl font-semibold text-gray-800">Create Task</h3>
         <button
           type="button"
-          className="text-gray-500 hover:text-gray-700"
+          className="text-3xl text-red-500 hover:text-red-600"
           onClick={onClose}
         >
           &times;

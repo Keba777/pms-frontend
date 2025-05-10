@@ -52,8 +52,8 @@ const EditActivityForm: React.FC<{
         <h3 className="text-lg font-semibold text-gray-800">Edit Activity</h3>
         <button
           type="button"
+          className="text-3xl text-red-500 hover:text-red-600"
           onClick={onClose}
-          className="text-gray-500 hover:text-gray-700"
         >
           &times;
         </button>
@@ -187,7 +187,7 @@ const EditActivityForm: React.FC<{
       )}
 
       {/* Progress */}
-      <div className="flex items-center space-x-4">
+      {/* <div className="flex items-center space-x-4">
         <label className="w-32 text-sm font-medium text-gray-700">
           Progress (%):
         </label>
@@ -209,7 +209,7 @@ const EditActivityForm: React.FC<{
             </div>
           )}
         />
-      </div>
+      </div> */}
 
       {/* Status */}
       <div className="flex items-center space-x-4">

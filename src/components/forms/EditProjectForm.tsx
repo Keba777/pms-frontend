@@ -71,7 +71,7 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
         <h3 className="text-lg font-semibold text-gray-800">Edit Project</h3>
         <button
           type="button"
-          className="text-gray-500 hover:text-gray-700"
+          className="text-3xl text-red-500 hover:text-red-600"
           onClick={onClose}
         >
           &times;
@@ -96,7 +96,7 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
 
         {/* Status, Priority, and Favourite */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div>
+          <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Priority
             </label>
@@ -148,8 +148,6 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
             )}
           </div>
 
-         
-
           <div className="flex items-center mt-5">
             <label className="flex items-center text-sm font-medium text-gray-700">
               <input
@@ -196,8 +194,6 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
               {...register("progress")}
               className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
             />
-
-            
           </div>
 
           <div>
