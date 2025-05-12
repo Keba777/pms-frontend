@@ -1,7 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ArrowRight, ClipboardList, Home, ChevronRight } from "lucide-react";
+import Select from "react-select";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useActivity } from "@/hooks/useActivities";
 import { useTask } from "@/hooks/useTasks";
 import { useProject } from "@/hooks/useProjects";
@@ -9,121 +12,168 @@ import { useMaterials } from "@/hooks/useMaterials";
 import { useEquipments } from "@/hooks/useEquipments";
 import { useLabors } from "@/hooks/useLabors";
 import { useDepartments } from "@/hooks/useDepartments";
-import Select, { GroupBase } from "react-select";
+import { useSites } from "@/hooks/useSites";
+import { useCreateRequest } from "@/hooks/useRequests";
+import { useAuthStore } from "@/store/authStore";
 import MaterialsTable from "@/components/resources/MaterialsTable";
 import EquipmentTable from "@/components/resources/EquipmentTable";
 import LaborTable from "@/components/resources/LaborTable";
 import LoadingSkeleton from "./loading";
 import { formatDate } from "@/utils/helper";
-import Link from "next/link";
 import { CreateRequestInput } from "@/types/request";
-import { useCreateRequest } from "@/hooks/useRequests";
-import { useAuthStore } from "@/store/authStore";
-import { useRouter } from "next/navigation";
 
 interface ClientActivityResourcesPageProps {
   activityId: string;
 }
 
-interface SelectOption {
-  value: string;
-  label: string;
+interface SelectedItem {
+  type: "Material" | "Equipment" | "Labor";
+  id: string;
+  name: string;
+  count: number;
 }
 
 export default function ClientActivityResourcesPage({
   activityId,
 }: ClientActivityResourcesPageProps) {
   const router = useRouter();
-
-  // Step state: 1=select resources, 2=select department
   const [step, setStep] = useState<1 | 2>(1);
 
-  // Fetch activity, task, project
+  // Fetch data hooks
   const { data: activity, isLoading: isActivityLoading } =
     useActivity(activityId);
   const taskId = activity?.task_id ?? "";
   const { data: task, isLoading: isTaskLoading } = useTask(taskId);
   const projectId = task?.project_id ?? "";
   const { data: project, isLoading: isProjectLoading } = useProject(projectId);
-
-  // Departments
-  const {
-    data: departments = [],
-    isLoading: isDeptLoading,
-    error: deptError,
-  } = useDepartments();
-  const departmentOptions: SelectOption[] = departments.map((dep) => ({
-    value: dep.id,
-    label: dep.name,
-  }));
-  const [selectedDept, setSelectedDept] = useState<string>(
-    departments[0]?.id || ""
-  );
-
-  // Resources
+  const { data: departments = [], isLoading: isDeptLoading } = useDepartments();
+  const { data: sites = [], isLoading: isSitesLoading } = useSites();
   const { data: materials = [], isLoading: isMaterialsLoading } =
     useMaterials();
   const { data: equipments = [], isLoading: isEquipmentsLoading } =
     useEquipments();
   const { data: labors = [], isLoading: isLaborsLoading } = useLabors();
 
-  const isLoading =
-    isActivityLoading ||
-    isTaskLoading ||
-    isProjectLoading ||
-    isDeptLoading ||
-    isMaterialsLoading ||
-    isEquipmentsLoading ||
-    isLaborsLoading;
-
-  // Selection
+  // State management
   const [selMats, setSelMats] = useState<string[]>([]);
   const [matCounts, setMatCounts] = useState<Record<string, number>>({});
   const [selEquips, setSelEquips] = useState<string[]>([]);
   const [equipCounts, setEquipCounts] = useState<Record<string, number>>({});
   const [selLabors, setSelLabors] = useState<string[]>([]);
-  const [laborCounts, setLaborCounts] = useState<Record<string, number>>({});
+  const [labCounts, setLabCounts] = useState<Record<string, number>>({});
+  const [selectedDept, setSelectedDept] = useState<string>("");
+  const [selectedSite, setSelectedSite] = useState<string>("");
+  const [activeTab, setActiveTab] = useState<
+    "materials" | "equipment" | "labor"
+  >("materials");
 
+  // Handle selection with default count
   const handleSelect =
-    (setter: React.Dispatch<React.SetStateAction<string[]>>) =>
+    (
+      setSelected: React.Dispatch<React.SetStateAction<string[]>>,
+      setCounts: React.Dispatch<React.SetStateAction<Record<string, number>>>
+    ) =>
     (id: string, checked: boolean) => {
-      setter((prev) =>
+      setSelected((prev) =>
         checked ? [...prev, id] : prev.filter((x) => x !== id)
       );
+      setCounts((prev) => ({ ...prev, [id]: checked ? 1 : 0 }));
     };
 
-  const handleCount =
-    (setter: React.Dispatch<React.SetStateAction<Record<string, number>>>) =>
-    (id: string, count: number) => {
-      setter((prev) => ({ ...prev, [id]: count }));
-    };
+  // Prepare selected items for step 2
+  const selectedItems: SelectedItem[] = [
+    ...selMats.map((id) => ({
+      type: "Material" as const,
+      id,
+      name: materials.find((m) => m.id === id)?.item || "",
+      count: matCounts[id] || 1,
+    })),
+    ...selEquips.map((id) => ({
+      type: "Equipment" as const,
+      id,
+      name: equipments.find((e) => e.id === id)?.item || "",
+      count: equipCounts[id] || 1,
+    })),
+    ...selLabors.map((id) => ({
+      type: "Labor" as const,
+      id,
+      name: labors.find((l) => l.id === id)?.role || "",
+      count: labCounts[id] || 1,
+    })),
+  ];
 
-  // Request mutation
+  // Handle count changes in step 2
+  const handleCountChange = (
+    id: string,
+    type: SelectedItem["type"],
+    value: number
+  ) => {
+    const setters = {
+      Material: setMatCounts,
+      Equipment: setEquipCounts,
+      Labor: setLabCounts,
+    };
+    const numericValue = Math.max(1, Number(value));
+    setters[type]((prev) => ({ ...prev, [id]: numericValue }));
+  };
+
+  // Handle request submission
   const { mutate: createReq, isPending: isReqLoading } = useCreateRequest();
-
   const handleRequest = () => {
     if (!activity) return;
+
+    // Convert counts to numbers
+    const materialCounts = Object.values(matCounts).reduce((a, b) => a + b, 0);
+    const equipmentCounts = Object.values(equipCounts).reduce(
+      (a, b) => a + b,
+      0
+    );
+    const laborCounts = Object.values(labCounts).reduce((a, b) => a + b, 0);
+
     const payload: CreateRequestInput = {
       userId: useAuthStore.getState().user?.id || "",
+      siteId: selectedSite,
       departmentId: selectedDept,
       materialIds: selMats,
       equipmentIds: selEquips,
       laborIds: selLabors,
-      materialCount: selMats.length,
-      equipmentCount: selEquips.length,
-      laborCount: selLabors.length,
+      materialCount: materialCounts,
+      equipmentCount: equipmentCounts,
+      laborCount: laborCounts,
       status: "Pending",
       activityId: activity.id,
     };
+
     createReq(payload, {
       onSuccess: () => router.push("/resource-requests"),
     });
   };
 
-  // Tab state: 'materials' | 'equipment' | 'labor'
-  const [activeTab, setActiveTab] = useState<
-    "materials" | "equipment" | "labor"
-  >("materials");
+  // Set initial site selection
+  useEffect(() => {
+    if (sites.length > 0 && !selectedSite) {
+      setSelectedSite(sites[0].id);
+    }
+  }, [sites, selectedSite]);
+
+  // Set initial department selection
+  useEffect(() => {
+    if (departments.length > 0 && !selectedDept) {
+      setSelectedDept(departments[0].id);
+    }
+  }, [departments, selectedDept]);
+
+  // Loading state
+  const isLoading = [
+    isActivityLoading,
+    isTaskLoading,
+    isProjectLoading,
+    isDeptLoading,
+    isSitesLoading,
+    isMaterialsLoading,
+    isEquipmentsLoading,
+    isLaborsLoading,
+  ].some(Boolean);
 
   if (isLoading) return <LoadingSkeleton />;
 
@@ -187,66 +237,55 @@ export default function ClientActivityResourcesPage({
         {/* Step 1: Resource Selection */}
         {step === 1 && (
           <>
-            {/* Tab Navigation */}
             <div className="mt-6 border-b border-gray-200">
               <nav className="-mb-px flex space-x-8" aria-label="Tabs">
-                {(["materials", "equipment", "labor"] as const).map(
-                  (tab: "materials" | "equipment" | "labor") => {
-                    const label = tab.charAt(0).toUpperCase() + tab.slice(1);
-                    return (
-                      <button
-                        key={tab}
-                        onClick={() => setActiveTab(tab)}
-                        className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm focus:outline-none ${
-                          activeTab === tab
-                            ? "border-cyan-500 text-cyan-600"
-                            : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                        }`}
-                      >
-                        {label}
-                      </button>
-                    );
-                  }
-                )}
+                {["materials", "equipment", "labor"].map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() =>
+                      setActiveTab(tab as "materials" | "equipment" | "labor")
+                    }
+                    className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${
+                      activeTab === tab
+                        ? "border-cyan-500 text-cyan-600"
+                        : "border-transparent text-gray-500 hover:text-gray-700"
+                    }`}
+                  >
+                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                  </button>
+                ))}
               </nav>
             </div>
 
-            {/* Conditional Table Rendering */}
             <div className="mt-6">
               {activeTab === "materials" && (
                 <MaterialsTable
                   materials={materials}
                   selectedIds={selMats}
-                  counts={matCounts}
-                  onSelect={handleSelect(setSelMats)}
-                  onCount={handleCount(setMatCounts)}
+                  onSelect={handleSelect(setSelMats, setMatCounts)}
                 />
               )}
               {activeTab === "equipment" && (
                 <EquipmentTable
                   equipment={equipments}
                   selectedIds={selEquips}
-                  counts={equipCounts}
-                  onSelect={handleSelect(setSelEquips)}
-                  onCount={handleCount(setEquipCounts)}
+                  onSelect={handleSelect(setSelEquips, setEquipCounts)}
                 />
               )}
               {activeTab === "labor" && (
                 <LaborTable
                   labor={labors}
                   selectedIds={selLabors}
-                  counts={laborCounts}
-                  onSelect={handleSelect(setSelLabors)}
-                  onCount={handleCount(setLaborCounts)}
+                  onSelect={handleSelect(setSelLabors, setLabCounts)}
                 />
               )}
             </div>
 
-            {/* Next Button */}
             <div className="flex justify-end mt-4">
               <button
                 onClick={() => setStep(2)}
-                className="px-6 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600"
+                className="px-6 py-2 bg-cyan-700 text-white rounded-md hover:bg-cyan-800"
+                disabled={!selectedItems.length}
               >
                 Next
               </button>
@@ -254,34 +293,94 @@ export default function ClientActivityResourcesPage({
           </>
         )}
 
-        {/* Step 2: Department + Request */}
+        {/* Step 2: Review and Approval */}
         {step === 2 && (
           <>
-            {/* Department select */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Department
-              </label>
-              <Select<SelectOption, false, GroupBase<SelectOption>>
-                options={departmentOptions}
-                isLoading={isDeptLoading}
-                value={
-                  departmentOptions.find((opt) => opt.value === selectedDept) ||
-                  null
-                }
-                onChange={(opt) => setSelectedDept(opt?.value || "")}
-                placeholder="Select Department"
-                className="w-full"
-              />
-              {deptError && (
-                <p className="text-red-500 text-sm mt-1">
-                  Error loading departments
-                </p>
-              )}
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold mb-4">Request Summary</h3>
+              <table className="min-w-full border-collapse border border-gray-200">
+                <thead className="bg-cyan-700 text-white text-center">
+                  <tr>
+                    <th className="border px-3 py-2">Type</th>
+                    <th className="border px-3 py-2">Item</th>
+                    <th className="border px-3 py-2">Required Qty</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {selectedItems.map((item) => (
+                    <tr
+                      key={`${item.type}-${item.id}`}
+                      className="border-b text-center"
+                    >
+                      <td className="border px-3 py-2">{item.type}</td>
+                      <td className="border px-3 py-2">{item.name}</td>
+                      <td className="border px-3 py-2">
+                        <input
+                          type="number"
+                          min="1"
+                          value={item.count}
+                          onChange={(e) =>
+                            handleCountChange(
+                              item.id,
+                              item.type,
+                              parseInt(e.target.value) || 1
+                            )
+                          }
+                          className="w-20 px-2 py-1 border rounded"
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
 
-            {/* Back & Request Buttons */}
-            <div className="flex justify-between mt-4">
+            {/* Site and Department Selection */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div>
+                <label className="block text-sm font-medium mb-2">Site</label>
+                <Select
+                  options={sites.map((s) => ({ value: s.id, label: s.name }))}
+                  value={
+                    sites.find((s) => s.id === selectedSite)
+                      ? {
+                          value: selectedSite,
+                          label: sites.find((s) => s.id === selectedSite)?.name,
+                        }
+                      : null
+                  }
+                  onChange={(option) => setSelectedSite(option?.value || "")}
+                  className="react-select-container"
+                  classNamePrefix="react-select"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Department
+                </label>
+                <Select
+                  options={departments.map((d) => ({
+                    value: d.id,
+                    label: d.name,
+                  }))}
+                  value={
+                    departments.find((d) => d.id === selectedDept)
+                      ? {
+                          value: selectedDept,
+                          label: departments.find((d) => d.id === selectedDept)
+                            ?.name,
+                        }
+                      : null
+                  }
+                  onChange={(option) => setSelectedDept(option?.value || "")}
+                  className="react-select-container"
+                  classNamePrefix="react-select"
+                />
+              </div>
+            </div>
+
+            {/* Navigation buttons */}
+            <div className="flex justify-between mt-6">
               <button
                 onClick={() => setStep(1)}
                 className="px-6 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
@@ -289,11 +388,11 @@ export default function ClientActivityResourcesPage({
                 Back
               </button>
               <button
-                disabled={isReqLoading}
                 onClick={handleRequest}
-                className="px-6 py-2 bg-cyan-700 text-white rounded-md hover:bg-cyan-800 disabled:opacity-50"
+                className="px-6 py-2 bg-cyan-700 text-white rounded-md hover:bg-cyan-800"
+                disabled={isReqLoading || !selectedSite || !selectedDept}
               >
-                {isReqLoading ? "Requesting…" : "Request"}
+                {isReqLoading ? "Submitting..." : "Submit Request"}
               </button>
             </div>
           </>

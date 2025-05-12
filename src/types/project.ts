@@ -11,6 +11,7 @@ export interface Project {
     budget: number;
     client: string;
     site: string;
+    site_id?: string;
     progress?: number;
     isFavourite?: boolean;
     status: 'Not Started' | 'Started' | 'InProgress' | 'Canceled' | 'Onhold' | 'Completed';
@@ -30,6 +31,7 @@ export interface CreateProjectInput {
     budget: number;
     client: string;
     site: string;
+    site_id?: string;
     status: 'Not Started' | 'Started' | 'InProgress' | 'Canceled' | 'Onhold' | 'Completed';
     members?: string[];
     tagIds?: string[];
@@ -45,6 +47,7 @@ export interface UpdateProjectInput {
     budget?: number;
     client?: string;
     site?: string;
+    site_id?: string;
     progress?: number;
     isFavourite?: boolean;
     status?: 'Not Started' | 'Started' | 'InProgress' | 'Canceled' | 'Onhold' | 'Completed';

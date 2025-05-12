@@ -3,19 +3,22 @@ export interface Request {
     userId: string;
     departmentId?: string;
     activityId?: string;
+    siteId?: string;
+    site?: string;
     materialCount?: number;
     laborCount?: number;
     equipmentCount?: number;
     status: "Pending" | "In Progress" | "Completed" | "Rejected";
     laborIds?: string[];
     materialIds?: string[];
-    equipmentIds?: string[]; 
+    equipmentIds?: string[];
 }
 
 export interface CreateRequestInput {
     userId: string;
     departmentId?: string;
     activityId?: string;
+    siteId?: string;
     materialCount?: number;
     laborCount?: number;
     equipmentCount?: number;
@@ -30,6 +33,7 @@ export interface UpdateRequestInput {
     userId?: string;
     departmentId?: string;
     activityId?: string;
+    siteId?: string;
     materialCount?: number;
     laborCount?: number;
     equipmentCount?: number;

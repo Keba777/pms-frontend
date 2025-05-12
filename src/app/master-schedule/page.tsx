@@ -119,7 +119,7 @@ const MasterSchedulePage: React.FC = () => {
           <select
             id="sortBy"
             value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as any)}
+            onChange={(e) => setSortBy(e.target.value as "default" | "title" | "start_date" | "end_date")}
             className="appearance-none pr-8 border border-gray-300 bg-white text-gray-700 py-2 px-4 rounded shadow focus:outline-none focus:ring-2 focus:ring-cyan-600"
           >
             <option value="default">Default Order</option>
