@@ -13,15 +13,17 @@ import { fetchEquipmentById } from "@/hooks/useEquipments";
 import { fetchLaborById } from "@/hooks/useLabors";
 import { toast } from "react-toastify";
 
-const RequestCard: React.FC<{
+// Separate row component to keep hooks order consistent
+const RequestRow: React.FC<{
   req: Request;
   departmentId: string;
-  approvals: Approval[] | undefined;
+  approvals?: Approval[];
   onAllocate: (id: string) => void;
 }> = ({ req, departmentId, approvals, onAllocate }) => {
+  // fetch user
   const { data: requestUser, isLoading: userLoading } = useUser(req.userId);
 
-  // 1) Top‐level single hook; 2) Pass an array of queries built from your fetch functions:
+  // fetch materials, equipment, labor
   const materialQueries = useQueries({
     queries: (req.materialIds || []).map((id) => ({
       queryKey: ["material", id],
@@ -29,7 +31,6 @@ const RequestCard: React.FC<{
       enabled: Boolean(id),
     })),
   });
-
   const equipmentQueries = useQueries({
     queries: (req.equipmentIds || []).map((id) => ({
       queryKey: ["equipment", id],
@@ -37,7 +38,6 @@ const RequestCard: React.FC<{
       enabled: Boolean(id),
     })),
   });
-
   const laborQueries = useQueries({
     queries: (req.laborIds || []).map((id) => ({
       queryKey: ["labor", id],
@@ -54,53 +54,41 @@ const RequestCard: React.FC<{
     .filter((e): e is { id: string; item: string; unit: string } => Boolean(e));
   const labor = laborQueries
     .map((q) => q.data)
-    .filter((l): l is { id: string; role: string; unit: string } =>
-      Boolean(l && l.unit)
-    );
+    .filter((l): l is { id: string; role: string; unit: string } => Boolean(l && l.unit));
+
+  const allocated = approvals?.some(
+    (app) => app.requestId === req.id && app.departmentId === departmentId
+  );
 
   return (
-    <div className="bg-white p-6 rounded-2xl shadow-lg flex flex-col md:flex-row justify-between items-start md:items-center">
-      <div>
-        <p className="text-sm text-gray-500">
-          Requested by:{" "}
-          {userLoading ? "Loading..." : requestUser?.first_name || req.userId}
-        </p>
-        <div className="mt-3 text-gray-800 space-y-1">
-          {materials.map((m) => (
-            <p key={m.id}>
-              <span className="font-medium">Material:</span> {m.item}
-            </p>
-          ))}
-          {equipment.map((e) => (
-            <p key={e.id}>
-              <span className="font-medium">Equipment:</span> {e.item}
-            </p>
-          ))}
-          {labor.map((l) => (
-            <p key={l.id}>
-              <span className="font-medium">Labor:</span> {l.role}
-            </p>
-          ))}
-          <p>
-            <span className="font-medium">Status:</span> {req.status}
-          </p>
-        </div>
-      </div>
-
-      <button
-        onClick={() => onAllocate(req.id)}
-        className="mt-4 md:mt-0 px-5 py-3 bg-cyan-700 text-white rounded-2xl hover:bg-cyan-800 transition"
-        disabled={approvals?.some(
-          (app) => app.requestId === req.id && app.departmentId === departmentId
-        )}
-      >
-        {approvals?.some(
-          (app) => app.requestId === req.id && app.departmentId === departmentId
-        )
-          ? "Allocated"
-          : "Allocate Resources"}
-      </button>
-    </div>
+    <tr key={req.id}>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+        {userLoading ? "Loading..." : requestUser?.first_name || req.userId}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+        {materials.map((m) => m.item).join(", ") || "-"}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+        {equipment.map((e) => e.item).join(", ") || "-"}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+        {labor.map((l) => l.role).join(", ") || "-"}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+        {req.status}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+        <button
+          onClick={() => onAllocate(req.id)}
+          className={`px-4 py-2 bg-cyan-700 text-white rounded-2xl hover:bg-cyan-800 transition ${
+            allocated ? "opacity-50 cursor-not-allowed" : ""
+          }`}
+          disabled={allocated}
+        >
+          {allocated ? "Allocated" : "Allocate Resources"}
+        </button>
+      </td>
+    </tr>
   );
 };
 
@@ -135,8 +123,7 @@ const ResourceAllocationPage: React.FC = () => {
   };
 
   if (isLoading) return <div className="p-4 text-cyan-700">Loading…</div>;
-  if (isError)
-    return <div className="p-4 text-red-500">Error loading requests</div>;
+  if (isError) return <div className="p-4 text-red-500">Error loading requests</div>;
 
   return (
     <div className="min-h-screen bg-gray-100 p-8">
@@ -149,16 +136,40 @@ const ResourceAllocationPage: React.FC = () => {
           No resource requests available for your department.
         </p>
       ) : (
-        <div className="space-y-6">
-          {filteredRequests.map((req) => (
-            <RequestCard
-              key={req.id}
-              req={req}
-              departmentId={departmentId!}
-              approvals={approvals}
-              onAllocate={handleAllocate}
-            />
-          ))}
+        <div className="overflow-x-auto bg-white rounded-2xl shadow-lg">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Requested By
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Materials
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Equipment
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Labor
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-3" />
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {filteredRequests.map((req) => (
+                <RequestRow
+                  key={req.id}
+                  req={req}
+                  departmentId={departmentId!}
+                  approvals={approvals}
+                  onAllocate={handleAllocate}
+                />
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </div>
