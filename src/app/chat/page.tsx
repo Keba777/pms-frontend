@@ -1,9 +1,15 @@
-import React from 'react'
+"use client";
 
-const ChatPage = () => {
+import { RealtimeChat } from "@/components/realtime-chat";
+import { useAuthStore } from "@/store/authStore";
+
+export default function ChatPage() {
+  const { user } = useAuthStore();
+
   return (
-    <div>ChatPage</div>
-  )
+    <RealtimeChat
+      roomName="my-chat-room"
+      username={user?.first_name || "Guest"}
+    />
+  );
 }
-
-export default ChatPage
