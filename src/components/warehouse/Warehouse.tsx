@@ -24,7 +24,7 @@ const MaterialsTable: React.FC<MaterialsTableProps> = ({
             <th className="border px-3 py-2">Unit</th>
             <th className="border px-3 py-2">Qty</th>
             <th className="border px-3 py-2">Min-Qty</th>
-
+            <th className="border px-3 py-2">Re-Qty</th>
             <th className="border px-3 py-2">Rate</th>
             <th className="border px-3 py-2">Total</th>
             <th className="border px-3 py-2">Shelf No</th>
@@ -45,21 +45,32 @@ const MaterialsTable: React.FC<MaterialsTableProps> = ({
                 </td>
                 <td className="border px-3 py-2 text-center">{idx + 1}</td>
                 <td className="border px-3 py-2 text-center">{m.item}</td>
-                <td className="border px-3 py-2 text-center">{m.type}</td>
+                <td className="border px-3 py-2 text-center">{"-"}</td>
                 <td className="border px-3 py-2 text-center">{m.unit}</td>
                 <td className="border px-3 py-2 text-center">
-                  {m.quantity ?? "0"}
+                  {m.minQuantity ?? "-"}
                 </td>
                 <td className="border px-3 py-2 text-center">
-                  {m.minQuantity ?? "0"}
+                  {m.minQuantity ?? "-"}
                 </td>
-
+                <td className="border px-3 py-2 text-center">
+                  {/* {m.minQuantity === 100? "" } quantitiy <== givenQunatity Reorder:   less than given quantitiy */}
+                </td>
                 <td className="border px-3 py-2 text-center">
                   {m.rate ?? "-"}
                 </td>
-                <td className="border px-3 py-2 text-center">{m.totalPrice}</td>
-                <td className="border px-3 py-2 text-center">{m.shelfNo}</td>
-                <td className="border px-3 py-2 text-center">{m.status}</td>
+                <td className="border px-3 py-2 text-center">
+                  {m.rate !== undefined && m.minQuantity !== undefined
+                    ? m.rate * m.minQuantity
+                    : "-"}
+                </td>
+                <td className="border px-3 py-2 text-center">
+                  {"0"}
+                </td>
+                <td className="border px-3 py-2 text-center">
+                  {m.minQuantity === 0
+                    ? "Not Available": "Available"}
+                </td>
               </tr>
             );
           })}

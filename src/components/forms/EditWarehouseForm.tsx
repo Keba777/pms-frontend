@@ -98,7 +98,7 @@ const EditWarehouseForm: React.FC<EditWarehouseFormProps> = ({
       )}
 
       {/* Current Working Site */}
-      <div className="flex items-center space-x-4">
+      {/* <div className="flex items-center space-x-4">
         <label className="w-32 text-sm font-medium text-gray-700">
           Current Site<span className="text-red-500">*</span>
         </label>
@@ -114,7 +114,7 @@ const EditWarehouseForm: React.FC<EditWarehouseFormProps> = ({
         <p className="text-red-500 text-sm ml-32">
           {errors.currentWorkingSite.message}
         </p>
-      )}
+      )} */}
 
       {/* Approved By (optional) */}
       <div className="flex items-center space-x-4">

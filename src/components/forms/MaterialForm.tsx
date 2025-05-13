@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React from "react";
 import { useForm, Controller } from "react-hook-form";
 import { CreateMaterialInput } from "@/types/material";
 import { useCreateMaterial } from "@/hooks/useMaterials";
@@ -16,23 +16,11 @@ const MaterialForm: React.FC<MaterialFormProps> = ({ onClose }) => {
   const {
     register,
     handleSubmit,
-    watch,
-    setValue,
     control,
     formState: { errors },
   } = useForm<CreateMaterialInput>();
 
   const { mutate: createMaterial, isPending } = useCreateMaterial();
-
-  // Auto-calculate totalAmount = minQuantity * rate
-  const minQuantity = watch("minQuantity");
-  const rate = watch("rate");
-
-  useEffect(() => {
-    const q = Number(minQuantity || 0);
-    const r = Number(rate || 0);
-    setValue("totalAmount", q * r);
-  }, [minQuantity, rate, setValue]);
 
   const onSubmit = (data: CreateMaterialInput) => {
     createMaterial(data, {
@@ -78,7 +66,7 @@ const MaterialForm: React.FC<MaterialFormProps> = ({ onClose }) => {
                   <option value="">Select Warehouse Site</option>
                   {warehouses.map((wh) => (
                     <option key={wh.id} value={wh.id}>
-                      {wh.currentWorkingSite}
+                      {wh.siteId}
                     </option>
                   ))}
                 </select>
@@ -162,24 +150,6 @@ const MaterialForm: React.FC<MaterialFormProps> = ({ onClose }) => {
             {errors.rate && (
               <p className="text-red-500 text-sm mt-1">{errors.rate.message}</p>
             )}
-          </div>
-        </div>
-
-        {/* Total Amount (Read-only) */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Total Amount
-          </label>
-          <div className="flex">
-            <span className="inline-flex items-center px-3 border border-r-0 rounded-l-md bg-gray-50 text-gray-500">
-              ETB
-            </span>
-            <input
-              type="number"
-              {...register("totalAmount")}
-              readOnly
-              className="flex-1 px-3 py-2 border rounded-r-md bg-gray-100 focus:outline-none"
-            />
           </div>
         </div>
 

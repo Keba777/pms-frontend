@@ -35,9 +35,6 @@ const WarehouseTable: React.FC<WarehouseTableProps> = ({
                 Working Status
               </th>
               <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
-                Current Site
-              </th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
                 Status
               </th>
               <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
@@ -113,9 +110,6 @@ const WarehouseTable: React.FC<WarehouseTableProps> = ({
               </td>
               <td className="px-4 py-2 text-sm whitespace-nowrap">
                 {warehouse.workingStatus}
-              </td>
-              <td className="px-4 py-2 text-sm whitespace-nowrap">
-                {warehouse.currentWorkingSite}
               </td>
               {showApprovedBy && (
                 <td className="px-4 py-2 text-sm whitespace-nowrap">

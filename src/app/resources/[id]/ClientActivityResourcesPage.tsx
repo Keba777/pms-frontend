@@ -303,7 +303,9 @@ export default function ClientActivityResourcesPage({
                   <tr>
                     <th className="border px-3 py-2">Type</th>
                     <th className="border px-3 py-2">Item</th>
-                    <th className="border px-3 py-2">Required Qty</th>
+                    <th className="border px-3 py-2">Req Qty</th>
+                    <th className="border px-3 py-2">Min Qty</th>
+                  
                   </tr>
                 </thead>
                 <tbody>
@@ -326,6 +328,13 @@ export default function ClientActivityResourcesPage({
                               parseInt(e.target.value) || 1
                             )
                           }
+                          className="w-20 px-2 py-1 border rounded"
+                        />
+                      </td>
+                      <td className="border px-3 py-2">
+                        <input
+                          type="number"
+                          min="0"
                           className="w-20 px-2 py-1 border rounded"
                         />
                       </td>

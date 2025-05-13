@@ -1,81 +1,32 @@
 "use client";
 
-import React, { useState } from "react";
-import MaterialForm from "@/components/forms/MaterialForm";
-import EditMaterialForm from "@/components/forms/EditMaterialForm";
-import ConfirmModal from "@/components/ui/ConfirmModal";
-import {
-  useMaterials,
-  useUpdateMaterial,
-  useDeleteMaterial,
-} from "@/hooks/useMaterials";
+import React from "react";
+import { useMaterials } from "@/hooks/useMaterials";
 import { useWarehouses } from "@/hooks/useWarehouses";
-import { usePermissionsStore } from "@/store/permissionsStore";
-import { Menu, MenuButton, MenuItems, MenuItem } from "@headlessui/react";
-import { ChevronDown, Edit, PlusIcon, Trash2 } from "lucide-react";
+import { useSites } from "@/hooks/useSites";
 import Link from "next/link";
-import { Material, UpdateMaterialInput } from "@/types/material";
 
-const MaterialsPage = () => {
+const MaterialsPage: React.FC = () => {
   const { data: materials, isLoading, error } = useMaterials();
-  const { data: warehouses } = useWarehouses();
-  const hasPermission = usePermissionsStore((state) => state.hasPermission);
+  const { data: warehouses, isLoading: whLoading } = useWarehouses();
+  const { data: sites, isLoading: siteLoading } = useSites();
 
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [selectedMaterial, setSelectedMaterial] = useState<Material | null>(
-    null
-  );
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deleteId, setDeleteId] = useState<string>("");
-
-  const updateMaterial = useUpdateMaterial();
-  const deleteMaterial = useDeleteMaterial();
-
-  const handleAdd = () => setShowAddModal(true);
-
-  const handleEdit = (id: string) => {
-    const mat = materials?.find((m) => m.id === id) ?? null;
-    if (mat) {
-      setSelectedMaterial(mat);
-      setShowEditModal(true);
-    }
-  };
-
-  const handleDelete = (id: string) => {
-    setDeleteId(id);
-    setShowDeleteModal(true);
-  };
-
-  const confirmDelete = () => {
-    deleteMaterial.mutate(deleteId, {
-      onSuccess: () => setShowDeleteModal(false),
-    });
-  };
-
-  const handleUpdateSubmit = (data: UpdateMaterialInput) => {
-    updateMaterial.mutate(data, {
-      onSuccess: () => setShowEditModal(false),
-    });
-  };
-
-  if (isLoading) return <div>Loading materials...</div>;
+  if (isLoading || whLoading || siteLoading) return <div>Loading...</div>;
   if (error) return <div>Error loading materials.</div>;
-
-  // Display the warehouse's current working site
-  const getWarehouseSite = (id?: string) =>
-    warehouses?.find((w) => w.id === id)?.currentWorkingSite ?? "—";
 
   const headers = [
     "ID",
     "Warehouse Site",
-    "Item",
-    "Unit",
-    "Min Quantity",
-    "Rate",
-    "Total Amount",
-    "Actions",
+    "Total Item",
+    "Out of Store",
+    "Re-Qty",
+    "Responsible Person",
+    "Status",
   ];
+
+  // Lookup helpers
+  const lookupWarehouse = (id?: string) => warehouses?.find((w) => w.id === id);
+  const lookupSite = (siteId?: string) => sites?.find((s) => s.id === siteId);
 
   return (
     <div>
@@ -92,49 +43,7 @@ const MaterialsPage = () => {
             <li className="text-gray-900 font-semibold">Materials</li>
           </ol>
         </nav>
-        {hasPermission("create projects") && (
-          <button
-            className="bg-cyan-700 hover:bg-cyan-800 text-white font-bold py-2 px-3 rounded text-sm"
-            onClick={handleAdd}
-          >
-            <PlusIcon width={15} height={12} />
-          </button>
-        )}
       </div>
-
-      {/* Add Material Modal */}
-      {showAddModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <MaterialForm onClose={() => setShowAddModal(false)} />
-          </div>
-        </div>
-      )}
-
-      {/* Edit Material Modal */}
-      {showEditModal && selectedMaterial && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <EditMaterialForm
-              material={selectedMaterial}
-              onClose={() => setShowEditModal(false)}
-              onSubmit={handleUpdateSubmit}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Delete Confirmation Modal */}
-      <ConfirmModal
-        isVisible={showDeleteModal}
-        title="Delete Material"
-        message="Are you sure you want to delete this material? This action cannot be undone."
-        showInput={true}
-        confirmText="DELETE"
-        confirmButtonText="Delete"
-        onClose={() => setShowDeleteModal(false)}
-        onConfirm={confirmDelete}
-      />
 
       {/* Materials Table */}
       <div className="p-4 overflow-x-auto">
@@ -153,64 +62,35 @@ const MaterialsPage = () => {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {materials && materials.length > 0 ? (
-              materials.map((mat, idx) => (
-                <tr key={mat.id}>
-                  <td className="px-4 py-2 border border-gray-200">
-                    {idx + 1}
-                  </td>
-                  <td className="px-4 py-2 border border-gray-200">
-                    {getWarehouseSite(mat.warehouseId)}
-                  </td>
-                  <td className="px-4 py-2 border border-gray-200">
-                    {mat.item}
-                  </td>
-                  <td className="px-4 py-2 border border-gray-200">
-                    {mat.unit}
-                  </td>
-                  <td className="px-4 py-2 border border-gray-200">
-                    {mat.minQuantity ?? "—"}
-                  </td>
-                  <td className="px-4 py-2 border border-gray-200">
-                    {mat.rate ?? "—"}
-                  </td>
-                  <td className="px-4 py-2 border border-gray-200">
-                    {mat.totalAmount ?? "—"}
-                  </td>
-                  <td className="px-4 py-2 border border-gray-200">
-                    <Menu as="div" className="relative inline-block text-left">
-                      <MenuButton className="inline-flex justify-center items-center px-3 py-1 bg-cyan-700 text-white text-sm rounded hover:bg-cyan-800">
-                        Actions <ChevronDown className="ml-1 w-4 h-4" />
-                      </MenuButton>
-                      <MenuItems className="absolute right-0 mt-2 w-40 bg-white border rounded shadow-lg z-10">
-                        <MenuItem>
-                          {({ active }) => (
-                            <button
-                              onClick={() => handleEdit(mat.id)}
-                              className={`flex items-center w-full px-4 py-2 text-sm ${
-                                active ? "bg-gray-100" : ""
-                              }`}
-                            >
-                              <Edit size={16} className="mr-2" /> Edit
-                            </button>
-                          )}
-                        </MenuItem>
-                        <MenuItem>
-                          {({ active }) => (
-                            <button
-                              onClick={() => handleDelete(mat.id)}
-                              className={`flex items-center w-full px-4 py-2 text-sm text-red-600 ${
-                                active ? "bg-gray-100" : ""
-                              }`}
-                            >
-                              <Trash2 size={16} className="mr-2" /> Delete
-                            </button>
-                          )}
-                        </MenuItem>
-                      </MenuItems>
-                    </Menu>
-                  </td>
-                </tr>
-              ))
+              materials.map((mat, idx) => {
+                const wh = lookupWarehouse(mat.warehouseId);
+                const site = lookupSite(wh?.siteId);
+                return (
+                  <tr key={mat.id}>
+                    <td className="px-4 py-2 border border-gray-200">
+                      {idx + 1}
+                    </td>
+                    <td className="px-4 py-2 border border-gray-200">
+                      {site?.name || "Unknown Site"}
+                    </td>
+                    <td className="px-4 py-2 border border-gray-200">
+                      {materials.length}
+                    </td>
+                    <td className="px-4 py-2 border border-gray-200">
+                      {mat.outOfStore}
+                    </td>
+                    <td className="px-4 py-2 border border-gray-200">
+                      {mat.reorderQuantity}
+                    </td>
+                    <td className="px-4 py-2 border border-gray-200">
+                      {wh?.owner || "Unknown Owner"}
+                    </td>
+                    <td className="px-4 py-2 border border-gray-200">
+                      {mat.status}
+                    </td>
+                  </tr>
+                );
+              })
             ) : (
               <tr>
                 <td

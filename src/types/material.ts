@@ -2,27 +2,41 @@ export interface Material {
     id: string;
     warehouseId?: string;
     item: string;
+    type?: string
     unit: string;
+    quantity?: number;
     minQuantity?: number;
+    reorderQuantity?: number;
+    outOfStore?: number;
     rate?: number;
-    totalAmount?: number;
-    createdAt?: Date;
-    updatedAt?: Date;
+    shelfNo?: string;
+    status?: "Active" | "Inactive";
+    totalPrice?: number;
 }
 export interface CreateMaterialInput {
     warehouseId?: string;
     item: string;
+    type?: string
     unit: string;
+    quantity?: number;
     minQuantity?: number;
+    reorderQuantity?: number;
+    outOfStore?: number;
     rate?: number;
-    totalAmount?: number;
+    shelfNo?: string;
+    status?: "Active" | "Inactive";
 }
 export interface UpdateMaterialInput {
-    id: string;
+    id?: string;
     warehouseId?: string;
     item?: string;
+    type?: string
     unit?: string;
+    quantity?: number;
     minQuantity?: number;
+    reorderQuantity?: number;
+    outOfStore?: number;
     rate?: number;
-    totalAmount?: number;
+    shelfNo?: string;
+    status?: "Active" | "Inactive";
 }

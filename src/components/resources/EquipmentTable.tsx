@@ -18,10 +18,15 @@ const EquipmentTable: React.FC<EquipmentTableProps> = ({
         <tr>
           <th className="border px-3 py-2">Select</th>
           <th className="border px-3 py-2">No</th>
-          <th className="border px-3 py-2">Name</th>
+          <th className="border px-3 py-2">Equipment Name</th>
+
+          <th className="border px-3 py-2">Type</th>
           <th className="border px-3 py-2">Unit</th>
           <th className="border px-3 py-2">Qty</th>
+          <th className="border px-3 py-2">Min-Qty</th>
           <th className="border px-3 py-2">Rate</th>
+          <th className="border px-3 py-2">OT</th>
+          <th className="border px-3 py-2">Total Rate</th>
         </tr>
       </thead>
       <tbody>
@@ -38,11 +43,19 @@ const EquipmentTable: React.FC<EquipmentTableProps> = ({
               </td>
               <td className="border px-3 py-2 text-center">{idx + 1}</td>
               <td className="border px-3 py-2 text-center">{e.item}</td>
+              <td className="border px-3 py-2 text-center">{e.type}</td>
               <td className="border px-3 py-2 text-center">{e.unit}</td>
               <td className="border px-3 py-2 text-center">
-                {e.minQuantity ?? "-"}
+                {e.quantity ?? "-"}
+              </td>
+              <td className="border px-3 py-2 text-center">
+                {e.minQuantity ?? "0"}
               </td>
               <td className="border px-3 py-2 text-center">{e.rate ?? "-"}</td>
+              <td className="border px-3 py-2 text-center">
+                {e.reorderQuantity}
+              </td>
+              <td className="border px-3 py-2 text-center">{e.totalAmount}</td>
             </tr>
           );
         })}

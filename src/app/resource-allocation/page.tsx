@@ -51,10 +51,10 @@ const RequestRow: React.FC<{
     .filter((m): m is { id: string; item: string; unit: string } => Boolean(m));
   const equipment = equipmentQueries
     .map((q) => q.data)
-    .filter((e): e is { id: string; item: string; unit: string } => Boolean(e));
+    .filter((e): e is { id: string; item: string; unit: string; siteId: string } => Boolean(e && e.siteId));
   const labor = laborQueries
     .map((q) => q.data)
-    .filter((l): l is { id: string; role: string; unit: string } => Boolean(l && l.unit));
+    .filter((l): l is { id: string; role: string; unit: string; siteId: string } => Boolean(l && l.unit && l.siteId));
 
   const allocated = approvals?.some(
     (app) => app.requestId === req.id && app.departmentId === departmentId

@@ -20,9 +20,11 @@ const LaborTable: React.FC<LaborTableProps> = ({
           <th className="border px-3 py-2">No</th>
           <th className="border px-3 py-2">Role</th>
           <th className="border px-3 py-2">Unit</th>
-          <th className="border px-3 py-2">Skill</th>
           <th className="border px-3 py-2">Qty</th>
+          <th className="border px-3 py-2">Min-Qty</th>
           <th className="border px-3 py-2">Rate</th>
+          <th className="border px-3 py-2">OT</th>
+          <th className="border px-3 py-2">Total</th>
         </tr>
       </thead>
       <tbody>
@@ -40,9 +42,11 @@ const LaborTable: React.FC<LaborTableProps> = ({
               <td className="border px-3 py-2">{idx + 1}</td>
               <td className="border px-3 py-2">{l.role}</td>
               <td className="border px-3 py-2">{l.unit}</td>
-              <td className="border px-3 py-2">{l.skill_level ?? "-"}</td>
-              <td className="border px-3 py-2">{l.minQuantity ?? "-"}</td>
+              <td className="border px-3 py-2">{l.quantity ?? "-"}</td>
+              <td className="border px-3 py-2">{l.minQuantity ?? "0"}</td>
               <td className="border px-3 py-2">{l.rate ?? "-"}</td>
+              <td className="border px-3 py-2">{l.overtimeRate}</td>
+              <td className="border px-3 py-2">{l.totalAmount}</td>
             </tr>
           );
         })}

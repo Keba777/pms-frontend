@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React from "react";
 import { useForm, Controller } from "react-hook-form";
 import { UpdateMaterialInput } from "@/types/material";
 import { useWarehouses } from "@/hooks/useWarehouses";
@@ -21,21 +21,9 @@ const EditMaterialForm: React.FC<EditMaterialFormProps> = ({
   const {
     register,
     handleSubmit,
-    watch,
-    setValue,
     control,
     formState: { errors },
   } = useForm<UpdateMaterialInput>({ defaultValues: material });
-
-  // Auto-calculate totalAmount = minQuantity * rate
-  const minQuantity = watch("minQuantity");
-  const rate = watch("rate");
-
-  useEffect(() => {
-    const q = Number(minQuantity || 0);
-    const r = Number(rate || 0);
-    setValue("totalAmount", q * r);
-  }, [minQuantity, rate, setValue]);
 
   const submitHandler = (data: UpdateMaterialInput) => {
     onSubmit(data);
@@ -78,7 +66,7 @@ const EditMaterialForm: React.FC<EditMaterialFormProps> = ({
                   <option value="">Select Warehouse Site (optional)</option>
                   {warehouses.map((wh) => (
                     <option key={wh.id} value={wh.id}>
-                      {wh.currentWorkingSite}
+                      {wh.siteId}
                     </option>
                   ))}
                 </select>
@@ -162,7 +150,7 @@ const EditMaterialForm: React.FC<EditMaterialFormProps> = ({
         </div>
 
         {/* Total Amount (Read-only) */}
-        <div>
+        {/* <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Total Amount
           </label>
@@ -177,7 +165,7 @@ const EditMaterialForm: React.FC<EditMaterialFormProps> = ({
               className="flex-1 px-3 py-2 border rounded-r-md bg-gray-100 focus:outline-none"
             />
           </div>
-        </div>
+        </div> */}
 
         {/* Footer Buttons */}
         <div className="flex justify-end gap-4 pt-4 border-t">

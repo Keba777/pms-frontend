@@ -1,72 +1,34 @@
 "use client";
 
-import React, { useState } from "react";
-import LaborForm from "@/components/forms/LaborForm";
-import EditLaborForm from "@/components/forms/EditLaborForm";
-import ConfirmModal from "@/components/ui/ConfirmModal";
-import { useLabors, useUpdateLabor, useDeleteLabor } from "@/hooks/useLabors";
-import { usePermissionsStore } from "@/store/permissionsStore";
-import { Menu, MenuButton, MenuItems, MenuItem } from "@headlessui/react";
-import { ChevronDown, Edit, PlusIcon, Trash2 } from "lucide-react";
+import React from "react";
+import { useLabors } from "@/hooks/useLabors";
 import Link from "next/link";
-import { Labor, UpdateLaborInput } from "@/types/labor";
 
 const LaborPage = () => {
   const { data: labors, isLoading, error } = useLabors();
-  const hasPermission = usePermissionsStore((state) => state.hasPermission);
-
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [selectedLabor, setSelectedLabor] = useState<Labor | null>(null);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deleteId, setDeleteId] = useState<string>("");
-
-  const updateLabor = useUpdateLabor();
-  const deleteLabor = useDeleteLabor();
-
-  const handleAdd = () => {
-    setShowAddModal(true);
-  };
-
-  const handleEdit = (id: string) => {
-    const labor = labors?.find((l) => l.id === id) ?? null;
-    if (labor) {
-      setSelectedLabor(labor);
-      setShowEditModal(true);
-    }
-  };
-
-  const handleDelete = (id: string) => {
-    setDeleteId(id);
-    setShowDeleteModal(true);
-  };
-
-  const confirmDelete = () => {
-    deleteLabor.mutate(deleteId, {
-      onSuccess: () => setShowDeleteModal(false),
-    });
-  };
-
-  const handleUpdateSubmit = (data: UpdateLaborInput) => {
-    updateLabor.mutate(data, {
-      onSuccess: () => setShowEditModal(false),
-    });
-  };
 
   if (isLoading) return <div>Loading labors...</div>;
   if (error) return <div>Error loading labors.</div>;
 
   const headers = [
     "ID",
-    "Role",
-    "Unit",
-    "Min Quantity",
-    "Estimated Hours",
-    "Rate",
-    "Total Amount",
-    "Skill Level",
-    "Actions",
+    "Site Name",
+    "Total Labor",
+    "Allocated",
+    "Unallocated",
+    "On Leave",
+    "Active",
+    "Inactive",
+    "Responsible Person",
   ];
+
+  // Calculate status counts
+  const total = labors?.length ?? 0;
+  const allocated = labors?.filter((l) => l.allocationStatus === "Allocated").length ?? 0;
+  const unallocated = labors?.filter((l) => l.allocationStatus === "Unallocated").length ?? 0;
+  const onLeave = labors?.filter((l) => l.allocationStatus === "OnLeave").length ?? 0;
+  const active = labors?.filter((l) => l.status === "Active").length ?? 0;
+  const inactive = labors?.filter((l) => l.status === "InActive").length ?? 0;
 
   return (
     <div>
@@ -83,49 +45,31 @@ const LaborPage = () => {
             <li className="text-gray-900 font-semibold">Labors</li>
           </ol>
         </nav>
-        {hasPermission("create projects") && (
-          <button
-            className="bg-cyan-700 hover:bg-cyan-800 text-white font-bold py-2 px-3 rounded text-sm"
-            onClick={handleAdd}
-          >
-            <PlusIcon width={15} height={12} />
-          </button>
-        )}
       </div>
 
-      {/* Add Labor Modal */}
-      {showAddModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <LaborForm onClose={() => setShowAddModal(false)} />
+      {/* Status Summary */}
+      <div className="flex flex-wrap gap-4 mb-4">
+        {[
+          { label: "Total", value: total },
+          { label: "Allocated", value: allocated },
+          { label: "Unallocated", value: unallocated },
+          { label: "On Leave", value: onLeave },
+          { label: "Active", value: active },
+          { label: "Inactive", value: inactive },
+        ].map((item) => (
+          <div
+            key={item.label}
+            className="flex font-2xl font-semibold bg-white p-4 rounded-lg shadow-md"
+          >
+            <h2 className="mr-2">{item.label} =</h2>
+            <div className="flex items-center">
+              <span className="text-cyan-700 font-stretch-semi-condensed font-semibold">
+                {item.value}
+              </span>
+            </div>
           </div>
-        </div>
-      )}
-
-      {/* Edit Labor Modal */}
-      {showEditModal && selectedLabor && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <EditLaborForm
-              labor={selectedLabor}
-              onClose={() => setShowEditModal(false)}
-              onSubmit={handleUpdateSubmit}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Delete Confirmation Modal */}
-      <ConfirmModal
-        isVisible={showDeleteModal}
-        title="Delete Labor"
-        message="Are you sure you want to delete this labor? This action cannot be undone."
-        showInput={true}
-        confirmText="DELETE"
-        confirmButtonText="Delete"
-        onClose={() => setShowDeleteModal(false)}
-        onConfirm={confirmDelete}
-      />
+        ))}
+      </div>
 
       {/* Labor Table */}
       <div className="p-4 overflow-x-auto">
@@ -150,58 +94,28 @@ const LaborPage = () => {
                     {idx + 1}
                   </td>
                   <td className="px-4 py-2 border border-gray-200">
-                    {lab.role}
+                    {lab.site?.name}
                   </td>
                   <td className="px-4 py-2 border border-gray-200">
-                    {lab.unit}
+                    {total}
                   </td>
                   <td className="px-4 py-2 border border-gray-200">
-                    {lab.minQuantity ?? "—"}
+                    {lab.allocationStatus === "Allocated" ? "Yes" : "-"}
                   </td>
                   <td className="px-4 py-2 border border-gray-200">
-                    {lab.estimatedHours ?? "—"}
+                    {lab.allocationStatus === "Unallocated" ? "Yes" : "-"}
                   </td>
                   <td className="px-4 py-2 border border-gray-200">
-                    {lab.rate ?? "—"}
+                    {lab.allocationStatus === "OnLeave" ? "Yes" : "-"}
                   </td>
                   <td className="px-4 py-2 border border-gray-200">
-                    {lab.totalAmount ?? "—"}
+                    {lab.status === "Active" ? "Yes" : "-"}
                   </td>
                   <td className="px-4 py-2 border border-gray-200">
-                    {lab.skill_level ?? "—"}
+                    {lab.status === "InActive" ? "Yes" : "-"}
                   </td>
                   <td className="px-4 py-2 border border-gray-200">
-                    <Menu as="div" className="relative inline-block text-left">
-                      <MenuButton className="inline-flex justify-center items-center px-3 py-1 bg-cyan-700 text-white text-sm rounded hover:bg-cyan-800">
-                        Actions <ChevronDown className="ml-1 w-4 h-4" />
-                      </MenuButton>
-                      <MenuItems className="absolute right-0 mt-2 w-40 bg-white border rounded shadow-lg z-10">
-                        <MenuItem>
-                          {({ active }) => (
-                            <button
-                              onClick={() => handleEdit(lab.id)}
-                              className={`flex items-center w-full px-4 py-2 text-sm ${
-                                active ? "bg-gray-100" : ""
-                              }`}
-                            >
-                              <Edit size={16} className="mr-2" /> Edit
-                            </button>
-                          )}
-                        </MenuItem>
-                        <MenuItem>
-                          {({ active }) => (
-                            <button
-                              onClick={() => handleDelete(lab.id)}
-                              className={`flex items-center w-full px-4 py-2 text-sm text-red-600 ${
-                                active ? "bg-gray-100" : ""
-                              }`}
-                            >
-                              <Trash2 size={16} className="mr-2" /> Delete
-                            </button>
-                          )}
-                        </MenuItem>
-                      </MenuItems>
-                    </Menu>
+                    {lab.responsiblePerson}
                   </td>
                 </tr>
               ))

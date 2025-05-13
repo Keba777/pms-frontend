@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useForm } from "react-hook-form";
-import { Warehouse } from "@/types/warehouse";
+import { CreateWarehouseInput } from "@/types/warehouse";
 import { useCreateWarehouse } from "@/hooks/useWarehouses";
 
 interface WarehouseFormProps {
@@ -14,11 +14,11 @@ const WarehouseForm: React.FC<WarehouseFormProps> = ({ onClose }) => {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<Warehouse>();
+  } = useForm<CreateWarehouseInput>();
 
   const { mutate: createWarehouse, isPending } = useCreateWarehouse();
 
-  const onSubmit = (data: Warehouse) => {
+  const onSubmit = (data: CreateWarehouseInput) => {
     createWarehouse(data, {
       onSuccess: () => {
         onClose();
@@ -97,26 +97,6 @@ const WarehouseForm: React.FC<WarehouseFormProps> = ({ onClose }) => {
           {errors.workingStatus && (
             <p className="text-red-500 text-sm mt-1">
               {errors.workingStatus.message}
-            </p>
-          )}
-        </div>
-
-        {/* Current Working Site */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Current Working Site <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            {...register("currentWorkingSite", {
-              required: "Current site is required",
-            })}
-            placeholder="Enter current site"
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-          />
-          {errors.currentWorkingSite && (
-            <p className="text-red-500 text-sm mt-1">
-              {errors.currentWorkingSite.message}
             </p>
           )}
         </div>
