@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ArrowRight, ClipboardList, Home, ChevronRight } from "lucide-react";
+import { ClipboardList, Home, ChevronRight, ArrowRight } from "lucide-react";
 import Select from "react-select";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -19,18 +19,11 @@ import MaterialsTable from "@/components/resources/MaterialsTable";
 import EquipmentTable from "@/components/resources/EquipmentTable";
 import LaborTable from "@/components/resources/LaborTable";
 import LoadingSkeleton from "./loading";
-import { formatDate } from "@/utils/helper";
 import { CreateRequestInput } from "@/types/request";
+import { formatDate } from "@/utils/helper";
 
 interface ClientActivityResourcesPageProps {
   activityId: string;
-}
-
-interface SelectedItem {
-  type: "Material" | "Equipment" | "Labor";
-  id: string;
-  name: string;
-  count: number;
 }
 
 export default function ClientActivityResourcesPage({
@@ -38,8 +31,14 @@ export default function ClientActivityResourcesPage({
 }: ClientActivityResourcesPageProps) {
   const router = useRouter();
   const [step, setStep] = useState<1 | 2>(1);
+  const [activeTab, setActiveTab] = useState<
+    "materials" | "equipment" | "labor"
+  >("materials");
+  const [requestType, setRequestType] = useState<
+    "materials" | "equipment" | "labor"
+  >("materials");
 
-  // Fetch data hooks
+  // Data hooks
   const { data: activity, isLoading: isActivityLoading } =
     useActivity(activityId);
   const taskId = activity?.task_id ?? "";
@@ -54,99 +53,40 @@ export default function ClientActivityResourcesPage({
     useEquipments();
   const { data: labors = [], isLoading: isLaborsLoading } = useLabors();
 
-  // State management
+  // Selection
   const [selMats, setSelMats] = useState<string[]>([]);
-  const [matCounts, setMatCounts] = useState<Record<string, number>>({});
   const [selEquips, setSelEquips] = useState<string[]>([]);
-  const [equipCounts, setEquipCounts] = useState<Record<string, number>>({});
   const [selLabors, setSelLabors] = useState<string[]>([]);
-  const [labCounts, setLabCounts] = useState<Record<string, number>>({});
-  const [selectedDept, setSelectedDept] = useState<string>("");
-  const [selectedSite, setSelectedSite] = useState<string>("");
-  const [activeTab, setActiveTab] = useState<
-    "materials" | "equipment" | "labor"
-  >("materials");
 
-  // Handle selection with default count
+  const [selectedSite, setSelectedSite] = useState<string>("");
+  const [selectedDept, setSelectedDept] = useState<string>("");
+
+  // Handlers
   const handleSelect =
-    (
-      setSelected: React.Dispatch<React.SetStateAction<string[]>>,
-      setCounts: React.Dispatch<React.SetStateAction<Record<string, number>>>
-    ) =>
+    (setSelected: React.Dispatch<React.SetStateAction<string[]>>) =>
     (id: string, checked: boolean) => {
       setSelected((prev) =>
         checked ? [...prev, id] : prev.filter((x) => x !== id)
       );
-      setCounts((prev) => ({ ...prev, [id]: checked ? 1 : 0 }));
     };
 
-  // Prepare selected items for step 2
-  const selectedItems: SelectedItem[] = [
-    ...selMats.map((id) => ({
-      type: "Material" as const,
-      id,
-      name: materials.find((m) => m.id === id)?.item || "",
-      count: matCounts[id] || 1,
-    })),
-    ...selEquips.map((id) => ({
-      type: "Equipment" as const,
-      id,
-      name: equipments.find((e) => e.id === id)?.item || "",
-      count: equipCounts[id] || 1,
-    })),
-    ...selLabors.map((id) => ({
-      type: "Labor" as const,
-      id,
-      name: labors.find((l) => l.id === id)?.role || "",
-      count: labCounts[id] || 1,
-    })),
-  ];
-
-  // Handle count changes in step 2
-  const handleCountChange = (
-    id: string,
-    type: SelectedItem["type"],
-    value: number
-  ) => {
-    const setters = {
-      Material: setMatCounts,
-      Equipment: setEquipCounts,
-      Labor: setLabCounts,
-    };
-    const numericValue = Math.max(1, Number(value));
-    setters[type]((prev) => ({ ...prev, [id]: numericValue }));
-  };
-
-  // Handle request submission
   const { mutate: createReq, isPending: isReqLoading } = useCreateRequest();
   const handleRequest = () => {
     if (!activity) return;
-
-    // Convert counts to numbers
-    const materialCounts = Object.values(matCounts).reduce((a, b) => a + b, 0);
-    const equipmentCounts = Object.values(equipCounts).reduce(
-      (a, b) => a + b,
-      0
-    );
-    const laborCounts = Object.values(labCounts).reduce((a, b) => a + b, 0);
-
     const payload: CreateRequestInput = {
       userId: useAuthStore.getState().user?.id || "",
       siteId: selectedSite,
       departmentId: selectedDept,
-      materialIds: selMats,
-      equipmentIds: selEquips,
-      laborIds: selLabors,
-      materialCount: materialCounts,
-      equipmentCount: equipmentCounts,
-      laborCount: laborCounts,
+      materialIds: requestType === "materials" ? selMats : [],
+      equipmentIds: requestType === "equipment" ? selEquips : [],
+      laborIds: requestType === "labor" ? selLabors : [],
+      materialCount: selMats.length,
+      equipmentCount: selEquips.length,
+      laborCount: selLabors.length,
       status: "Pending",
       activityId: activity.id,
     };
-
-    createReq(payload, {
-      onSuccess: () => router.push("/resource-requests"),
-    });
+    createReq(payload, { onSuccess: () => router.push("/resource-requests") });
   };
 
   // Set initial site selection
@@ -163,7 +103,6 @@ export default function ClientActivityResourcesPage({
     }
   }, [departments, selectedDept]);
 
-  // Loading state
   const isLoading = [
     isActivityLoading,
     isTaskLoading,
@@ -174,7 +113,6 @@ export default function ClientActivityResourcesPage({
     isEquipmentsLoading,
     isLaborsLoading,
   ].some(Boolean);
-
   if (isLoading) return <LoadingSkeleton />;
 
   return (
@@ -237,55 +175,54 @@ export default function ClientActivityResourcesPage({
         {/* Step 1: Resource Selection */}
         {step === 1 && (
           <>
-            <div className="mt-6 border-b border-gray-200">
-              <nav className="-mb-px flex space-x-8" aria-label="Tabs">
-                {["materials", "equipment", "labor"].map((tab) => (
-                  <button
-                    key={tab}
-                    onClick={() =>
-                      setActiveTab(tab as "materials" | "equipment" | "labor")
-                    }
-                    className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ${
-                      activeTab === tab
-                        ? "border-cyan-500 text-cyan-600"
-                        : "border-transparent text-gray-500 hover:text-gray-700"
-                    }`}
-                  >
-                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                  </button>
-                ))}
-              </nav>
-            </div>
-
+            <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+              {["materials", "equipment", "labor"].map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab as "materials" | "equipment" | "labor")}
+                  className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === tab
+                      ? "border-cyan-500 text-cyan-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                </button>
+              ))}
+            </nav>
             <div className="mt-6">
               {activeTab === "materials" && (
                 <MaterialsTable
                   materials={materials}
                   selectedIds={selMats}
-                  onSelect={handleSelect(setSelMats, setMatCounts)}
+                  onSelect={handleSelect(setSelMats)}
                 />
               )}
               {activeTab === "equipment" && (
                 <EquipmentTable
                   equipment={equipments}
                   selectedIds={selEquips}
-                  onSelect={handleSelect(setSelEquips, setEquipCounts)}
+                  onSelect={handleSelect(setSelEquips)}
                 />
               )}
               {activeTab === "labor" && (
                 <LaborTable
                   labor={labors}
                   selectedIds={selLabors}
-                  onSelect={handleSelect(setSelLabors, setLabCounts)}
+                  onSelect={handleSelect(setSelLabors)}
                 />
               )}
             </div>
-
             <div className="flex justify-end mt-4">
               <button
-                onClick={() => setStep(2)}
+                onClick={() => {
+                  setRequestType(activeTab);
+                  setStep(2);
+                }}
+                disabled={
+                  !(selMats.length || selEquips.length || selLabors.length)
+                }
                 className="px-6 py-2 bg-cyan-700 text-white rounded-md hover:bg-cyan-800"
-                disabled={!selectedItems.length}
               >
                 Next
               </button>
@@ -293,56 +230,31 @@ export default function ClientActivityResourcesPage({
           </>
         )}
 
-        {/* Step 2: Review and Approval */}
         {step === 2 && (
           <>
-            <div className="mb-6">
-              <h3 className="text-lg font-semibold mb-4">Request Summary</h3>
-              <table className="min-w-full border-collapse border border-gray-200">
-                <thead className="bg-cyan-700 text-white text-center">
-                  <tr>
-                    <th className="border px-3 py-2">Type</th>
-                    <th className="border px-3 py-2">Item</th>
-                    <th className="border px-3 py-2">Req Qty</th>
-                    <th className="border px-3 py-2">Min Qty</th>
-                  
-                  </tr>
-                </thead>
-                <tbody>
-                  {selectedItems.map((item) => (
-                    <tr
-                      key={`${item.type}-${item.id}`}
-                      className="border-b text-center"
-                    >
-                      <td className="border px-3 py-2">{item.type}</td>
-                      <td className="border px-3 py-2">{item.name}</td>
-                      <td className="border px-3 py-2">
-                        <input
-                          type="number"
-                          min="1"
-                          value={item.count}
-                          onChange={(e) =>
-                            handleCountChange(
-                              item.id,
-                              item.type,
-                              parseInt(e.target.value) || 1
-                            )
-                          }
-                          className="w-20 px-2 py-1 border rounded"
-                        />
-                      </td>
-                      <td className="border px-3 py-2">
-                        <input
-                          type="number"
-                          min="0"
-                          className="w-20 px-2 py-1 border rounded"
-                        />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <h3 className="text-lg font-semibold mb-4">Request Summary</h3>
+
+            {requestType === "materials" && (
+              <MaterialsTable
+                materials={materials.filter((m) => selMats.includes(m.id))}
+                selectedIds={selMats}
+                onSelect={() => {}}
+              />
+            )}
+            {requestType === "equipment" && (
+              <EquipmentTable
+                equipment={equipments.filter((e) => selEquips.includes(e.id))}
+                selectedIds={selEquips}
+                onSelect={() => {}}
+              />
+            )}
+            {requestType === "labor" && (
+              <LaborTable
+                labor={labors.filter((l) => selLabors.includes(l.id))}
+                selectedIds={selLabors}
+                onSelect={() => {}}
+              />
+            )}
 
             {/* Site and Department Selection */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -388,8 +300,7 @@ export default function ClientActivityResourcesPage({
               </div>
             </div>
 
-            {/* Navigation buttons */}
-            <div className="flex justify-between mt-6">
+            <div className="flex justify-between">
               <button
                 onClick={() => setStep(1)}
                 className="px-6 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
@@ -398,8 +309,8 @@ export default function ClientActivityResourcesPage({
               </button>
               <button
                 onClick={handleRequest}
-                className="px-6 py-2 bg-cyan-700 text-white rounded-md hover:bg-cyan-800"
                 disabled={isReqLoading || !selectedSite || !selectedDept}
+                className="px-6 py-2 bg-cyan-700 text-white rounded-md hover:bg-cyan-800"
               >
                 {isReqLoading ? "Submitting..." : "Submit Request"}
               </button>

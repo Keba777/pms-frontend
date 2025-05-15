@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { useActivityStore } from "@/store/activityStore";
 import { Activity } from "@/types/activity";
+import TimeSheets from "@/components/activities/TimeSheets";
 
 interface ClientActivityDetailProps {
   activityId: string;
@@ -102,6 +103,9 @@ export default function ClientActivityDetail({
             )}
           </div>
         </div>
+      </div>
+      <div className="mt-8">
+        <TimeSheets />
       </div>
     </div>
   );
