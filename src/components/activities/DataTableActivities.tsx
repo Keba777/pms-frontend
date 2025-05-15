@@ -82,7 +82,7 @@ const DataTableActivities = () => {
               <th className="px-4 py-3 whitespace-nowrap text-left text-sm font-medium text-gray-50">
                 <input type="checkbox" className="rounded border-gray-300" />
               </th>
-              <th className="px-4 py-3 whitespace-nowrap text-left text-sm font-medium text-gray-50">
+              <th className="border border-gray-300 px-4 py-3 text-xs font-medium text-left max-w-xs break-words">
                 Activity
               </th>
               <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-50">
@@ -110,6 +110,9 @@ const DataTableActivities = () => {
                 Progress
               </th>
               <th className="px-4 py-3 whitespace-nowrap text-left text-sm font-medium text-gray-50">
+                Request
+              </th>
+              <th className="px-4 py-3 whitespace-nowrap text-left text-sm font-medium text-gray-50">
                 Status
               </th>
               <th className="px-4 py-3 whitespace-nowrap text-left text-sm font-medium text-gray-50">
@@ -134,7 +137,7 @@ const DataTableActivities = () => {
                   <td className="px-4 py-2  w-[60px]">
                     <Link
                       href={`activities/${activity.id}`}
-                      className="text-bs-primary hover:underline font-medium block truncate"
+                      className="text-bs-primary hover:underline font-medium block  max-w-xs break-words"
                       title={activity.activity_name}
                     >
                       {activity.activity_name}
@@ -198,6 +201,15 @@ const DataTableActivities = () => {
                       </div>
                     </div>
                   </td>
+                  <td className="border border-gray-200 px-4 py-2">
+                    <Link
+                      href={`/resources/${activity.id}`}
+                      className="flex items-center text-emerald-700 hover:underline"
+                    >
+                      Request
+                    </Link>
+                  </td>
+
                   <td className="px-4 py-2 whitespace-nowrap">
                     <span className="badge bg-label-secondary">
                       {activity.status}

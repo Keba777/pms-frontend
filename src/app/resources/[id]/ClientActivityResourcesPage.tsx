@@ -61,6 +61,36 @@ export default function ClientActivityResourcesPage({
   const [selectedSite, setSelectedSite] = useState<string>("");
   const [selectedDept, setSelectedDept] = useState<string>("");
 
+  // Per‐row counts
+  const [materialCounts, setMaterialCounts] = useState<Record<string, number>>(
+    {}
+  );
+  const [equipmentCounts, setEquipmentCounts] = useState<Record<string, number>>(
+    {}
+  );
+  const [laborCounts, setLaborCounts] = useState<Record<string, number>>({});
+
+  // Initialize counts when entering step 2
+  useEffect(() => {
+    if (step === 2) {
+      if (requestType === "materials") {
+        const init: Record<string, number> = {};
+        selMats.forEach((id) => (init[id] = 1));
+        setMaterialCounts(init);
+      }
+      if (requestType === "equipment") {
+        const init: Record<string, number> = {};
+        selEquips.forEach((id) => (init[id] = 1));
+        setEquipmentCounts(init);
+      }
+      if (requestType === "labor") {
+        const init: Record<string, number> = {};
+        selLabors.forEach((id) => (init[id] = 1));
+        setLaborCounts(init);
+      }
+    }
+  }, [step, requestType, selMats, selEquips, selLabors]);
+
   // Handlers
   const handleSelect =
     (setSelected: React.Dispatch<React.SetStateAction<string[]>>) =>
@@ -73,6 +103,10 @@ export default function ClientActivityResourcesPage({
   const { mutate: createReq, isPending: isReqLoading } = useCreateRequest();
   const handleRequest = () => {
     if (!activity) return;
+
+    const sum = (counts: Record<string, number>) =>
+      Object.values(counts).reduce((a, b) => a + b, 0);
+
     const payload: CreateRequestInput = {
       userId: useAuthStore.getState().user?.id || "",
       siteId: selectedSite,
@@ -80,28 +114,23 @@ export default function ClientActivityResourcesPage({
       materialIds: requestType === "materials" ? selMats : [],
       equipmentIds: requestType === "equipment" ? selEquips : [],
       laborIds: requestType === "labor" ? selLabors : [],
-      materialCount: selMats.length,
-      equipmentCount: selEquips.length,
-      laborCount: selLabors.length,
+      materialCount: sum(materialCounts),
+      equipmentCount: sum(equipmentCounts),
+      laborCount: sum(laborCounts),
       status: "Pending",
       activityId: activity.id,
     };
     createReq(payload, { onSuccess: () => router.push("/resource-requests") });
   };
 
-  // Set initial site selection
+  // Set initial site & department
   useEffect(() => {
-    if (sites.length > 0 && !selectedSite) {
-      setSelectedSite(sites[0].id);
-    }
-  }, [sites, selectedSite]);
-
-  // Set initial department selection
+    if (sites.length > 0 && !selectedSite) setSelectedSite(sites[0].id);
+  }, [sites]);
   useEffect(() => {
-    if (departments.length > 0 && !selectedDept) {
+    if (departments.length > 0 && !selectedDept)
       setSelectedDept(departments[0].id);
-    }
-  }, [departments, selectedDept]);
+  }, [departments]);
 
   const isLoading = [
     isActivityLoading,
@@ -239,13 +268,23 @@ export default function ClientActivityResourcesPage({
                 materials={materials.filter((m) => selMats.includes(m.id))}
                 selectedIds={selMats}
                 onSelect={() => {}}
+                counts={materialCounts}
+                onCountChange={(id, count) =>
+                  setMaterialCounts((c) => ({ ...c, [id]: count }))
+                }
               />
             )}
             {requestType === "equipment" && (
               <EquipmentTable
-                equipment={equipments.filter((e) => selEquips.includes(e.id))}
+                equipment={equipments.filter((e) =>
+                  selEquips.includes(e.id)
+                )}
                 selectedIds={selEquips}
                 onSelect={() => {}}
+                counts={equipmentCounts}
+                onCountChange={(id, count) =>
+                  setEquipmentCounts((c) => ({ ...c, [id]: count }))
+                }
               />
             )}
             {requestType === "labor" && (
@@ -253,6 +292,10 @@ export default function ClientActivityResourcesPage({
                 labor={labors.filter((l) => selLabors.includes(l.id))}
                 selectedIds={selLabors}
                 onSelect={() => {}}
+                counts={laborCounts}
+                onCountChange={(id, count) =>
+                  setLaborCounts((c) => ({ ...c, [id]: count }))
+                }
               />
             )}
 

@@ -11,7 +11,7 @@ import { Activity } from "@/types/activity";
 
 const ActivitiesPage = () => {
   const { activities } = useActivityStore();
-  const [activeTab, setActiveTab] = useState("actual"); // default to Actual
+  const [activeTab, setActiveTab] = useState("planned"); // default to Actual
 
   const columns: Column<Activity>[] = [
     { header: "Activity Name", accessor: "activity_name" },
