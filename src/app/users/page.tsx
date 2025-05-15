@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
+import avatar from "@/../public/images/user.png";
 import { Menu, MenuButton, MenuItems, MenuItem } from "@headlessui/react";
 import { useDeleteUser, useUpdateUser, useUsers } from "@/hooks/useUsers";
 import { useDepartments } from "@/hooks/useDepartments";
@@ -188,6 +190,9 @@ const UsersPage = () => {
               <th className="border border-gray-200 px-4 py-2 text-center text-sm font-medium text-gray-50">
                 ID
               </th>
+              <th className="border border-gray-200 px-4 py-2 text-center text-sm font-medium text-gray-50">
+                Profile
+              </th>
               <th className="border border-gray-200 px-6 py-4 whitespace-nowrap text-left text-sm font-medium text-gray-50">
                 Name
               </th>
@@ -225,6 +230,15 @@ const UsersPage = () => {
               <tr key={user.id} className="hover:bg-gray-50">
                 <td className="border border-gray-200 px-4 py-2 text-center">
                   {idx + 1}
+                </td>
+                <td className="border border-gray-200 px-4 py-2 text-center">
+                  <Image
+                    src={user.profile_picture || avatar}
+                    alt="Profile Picture"
+                    width={32}
+                    height={32}
+                    className="rounded-full"
+                  />
                 </td>
                 <td className="border border-gray-200 px-6 py-3 whitespace-nowrap">
                   <Link

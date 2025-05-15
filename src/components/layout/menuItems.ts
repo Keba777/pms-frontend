@@ -167,6 +167,12 @@ const menuItems = [
     iconColor: "text-green-500",
     badge: 0,
   },
+  {
+    title: "Announcements",
+    link: "/announcements",
+    icon: MessageSquare,
+    iconColor: "text-yellow-500",
+  },
 
   // { title: "Sites", link: "/sites", icon: Users, iconColor: "text-yellow-500" },
   // {

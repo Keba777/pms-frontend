@@ -1,4 +1,3 @@
-// src/app/master-schedule/page.tsx
 "use client";
 
 import React, { useState, useMemo } from "react";
@@ -15,6 +14,7 @@ const MasterSchedulePage: React.FC = () => {
   const { projects = [] } = useProjectStore();
   const [view, setView] = useState<"schedule" | "gantt">("schedule");
   const [filters, setFilters] = useState<FilterValues>({
+    period: "",
     status: "",
     priority: "",
     startDate: "",
@@ -26,7 +26,38 @@ const MasterSchedulePage: React.FC = () => {
 
   // Apply filters
   const filtered = useMemo(() => {
+    // derive period boundaries
+    let periodStart: Date | null = null;
+    const now = new Date();
+    switch (filters.period) {
+      case "today":
+        periodStart = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate()
+        );
+        break;
+      case "week": {
+        const day = now.getDay(); // 0 (Sun) - 6
+        const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+        periodStart = new Date(now.setDate(diff));
+        break;
+      }
+      case "month":
+        periodStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        break;
+      case "year":
+        periodStart = new Date(now.getFullYear(), 0, 1);
+        break;
+      default:
+        break;
+    }
+
     return projects.filter((p) => {
+      const start = new Date(p.start_date);
+      if (periodStart) {
+        if (start < periodStart || start > new Date()) return false;
+      }
       if (filters.status && p.status !== filters.status) return false;
       if (filters.priority && p.priority !== filters.priority) return false;
       if (
@@ -119,7 +150,15 @@ const MasterSchedulePage: React.FC = () => {
           <select
             id="sortBy"
             value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as "default" | "title" | "start_date" | "end_date")}
+            onChange={(e) =>
+              setSortBy(
+                e.target.value as
+                  | "default"
+                  | "title"
+                  | "start_date"
+                  | "end_date"
+              )
+            }
             className="appearance-none pr-8 border border-gray-300 bg-white text-gray-700 py-2 px-4 rounded shadow focus:outline-none focus:ring-2 focus:ring-cyan-600"
           >
             <option value="default">Default Order</option>
