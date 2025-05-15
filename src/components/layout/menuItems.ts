@@ -77,19 +77,19 @@ const menuItems = [
     submenu: [
       {
         title: "Manage Materials",
-        link: "/materials",
+        link: "/resources/materials",
         icon: BoxIcon,
         iconColor: "text-blue-500",
       },
       {
         title: "Manage Equipment",
-        link: "/equipments",
+        link: "/resources/equipments",
         icon: PenTool,
         iconColor: "text-gray-500",
       },
       {
         title: "Manage Labors",
-        link: "/labors",
+        link: "/resources/labors",
         icon: Users,
         iconColor: "text-gray-500",
       },
