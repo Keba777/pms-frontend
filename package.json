@@ -24,7 +24,8 @@
     "dayjs": "^1.11.13",
     "file-saver": "^2.0.5",
     "framer-motion": "^12.5.0",
-    "gantt-task-react": "^0.3.9",
+    "frappe-gantt": "^1.0.3",
+    "frappe-gantt-react": "^0.2.2",
     "jsonwebtoken": "^9.0.2",
     "jspdf": "^3.0.1",
     "jspdf-autotable": "^5.0.2",
@@ -39,6 +40,7 @@
     "react-select": "^5.10.1",
     "react-toastify": "^11.0.5",
     "recharts": "^2.15.1",
+    "sass": "^1.88.0",
     "tailwind-merge": "^3.3.0",
     "xlsx": "^0.18.5",
     "zustand": "^5.0.3"

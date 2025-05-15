@@ -1,48 +1,76 @@
-// components/master-schedule/ProjectGanttChart.tsx
-import React from "react";
-import "gantt-task-react/dist/index.css";
-import { ViewMode, Gantt, Task } from "gantt-task-react";
+import React, { useEffect, useRef } from "react";
+import { FrappeGantt, Task, ViewMode } from "frappe-gantt-react";
 import { Project } from "@/types/project";
 
-interface ProjectGanttChartProps {
+interface GanttChartProps {
   projects: Project[];
-  /** Choose between Day, Week, Month, Quarter, etc. */
   viewMode?: ViewMode;
+  onDateChange?: (projects: Project[]) => void;
+  onProgressChange?: (projects: Project[]) => void;
 }
 
-const ProjectGanttChart: React.FC<ProjectGanttChartProps> = ({
+const GanttChart: React.FC<GanttChartProps> = ({
   projects,
   viewMode = ViewMode.Week,
+  onDateChange,
+  onProgressChange,
 }) => {
-  const tasks: Task[] = projects.map((project) => ({
-    id: project.id,
-    name: project.title,
-    start: new Date(project.start_date),
-    end: new Date(project.end_date),
-    type: "project",
-    progress: project.progress ?? 0,
-    isDisabled: false,
-    styles: {
-      progressColor: "#34d399",
-      progressSelectedColor: "#059669",
-    },
-    dependencies: [],
-  }));
+  const ganttRef = useRef<FrappeGantt>(null);
+
+  useEffect(() => {
+    // you could access ganttRef.current.gantt if needed
+  }, []);
+
+  const colorClasses = [
+    "gantt-color-red",
+    "gantt-color-blue",
+    "gantt-color-green",
+    "gantt-color-purple",
+    "gantt-color-orange",
+    "gantt-color-teal",
+    "gantt-color-pink",
+    "gantt-color-yellow",
+  ];
+
+  // Map Project[] to Task[] for FrappeGantt
+  const tasks = projects.map((project, index) => {
+    const start =
+      typeof project.start_date === "string"
+        ? project.start_date
+        : project.start_date.toISOString().substr(0, 10);
+    const end =
+      typeof project.end_date === "string"
+        ? project.end_date
+        : project.end_date.toISOString().substr(0, 10);
+
+    const colorClass = colorClasses[index % colorClasses.length];
+
+    return {
+      id: project.id.toString(),
+      name: project.title,
+      start,
+      end,
+      progress: project.progress ?? 0,
+      dependencies: (project.members || []).join(","),
+      custom_class: colorClass,
+    };
+  }) as Task[];
 
   return (
-    <div className="overflow-x-auto bg-white rounded-md shadow-md p-4">
-      <h3 className="text-lg font-semibold mb-2">Project Gantt Chart</h3>
-      <div style={{ height: 500 }}>
-        <Gantt
-          tasks={tasks}
-          viewMode={viewMode}
-          listCellWidth="120"   // narrower list panel for name/from/to
-          columnWidth={120}     // wider columns for timeline
-          rowHeight={40}
-        />
-      </div>
+    <div className="overflow-auto">
+      <FrappeGantt
+        ref={ganttRef}
+        tasks={tasks}
+        viewMode={viewMode}
+        onDateChange={() => {
+          onDateChange?.(projects);
+        }}
+        onProgressChange={() => {
+          onProgressChange?.(projects);
+        }}
+      />
     </div>
   );
 };
 
-export default ProjectGanttChart;
+export default GanttChart;

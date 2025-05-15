@@ -126,11 +126,11 @@ export default function ClientActivityResourcesPage({
   // Set initial site & department
   useEffect(() => {
     if (sites.length > 0 && !selectedSite) setSelectedSite(sites[0].id);
-  }, [sites]);
+  }, [sites, selectedSite]);
   useEffect(() => {
     if (departments.length > 0 && !selectedDept)
       setSelectedDept(departments[0].id);
-  }, [departments]);
+  }, [departments, selectedDept]);
 
   const isLoading = [
     isActivityLoading,

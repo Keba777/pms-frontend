@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import { Wrench, Send, ChevronDown } from "lucide-react";
-import { ViewMode } from "gantt-task-react";
+import { ViewMode } from "frappe-gantt-react";
 import { useProjectStore } from "@/store/projectStore";
 import Filters, { FilterValues } from "@/components/master-schedule/Filters";
 import ProjectTable from "@/components/master-schedule/ProjectTable";
@@ -183,7 +183,7 @@ const MasterSchedulePage: React.FC = () => {
           <ProjectTable projects={sortedProjects} />
         </>
       ) : (
-        <ProjectGanttChart projects={filtered} viewMode={ViewMode.Week} />
+        <ProjectGanttChart projects={filtered} viewMode={ViewMode.Month} />
       )}
     </section>
   );
