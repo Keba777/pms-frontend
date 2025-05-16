@@ -103,7 +103,16 @@ const ResourceLaborsPage = () => {
                       {idx + 1}
                     </td>
                     <td className="px-4 py-2 border border-gray-200">
-                      {site?.name || "Unknown Site"}
+                      {site ? (
+                        <Link
+                          href={`/resources/labors/${site.id}`}
+                          className="text-blue-600 hover:underline"
+                        >
+                          {site.name}
+                        </Link>
+                      ) : (
+                        "Unknown Site"
+                      )}
                     </td>
                     <td className="px-4 py-2 border border-gray-200">
                       {total}

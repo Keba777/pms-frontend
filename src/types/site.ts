@@ -1,9 +1,15 @@
+import { Equipment } from "./equipment";
+import { Labor } from "./labor";
 import { Project } from "./project";
+import { Warehouse } from "./warehouse";
 
 export interface Site {
     id: string;
     name: string;
     projects?: Project[];
+    warehouses?: Warehouse[]
+    equipments?: Equipment[];
+    labors?: Labor[];
     createdAt?: Date;
     updatedAt?: Date;
 }
