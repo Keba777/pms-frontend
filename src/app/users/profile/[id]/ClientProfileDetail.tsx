@@ -56,7 +56,7 @@ export default function ClientProfileDetail({
       )}
       {user.department_id && (
         <p className="text-gray-600 mt-2">
-          Department ID: {user.department_id}
+          Department ID: {user.department?.name}
         </p>
       )}
       {user.profile_picture && (
@@ -73,9 +73,9 @@ export default function ClientProfileDetail({
       </div>
       <div className="lg:w-2/3 mt-6 lg:mt-0 flex justify-center">
         <div className="w-full bg-gray-50 p-8 rounded-lg shadow-md">
-          <h2 className="text-3xl font-semibold text-gray-800 mb-4 text-center">
+          {/* <h2 className="text-3xl font-semibold text-gray-800 mb-4 text-center">
             User Details
-          </h2>
+          </h2> */}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Phone */}
@@ -83,6 +83,11 @@ export default function ClientProfileDetail({
               <span className="bg-yellow-300 text-yellow-800 px-4 py-2 rounded-full text-sm font-semibold">
                 Phone: {user.phone}
               </span>
+            </div>
+            <div>
+              <h2 className="text-2xl font-semibold text-gray-800 mb-4 text-center">
+                Responsibilities
+              </h2>
             </div>
           </div>
         </div>
