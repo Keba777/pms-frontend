@@ -71,7 +71,7 @@ const UsersPage = () => {
     );
   }
 
-  // Compute metrics
+  // Metrics
   const totalUsers = users.length;
   const activeUsers = users.filter(
     (u) => u.status?.toLowerCase() === "active" || !u.status
@@ -154,7 +154,6 @@ const UsersPage = () => {
         </div>
       </div>
 
-      {/* Modal Overlay and Form */}
       {showForm && (
         <div className="modal-overlay">
           <div className="modal-content">
@@ -162,7 +161,6 @@ const UsersPage = () => {
           </div>
         </div>
       )}
-
       {showEditForm && userToEdit && (
         <div className="modal-overlay">
           <div className="modal-content">
@@ -175,7 +173,7 @@ const UsersPage = () => {
         </div>
       )}
 
-      {/* Metrics Cards */}
+      {/* Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         {metrics.map(({ title, value, icon }) => (
           <MetricsCard key={title} title={title} value={value} icon={icon} />
@@ -193,34 +191,31 @@ const UsersPage = () => {
               <th className="border border-gray-200 px-4 py-2 text-center text-sm font-medium text-gray-50">
                 Profile
               </th>
-              <th className="border border-gray-200 px-6 py-4 whitespace-nowrap text-left text-sm font-medium text-gray-50">
+              <th className="border border-gray-200 px-6 py-4 text-left text-sm font-medium text-gray-50">
                 Name
               </th>
-              <th className="border border-gray-200 px-6 py-4 whitespace-nowrap text-left text-sm font-medium text-gray-50">
+              <th className="border border-gray-200 px-6 py-4 text-left text-sm font-medium text-gray-50">
                 Role
               </th>
-              <th className="border border-gray-200 px-6 py-4 whitespace-nowrap text-left text-sm font-medium text-gray-50">
+              <th className="border border-gray-200 px-6 py-4 text-left text-sm font-medium text-gray-50">
                 Permission Level
               </th>
-              <th className="border border-gray-200 px-6 py-4 whitespace-nowrap text-left text-sm font-medium text-gray-50">
+              <th className="border border-gray-200 px-6 py-4 text-left text-sm font-medium text-gray-50">
                 Department
               </th>
-              <th className="border border-gray-200 px-6 py-4 whitespace-nowrap text-left text-sm font-medium text-gray-50">
+              <th className="border border-gray-200 px-6 py-4 text-left text-sm font-medium text-gray-50">
                 Site
               </th>
-              <th className="border border-gray-200 px-6 py-4 whitespace-nowrap text-left text-sm font-medium text-gray-50">
-                Email
-              </th>
-              <th className="border border-gray-200 px-6 py-4 whitespace-nowrap text-left text-sm font-medium text-gray-50">
+              <th className="border border-gray-200 px-6 py-4 text-left text-sm font-medium text-gray-50">
                 Phone
               </th>
-              <th className="border border-gray-200 px-6 py-4 whitespace-nowrap text-left text-sm font-medium text-gray-50">
+              <th className="border border-gray-200 px-6 py-4 text-left text-sm font-medium text-gray-50">
                 Status
               </th>
-              <th className="border border-gray-200 px-6 py-4 whitespace-nowrap text-center text-sm font-medium text-gray-50">
+              <th className="border border-gray-200 px-6 py-4 text-center text-sm font-medium text-gray-50">
                 Assigned
               </th>
-              <th className="border border-gray-200 px-6 py-4 whitespace-nowrap text-center text-sm font-medium text-gray-50">
+              <th className="border border-gray-200 px-6 py-4 text-center text-sm font-medium text-gray-50">
                 Actions
               </th>
             </tr>
@@ -243,10 +238,11 @@ const UsersPage = () => {
                 <td className="border border-gray-200 px-6 py-3 whitespace-nowrap">
                   <Link
                     href={`/users/profile/${user.id}`}
-                    className="text-cyan-700 hover:text-cyan-900"
+                    className="text-cyan-700 hover:text-cyan-900 block"
                   >
                     {`${user.first_name} ${user.last_name}`}
                   </Link>
+                  <div className="text-xs text-gray-500 mt-1">{user.email}</div>
                 </td>
                 <td className="border border-gray-200 px-6 py-3 whitespace-nowrap">
                   {user.role?.name || "—"}
@@ -262,10 +258,7 @@ const UsersPage = () => {
                   {user.department?.name || "—"}
                 </td>
                 <td className="border border-gray-200 px-6 py-3 whitespace-nowrap">
-                  {user?.site || "—"}
-                </td>
-                <td className="border border-gray-200 px-6 py-3 whitespace-nowrap">
-                  {user.email}
+                  {user.site || "—"}
                 </td>
                 <td className="border border-gray-200 px-6 py-3 whitespace-nowrap">
                   {user.phone}
@@ -273,7 +266,7 @@ const UsersPage = () => {
                 <td className="border border-gray-200 px-6 py-3 whitespace-nowrap">
                   {user.status || "Active"}
                 </td>
-                <td className="border border-gray-200 px-6 py-3 whitespace-nowrap text-center flex">
+                <td className="border border-gray-200 px-6 py-3 whitespace-nowrap text-center flex space-x-2 justify-center">
                   <AssignBadge
                     name="Projects"
                     count={user.projects?.length ?? 0}
@@ -283,7 +276,6 @@ const UsersPage = () => {
                     name="Activities"
                     count={user.activities?.length ?? 0}
                   />
-                  <br />
                 </td>
                 <td className="px-4 py-2 whitespace-nowrap">
                   <div className="relative inline-block">
@@ -313,10 +305,7 @@ const UsersPage = () => {
                               className={`block w-full px-4 py-2 text-left whitespace-nowrap ${
                                 focus ? "bg-blue-100" : ""
                               }`}
-                              onClick={() => {
-                                setIsDeleteModalOpen(true);
-                                handleDeleteUserClick(user.id);
-                              }}
+                              onClick={() => handleDeleteUserClick(user.id)}
                             >
                               Delete
                             </button>
@@ -328,9 +317,7 @@ const UsersPage = () => {
                               className={`block w-full px-4 py-2 text-left whitespace-nowrap ${
                                 focus ? "bg-blue-100" : ""
                               }`}
-                              onClick={() => {
-                                handleViewUser(user.id);
-                              }}
+                              onClick={() => handleViewUser(user.id)}
                             >
                               Quick View
                             </button>
@@ -345,11 +332,12 @@ const UsersPage = () => {
           </tbody>
         </table>
       </div>
+
       {isDeleteModalOpen && (
         <ConfirmModal
           isVisible={isDeleteModalOpen}
           title="Confirm Deletion"
-          message="Are you sure you want to delete this activity?"
+          message="Are you sure you want to delete this user?"
           showInput={true}
           confirmText="DELETE"
           confirmButtonText="Delete"
