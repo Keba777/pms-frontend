@@ -65,9 +65,9 @@ export default function ClientActivityResourcesPage({
   const [materialCounts, setMaterialCounts] = useState<Record<string, number>>(
     {}
   );
-  const [equipmentCounts, setEquipmentCounts] = useState<Record<string, number>>(
-    {}
-  );
+  const [equipmentCounts, setEquipmentCounts] = useState<
+    Record<string, number>
+  >({});
   const [laborCounts, setLaborCounts] = useState<Record<string, number>>({});
 
   // Initialize counts when entering step 2
@@ -208,7 +208,9 @@ export default function ClientActivityResourcesPage({
               {["materials", "equipment", "labor"].map((tab) => (
                 <button
                   key={tab}
-                  onClick={() => setActiveTab(tab as "materials" | "equipment" | "labor")}
+                  onClick={() =>
+                    setActiveTab(tab as "materials" | "equipment" | "labor")
+                  }
                   className={`py-4 px-1 border-b-2 font-medium text-sm ${
                     activeTab === tab
                       ? "border-cyan-500 text-cyan-600"
@@ -261,7 +263,12 @@ export default function ClientActivityResourcesPage({
 
         {step === 2 && (
           <>
-            <h3 className="text-lg font-semibold mb-4">Request Summary</h3>
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-semibold mb-4">Request Summary</h3>
+              <button className="px-5 py-2 rounded-md text-gray-100 bg-cyan-700 hover:bg-cyan-800">
+                Add New
+              </button>
+            </div>
 
             {requestType === "materials" && (
               <MaterialsTable
@@ -276,9 +283,7 @@ export default function ClientActivityResourcesPage({
             )}
             {requestType === "equipment" && (
               <EquipmentTable
-                equipment={equipments.filter((e) =>
-                  selEquips.includes(e.id)
-                )}
+                equipment={equipments.filter((e) => selEquips.includes(e.id))}
                 selectedIds={selEquips}
                 onSelect={() => {}}
                 counts={equipmentCounts}
