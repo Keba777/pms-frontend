@@ -4,15 +4,16 @@ import React from "react";
 import { useForm, Controller } from "react-hook-form";
 import { CreateMaterialInput } from "@/types/material";
 import { useCreateMaterial } from "@/hooks/useMaterials";
-import { useWarehouses } from "@/hooks/useWarehouses";
 
 interface MaterialFormProps {
+  warehouseId: string;
   onClose: () => void;
 }
 
-const MaterialForm: React.FC<MaterialFormProps> = ({ onClose }) => {
-  const { data: warehouses, isLoading: whLoading } = useWarehouses();
-
+const MaterialForm: React.FC<MaterialFormProps> = ({
+  warehouseId,
+  onClose,
+}) => {
   const {
     register,
     handleSubmit,
@@ -23,12 +24,15 @@ const MaterialForm: React.FC<MaterialFormProps> = ({ onClose }) => {
   const { mutate: createMaterial, isPending } = useCreateMaterial();
 
   const onSubmit = (data: CreateMaterialInput) => {
-    createMaterial(data, {
-      onSuccess: () => {
-        onClose();
-        window.location.reload();
-      },
-    });
+    createMaterial(
+      { ...data, warehouseId },
+      {
+        onSuccess: () => {
+          onClose();
+          window.location.reload();
+        },
+      }
+    );
   };
 
   return (
@@ -49,36 +53,10 @@ const MaterialForm: React.FC<MaterialFormProps> = ({ onClose }) => {
       </div>
 
       <div className="space-y-4">
-        {/* Warehouse Site Selector */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Warehouse Site
-          </label>
-          {!whLoading && warehouses && (
-            <Controller
-              control={control}
-              name="warehouseId"
-              render={({ field }) => (
-                <select
-                  {...field}
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-                >
-                  <option value="">Select Warehouse Site</option>
-                  {warehouses.map((wh) => (
-                    <option key={wh.id} value={wh.id}>
-                      {wh.siteId}
-                    </option>
-                  ))}
-                </select>
-              )}
-            />
-          )}
-        </div>
-
         {/* Item */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Item <span className="text-red-500">*</span>
+            Material Name <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
@@ -89,6 +67,19 @@ const MaterialForm: React.FC<MaterialFormProps> = ({ onClose }) => {
           {errors.item && (
             <p className="text-red-500 text-sm mt-1">{errors.item.message}</p>
           )}
+        </div>
+
+        {/* Type */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Type
+          </label>
+          <input
+            type="text"
+            {...register("type")}
+            placeholder="Enter Material Type"
+            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+          />
         </div>
 
         {/* Unit */}
@@ -107,31 +98,50 @@ const MaterialForm: React.FC<MaterialFormProps> = ({ onClose }) => {
           )}
         </div>
 
-        {/* Min Quantity and Rate */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Quantity, MinQuantity, ReorderQuantity */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Minimum Quantity <span className="text-red-500">*</span>
+              Quantity
             </label>
             <input
               type="number"
-              {...register("minQuantity", {
-                required: "Minimum quantity is required",
-                valueAsNumber: true,
-              })}
-              placeholder="Enter Minimum Quantity"
+              {...register("quantity", { valueAsNumber: true })}
+              placeholder="Enter Quantity"
               className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
             />
-            {errors.minQuantity && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.minQuantity.message}
-              </p>
-            )}
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Rate <span className="text-red-500">*</span>
+              Minimum Quantity
+            </label>
+            <input
+              type="number"
+              {...register("minQuantity", { valueAsNumber: true })}
+              placeholder="Enter Minimum Quantity"
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Reorder Quantity
+            </label>
+            <input
+              type="number"
+              {...register("reorderQuantity", { valueAsNumber: true })}
+              placeholder="Enter Reorder Quantity"
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+            />
+          </div>
+        </div>
+
+        {/* Rate and Shelf No */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Rate
             </label>
             <div className="flex">
               <span className="inline-flex items-center px-3 border border-r-0 rounded-l-md bg-gray-50 text-gray-500">
@@ -139,18 +149,45 @@ const MaterialForm: React.FC<MaterialFormProps> = ({ onClose }) => {
               </span>
               <input
                 type="number"
-                {...register("rate", {
-                  required: "Rate is required",
-                  valueAsNumber: true,
-                })}
+                {...register("rate", { valueAsNumber: true })}
                 placeholder="Enter Rate"
                 className="flex-1 px-3 py-2 border rounded-r-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
               />
             </div>
-            {errors.rate && (
-              <p className="text-red-500 text-sm mt-1">{errors.rate.message}</p>
-            )}
           </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Shelf No
+            </label>
+            <input
+              type="text"
+              {...register("shelfNo")}
+              placeholder="Enter Shelf Number"
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+            />
+          </div>
+        </div>
+
+        {/* Status */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Status
+          </label>
+          <Controller
+            control={control}
+            name="status"
+            defaultValue="Active"
+            render={({ field }) => (
+              <select
+                {...field}
+                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+              >
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+              </select>
+            )}
+          />
         </div>
 
         {/* Footer Buttons */}

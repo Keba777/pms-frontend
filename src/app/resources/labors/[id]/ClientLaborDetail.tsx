@@ -1,13 +1,15 @@
 // components/ClientLaborDetail.tsx
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Plus } from "lucide-react";
 import { useLabors } from "@/hooks/useLabors";
 import { useSites } from "@/hooks/useSites";
 import Link from "next/link";
 import { Labor } from "@/types/labor";
+import { getDuration } from "@/utils/helper";
+import LaborForm from "@/components/forms/LaborForm";
 
 interface ClientLaborDetailProps {
   siteId: string;
@@ -17,6 +19,7 @@ export default function ClientLaborDetail({ siteId }: ClientLaborDetailProps) {
   const router = useRouter();
   const { data: labors, isLoading: labLoading, error: labError } = useLabors();
   const { data: sites, isLoading: siteLoading, error: siteError } = useSites();
+  const [showForm, setShowForm] = useState(false);
 
   if (labLoading || siteLoading) return <div>Loading...</div>;
   if (labError || siteError)
@@ -34,13 +37,32 @@ export default function ClientLaborDetail({ siteId }: ClientLaborDetailProps) {
 
   return (
     <div className="max-w-7xl mx-auto p-6 bg-white shadow-lg rounded-lg mt-6">
-      <button
-        className="flex items-center text-gray-600 hover:text-gray-900 mb-6"
-        onClick={() => router.push("/resources/sites")}
-      >
-        <ArrowLeft className="w-5 h-5 mr-2" />
-        Back to Sites
-      </button>
+      <div className="flex justify-between mb-4">
+        <button
+          className="flex items-center text-gray-600 hover:text-gray-900 mb-6"
+          onClick={() => router.push("/resources/labors")}
+        >
+          <ArrowLeft className="w-5 h-5 mr-2" />
+          Back to Sites
+        </button>
+
+        <button
+          type="button"
+          className="px-3 text-white bg-cyan-700 rounded hover:bg-cyan-800"
+          onClick={() => setShowForm(true)}
+          title="Create Material"
+        >
+          <Plus className="w-4 h-4" />
+        </button>
+      </div>
+
+      {showForm && (
+        <div className="modal-overlay fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="modal-content bg-white rounded-lg shadow-xl p-6">
+            <LaborForm siteId={siteId} onClose={() => setShowForm(false)} />
+          </div>
+        </div>
+      )}
 
       <h1 className="text-4xl font-bold text-cyan-800 mb-4">
         Labor at “{site.name}”
@@ -57,18 +79,18 @@ export default function ClientLaborDetail({ siteId }: ClientLaborDetailProps) {
                   "#",
                   "Role",
                   "Unit",
-                  "Quantity",
+                  "Qyt",
                   "Min Qty",
-                  "Est Hours",
+                  "Est-Hrs",
                   "Rate",
-                  "Overtime Rate",
+                  "OT",
                   "Total Amount",
-                  "Skill Level",
-                  "Responsible Person",
-                  "Allocation Status",
+                  // "Responsible Person",
+                  // "Allocation Status",
+                  "Starting Date",
+                  "Due Date",
+                  "Duration",
                   "Status",
-                  "Created At",
-                  "Updated At",
                 ].map((h) => (
                   <th
                     key={h}
@@ -112,18 +134,16 @@ export default function ClientLaborDetail({ siteId }: ClientLaborDetailProps) {
                   <td className="px-4 py-2 border border-gray-200">
                     {l.totalAmount ?? "-"}
                   </td>
-                  <td className="px-4 py-2 border border-gray-200">
+                  {/* <td className="px-4 py-2 border border-gray-200">
                     {l.skill_level ?? "-"}
-                  </td>
-                  <td className="px-4 py-2 border border-gray-200">
+                  </td> */}
+                  {/* <td className="px-4 py-2 border border-gray-200">
                     {l.responsiblePerson ?? "-"}
-                  </td>
-                  <td className="px-4 py-2 border border-gray-200">
+                  </td> */}
+                  {/* <td className="px-4 py-2 border border-gray-200">
                     {l.allocationStatus ?? "-"}
-                  </td>
-                  <td className="px-4 py-2 border border-gray-200">
-                    {l.status ?? "-"}
-                  </td>
+                  </td> */}
+
                   <td className="px-4 py-2 border border-gray-200">
                     {l.createdAt
                       ? new Date(l.createdAt).toLocaleDateString()
@@ -133,6 +153,14 @@ export default function ClientLaborDetail({ siteId }: ClientLaborDetailProps) {
                     {l.updatedAt
                       ? new Date(l.updatedAt).toLocaleDateString()
                       : "-"}
+                  </td>
+                  <td className="px-4 py-2 border border-gray-200">
+                    {l.createdAt &&
+                      l.updatedAt &&
+                      getDuration(l.createdAt, l.updatedAt)}
+                  </td>
+                  <td className="px-4 py-2 border border-gray-200">
+                    {l.status}
                   </td>
                 </tr>
               ))}

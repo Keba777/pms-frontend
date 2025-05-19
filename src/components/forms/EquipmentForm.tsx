@@ -6,10 +6,11 @@ import { CreateEquipmentInput } from "@/types/equipment";
 import { useCreateEquipment } from "@/hooks/useEquipments";
 
 interface EquipmentFormProps {
+  siteId: string;
   onClose: () => void;
 }
 
-const EquipmentForm: React.FC<EquipmentFormProps> = ({ onClose }) => {
+const EquipmentForm: React.FC<EquipmentFormProps> = ({ siteId, onClose }) => {
   const {
     register,
     handleSubmit,
@@ -20,24 +21,25 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ onClose }) => {
 
   const { mutate: createEquipment, isPending } = useCreateEquipment();
 
-  const minQuantity = watch("minQuantity");
-  const hours = watch("estimatedHours");
-  const rate = watch("rate");
+  const minQuantity = watch("minQuantity") ?? 0;
+  const hours = watch("estimatedHours") ?? 0;
+  const rate = watch("rate") ?? 0;
 
   useEffect(() => {
-    const q = Number(minQuantity || 0);
-    const h = Number(hours || 0);
-    const r = Number(rate || 0);
-    setValue("totalAmount", q * h * r);
+    const total = Number(minQuantity) * Number(hours) * Number(rate);
+    setValue("totalAmount", total);
   }, [minQuantity, hours, rate, setValue]);
 
   const onSubmit = (data: CreateEquipmentInput) => {
-    createEquipment(data, {
-      onSuccess: () => {
-        onClose();
-        window.location.reload();
-      },
-    });
+    createEquipment(
+      { ...data, siteId },
+      {
+        onSuccess: () => {
+          onClose();
+          window.location.reload();
+        },
+      }
+    );
   };
 
   return (
@@ -60,10 +62,10 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ onClose }) => {
       </div>
 
       <div className="space-y-4">
-        {/* Item */}
+        {/* 1. Item */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Item <span className="text-red-500">*</span>
+            Equipment Name <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
@@ -76,7 +78,20 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ onClose }) => {
           )}
         </div>
 
-        {/* Unit */}
+        {/* 2. Type */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Type
+          </label>
+          <input
+            type="text"
+            {...register("type")}
+            placeholder="Enter Type (optional)"
+            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+          />
+        </div>
+
+        {/* 3. Unit */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Unit <span className="text-red-500">*</span>
@@ -92,8 +107,8 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ onClose }) => {
           )}
         </div>
 
-        {/* Manufacturer & Year */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* 4–6. Manufacturer, Model, Year */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Manufacturer
@@ -102,6 +117,17 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ onClose }) => {
               type="text"
               {...register("manufacturer")}
               placeholder="Enter Manufacturer (optional)"
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Model
+            </label>
+            <input
+              type="text"
+              {...register("model")}
+              placeholder="Enter Model (optional)"
               className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
             />
           </div>
@@ -118,11 +144,24 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ onClose }) => {
           </div>
         </div>
 
-        {/* Min Quantity, Estimated Hours, Rate */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* 7. Quantity */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Quantity
+          </label>
+          <input
+            type="number"
+            {...register("quantity", { valueAsNumber: true })}
+            placeholder="Enter Quantity"
+            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+          />
+        </div>
+
+        {/* 8. Minimum Quantity, 9. Reorder Quantity, 10. Estimated Hours, 11. Rate */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Minimum Quantity <span className="text-red-500">*</span>
+              Min Quantity <span className="text-red-500">*</span>
             </label>
             <input
               type="number"
@@ -130,7 +169,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ onClose }) => {
                 required: "Minimum quantity is required",
                 valueAsNumber: true,
               })}
-              placeholder="Enter Minimum Quantity"
+              placeholder="Enter Min Quantity"
               className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
             />
             {errors.minQuantity && (
@@ -138,6 +177,17 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ onClose }) => {
                 {errors.minQuantity.message}
               </p>
             )}
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Reorder Quantity
+            </label>
+            <input
+              type="number"
+              {...register("reorderQuantity", { valueAsNumber: true })}
+              placeholder="Enter Reorder Quantity"
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+            />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -182,7 +232,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ onClose }) => {
           </div>
         </div>
 
-        {/* Total Amount (Read-only) */}
+        {/* 12. Total Amount (read-only) */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Total Amount
@@ -193,30 +243,88 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ onClose }) => {
             </span>
             <input
               type="number"
-              {...register("totalAmount")}
+              {...register("totalAmount", { valueAsNumber: true })}
               readOnly
-              className="flex-1 px-3 py-2 border rounded-r-md bg-gray-100 focus:outline-none"
+              className="flex-1 px-3 py-2 bg-gray-100 border rounded-r-md focus:outline-none"
             />
           </div>
         </div>
 
-        {/* Footer Buttons */}
-        <div className="flex justify-end gap-4 pt-4 border-t">
-          <button
-            type="button"
-            className="px-4 py-2 border rounded-md hover:bg-gray-50"
-            onClick={onClose}
-          >
-            Close
-          </button>
-          <button
-            type="submit"
-            className="px-4 py-2 bg-bs-primary text-white rounded-md hover:bg-bs-primary"
-            disabled={isPending}
-          >
-            {isPending ? "Saving..." : "Save"}
-          </button>
+        {/* 13. Overtime */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Overtime (hrs)
+          </label>
+          <input
+            type="number"
+            {...register("overTime", { valueAsNumber: true })}
+            placeholder="Enter Overtime Hours"
+            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+          />
         </div>
+
+        {/* 14. Condition */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Condition
+          </label>
+          <input
+            type="text"
+            {...register("condition")}
+            placeholder="Enter Condition (e.g., New, Used)"
+            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+          />
+        </div>
+
+        {/* 15. Owner & 16. Status */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Owner
+            </label>
+            <select
+              {...register("owner")}
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+            >
+              <option value="">Select Owner</option>
+              <option value="Raycon">Raycon</option>
+              <option value="Rental">Rental</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Status
+            </label>
+            <select
+              {...register("status")}
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+            >
+              <option value="">Select Status</option>
+              <option value="Allocated">Allocated</option>
+              <option value="Unallocated">Unallocated</option>
+              <option value="OnMaintainance">On Maintainance</option>
+              <option value="InActive">In Active</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Footer Buttons */}
+      <div className="flex justify-end gap-4 pt-4 border-t">
+        <button
+          type="button"
+          className="px-4 py-2 border rounded-md hover:bg-gray-50"
+          onClick={onClose}
+        >
+          Close
+        </button>
+        <button
+          type="submit"
+          className="px-4 py-2 bg-bs-primary text-white rounded-md hover:bg-bs-primary"
+          disabled={isPending}
+        >
+          {isPending ? "Saving..." : "Save"}
+        </button>
       </div>
     </form>
   );

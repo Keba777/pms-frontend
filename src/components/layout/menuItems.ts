@@ -31,6 +31,7 @@ const menuItems = [
     submenu: [
       { title: "Manage Projects", link: "/projects", active: true },
       { title: "Favorite Projects", link: "/projects/favorite" },
+      { title: "Project Phase", link: "/projects/phase" },
       { title: "Tags", link: "/tags/manage" },
     ],
   },
@@ -57,6 +58,12 @@ const menuItems = [
     link: "/master-schedule",
     icon: ClipboardList,
     iconColor: "text-blue-500",
+  },
+  {
+    title: "Daily Task Report",
+    link: "/dailyreports",
+    icon: ListCheck,
+    iconColor: "text-red-500",
   },
   // {
   //   title: "Statuses",

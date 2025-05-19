@@ -2,31 +2,99 @@
 
 import React from "react";
 import { useEquipments } from "@/hooks/useEquipments";
-import Link from "next/link";
 import { useSites } from "@/hooks/useSites";
+import Link from "next/link";
 
-const ResourceEquipmentsPage = () => {
+const ResourceEquipmentsPage: React.FC = () => {
   const { data: equipments, isLoading, error } = useEquipments();
-  const { data: sites } = useSites();
+  const { data: sites, isLoading: siteLoading } = useSites();
 
-  if (isLoading) return <div>Loading equipment...</div>;
+  if (isLoading || siteLoading) return <div>Loading equipment...</div>;
   if (error) return <div>Error loading equipment.</div>;
 
   const headers = [
     "ID",
     "Site Name",
-    "Total Item",
-    "Out of Store",
-    "Re-Qty",
-    "Responsible Person",
-    "Status",
+    "Total Equipment",
+    "Allocated",
+    "Unallocated",
+    "On Maintainance",
+    "Inactive",
   ];
 
+  // Helper lookup
   const lookupSite = (siteId?: string) => sites?.find((s) => s.id === siteId);
+
+  // Overall summary counts
+  const totalAll = equipments?.length ?? 0;
+  const allocatedAll =
+    equipments?.filter((e) => e.status === "Allocated").length ?? 0;
+  const unallocatedAll =
+    equipments?.filter((e) => e.status === "Unallocated").length ?? 0;
+  const onMaintainanceAll =
+    equipments?.filter((e) => e.status === "OnMaintainance").length ?? 0;
+  const inactiveAll =
+    equipments?.filter((e) => e.status === "InActive").length ?? 0;
+  const rentalAll = equipments?.filter((e) => e.owner === "Rental").length ?? 0;
+  const ownAll = equipments?.filter((e) => e.owner === "Raycon").length ?? 0;
+
+  // Aggregate equipments by site
+  const aggregated: Record<
+    string,
+    {
+      site: { id: string; name: string };
+      total: number;
+      allocated: number;
+      unallocated: number;
+      onMaintainance: number;
+      inactive: number;
+    }
+  > = {};
+
+  equipments?.forEach((eqp) => {
+    const site = lookupSite(eqp.siteId);
+    if (!site) return;
+    const sid = site.id;
+
+    if (!aggregated[sid]) {
+      aggregated[sid] = {
+        site,
+        total: 0,
+        allocated: 0,
+        unallocated: 0,
+        onMaintainance: 0,
+        inactive: 0,
+      };
+    }
+
+    aggregated[sid].total += 1;
+
+    switch (eqp.status) {
+      case "Allocated":
+        aggregated[sid].allocated += 1;
+        break;
+      case "Unallocated":
+        aggregated[sid].unallocated += 1;
+        break;
+      case "OnMaintainance":
+        aggregated[sid].onMaintainance += 1;
+        break;
+      case "InActive":
+        aggregated[sid].inactive += 1;
+        break;
+      default:
+        break;
+    }
+  });
+
+  const rows = Object.values(aggregated).map((item, idx) => ({
+    id: idx + 1,
+    ...item,
+  }));
 
   return (
     <div>
-      {/* Breadcrumb & Add Button */}
+      {/* Breadcrumb */}
       <div className="flex justify-between mb-4 mt-4">
         <nav aria-label="breadcrumb">
           <ol className="flex space-x-2">
@@ -41,7 +109,32 @@ const ResourceEquipmentsPage = () => {
         </nav>
       </div>
 
-      {/* Equipment Table */}
+      {/* Overall Summary Cards */}
+      <div className="flex flex-wrap gap-4 mb-4">
+        {[
+          { label: "Total", value: totalAll },
+          { label: "Allocated", value: allocatedAll },
+          { label: "Unallocated", value: unallocatedAll },
+          { label: "On Maintainance", value: onMaintainanceAll },
+          { label: "Inactive", value: inactiveAll },
+          { label: "Rental", value: rentalAll },
+          { label: "Own", value: ownAll },
+        ].map((item) => (
+          <div
+            key={item.label}
+            className="flex font-2xl font-semibold bg-white p-4 rounded-lg shadow-md"
+          >
+            <h2 className="mr-2">{item.label} =</h2>
+            <div className="flex items-center">
+              <span className="text-cyan-700 font-stretch-semi-condensed font-semibold">
+                {item.value}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Aggregated Equipment Table */}
       <div className="p-4 overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200 border border-gray-200">
           <thead className="bg-cyan-700">
@@ -57,44 +150,35 @@ const ResourceEquipmentsPage = () => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {equipments && equipments.length > 0 ? (
-              equipments.map((eqp, idx) => {
-                const site = lookupSite(eqp?.siteId);
-                return (
-                  <tr key={eqp.id}>
-                    <td className="px-4 py-2 border border-gray-200">
-                      {idx + 1}
-                    </td>
-                    <td className="px-4 py-2 border border-gray-200">
-                      {site ? (
-                        <Link
-                          href={`/resources/equipments/${site.id}`}
-                          className="text-blue-600 hover:underline"
-                        >
-                          {site.name}
-                        </Link>
-                      ) : (
-                        "Unknown Site"
-                      )}
-                    </td>
-                    <td className="px-4 py-2 border border-gray-200">
-                      {equipments?.length || 0}
-                    </td>
-                    <td className="px-4 py-2 border border-gray-200">
-                      {eqp.outOfStore}
-                    </td>
-                    <td className="px-4 py-2 border border-gray-200">
-                      {eqp.reorderQuantity}
-                    </td>
-                    <td className="px-4 py-2 border border-gray-200">
-                      {eqp.owner}
-                    </td>
-                    <td className="px-4 py-2 border border-gray-200">
-                      {eqp.status}
-                    </td>
-                  </tr>
-                );
-              })
+            {rows.length > 0 ? (
+              rows.map((row) => (
+                <tr key={row.id}>
+                  <td className="px-4 py-2 border border-gray-200">{row.id}</td>
+                  <td className="px-4 py-2 border border-gray-200">
+                    <Link
+                      href={`/resources/equipments/${row.site.id}`}
+                      className="text-blue-600 hover:underline"
+                    >
+                      {row.site.name}
+                    </Link>
+                  </td>
+                  <td className="px-4 py-2 border border-gray-200">
+                    {row.total}
+                  </td>
+                  <td className="px-4 py-2 border border-gray-200">
+                    {row.allocated}
+                  </td>
+                  <td className="px-4 py-2 border border-gray-200">
+                    {row.unallocated}
+                  </td>
+                  <td className="px-4 py-2 border border-gray-200">
+                    {row.onMaintainance}
+                  </td>
+                  <td className="px-4 py-2 border border-gray-200">
+                    {row.inactive}
+                  </td>
+                </tr>
+              ))
             ) : (
               <tr>
                 <td

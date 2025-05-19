@@ -1,12 +1,14 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Plus } from "lucide-react";
 import { useEquipments } from "@/hooks/useEquipments";
 import { useSites } from "@/hooks/useSites";
 import Link from "next/link";
 import { Equipment } from "@/types/equipment";
+import { getDuration } from "@/utils/helper";
+import EquipmentForm from "@/components/forms/EquipmentForm";
 
 interface ClientEquipmentDetailProps {
   siteId: string;
@@ -22,6 +24,7 @@ export default function ClientEquipmentDetail({
     error: eqError,
   } = useEquipments();
   const { data: sites, isLoading: siteLoading, error: siteError } = useSites();
+  const [showForm, setShowForm] = useState(false);
 
   if (eqLoading || siteLoading) return <div>Loading...</div>;
   if (eqError || siteError)
@@ -38,19 +41,74 @@ export default function ClientEquipmentDetail({
   const siteEquipment: Equipment[] =
     equipments?.filter((e) => e.siteId === siteId) ?? [];
 
+  const total = siteEquipment?.length ?? 0;
+  const allocated =
+    siteEquipment?.filter((l) => l.status === "Allocated").length ?? 0;
+  const unallocated =
+    siteEquipment?.filter((l) => l.status === "Unallocated").length ?? 0;
+  const onMaintainance =
+    siteEquipment?.filter((l) => l.status === "OnMaintainance").length ?? 0;
+  const inactive =
+    siteEquipment?.filter((l) => l.status === "InActive").length ?? 0;
+
+  const rental = siteEquipment?.filter((l) => l.owner === "Rental").length ?? 0;
+  const own = siteEquipment?.filter((l) => l.owner === "Raycon").length ?? 0;
+
   return (
     <div className="max-w-7xl mx-auto p-6 bg-white shadow-lg rounded-lg mt-6">
-      <button
-        className="flex items-center text-gray-600 hover:text-gray-900 mb-6"
-        onClick={() => router.push("/resources/sites")}
-      >
-        <ArrowLeft className="w-5 h-5 mr-2" />
-        Back to Sites
-      </button>
+      <div className="flex justify-between mb-4">
+        <button
+          className="flex items-center text-gray-600 hover:text-gray-900 mb-6"
+          onClick={() => router.push("/resources/equipments")}
+        >
+          <ArrowLeft className="w-5 h-5 mr-2" />
+          Back to Sites
+        </button>
+        <button
+          type="button"
+          className="px-3 text-white bg-cyan-700 rounded hover:bg-cyan-800"
+          onClick={() => setShowForm(true)}
+          title="Create Material"
+        >
+          <Plus className="w-4 h-4" />
+        </button>
+      </div>
+      {showForm && (
+        <div className="modal-overlay fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="modal-content bg-white rounded-lg shadow-xl p-6">
+            <EquipmentForm siteId={siteId} onClose={() => setShowForm(false)} />
+          </div>
+        </div>
+      )}
 
       <h1 className="text-4xl font-bold text-cyan-800 mb-4">
         Equipment at “{site.name}”
       </h1>
+
+      {/* Status Summary */}
+      <div className="flex flex-wrap gap-4 mb-4">
+        {[
+          { label: "Total", value: total },
+          { label: "Allocated", value: allocated },
+          { label: "Unallocated", value: unallocated },
+          { label: "On Maintainance", value: onMaintainance },
+          { label: "Inactive", value: inactive },
+          { label: "Rental", value: rental },
+          { label: "Own", value: own },
+        ].map((item) => (
+          <div
+            key={item.label}
+            className="flex font-2xl font-semibold bg-white p-4 rounded-lg shadow-md"
+          >
+            <h2 className="mr-2">{item.label} =</h2>
+            <div className="flex items-center">
+              <span className="text-cyan-700 font-stretch-semi-condensed font-semibold">
+                {item.value}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
 
       {siteEquipment.length === 0 ? (
         <p className="text-gray-600">No equipment found for this site.</p>
@@ -67,19 +125,17 @@ export default function ClientEquipmentDetail({
                   "Manufacturer",
                   "Model",
                   "Year",
-                  "Quantity",
-                  "Min Qty",
-                  "Re‑Qty",
-                  "Out of Store",
+                  "Qty",
                   "Est Hours",
                   "Rate",
                   "Total Amount",
-                  "OverTime",
+                  "OT",
                   "Condition",
                   "Owner",
+                  "Duration",
+                  "Starting Date",
+                  "Due Date",
                   "Status",
-                  "Created At",
-                  "Updated At",
                 ].map((h) => (
                   <th
                     key={h}
@@ -122,15 +178,7 @@ export default function ClientEquipmentDetail({
                   <td className="px-4 py-2 border border-gray-200">
                     {eq.quantity ?? "-"}
                   </td>
-                  <td className="px-4 py-2 border border-gray-200">
-                    {eq.minQuantity ?? "-"}
-                  </td>
-                  <td className="px-4 py-2 border border-gray-200">
-                    {eq.reorderQuantity ?? "-"}
-                  </td>
-                  <td className="px-4 py-2 border border-gray-200">
-                    {eq.outOfStore ?? "-"}
-                  </td>
+
                   <td className="px-4 py-2 border border-gray-200">
                     {eq.estimatedHours ?? "-"}
                   </td>
@@ -149,8 +197,11 @@ export default function ClientEquipmentDetail({
                   <td className="px-4 py-2 border border-gray-200">
                     {eq.owner || "-"}
                   </td>
+
                   <td className="px-4 py-2 border border-gray-200">
-                    {eq.status || "-"}
+                    {eq.createdAt && eq.updatedAt
+                      ? getDuration(eq.createdAt, eq.updatedAt)
+                      : "-"}
                   </td>
                   <td className="px-4 py-2 border border-gray-200">
                     {eq.createdAt
@@ -161,6 +212,9 @@ export default function ClientEquipmentDetail({
                     {eq.updatedAt
                       ? new Date(eq.updatedAt).toLocaleDateString()
                       : "-"}
+                  </td>
+                  <td className="px-4 py-2 border border-gray-200">
+                    {eq.status || "-"}
                   </td>
                 </tr>
               ))}

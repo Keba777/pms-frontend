@@ -27,6 +27,7 @@ export interface Equipment {
 
 export interface CreateEquipmentInput {
     item: string;
+    siteId: string;
     type?: string
     unit: string;
     manufacturer?: string;
@@ -35,7 +36,6 @@ export interface CreateEquipmentInput {
     quantity?: number
     minQuantity?: number;
     reorderQuantity?: number;
-    outOfStore?: number;
     estimatedHours?: number;
     rate?: number;
     totalAmount?: number;

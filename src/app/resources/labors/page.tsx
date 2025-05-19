@@ -2,14 +2,14 @@
 
 import React from "react";
 import { useLabors } from "@/hooks/useLabors";
-import Link from "next/link";
 import { useSites } from "@/hooks/useSites";
+import Link from "next/link";
 
-const ResourceLaborsPage = () => {
+const ResourceLaborsPage: React.FC = () => {
   const { data: labors, isLoading, error } = useLabors();
-  const { data: sites } = useSites();
+  const { data: sites, isLoading: siteLoading } = useSites();
 
-  if (isLoading) return <div>Loading labors...</div>;
+  if (isLoading || siteLoading) return <div>Loading labors...</div>;
   if (error) return <div>Error loading labors.</div>;
 
   const headers = [
@@ -24,22 +24,83 @@ const ResourceLaborsPage = () => {
     "Responsible Person",
   ];
 
-  // Calculate status counts
-  const total = labors?.length ?? 0;
-  const allocated =
+  // Overall summary counts
+  const totalAll = labors?.length ?? 0;
+  const allocatedAll =
     labors?.filter((l) => l.allocationStatus === "Allocated").length ?? 0;
-  const unallocated =
+  const unallocatedAll =
     labors?.filter((l) => l.allocationStatus === "Unallocated").length ?? 0;
-  const onLeave =
+  const onLeaveAll =
     labors?.filter((l) => l.allocationStatus === "OnLeave").length ?? 0;
-  const active = labors?.filter((l) => l.status === "Active").length ?? 0;
-  const inactive = labors?.filter((l) => l.status === "InActive").length ?? 0;
+  const activeAll = labors?.filter((l) => l.status === "Active").length ?? 0;
+  const inactiveAll =
+    labors?.filter((l) => l.status === "InActive").length ?? 0;
 
+  // Lookup helper
   const lookupSite = (siteId?: string) => sites?.find((s) => s.id === siteId);
+
+  // Aggregate labors by site
+  const aggregated: {
+    [sid: string]: {
+      site: any;
+      total: number;
+      allocated: number;
+      unallocated: number;
+      onLeave: number;
+      active: number;
+      inactive: number;
+      responsiblePerson: string;
+    };
+  } = {};
+
+  labors?.forEach((lab) => {
+    const site = lookupSite(lab.siteId);
+    if (!site) return;
+    const sid = site.id;
+
+    if (!aggregated[sid]) {
+      aggregated[sid] = {
+        site,
+        total: 0,
+        allocated: 0,
+        unallocated: 0,
+        onLeave: 0,
+        active: 0,
+        inactive: 0,
+        responsiblePerson: lab.responsiblePerson || "Unknown",
+      };
+    }
+
+    aggregated[sid].total += 1;
+    switch (lab.allocationStatus) {
+      case "Allocated":
+        aggregated[sid].allocated += 1;
+        break;
+      case "Unallocated":
+        aggregated[sid].unallocated += 1;
+        break;
+      case "OnLeave":
+        aggregated[sid].onLeave += 1;
+        break;
+      default:
+        break;
+    }
+
+    if (lab.status === "Active") {
+      aggregated[sid].active += 1;
+    } else if (lab.status === "InActive") {
+      aggregated[sid].inactive += 1;
+    }
+  });
+
+  const rows = Object.values(aggregated).map((item, idx) => ({
+    id: idx + 1,
+    ...item,
+  }));
 
   return (
     <div>
-      {/* Breadcrumb & Add Button */}
+      {/* Breadcrumb */}
       <div className="flex justify-between mb-4 mt-4">
         <nav aria-label="breadcrumb">
           <ol className="flex space-x-2">
@@ -54,15 +115,15 @@ const ResourceLaborsPage = () => {
         </nav>
       </div>
 
-      {/* Status Summary */}
+      {/* Overall Summary Cards */}
       <div className="flex flex-wrap gap-4 mb-4">
         {[
-          { label: "Total", value: total },
-          { label: "Allocated", value: allocated },
-          { label: "Unallocated", value: unallocated },
-          { label: "On Leave", value: onLeave },
-          { label: "Active", value: active },
-          { label: "Inactive", value: inactive },
+          { label: "Total Labor", value: totalAll },
+          { label: "Allocated", value: allocatedAll },
+          { label: "Unallocated", value: unallocatedAll },
+          { label: "On Leave", value: onLeaveAll },
+          { label: "Active", value: activeAll },
+          { label: "Inactive", value: inactiveAll },
         ].map((item) => (
           <div
             key={item.label}
@@ -78,7 +139,7 @@ const ResourceLaborsPage = () => {
         ))}
       </div>
 
-      {/* Labor Table */}
+      {/* Aggregated Labor Table */}
       <div className="p-4 overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200 border border-gray-200">
           <thead className="bg-cyan-700">
@@ -94,50 +155,41 @@ const ResourceLaborsPage = () => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {labors && labors.length > 0 ? (
-              labors.map((lab, idx) => {
-                const site = lookupSite(lab.siteId);
-                return (
-                  <tr key={lab.id}>
-                    <td className="px-4 py-2 border border-gray-200">
-                      {idx + 1}
-                    </td>
-                    <td className="px-4 py-2 border border-gray-200">
-                      {site ? (
-                        <Link
-                          href={`/resources/labors/${site.id}`}
-                          className="text-blue-600 hover:underline"
-                        >
-                          {site.name}
-                        </Link>
-                      ) : (
-                        "Unknown Site"
-                      )}
-                    </td>
-                    <td className="px-4 py-2 border border-gray-200">
-                      {total}
-                    </td>
-                    <td className="px-4 py-2 border border-gray-200">
-                      {lab.allocationStatus === "Allocated" ? "Yes" : "-"}
-                    </td>
-                    <td className="px-4 py-2 border border-gray-200">
-                      {lab.allocationStatus === "Unallocated" ? "Yes" : "-"}
-                    </td>
-                    <td className="px-4 py-2 border border-gray-200">
-                      {lab.allocationStatus === "OnLeave" ? "Yes" : "-"}
-                    </td>
-                    <td className="px-4 py-2 border border-gray-200">
-                      {lab.status === "Active" ? "Yes" : "-"}
-                    </td>
-                    <td className="px-4 py-2 border border-gray-200">
-                      {lab.status === "InActive" ? "Yes" : "-"}
-                    </td>
-                    <td className="px-4 py-2 border border-gray-200">
-                      {lab.responsiblePerson}
-                    </td>
-                  </tr>
-                );
-              })
+            {rows.length > 0 ? (
+              rows.map((row) => (
+                <tr key={row.id}>
+                  <td className="px-4 py-2 border border-gray-200">{row.id}</td>
+                  <td className="px-4 py-2 border border-gray-200">
+                    <Link
+                      href={`/resources/labors/${row.site.id}`}
+                      className="text-blue-600 hover:underline"
+                    >
+                      {row.site.name}
+                    </Link>
+                  </td>
+                  <td className="px-4 py-2 border border-gray-200">
+                    {row.total}
+                  </td>
+                  <td className="px-4 py-2 border border-gray-200">
+                    {row.allocated}
+                  </td>
+                  <td className="px-4 py-2 border border-gray-200">
+                    {row.unallocated}
+                  </td>
+                  <td className="px-4 py-2 border border-gray-200">
+                    {row.onLeave}
+                  </td>
+                  <td className="px-4 py-2 border border-gray-200">
+                    {row.active}
+                  </td>
+                  <td className="px-4 py-2 border border-gray-200">
+                    {row.inactive}
+                  </td>
+                  <td className="px-4 py-2 border border-gray-200">
+                    {row.responsiblePerson}
+                  </td>
+                </tr>
+              ))
             ) : (
               <tr>
                 <td
