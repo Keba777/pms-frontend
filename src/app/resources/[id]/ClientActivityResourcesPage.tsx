@@ -265,9 +265,6 @@ export default function ClientActivityResourcesPage({
           <>
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-semibold mb-4">Request Summary</h3>
-              <button className="px-5 py-2 rounded-md text-gray-100 bg-cyan-700 hover:bg-cyan-800">
-                Add New
-              </button>
             </div>
 
             {requestType === "materials" && (
@@ -279,6 +276,12 @@ export default function ClientActivityResourcesPage({
                 onCountChange={(id, count) =>
                   setMaterialCounts((c) => ({ ...c, [id]: count }))
                 }
+                minCounts={selMats.reduce(
+                  (acc, id) => ({ ...acc, [id]: 0 }),
+                  {}
+                )}
+                onMinQtyChange={() => {}}
+                addNew={true}
               />
             )}
             {requestType === "equipment" && (
@@ -290,6 +293,12 @@ export default function ClientActivityResourcesPage({
                 onCountChange={(id, count) =>
                   setEquipmentCounts((c) => ({ ...c, [id]: count }))
                 }
+                minCounts={selMats.reduce(
+                  (acc, id) => ({ ...acc, [id]: 0 }),
+                  {}
+                )}
+                onMinQtyChange={() => {}}
+                addNew={true}
               />
             )}
             {requestType === "labor" && (
@@ -301,6 +310,12 @@ export default function ClientActivityResourcesPage({
                 onCountChange={(id, count) =>
                   setLaborCounts((c) => ({ ...c, [id]: count }))
                 }
+                minCounts={selMats.reduce(
+                  (acc, id) => ({ ...acc, [id]: 0 }),
+                  {}
+                )}
+                onMinQtyChange={() => {}}
+                addNew={true}
               />
             )}
 
