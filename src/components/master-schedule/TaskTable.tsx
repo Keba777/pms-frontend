@@ -35,7 +35,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
   projectTitle,
   projectId,
 }) => {
-  const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
+  const [expandedTaskId] = useState<string | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
   const [taskToEdit, setTaskToEdit] = useState<UpdateTaskInput | null>(null);
@@ -187,9 +187,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
                         <span>{index + 1}</span>
                         <button
                           onClick={() =>
-                            setExpandedTaskId(
-                              expandedTaskId === task.id ? null : task.id
-                            )
+                            router.push(`/master-schedule/task/${task.id}`)
                           }
                           className="p-1 bg-teal-700 text-gray-200 hover:bg-gray-200 hover:text-teal-700 rounded"
                         >

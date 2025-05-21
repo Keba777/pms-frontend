@@ -49,9 +49,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
   const router = useRouter();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const [expandedProjectId, setExpandedProjectId] = useState<string | null>(
-    null
-  );
+  const [expandedProjectId] = useState<string | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
     null
@@ -151,13 +149,11 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                         <span>{index + 1}</span>
                         <button
                           onClick={() =>
-                            setExpandedProjectId(
-                              expandedProjectId === project.id
-                                ? null
-                                : project.id
+                            router.push(
+                              `/master-schedule/project/${project.id}`
                             )
                           }
-                          className="p-1 bg-cyan-700 text-gray-200 hover:text-cyan-700 hover:bg-gray-200 rounded"
+                          className="p-1 bg-cyan-700 text-white rounded hover:bg-cyan-800"
                         >
                           <Plus className="w-4 h-4" />
                         </button>

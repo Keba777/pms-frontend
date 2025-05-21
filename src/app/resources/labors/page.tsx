@@ -4,6 +4,7 @@ import React from "react";
 import { useLabors } from "@/hooks/useLabors";
 import { useSites } from "@/hooks/useSites";
 import Link from "next/link";
+import { Site } from "@/types/site";
 
 const ResourceLaborsPage: React.FC = () => {
   const { data: labors, isLoading, error } = useLabors();
@@ -42,7 +43,7 @@ const ResourceLaborsPage: React.FC = () => {
   // Aggregate labors by site
   const aggregated: {
     [sid: string]: {
-      site: any;
+      site: Site;
       total: number;
       allocated: number;
       unallocated: number;

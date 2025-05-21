@@ -199,7 +199,7 @@ export const useCreateLaborTimesheet = (onSuccess?: (t: LaborTimesheet) => void)
         onSuccess: (data) => {
             toast.success("Labor timesheet created");
             queryClient.invalidateQueries({ queryKey: ["labor-timesheets"] });
-            onSuccess && onSuccess(data);
+            if (onSuccess) onSuccess(data);
         },
         onError: () => toast.error("Failed to create labor timesheet"),
     });
@@ -251,7 +251,7 @@ export const useCreateEquipmentTimesheet = (onSuccess?: (t: EquipmentTimesheet) 
         onSuccess: (data) => {
             toast.success("Equipment timesheet created");
             queryClient.invalidateQueries({ queryKey: ["equipment-timesheets"] });
-            onSuccess && onSuccess(data);
+            if (onSuccess) onSuccess(data);
         },
         onError: () => toast.error("Failed to create equipment timesheet"),
     });
@@ -303,7 +303,7 @@ export const useCreateMaterialSheet = (onSuccess?: (t: MaterialBalanceSheet) => 
         onSuccess: (data) => {
             toast.success("Material sheet created");
             queryClient.invalidateQueries({ queryKey: ["material-sheets"] });
-            onSuccess && onSuccess(data);
+            if (onSuccess) onSuccess(data);
         },
         onError: () => toast.error("Failed to create material sheet"),
     });

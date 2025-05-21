@@ -34,7 +34,7 @@ interface TimesheetStore {
 
 export const useTimesheetStore = create<TimesheetStore>()(
     persist(
-        (set, get) => ({
+        (set) => ({
             // initial state
             laborEntries: [],
             equipmentEntries: [],
