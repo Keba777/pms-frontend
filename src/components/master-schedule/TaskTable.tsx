@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { Plus, ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import ActivityTable from "./ActivityTable";
 import { Task, UpdateTaskInput } from "@/types/task";
 import TaskForm from "../forms/TaskForm";
@@ -185,18 +185,20 @@ const TaskTable: React.FC<TaskTableProps> = ({
                     <td className="border border-gray-200 px-4 py-2">
                       <div className="flex items-center gap-2">
                         <span>{index + 1}</span>
-                        <button
+                        {/* <button
                           onClick={() =>
                             router.push(`/master-schedule/task/${task.id}`)
                           }
                           className="p-1 bg-teal-700 text-gray-200 hover:bg-gray-200 hover:text-teal-700 rounded"
                         >
                           <Plus className="w-4 h-4" />
-                        </button>
+                        </button> */}
                       </div>
                     </td>
                     <td className="border border-gray-200 px-4 py-2 font-medium">
-                      <Link href={`/tasks/${task.id}`}>{task.task_name}</Link>
+                      <Link href={`/master-schedule/task/${task.id}`}>
+                        {task.task_name}
+                      </Link>
                     </td>
                     <td className="border border-gray-200 px-4 py-2">
                       {formatDate(task.start_date)}

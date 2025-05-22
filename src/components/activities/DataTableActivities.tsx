@@ -288,6 +288,20 @@ const DataTableActivities = () => {
                               </button>
                             )}
                           </MenuItem>
+                          <MenuItem>
+                            {({ focus }) => (
+                              <button
+                                className={`block w-full px-4 py-2 text-left whitespace-nowrap ${
+                                  focus ? "bg-blue-100" : ""
+                                }`}
+                                onClick={() => {
+                                  console.log("Manage clicked");
+                                }}
+                              >
+                                Remainder
+                              </button>
+                            )}
+                          </MenuItem>
                         </MenuItems>
                       </Menu>
                     </div>

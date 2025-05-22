@@ -61,7 +61,10 @@ export default function ClientActivityResourcesPage({
   const [selectedSite, setSelectedSite] = useState<string>("");
   const [selectedDept, setSelectedDept] = useState<string>("");
 
-  // Per‐row counts
+  // Search term
+  const [searchTerm, setSearchTerm] = useState<string>("");
+
+  // Counts for step 2
   const [materialCounts, setMaterialCounts] = useState<Record<string, number>>(
     {}
   );
@@ -91,19 +94,19 @@ export default function ClientActivityResourcesPage({
     }
   }, [step, requestType, selMats, selEquips, selLabors]);
 
-  // Handlers
+  // Selection handler
   const handleSelect =
-    (setSelected: React.Dispatch<React.SetStateAction<string[]>>) =>
+    (setter: React.Dispatch<React.SetStateAction<string[]>>) =>
     (id: string, checked: boolean) => {
-      setSelected((prev) =>
+      setter((prev) =>
         checked ? [...prev, id] : prev.filter((x) => x !== id)
       );
     };
 
+  // Create Request
   const { mutate: createReq, isPending: isReqLoading } = useCreateRequest();
   const handleRequest = () => {
     if (!activity) return;
-
     const sum = (counts: Record<string, number>) =>
       Object.values(counts).reduce((a, b) => a + b, 0);
 
@@ -120,18 +123,23 @@ export default function ClientActivityResourcesPage({
       status: "Pending",
       activityId: activity.id,
     };
-    createReq(payload, { onSuccess: () => router.push("/resource-requests") });
+    createReq(payload, { onSuccess: () => router.push("/activities") });
   };
 
-  // Set initial site & department
   useEffect(() => {
-    if (sites.length > 0 && !selectedSite) setSelectedSite(sites[0].id);
+    if (sites.length > 0 && !selectedSite) {
+      const hq = sites.find(
+        (s) => s.id === "3269c7c0-a303-438e-bee4-71f5bdec22b2"
+      );
+      setSelectedSite(hq?.id ?? sites[0].id);
+    }
   }, [sites, selectedSite]);
   useEffect(() => {
     if (departments.length > 0 && !selectedDept)
       setSelectedDept(departments[0].id);
   }, [departments, selectedDept]);
 
+  // Loading guard
   const isLoading = [
     isActivityLoading,
     isTaskLoading,
@@ -143,6 +151,23 @@ export default function ClientActivityResourcesPage({
     isLaborsLoading,
   ].some(Boolean);
   if (isLoading) return <LoadingSkeleton />;
+
+  // ——— No useMemo: just derive it here ———
+  const currentSite = sites.find((s) => s.id === selectedSite);
+  const warehouseIds = currentSite?.warehouses?.map((w) => w.id) ?? [];
+
+  // Step-1 filters
+  const filteredMaterials = materials
+    .filter((m) => m.warehouseId && warehouseIds.includes(m.warehouseId))
+    .filter((m) => m.item.toLowerCase().includes(searchTerm.toLowerCase()));
+
+  const filteredEquipments = equipments
+    .filter((e) => e.siteId === selectedSite)
+    .filter((e) => e.item.toLowerCase().includes(searchTerm.toLowerCase()));
+
+  const filteredLabors = labors
+    .filter((l) => l.siteId === selectedSite)
+    .filter((l) => l.role.toLowerCase().includes(searchTerm.toLowerCase()));
 
   return (
     <div className="p-6">
@@ -162,16 +187,31 @@ export default function ClientActivityResourcesPage({
         </ol>
       </nav>
 
+      {/* Site selector */}
+      <div className="my-4">
+        <label className="block text-cyan-700 text-sm font-semibold mb-2">
+          Select Site
+        </label>
+        <Select
+          options={sites.map((s) => ({ value: s.id, label: s.name }))}
+          value={{
+            value: selectedSite,
+            label: currentSite?.name || "—",
+          }}
+          onChange={(opt) => setSelectedSite(opt?.value || "")}
+          className="react-select-container"
+          classNamePrefix="react-select"
+        />
+      </div>
+
       <div className="bg-white shadow-lg rounded-2xl p-6 space-y-6">
-        {/* Activity header */}
+        {/* Header */}
         <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-cyan-600 to-blue-500 text-white rounded-lg">
           <ClipboardList size={28} />
-          <h2 className="text-2xl font-bold">
-            {activity?.activity_name || "Activity Name Unavailable"}
-          </h2>
+          <h2 className="text-2xl font-bold">{activity?.activity_name}</h2>
         </div>
 
-        {/* Project & Task Cards */}
+        {/* Project & Task */}
         <div className="mt-4 flex flex-col md:flex-row md:gap-10">
           {project && (
             <div className="flex-1 p-4 bg-white shadow rounded-xl">
@@ -201,16 +241,18 @@ export default function ClientActivityResourcesPage({
           )}
         </div>
 
-        {/* Step 1: Resource Selection */}
+        {/* Step 1 */}
         {step === 1 && (
           <>
+            {/* Tabs */}
             <nav className="-mb-px flex space-x-8" aria-label="Tabs">
               {["materials", "equipment", "labor"].map((tab) => (
                 <button
                   key={tab}
-                  onClick={() =>
-                    setActiveTab(tab as "materials" | "equipment" | "labor")
-                  }
+                  onClick={() => {
+                    setActiveTab(tab as "materials" | "equipment" | "labor");
+                    setSearchTerm("");
+                  }}
                   className={`py-4 px-1 border-b-2 font-medium text-sm ${
                     activeTab === tab
                       ? "border-cyan-500 text-cyan-600"
@@ -221,29 +263,44 @@ export default function ClientActivityResourcesPage({
                 </button>
               ))}
             </nav>
-            <div className="mt-6">
+
+            {/* Search */}
+            <div className="flex justify-end mb-4">
+              <input
+                type="text"
+                placeholder={`Search ${activeTab}...`}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="px-4 py-2 border rounded-md w-1/3"
+              />
+            </div>
+
+            {/* Tables */}
+            <div>
               {activeTab === "materials" && (
                 <MaterialsTable
-                  materials={materials}
+                  materials={filteredMaterials}
                   selectedIds={selMats}
                   onSelect={handleSelect(setSelMats)}
                 />
               )}
               {activeTab === "equipment" && (
                 <EquipmentTable
-                  equipment={equipments}
+                  equipment={filteredEquipments}
                   selectedIds={selEquips}
                   onSelect={handleSelect(setSelEquips)}
                 />
               )}
               {activeTab === "labor" && (
                 <LaborTable
-                  labor={labors}
+                  labor={filteredLabors}
                   selectedIds={selLabors}
                   onSelect={handleSelect(setSelLabors)}
                 />
               )}
             </div>
+
+            {/* Next */}
             <div className="flex justify-end mt-4">
               <button
                 onClick={() => {
@@ -261,27 +318,20 @@ export default function ClientActivityResourcesPage({
           </>
         )}
 
+        {/* Step 2 */}
         {step === 2 && (
           <>
-            <div className="flex justify-between items-center">
-              <h3 className="text-lg font-semibold mb-4">Request Summary</h3>
-            </div>
-
+            <h3 className="text-lg font-semibold mb-4">Request Summary</h3>
             {requestType === "materials" && (
               <MaterialsTable
                 materials={materials.filter((m) => selMats.includes(m.id))}
                 selectedIds={selMats}
                 onSelect={() => {}}
                 counts={materialCounts}
-                onCountChange={(id, count) =>
-                  setMaterialCounts((c) => ({ ...c, [id]: count }))
+                onCountChange={(id, cnt) =>
+                  setMaterialCounts((c) => ({ ...c, [id]: cnt }))
                 }
-                minCounts={selMats.reduce(
-                  (acc, id) => ({ ...acc, [id]: 0 }),
-                  {}
-                )}
-                onMinQtyChange={() => {}}
-                addNew={true}
+                addNew
               />
             )}
             {requestType === "equipment" && (
@@ -290,15 +340,10 @@ export default function ClientActivityResourcesPage({
                 selectedIds={selEquips}
                 onSelect={() => {}}
                 counts={equipmentCounts}
-                onCountChange={(id, count) =>
-                  setEquipmentCounts((c) => ({ ...c, [id]: count }))
+                onCountChange={(id, cnt) =>
+                  setEquipmentCounts((c) => ({ ...c, [id]: cnt }))
                 }
-                minCounts={selMats.reduce(
-                  (acc, id) => ({ ...acc, [id]: 0 }),
-                  {}
-                )}
-                onMinQtyChange={() => {}}
-                addNew={true}
+                addNew
               />
             )}
             {requestType === "labor" && (
@@ -307,37 +352,14 @@ export default function ClientActivityResourcesPage({
                 selectedIds={selLabors}
                 onSelect={() => {}}
                 counts={laborCounts}
-                onCountChange={(id, count) =>
-                  setLaborCounts((c) => ({ ...c, [id]: count }))
+                onCountChange={(id, cnt) =>
+                  setLaborCounts((c) => ({ ...c, [id]: cnt }))
                 }
-                minCounts={selMats.reduce(
-                  (acc, id) => ({ ...acc, [id]: 0 }),
-                  {}
-                )}
-                onMinQtyChange={() => {}}
-                addNew={true}
+                addNew
               />
             )}
 
-            {/* Site and Department Selection */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              <div>
-                <label className="block text-sm font-medium mb-2">Site</label>
-                <Select
-                  options={sites.map((s) => ({ value: s.id, label: s.name }))}
-                  value={
-                    sites.find((s) => s.id === selectedSite)
-                      ? {
-                          value: selectedSite,
-                          label: sites.find((s) => s.id === selectedSite)?.name,
-                        }
-                      : null
-                  }
-                  onChange={(option) => setSelectedSite(option?.value || "")}
-                  className="react-select-container"
-                  classNamePrefix="react-select"
-                />
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-6">
               <div>
                 <label className="block text-sm font-medium mb-2">
                   Department
@@ -347,16 +369,13 @@ export default function ClientActivityResourcesPage({
                     value: d.id,
                     label: d.name,
                   }))}
-                  value={
-                    departments.find((d) => d.id === selectedDept)
-                      ? {
-                          value: selectedDept,
-                          label: departments.find((d) => d.id === selectedDept)
-                            ?.name,
-                        }
-                      : null
-                  }
-                  onChange={(option) => setSelectedDept(option?.value || "")}
+                  value={{
+                    value: selectedDept,
+                    label:
+                      departments.find((d) => d.id === selectedDept)?.name ||
+                      "—",
+                  }}
+                  onChange={(opt) => setSelectedDept(opt?.value || "")}
                   className="react-select-container"
                   classNamePrefix="react-select"
                 />

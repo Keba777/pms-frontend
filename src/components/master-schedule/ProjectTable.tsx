@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { ChevronDown, Plus } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "react-toastify";
@@ -147,20 +147,20 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                     <td className="border border-gray-200 pl-5 pr-7 py-2">
                       <div className="flex items-center gap-2">
                         <span>{index + 1}</span>
-                        <button
+                        {/* <button
                           onClick={() =>
                             router.push(
-                              `/master-schedule/project/${project.id}`
+                              `/}`
                             )
                           }
                           className="p-1 bg-cyan-700 text-white rounded hover:bg-cyan-800"
                         >
                           <Plus className="w-4 h-4" />
-                        </button>
+                        </button> */}
                       </div>
                     </td>
                     <td className="border border-gray-200 pl-5 pr-7 py-2 font-medium text-bs-primary">
-                      <Link href={`projects/${project.id}`}>
+                      <Link href={`/master-schedule/project/${project.id}`}>
                         {project.title}
                       </Link>
                     </td>

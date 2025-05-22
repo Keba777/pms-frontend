@@ -20,15 +20,33 @@ import { getDateDuration } from "@/utils/helper";
 import TaskForm from "@/components/forms/TaskForm";
 import { usePermissionsStore } from "@/store/permissionsStore";
 import { toast } from "react-toastify";
+import DiscussionTab from "@/components/projects/DiscussionTab";
+import IssueTab from "@/components/projects/IssueTab";
+import FilesTab from "@/components/projects/FilesTab";
+import NotificationTab from "@/components/projects/NotificationTab";
+import ActivityLogTab from "@/components/projects/ActivityLogTab";
 
 interface ClientProjectDetailProps {
   projectId: string;
 }
 
+const tabs = [
+  { key: "discussion", label: "Discussion", component: <DiscussionTab /> },
+  { key: "issue", label: "Issue", component: <IssueTab /> },
+  { key: "files", label: "Files", component: <FilesTab /> },
+  {
+    key: "notification",
+    label: "Notification",
+    component: <NotificationTab />,
+  },
+  { key: "activityLog", label: "Activity Log", component: <ActivityLogTab /> },
+];
+
 export default function ClientProjectDetail({
   projectId,
 }: ClientProjectDetailProps) {
   const router = useRouter();
+  const [activeTab, setActiveTab] = useState("discussion");
   const projects = useProjectStore((state) => state.projects);
   const project = projects.find((p) => p.id === projectId);
 
@@ -269,13 +287,67 @@ export default function ClientProjectDetail({
         </div>
       </div>
 
-      <div className="mt-6 flex space-x-4">
-        <span className="bg-gray-200 py-2 px-5">Discussion</span>
-        <span className="bg-gray-200 py-2 px-5">Issue</span>
-        <span className="bg-gray-200 py-2 px-5">Files</span>
-        <span className="bg-gray-200 py-2 px-5">Notification</span>
-        <span className="bg-gray-200 py-2 px-5">Activity Log</span>
+      <div className="mt-6 border-b">
+        <nav className="flex space-x-4">
+          {tabs.map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`py-2 px-5 font-medium rounded-t-lg transition-colors duration-200
+                ${
+                  activeTab === tab.key
+                    ? "bg-white border-t border-l border-r shadow"
+                    : "bg-gray-200 hover:bg-gray-300"
+                }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </nav>
       </div>
+
+      <div className="p-6 bg-white border border-t-0 rounded-b-lg shadow-sm">
+        {tabs.find((t) => t.key === activeTab)?.component}
+      </div>
+
+      {/* <h1 className="my-6 text-3xl font-bold">Meeting Table</h1>
+      <table className="">
+        <thead>
+          <tr className="bg-cyan-700 text-gray-100">
+            <td className="border px-3 py-2">#</td>
+            <td className="border px-3 py-2">Date with Time</td>
+            <td className="border px-3 py-2">Tiltle</td>
+            <td className="border px-3 py-2">Type</td>
+            <td className="border px-3 py-2">Organized By</td>
+            <td className="border px-3 py-2">Agenda</td>
+            <td className="border px-3 py-2">Meeeting Date</td>
+            <td className="border px-3 py-2">Location Room</td>
+            <td className="border px-3 py-2">Members</td>
+            <td className="border px-3 py-2">Status</td>
+            <td className="border px-3 py-2">Action</td>
+          </tr>
+        </thead>
+      </table> */}
+
+      {/* <h1 className="my-6 text-3xl font-bold">Chat Table</h1>
+      <table className="">
+        <thead>
+          <tr className="bg-cyan-700 text-gray-100">
+            <td className="border px-3 py-2">#</td>
+            <td className="border px-3 py-2">Date with T</td>
+            <td className="border px-3 py-2">Tiltle</td>
+            <td className="border px-3 py-2">Type</td>
+            <td className="border px-3 py-2">Organized By</td>
+            <td className="border px-3 py-2">Agenda</td>
+            <td className="border px-3 py-2">Meeeting Date</td>
+            <td className="border px-3 py-2">Location Room</td>
+            <td className="border px-3 py-2">Members</td>
+            <td className="border px-3 py-2">Status</td>
+            <td className="border px-3 py-2">Attachments</td>
+            <td className="border px-3 py-2">Action</td>
+          </tr>
+        </thead>
+      </table> */}
 
       {/* TASKS SECTION */}
       <div className="mt-6 border-t pt-4">
