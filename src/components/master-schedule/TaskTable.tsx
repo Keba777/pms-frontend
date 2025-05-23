@@ -317,7 +317,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
           isVisible={isDeleteModalOpen}
           title="Confirm Deletion"
           message="Are you sure you want to delete this task?"
-          showInput={true}
+          showInput={false}
           confirmText="DELETE"
           confirmButtonText="Delete"
           onClose={() => setIsDeleteModalOpen(false)}

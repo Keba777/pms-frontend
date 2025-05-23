@@ -300,7 +300,7 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
           isVisible={isDeleteModalOpen}
           title="Confirm Deletion"
           message="Are you sure you want to delete this activity?"
-          showInput={true}
+          showInput={false}
           confirmText="DELETE"
           confirmButtonText="Delete"
           onClose={() => setIsDeleteModalOpen(false)}

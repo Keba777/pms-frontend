@@ -319,7 +319,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
           isVisible={isDeleteModalOpen}
           title="Confirm Deletion"
           message="Are you sure you want to delete this project?"
-          showInput={true}
+          showInput={false}
           confirmText="DELETE"
           confirmButtonText="Delete"
           onClose={() => setIsDeleteModalOpen(false)}
