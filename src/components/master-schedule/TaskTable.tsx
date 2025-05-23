@@ -49,6 +49,37 @@ const TaskTable: React.FC<TaskTableProps> = ({
   const { mutate: updateTask } = useUpdateTask();
   const { data: users } = useUsers();
 
+  // Column customization setup
+  const columnOptions: Record<string, string> = {
+    no: "No",
+    task_name: "Task",
+    start_date: "Start Date",
+    end_date: "End Date",
+    duration: "Duration",
+    progress: "Progress",
+    status: "Status",
+    actions: "Actions",
+  };
+  const [selectedColumns, setSelectedColumns] = useState<string[]>(
+    Object.keys(columnOptions)
+  );
+  const [showColumnMenu, setShowColumnMenu] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const toggleColumn = (col: string) => {
+    setSelectedColumns((prev) =>
+      prev.includes(col) ? prev.filter((c) => c !== col) : [...prev, col]
+    );
+  };
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setShowColumnMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, []);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -147,34 +178,80 @@ const TaskTable: React.FC<TaskTableProps> = ({
         </div>
       )}
 
+      {/* Customize Columns Button */}
+      <div className="flex items-center justify-between mb-4">
+        <div ref={menuRef} className="relative">
+          <button
+            onClick={() => setShowColumnMenu((prev) => !prev)}
+            className="flex items-center gap-1 px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 text-sm"
+          >
+            Customize Columns <ChevronDown className="w-4 h-4" />
+          </button>
+          {showColumnMenu && (
+            <div className="absolute right-0 mt-1 w-40 bg-white border rounded shadow z-10">
+              {Object.entries(columnOptions).map(([key, label]) => (
+                <label
+                  key={key}
+                  className="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedColumns.includes(key)}
+                    onChange={() => toggleColumn(key)}
+                    className="mr-2"
+                  />
+                  {label}
+                </label>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
       <div className="overflow-x-auto">
         <table className="min-w-full border border-gray-200 divide-y divide-gray-200">
           <thead className="bg-teal-700">
             <tr>
-              <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-50 w-16">
-                No
-              </th>
-              <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-50">
-                Task
-              </th>
-              <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-50">
-                Start Date
-              </th>
-              <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-50">
-                End Date
-              </th>
-              <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-50">
-                Duration
-              </th>
-              <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-50">
-                Progress
-              </th>
-              <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-50">
-                Status
-              </th>
-              <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-50 w-32">
-                Actions
-              </th>
+              {selectedColumns.includes("no") && (
+                <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-50 w-16">
+                  {columnOptions.no}
+                </th>
+              )}
+              {selectedColumns.includes("task_name") && (
+                <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-50">
+                  {columnOptions.task_name}
+                </th>
+              )}
+              {selectedColumns.includes("start_date") && (
+                <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-50">
+                  {columnOptions.start_date}
+                </th>
+              )}
+              {selectedColumns.includes("end_date") && (
+                <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-50">
+                  {columnOptions.end_date}
+                </th>
+              )}
+              {selectedColumns.includes("duration") && (
+                <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-50">
+                  {columnOptions.duration}
+                </th>
+              )}
+              {selectedColumns.includes("progress") && (
+                <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-50">
+                  {columnOptions.progress}
+                </th>
+              )}
+              {selectedColumns.includes("status") && (
+                <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-50">
+                  {columnOptions.status}
+                </th>
+              )}
+              {selectedColumns.includes("actions") && (
+                <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-50 w-32">
+                  {columnOptions.actions}
+                </th>
+              )}
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -182,114 +259,118 @@ const TaskTable: React.FC<TaskTableProps> = ({
               tasks.map((task, index) => (
                 <React.Fragment key={task.id}>
                   <tr className="hover:bg-gray-50 relative">
-                    <td className="border border-gray-200 px-4 py-2">
-                      <div className="flex items-center gap-2">
-                        <span>{index + 1}</span>
-                        {/* <button
-                          onClick={() =>
-                            router.push(`/master-schedule/task/${task.id}`)
-                          }
-                          className="p-1 bg-teal-700 text-gray-200 hover:bg-gray-200 hover:text-teal-700 rounded"
+                    {selectedColumns.includes("no") && (
+                      <td className="border border-gray-200 px-4 py-2">
+                        {index + 1}
+                      </td>
+                    )}
+                    {selectedColumns.includes("task_name") && (
+                      <td className="border border-gray-200 px-4 py-2 font-medium">
+                        <Link href={`/master-schedule/task/${task.id}`}>
+                          {task.task_name}
+                        </Link>
+                      </td>
+                    )}
+                    {selectedColumns.includes("start_date") && (
+                      <td className="border border-gray-200 px-4 py-2">
+                        {formatDate(task.start_date)}
+                      </td>
+                    )}
+                    {selectedColumns.includes("end_date") && (
+                      <td className="border border-gray-200 px-4 py-2">
+                        {formatDate(task.end_date)}
+                      </td>
+                    )}
+                    {selectedColumns.includes("duration") && (
+                      <td className="border border-gray-200 px-4 py-2">
+                        {getDateDuration(task.start_date, task.end_date)}
+                      </td>
+                    )}
+                    {selectedColumns.includes("progress") && (
+                      <td className="border border-gray-200 px-4 py-2">
+                        {task.progress}%
+                      </td>
+                    )}
+                    {selectedColumns.includes("status") && (
+                      <td className="border border-gray-200 px-4 py-2">
+                        <span
+                          className={`px-2 py-1 rounded-full text-sm font-medium ${
+                            statusBadgeClasses[task.status]
+                          }`}
                         >
-                          <Plus className="w-4 h-4" />
-                        </button> */}
-                      </div>
-                    </td>
-                    <td className="border border-gray-200 px-4 py-2 font-medium">
-                      <Link href={`/master-schedule/task/${task.id}`}>
-                        {task.task_name}
-                      </Link>
-                    </td>
-                    <td className="border border-gray-200 px-4 py-2">
-                      {formatDate(task.start_date)}
-                    </td>
-                    <td className="border border-gray-200 px-4 py-2">
-                      {formatDate(task.end_date)}
-                    </td>
-                    <td className="border border-gray-200 px-4 py-2">
-                      {getDateDuration(task.start_date, task.end_date)}
-                    </td>
-                    <td className="border border-gray-200 px-4 py-2">
-                      {task.progress}%
-                    </td>
-                    <td className="border border-gray-200 px-4 py-2">
-                      <span
-                        className={`px-2 py-1 rounded-full text-sm font-medium ${
-                          statusBadgeClasses[task.status]
-                        }`}
-                      >
-                        {task.status}
-                      </span>
-                    </td>
-                    <td className="border border-gray-200 px-4 py-2">
-                      <div className="relative">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setDropdownTaskId(
-                              dropdownTaskId === task.id ? null : task.id
-                            );
-                          }}
-                          className="flex items-center justify-between gap-1 px-3 py-1 bg-teal-700 text-white border border-gray-100 hover:bg-teal-800 rounded w-full"
-                        >
-                          <span>Actions</span>
-                          <ChevronDown className="w-4 h-4 ml-2" />
-                        </button>
-                        {dropdownTaskId === task.id && (
-                          <div
-                            ref={dropdownRef}
-                            className="absolute left-0 top-full mt-1 w-full bg-white border border-gray-200 rounded shadow-lg z-50"
+                          {task.status}
+                        </span>
+                      </td>
+                    )}
+                    {selectedColumns.includes("actions") && (
+                      <td className="border border-gray-200 px-4 py-2">
+                        <div className="relative">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDropdownTaskId(
+                                dropdownTaskId === task.id ? null : task.id
+                              );
+                            }}
+                            className="flex items-center justify-between gap-1 px-3 py-1 bg-teal-700 text-white rounded w-full"
                           >
-                            <button
-                              onClick={() => {
-                                setDropdownTaskId(null);
-                                handleView(task.id);
-                              }}
-                              className="w-full text-left px-3 py-2 hover:bg-gray-100 disabled:opacity-50"
+                            <span>Actions</span>
+                            <ChevronDown className="w-4 h-4" />
+                          </button>
+                          {dropdownTaskId === task.id && (
+                            <div
+                              ref={dropdownRef}
+                              className="absolute left-0 top-full mt-1 w-full bg-white border rounded shadow-lg z-50"
                             >
-                              View
-                            </button>
-                            <button
-                              onClick={() => {
-                                setDropdownTaskId(null);
-                                setTaskToEdit({
-                                  ...task,
-                                  assignedUsers: task.assignedUsers?.map(
-                                    (u) => u.id
-                                  ),
-                                });
-                                setShowEditForm(true);
-                              }}
-                              className="w-full text-left px-3 py-2 hover:bg-gray-100 disabled:opacity-50"
-                            >
-                              Edit
-                            </button>
-                            <button
-                              onClick={() => {
-                                setDropdownTaskId(null);
-                                handleDeleteClick(task.id);
-                              }}
-                              className="w-full text-left px-3 py-2 text-red-600 hover:bg-gray-100 disabled:opacity-50"
-                            >
-                              Delete
-                            </button>
-                            <button
-                              onClick={() => {
-                                console.log("Manage clicked");
-                              }}
-                              className="w-full text-left px-3 py-2 hover:bg-gray-100 disabled:opacity-50"
-                            >
-                              Manage
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    </td>
+                              <button
+                                onClick={() => {
+                                  setDropdownTaskId(null);
+                                  handleView(task.id);
+                                }}
+                                className="w-full text-left px-3 py-2 hover:bg-gray-100"
+                              >
+                                View
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setDropdownTaskId(null);
+                                  setTaskToEdit({
+                                    ...task,
+                                    assignedUsers: task.assignedUsers?.map(
+                                      (u) => u.id
+                                    ),
+                                  });
+                                  setShowEditForm(true);
+                                }}
+                                className="w-full text-left px-3 py-2 hover:bg-gray-100"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setDropdownTaskId(null);
+                                  handleDeleteClick(task.id);
+                                }}
+                                className="w-full text-left px-3 py-2 text-red-600 hover:bg-gray-100"
+                              >
+                                Delete
+                              </button>
+                              <button
+                                onClick={() => console.log("Manage clicked")}
+                                className="w-full text-left px-3 py-2 hover:bg-gray-100"
+                              >
+                                Manage
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                    )}
                   </tr>
                   {expandedTaskId === task.id && (
                     <tr>
                       <td
-                        colSpan={8}
+                        colSpan={selectedColumns.length}
                         className="border border-gray-200 px-4 py-2 bg-gray-50"
                       >
                         <ActivityTable taskId={task.id} />
@@ -301,7 +382,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
             ) : (
               <tr>
                 <td
-                  colSpan={8}
+                  colSpan={selectedColumns.length}
                   className="border border-gray-200 px-4 py-2 text-center"
                 >
                   No tasks found
