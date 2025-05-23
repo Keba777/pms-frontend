@@ -258,7 +258,7 @@ const UsersPage = () => {
                   {user.department?.name || "—"}
                 </td>
                 <td className="border border-gray-200 px-6 py-3 whitespace-nowrap">
-                  {user.site || "—"}
+                  {user.site?.name}
                 </td>
                 <td className="border border-gray-200 px-6 py-3 whitespace-nowrap">
                   {user.phone}
@@ -338,7 +338,7 @@ const UsersPage = () => {
           isVisible={isDeleteModalOpen}
           title="Confirm Deletion"
           message="Are you sure you want to delete this user?"
-          showInput={true}
+          showInput={false}
           confirmText="DELETE"
           confirmButtonText="Delete"
           onClose={() => setIsDeleteModalOpen(false)}

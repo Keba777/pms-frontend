@@ -410,7 +410,7 @@ const DataTable = () => {
           title="Confirm Deletion"
           message="Are you sure you want to delete this task?"
           confirmText="DELETE"
-          showInput={true}
+          showInput={false}
           confirmButtonText="Delete"
           onClose={() => setIsDeleteModalOpen(false)}
           onConfirm={handleDeleteTask}

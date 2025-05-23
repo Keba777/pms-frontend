@@ -1,11 +1,13 @@
 import { Equipment } from "./equipment";
 import { Labor } from "./labor";
 import { Project } from "./project";
+import { User } from "./user";
 import { Warehouse } from "./warehouse";
 
 export interface Site {
     id: string;
     name: string;
+    users?: User[]
     projects?: Project[];
     warehouses?: Warehouse[]
     equipments?: Equipment[];
@@ -19,6 +21,6 @@ export interface CreateSiteInput {
 }
 
 export interface UpdateSiteInput {
-    id: string;
-    name: string;
+    id?: string;
+    name?: string;
 }

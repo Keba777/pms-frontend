@@ -6,6 +6,7 @@ import { useUserStore } from "@/store/userStore";
 import { User } from "@/types/user";
 import { useEffect } from "react";
 import Image from "next/image";
+import avatar from "@/../public/images/user.png";
 
 interface ClientProfileDetailProps {
   userId: string;
@@ -29,67 +30,117 @@ export default function ClientProfileDetail({
       <div className="text-center text-red-500 mt-10">User not found.</div>
     );
   }
+
   return (
-    <div className="max-w-6xl mx-auto p-6 bg-white shadow-lg rounded-lg mt-6">
-      <div className="flex items-center space-x-4">
-        <button
-          className="text-gray-600 hover:text-gray-900 flex items-center p-2 bg-white border-2 border-gray-300 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50"
-          onClick={() => router.push("/users")}
-        >
-          <ArrowLeft className="w-5 h-5 mr-2 transition-transform duration-200 transform hover:translate-x-2" />
-          <span className="text-lg font-semibold transition-all duration-300">
-            Back to Users
+    <div className="max-w-4xl mx-auto mt-8 p-6 bg-white shadow-lg rounded-lg">
+      {/* Back Button */}
+      <button
+        onClick={() => router.push("/users")}
+        className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-6"
+      >
+        <ArrowLeft className="w-5 h-5 mr-2" />
+        Back to Users
+      </button>
+
+      {/* Header */}
+      <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
+        {/* Profile Picture */}
+        <div className="flex-shrink-0">
+          {user.profile_picture ? (
+            <Image
+              src={user.profile_picture || avatar}
+              alt={`${user.first_name} ${user.last_name}`}
+              width={120}
+              height={120}
+              className="rounded-full object-cover"
+            />
+          ) : (
+            <div className="w-32 h-32 bg-gray-200 rounded-full flex items-center justify-center text-gray-500">
+              No Image
+            </div>
+          )}
+        </div>
+
+        {/* Name & Status */}
+        <div className="flex-1">
+          <h1 className="text-4xl font-bold text-cyan-800">
+            {user.first_name} {user.last_name}
+          </h1>
+          <span
+            className={`inline-block mt-2 px-3 py-1 text-sm font-semibold rounded-full ${
+              user.status === "Active"
+                ? "bg-green-100 text-green-800"
+                : "bg-red-100 text-red-800"
+            }`}
+          >
+            {user.status}
           </span>
-        </button>
+        </div>
       </div>
 
-      <h1 className="text-5xl font-bold text-cyan-800 mt-4">
-        {user.first_name} {user.last_name}
-      </h1>
-      {user.email && <p className="text-gray-600 mt-2">{user.email}</p>}
-      {user.phone && <p className="text-gray-600 mt-2">{user.phone}</p>}
-      {user.role && (
-        <p className="text-gray-600 mt-2">Role: {user.role.name}</p>
-      )}
-      {user.status && (
-        <p className="text-gray-600 mt-2">Status: {user.status}</p>
-      )}
-      {user.department_id && (
-        <p className="text-gray-600 mt-2">
-          Department ID: {user.department?.name}
-        </p>
-      )}
-      {user.profile_picture && (
-        <Image
-          src={user.profile_picture}
-          alt={`${user.first_name} ${user.last_name}`}
-          className="mt-4 rounded-full w-32 h-32 object-cover"
-        />
-      )}
-      <div className="mt-4">
-        <span className="inline-block bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-semibold">
-          {user.status}
-        </span>
+      {/* Two-column Info Grid */}
+      <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 text-gray-700">
+        <div>
+          <p>
+            <span className="font-semibold">Email:</span> {user.email}
+          </p>
+          <p className="mt-2">
+            <span className="font-semibold">Phone:</span> {user.phone}
+          </p>
+          <p className="mt-2">
+            <span className="font-semibold">Role:</span> {user.role?.name}
+          </p>
+        </div>
+        <div>
+          <p>
+            <span className="font-semibold">Site:</span> {user.site?.name}
+          </p>
+          <p className="mt-2">
+            <span className="font-semibold">Department:</span>{" "}
+            {user.department?.name || "—"}
+          </p>
+          {/* <p className="mt-2">
+            <span className="font-semibold">Password:</span> ••••••••
+          </p> */}
+        </div>
       </div>
-      <div className="lg:w-2/3 mt-6 lg:mt-0 flex justify-center">
-        <div className="w-full bg-gray-50 p-8 rounded-lg shadow-md">
-          {/* <h2 className="text-3xl font-semibold text-gray-800 mb-4 text-center">
-            User Details
-          </h2> */}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Phone */}
-            <div className="flex items-center">
-              <span className="bg-yellow-300 text-yellow-800 px-4 py-2 rounded-full text-sm font-semibold">
-                Phone: {user.phone}
+      {/* Responsibilities */}
+      {user.responsiblities && user.responsiblities.length > 0 && (
+        <div className="mt-8">
+          <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+            Responsibilities
+          </h2>
+          <div className="flex flex-wrap gap-2">
+            {user.responsiblities.map((r, i) => (
+              <span
+                key={i}
+                className="inline-flex items-center bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm"
+              >
+                {r}
               </span>
-            </div>
-            <div>
-              <h2 className="text-2xl font-semibold text-gray-800 mb-4 text-center">
-                Responsibilities
-              </h2>
-            </div>
+            ))}
           </div>
+        </div>
+      )}
+
+      {/* Related Counts */}
+      <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-gray-50 p-4 rounded-lg text-center">
+          <p className="text-xl font-bold">{user.projects?.length || 0}</p>
+          <p className="text-sm text-gray-500">Projects</p>
+        </div>
+        <div className="bg-gray-50 p-4 rounded-lg text-center">
+          <p className="text-xl font-bold">{user.tasks?.length || 0}</p>
+          <p className="text-sm text-gray-500">Tasks</p>
+        </div>
+        <div className="bg-gray-50 p-4 rounded-lg text-center">
+          <p className="text-xl font-bold">{user.activities?.length || 0}</p>
+          <p className="text-sm text-gray-500">Activities</p>
+        </div>
+        <div className="bg-gray-50 p-4 rounded-lg text-center">
+          <p className="text-xl font-bold">{user.requests?.length || 0}</p>
+          <p className="text-sm text-gray-500">Requests</p>
         </div>
       </div>
     </div>

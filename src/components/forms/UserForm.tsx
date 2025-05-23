@@ -1,8 +1,9 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
-import Select, { GroupBase } from "react-select";
+import Select from "react-select";
+import { useSites } from "@/hooks/useSites";
 import { useDepartments } from "@/hooks/useDepartments";
 import { useRoles } from "@/hooks/useRoles";
 import { CreateUserInput } from "@/types/user";
@@ -12,7 +13,6 @@ interface UserFormProps {
   onClose: () => void;
 }
 
-// Generic option type for react-select
 interface SelectOption {
   value: string;
   label: string;
@@ -24,23 +24,34 @@ const UserForm: React.FC<UserFormProps> = ({ onClose }) => {
     handleSubmit,
     control,
     formState: { errors },
-  } = useForm<CreateUserInput>();
+    setValue,
+    watch,
+  } = useForm<CreateUserInput>({
+    defaultValues: {
+      responsiblities: [],
+    },
+  });
 
   const { mutate: createUser, isPending } = useRegister();
-
+  const {
+    data: sites,
+    isLoading: sitesLoading,
+    error: sitesError,
+  } = useSites();
   const {
     data: departments,
     isLoading: depsLoading,
     error: depsError,
   } = useDepartments();
-
   const {
     data: roles,
     isLoading: rolesLoading,
     error: rolesError,
   } = useRoles();
 
-  // Map fetched data into SelectOption[]
+  const siteOptions: SelectOption[] =
+    sites?.map((site) => ({ value: site.id, label: site.name })) || [];
+
   const departmentOptions: SelectOption[] =
     departments?.map((dep) => ({ value: dep.id, label: dep.name })) || [];
 
@@ -53,6 +64,23 @@ const UserForm: React.FC<UserFormProps> = ({ onClose }) => {
     { value: "Active", label: "Active" },
     { value: "InActive", label: "InActive" },
   ];
+
+  const [responsibilityInput, setResponsibilityInput] = useState("");
+  const responsibilities = watch("responsiblities");
+
+  const addResponsibility = () => {
+    if (responsibilityInput.trim() !== "") {
+      const updated = [...(responsibilities || []), responsibilityInput.trim()];
+      setValue("responsiblities", updated);
+      setResponsibilityInput("");
+    }
+  };
+
+  const removeResponsibility = (index: number) => {
+    const updated = [...(responsibilities || [])];
+    updated.splice(index, 1);
+    setValue("responsiblities", updated);
+  };
 
   const onSubmit = (data: CreateUserInput) => {
     createUser(data, {
@@ -80,8 +108,7 @@ const UserForm: React.FC<UserFormProps> = ({ onClose }) => {
       </div>
 
       <div className="space-y-4">
-        {/* Personal Info */}
-        {/** First Name */}
+        {/* First Name */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             First Name <span className="text-red-500">*</span>
@@ -90,7 +117,7 @@ const UserForm: React.FC<UserFormProps> = ({ onClose }) => {
             type="text"
             {...register("first_name", { required: "First name is required" })}
             placeholder="Enter first name"
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+            className="w-full px-3 py-2 border rounded-md"
           />
           {errors.first_name && (
             <p className="text-red-500 text-sm mt-1">
@@ -99,7 +126,7 @@ const UserForm: React.FC<UserFormProps> = ({ onClose }) => {
           )}
         </div>
 
-        {/** Last Name */}
+        {/* Last Name */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Last Name <span className="text-red-500">*</span>
@@ -108,7 +135,7 @@ const UserForm: React.FC<UserFormProps> = ({ onClose }) => {
             type="text"
             {...register("last_name", { required: "Last name is required" })}
             placeholder="Enter last name"
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+            className="w-full px-3 py-2 border rounded-md"
           />
           {errors.last_name && (
             <p className="text-red-500 text-sm mt-1">
@@ -117,7 +144,7 @@ const UserForm: React.FC<UserFormProps> = ({ onClose }) => {
           )}
         </div>
 
-        {/** Email & Phone */}
+        {/* Email & Phone */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -127,7 +154,7 @@ const UserForm: React.FC<UserFormProps> = ({ onClose }) => {
               type="email"
               {...register("email", { required: "Email is required" })}
               placeholder="Enter email"
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+              className="w-full px-3 py-2 border rounded-md"
             />
             {errors.email && (
               <p className="text-red-500 text-sm mt-1">
@@ -143,7 +170,7 @@ const UserForm: React.FC<UserFormProps> = ({ onClose }) => {
               type="tel"
               {...register("phone", { required: "Phone number is required" })}
               placeholder="Enter phone number"
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+              className="w-full px-3 py-2 border rounded-md"
             />
             {errors.phone && (
               <p className="text-red-500 text-sm mt-1">
@@ -153,7 +180,7 @@ const UserForm: React.FC<UserFormProps> = ({ onClose }) => {
           </div>
         </div>
 
-        {/** Password */}
+        {/* Password */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Password <span className="text-red-500">*</span>
@@ -162,7 +189,7 @@ const UserForm: React.FC<UserFormProps> = ({ onClose }) => {
             type="password"
             {...register("password", { required: "Password is required" })}
             placeholder="Enter password"
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+            className="w-full px-3 py-2 border rounded-md"
           />
           {errors.password && (
             <p className="text-red-500 text-sm mt-1">
@@ -171,8 +198,34 @@ const UserForm: React.FC<UserFormProps> = ({ onClose }) => {
           )}
         </div>
 
-        {/** Department & Role */}
+        {/* Site & Department */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Site <span className="text-red-500">*</span>
+            </label>
+            <Controller
+              name="siteId"
+              control={control}
+              rules={{ required: "Site is required" }}
+              render={({ field }) => (
+                <Select
+                  options={siteOptions}
+                  isLoading={sitesLoading}
+                  onChange={(opt) => field.onChange(opt?.value)}
+                  value={
+                    siteOptions.find((opt) => opt.value === field.value) || null
+                  }
+                />
+              )}
+            />
+            {(errors.siteId || sitesError) && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.siteId?.message || "Error loading sites"}
+              </p>
+            )}
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Department
@@ -181,7 +234,7 @@ const UserForm: React.FC<UserFormProps> = ({ onClose }) => {
               name="department_id"
               control={control}
               render={({ field }) => (
-                <Select<SelectOption, false, GroupBase<SelectOption>>
+                <Select
                   options={departmentOptions}
                   isLoading={depsLoading}
                   onChange={(opt) => field.onChange(opt?.value)}
@@ -190,8 +243,6 @@ const UserForm: React.FC<UserFormProps> = ({ onClose }) => {
                       (opt) => opt.value === field.value
                     ) || null
                   }
-                  placeholder="Select Department"
-                  className="w-full"
                 />
               )}
             />
@@ -201,7 +252,10 @@ const UserForm: React.FC<UserFormProps> = ({ onClose }) => {
               </p>
             )}
           </div>
+        </div>
 
+        {/* Role & Status */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Role <span className="text-red-500">*</span>
@@ -211,15 +265,13 @@ const UserForm: React.FC<UserFormProps> = ({ onClose }) => {
               control={control}
               rules={{ required: "Role is required" }}
               render={({ field }) => (
-                <Select<SelectOption, false, GroupBase<SelectOption>>
+                <Select
                   options={roleOptions}
                   isLoading={rolesLoading}
                   onChange={(opt) => field.onChange(opt?.value)}
                   value={
                     roleOptions.find((opt) => opt.value === field.value) || null
                   }
-                  placeholder="Select Role"
-                  className="w-full"
                 />
               )}
             />
@@ -229,28 +281,68 @@ const UserForm: React.FC<UserFormProps> = ({ onClose }) => {
               </p>
             )}
           </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Status
+            </label>
+            <Controller
+              name="status"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  options={statusOptions}
+                  onChange={(opt) => field.onChange(opt?.value)}
+                  value={
+                    statusOptions.find((opt) => opt.value === field.value) ||
+                    null
+                  }
+                />
+              )}
+            />
+          </div>
         </div>
 
-        {/** Status */}
+        {/* Manual Responsibilities Input */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Status
+            Responsibilities
           </label>
-          <Controller
-            name="status"
-            control={control}
-            render={({ field }) => (
-              <Select<SelectOption, false, GroupBase<SelectOption>>
-                options={statusOptions}
-                onChange={(opt) => field.onChange(opt?.value)}
-                value={
-                  statusOptions.find((opt) => opt.value === field.value) || null
-                }
-                placeholder="Select Status"
-                className="w-full"
-              />
-            )}
-          />
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={responsibilityInput}
+              onChange={(e) => setResponsibilityInput(e.target.value)}
+              className="w-full px-3 py-2 border rounded-md"
+              placeholder="Enter responsibility and click Add"
+            />
+            <button
+              type="button"
+              onClick={addResponsibility}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md"
+            >
+              Add
+            </button>
+          </div>
+          {responsibilities && responsibilities.length > 0 && (
+            <ul className="mt-2 space-y-1">
+              {responsibilities.map((item, idx) => (
+                <li
+                  key={idx}
+                  className="flex items-center justify-between bg-gray-100 p-2 rounded"
+                >
+                  <span>{item}</span>
+                  <button
+                    type="button"
+                    className="text-red-500"
+                    onClick={() => removeResponsibility(idx)}
+                  >
+                    &times;
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </div>
 
@@ -264,7 +356,7 @@ const UserForm: React.FC<UserFormProps> = ({ onClose }) => {
         </button>
         <button
           type="submit"
-          className="px-4 py-2 bg-bs-primary text-white rounded-md hover:bg-bs-primary/90"
+          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
           disabled={isPending}
         >
           {isPending ? "Creating..." : "Create"}

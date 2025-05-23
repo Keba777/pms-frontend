@@ -2,6 +2,7 @@ import { Activity } from "./activity";
 import { Department } from "./department";
 import { Project } from "./project";
 import { Request } from "./request";
+import { Site } from "./site";
 import { Task } from "./task";
 
 export interface User {
@@ -16,7 +17,9 @@ export interface User {
     profile_picture?: string;
     department_id?: string;
     department?: Department
-    site?: string;
+    siteId: string;
+    site?: Site
+    responsiblities?: string[]
     status?: "Active" | "InActive";
     projects?: Project[];
     tasks?: Task[];
@@ -33,6 +36,8 @@ export interface CreateUserInput {
     department_id?: string;
     status?: "Active" | "InActive";
     role_name: string;
+    siteId: string;
+    responsiblities?: string[]
 }
 
 export interface UpdateUserInput {
@@ -46,6 +51,8 @@ export interface UpdateUserInput {
     department_id?: string;
     status?: "Active" | "InActive";
     role_id?: string;
+    siteId: string;
+    responsiblities?: string[]
 }
 
 export type PermissionActions = "create" | "update" | "delete" | "manage";

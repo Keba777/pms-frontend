@@ -1,6 +1,6 @@
 import apiClient from "@/services/api-client";
 import { useSiteStore } from "@/store/siteStore";
-import { Site } from "@/types/site";
+import { CreateSiteInput, Site, UpdateSiteInput } from "@/types/site";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { toast } from "react-toastify";
@@ -31,12 +31,12 @@ const fetchSiteById = async (id: string): Promise<Site | null> => {
     }
 };
 
-const createSite = async (data: Site): Promise<Site> => {
+const createSite = async (data: CreateSiteInput): Promise<Site> => {
     const response = await apiClient.post<ApiResponse<Site>>("/sites", data);
     return response.data.data;
 };
 
-const updateSite = async (data: Site): Promise<Site> => {
+const updateSite = async (data: UpdateSiteInput): Promise<Site> => {
     const response = await apiClient.put<ApiResponse<Site>>(
         `/sites/${data.id}`,
         data

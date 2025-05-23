@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
-import Select, { GroupBase } from "react-select";
+import Select from "react-select";
+import { useSites } from "@/hooks/useSites";
 import { useDepartments } from "@/hooks/useDepartments";
 import { useRoles } from "@/hooks/useRoles";
 import { UpdateUserInput, User } from "@/types/user";
@@ -13,7 +14,6 @@ interface EditUserFormProps {
   user: User;
 }
 
-// Generic option type for react-select
 interface SelectOption {
   value: string;
   label: string;
@@ -29,6 +29,7 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
     handleSubmit,
     control,
     setValue,
+    watch,
     formState: { errors },
   } = useForm<UpdateUserInput>({
     defaultValues: {
@@ -37,245 +38,293 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
       last_name: user.last_name,
       email: user.email,
       phone: user.phone,
-      department_id: user.department_id || undefined,
-      status: user.status,
+      password: undefined,
+      profile_picture: user.profile_picture,
+      siteId: user.siteId,
+      department_id: user.department_id,
       role_id: user.role_id,
+      status: user.status,
+      responsiblities: user.responsiblities || [],
     },
   });
 
+  const {
+    data: sites,
+    isLoading: sitesLoading,
+    error: sitesError,
+  } = useSites();
   const {
     data: departments,
     isLoading: depsLoading,
     error: depsError,
   } = useDepartments();
-
   const {
     data: roles,
     isLoading: rolesLoading,
-    error: rolesError,
   } = useRoles();
 
-  // Map fetched data into SelectOption[]
+  const siteOptions: SelectOption[] =
+    sites?.map((s) => ({ value: s.id, label: s.name })) || [];
   const departmentOptions: SelectOption[] =
-    departments?.map((dep) => ({ value: dep.id, label: dep.name })) || [];
-
+    departments?.map((d) => ({ value: d.id, label: d.name })) || [];
   const roleOptions: SelectOption[] =
-    roles
-      ?.filter((role) => role.id !== undefined)
-      .map((role) => ({ value: role.id as string, label: role.name })) || [];
-
+    roles?.map((r) => ({ value: r.id!, label: r.name })) || [];
   const statusOptions: SelectOption[] = [
     { value: "Active", label: "Active" },
     { value: "InActive", label: "InActive" },
   ];
 
-  // ensure the role select shows existing value once roles load
-  useEffect(() => {
-    if (roles && user.role) {
-      setValue("role_id", user.role.id);
-    }
-  }, [roles, user.role, setValue]);
+  // Responsibilities state
+  const [respInput, setRespInput] = useState("");
+  const responsibilities = watch("responsiblities") || [];
 
-  const handleFormSubmit = (data: UpdateUserInput) => {
+  const addResponsibility = () => {
+    const val = respInput.trim();
+    if (val) {
+      setValue("responsiblities", [...responsibilities, val]);
+      setRespInput("");
+    }
+  };
+  const removeResponsibility = (idx: number) => {
+    const updated = [...responsibilities];
+    updated.splice(idx, 1);
+    setValue("responsiblities", updated);
+  };
+
+  // Make sure selects pick up existing values once data loads
+  useEffect(() => {
+    if (sites) setValue("siteId", user.siteId);
+    if (roles) setValue("role_id", user.role_id);
+    if (departments && user.department_id)
+      setValue("department_id", user.department_id);
+  }, [sites, roles, departments, setValue, user]);
+
+  const submit = (data: UpdateUserInput) => {
     onSubmit(data);
   };
 
   return (
     <form
-      onSubmit={handleSubmit(handleFormSubmit)}
-      className="bg-white rounded-lg shadow-xl p-6 space-y-6"
+      onSubmit={handleSubmit(submit)}
+      className="bg-white rounded-lg shadow p-6 space-y-6"
     >
-      <div className="flex justify-between items-center pb-4 border-b">
-        <h3 className="text-lg font-semibold text-gray-800">Edit User</h3>
+      <div className="flex justify-between items-center border-b pb-4">
+        <h3 className="text-lg font-semibold">Edit User</h3>
         <button
           type="button"
-          className="text-3xl text-red-500 hover:text-red-600"
           onClick={onClose}
+          className="text-red-500 text-2xl"
         >
           &times;
         </button>
       </div>
 
       <div className="space-y-4">
-        {/* First Name */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            First Name <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            {...register("first_name", { required: "First name is required" })}
-            placeholder="Enter first name"
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-          />
-          {errors.first_name && (
-            <p className="text-red-500 text-sm mt-1">
-              {errors.first_name.message}
-            </p>
-          )}
-        </div>
-
-        {/* Last Name */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Last Name <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            {...register("last_name", { required: "Last name is required" })}
-            placeholder="Enter last name"
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-          />
-          {errors.last_name && (
-            <p className="text-red-500 text-sm mt-1">
-              {errors.last_name.message}
-            </p>
-          )}
-        </div>
-
-        {/* Email & Phone */}
+        {/* First / Last */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium">
+              First Name <span className="text-red-500">*</span>
+            </label>
+            <input
+              {...register("first_name", { required: true })}
+              className="w-full border px-3 py-2 rounded"
+            />
+            {errors.first_name && (
+              <p className="text-red-500 text-sm">Required</p>
+            )}
+          </div>
+          <div>
+            <label className="block text-sm font-medium">
+              Last Name <span className="text-red-500">*</span>
+            </label>
+            <input
+              {...register("last_name", { required: true })}
+              className="w-full border px-3 py-2 rounded"
+            />
+            {errors.last_name && (
+              <p className="text-red-500 text-sm">Required</p>
+            )}
+          </div>
+        </div>
+
+        {/* Email / Phone */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium">
               Email <span className="text-red-500">*</span>
             </label>
             <input
               type="email"
-              {...register("email", { required: "Email is required" })}
-              placeholder="Enter email"
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+              {...register("email", { required: true })}
+              className="w-full border px-3 py-2 rounded"
             />
-            {errors.email && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.email.message}
-              </p>
-            )}
+            {errors.email && <p className="text-red-500 text-sm">Required</p>}
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium">
               Phone <span className="text-red-500">*</span>
             </label>
             <input
               type="tel"
-              {...register("phone", { required: "Phone number is required" })}
-              placeholder="Enter phone number"
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+              {...register("phone", { required: true })}
+              className="w-full border px-3 py-2 rounded"
             />
-            {errors.phone && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.phone.message}
-              </p>
-            )}
+            {errors.phone && <p className="text-red-500 text-sm">Required</p>}
           </div>
         </div>
 
-        {/* Password (optional) */}
+        {/* Password */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium">
             Password (leave blank to keep current)
           </label>
           <input
             type="password"
             {...register("password")}
-            placeholder="Enter new password"
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+            className="w-full border px-3 py-2 rounded"
           />
         </div>
 
-        {/* Department & Role */}
+        {/* Site / Department */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Department
-            </label>
+            <label className="block text-sm font-medium">Site</label>
+            <Controller
+              name="siteId"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  {...field}
+                  options={siteOptions}
+                  isLoading={sitesLoading}
+                  onChange={(opt) => field.onChange(opt?.value)}
+                  value={
+                    siteOptions.find((o) => o.value === field.value) || null
+                  }
+                />
+              )}
+            />
+            {sitesError && (
+              <p className="text-red-500 text-sm">Error loading sites</p>
+            )}
+          </div>
+          <div>
+            <label className="block text-sm font-medium">Department</label>
             <Controller
               name="department_id"
               control={control}
               render={({ field }) => (
-                <Select<SelectOption, false, GroupBase<SelectOption>>
+                <Select
+                  {...field}
                   options={departmentOptions}
                   isLoading={depsLoading}
                   onChange={(opt) => field.onChange(opt?.value)}
                   value={
-                    departmentOptions.find(
-                      (opt) => opt.value === field.value
-                    ) || null
+                    departmentOptions.find((o) => o.value === field.value) ||
+                    null
                   }
-                  placeholder="Select Department"
-                  className="w-full"
                 />
               )}
             />
             {depsError && (
-              <p className="text-red-500 text-sm mt-1">
-                Error loading departments
-              </p>
+              <p className="text-red-500 text-sm">Error loading departments</p>
             )}
           </div>
+        </div>
 
+        {/* Role / Status */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium">
               Role <span className="text-red-500">*</span>
             </label>
             <Controller
               name="role_id"
               control={control}
-              rules={{ required: "Role is required" }}
+              rules={{ required: true }}
               render={({ field }) => (
-                <Select<SelectOption, false, GroupBase<SelectOption>>
+                <Select
+                  {...field}
                   options={roleOptions}
                   isLoading={rolesLoading}
                   onChange={(opt) => field.onChange(opt?.value)}
                   value={
-                    roleOptions.find((opt) => opt.value === field.value) || null
+                    roleOptions.find((o) => o.value === field.value) || null
                   }
-                  placeholder="Select Role"
-                  className="w-full"
                 />
               )}
             />
-            {(errors.role_id || rolesError) && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.role_id?.message || "Error loading roles"}
-              </p>
-            )}
+            {errors.role_id && <p className="text-red-500 text-sm">Required</p>}
+          </div>
+          <div>
+            <label className="block text-sm font-medium">Status</label>
+            <Controller
+              name="status"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  {...field}
+                  options={statusOptions}
+                  onChange={(opt) => field.onChange(opt?.value)}
+                  value={
+                    statusOptions.find((o) => o.value === field.value) || null
+                  }
+                />
+              )}
+            />
           </div>
         </div>
 
-        {/* Status */}
+        {/* Responsibilities */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Status
-          </label>
-          <Controller
-            name="status"
-            control={control}
-            render={({ field }) => (
-              <Select<SelectOption, false, GroupBase<SelectOption>>
-                options={statusOptions}
-                onChange={(opt) => field.onChange(opt?.value)}
-                value={
-                  statusOptions.find((opt) => opt.value === field.value) || null
-                }
-                placeholder="Select Status"
-                className="w-full"
-              />
-            )}
-          />
+          <label className="block text-sm font-medium">Responsibilities</label>
+          <div className="flex gap-2 items-center">
+            <input
+              value={respInput}
+              onChange={(e) => setRespInput(e.target.value)}
+              placeholder="Add responsibility"
+              className="flex-1 border px-3 py-2 rounded"
+            />
+            <button
+              type="button"
+              onClick={addResponsibility}
+              className="px-4 py-2 bg-blue-600 text-white rounded"
+            >
+              Add
+            </button>
+          </div>
+          <div className="flex flex-wrap gap-2 mt-2">
+            {responsibilities.map((r, i) => (
+              <span
+                key={i}
+                className="inline-flex items-center bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full"
+              >
+                {r}
+                <button
+                  type="button"
+                  onClick={() => removeResponsibility(i)}
+                  className="ml-2 text-red-500 font-bold"
+                >
+                  &times;
+                </button>
+              </span>
+            ))}
+          </div>
         </div>
       </div>
 
-      <div className="flex justify-end gap-4 pt-4 border-t">
+      <div className="flex justify-end gap-4 border-t pt-4">
         <button
           type="button"
-          className="px-4 py-2 border rounded-md hover:bg-gray-50"
           onClick={onClose}
+          className="px-4 py-2 border rounded"
         >
-          Close
+          Cancel
         </button>
         <button
           type="submit"
-          className="px-4 py-2 bg-bs-primary text-white rounded-md hover:bg-bs-primary/90"
+          className="px-4 py-2 bg-blue-600 text-white rounded"
         >
           Update
         </button>
