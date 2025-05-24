@@ -128,6 +128,24 @@ const menuItems = [
     icon: ListCheck,
     iconColor: "text-blue-500",
   },
+  {
+    title: "My Materials",
+    link: "/site-materials",
+    icon: BoxIcon,
+    iconColor: "text-blue-500",
+  },
+  {
+    title: "My Equipment",
+    link: "/site-equipments",
+    icon: PenTool,
+    iconColor: "text-gray-500",
+  },
+  {
+    title: "My Labors",
+    link: "/site-labors",
+    icon: Users,
+    iconColor: "text-gray-500",
+  },
   // {
   //   title: "Warehouse Balance",
   //   link: "/mywarehouse",

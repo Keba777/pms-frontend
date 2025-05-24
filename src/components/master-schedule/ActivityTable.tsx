@@ -12,6 +12,7 @@ import { useDeleteActivity, useUpdateActivity } from "@/hooks/useActivities";
 import Link from "next/link";
 import { formatDate, getDateDuration } from "@/utils/helper";
 import ManageActivityForm from "../forms/ManageActivityForm";
+import { User } from "@/types/user";
 
 interface ActivityTableProps {
   taskId: string;
@@ -341,7 +342,7 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
                                 ...activity,
                                 assignedUsers: activity.assignedUsers
                                   ? activity.assignedUsers.map(
-                                      (user: any) => user.id
+                                      (user: User) => user.id
                                     )
                                   : undefined,
                               });
@@ -367,7 +368,7 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
                                 ...activity,
                                 assignedUsers: activity.assignedUsers
                                   ? activity.assignedUsers.map(
-                                      (user: any) => user.id
+                                      (user: User) => user.id
                                     )
                                   : undefined,
                               });
@@ -381,6 +382,7 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
                       )}
                     </td>
                   )}
+
                 </tr>
               </React.Fragment>
             ))

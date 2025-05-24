@@ -26,7 +26,6 @@ interface ProjectTableProps {
   isError?: boolean;
 }
 
-// Badge class mappings
 const priorityBadgeClasses: Record<Project["priority"], string> = {
   Critical: "bg-red-100 text-red-800",
   High: "bg-orange-100 text-orange-800",
@@ -48,8 +47,15 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
   isError = false,
 }) => {
   const router = useRouter();
-  const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // Global hooks
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const { data: users } = useUsers();
+  const { data: tags } = useTags();
+  const { mutate: deleteProject } = useDeleteProject();
+  const { mutate: updateProject } = useUpdateProject();
+
+  // Delete/Edit state
   const [expandedProjectId] = useState<string | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
@@ -60,11 +66,24 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
     null
   );
 
-  const { data: users } = useUsers();
-  const { data: tags } = useTags();
-  const { mutate: deleteProject } = useDeleteProject();
-  const { mutate: updateProject } = useUpdateProject();
+  // Column customization state
+  const columnOptions: Record<string, string> = {
+    no: "No",
+    title: "PROJECTS",
+    priority: "Priority",
+    start_date: "Start Date",
+    end_date: "End Date",
+    duration: "Duration",
+    status: "Status",
+    action: "Action",
+  };
+  const [selectedColumns, setSelectedColumns] = useState<string[]>(
+    Object.keys(columnOptions)
+  );
+  const [showColumnMenu, setShowColumnMenu] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
+  // Effects
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -73,11 +92,15 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
       ) {
         // headlessui handles outside clicks
       }
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowColumnMenu(false);
+      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Handlers
   const handleDeleteClick = (projectId: string, tasks: Task[]) => {
     if (tasks.length > 0) {
       toast.error(
@@ -97,39 +120,14 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
     updateProject(data);
     setShowForm(false);
   };
-
-  if (isLoading) return <ProjectTableSkeleton />;
-  if (isError) return <div>Error loading projects</div>;
-
-  // Column customization setup
-  const columnOptions: Record<string, string> = {
-    no: "No",
-    title: "PROJECTS",
-    priority: "Priority",
-    start_date: "Start Date",
-    end_date: "End Date",
-    duration: "Duration",
-    status: "Status",
-    action: "Action",
-  };
-  const [selectedColumns, setSelectedColumns] = useState<string[]>(
-    Object.keys(columnOptions)
-  );
-  const [showColumnMenu, setShowColumnMenu] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-  const toggleColumn = (col: string) => {
+  const toggleColumn = (col: string) =>
     setSelectedColumns((prev) =>
       prev.includes(col) ? prev.filter((c) => c !== col) : [...prev, col]
     );
-  };
-  useEffect(() => {
-    const onClick = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node))
-        setShowColumnMenu(false);
-    };
-    document.addEventListener("mousedown", onClick);
-    return () => document.removeEventListener("mousedown", onClick);
-  }, []);
+
+  // Render
+  if (isLoading) return <ProjectTableSkeleton />;
+  if (isError) return <div>Error loading projects</div>;
 
   return (
     <div>
@@ -233,7 +231,8 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                             priorityBadgeClasses[project.priority]
                           }`}
                         >
-                          {project.priority}
+                          {" "}
+                          {project.priority}{" "}
                         </span>
                       </td>
                     )}
@@ -279,7 +278,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                                   onClick={() => handleView(project.id)}
                                   className={`${
                                     active ? "bg-gray-100" : ""
-                                  } w-full text-left px-3 py-2 text-sm text-gray-700 disabled:opacity-50`}
+                                  } w-full text-left px-3 py-2 text-sm text-gray-700`}
                                 >
                                   View
                                 </button>
@@ -299,7 +298,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                                   }}
                                   className={`${
                                     active ? "bg-gray-100" : ""
-                                  } w-full text-left px-3 py-2 text-sm text-gray-700 disabled:opacity-50`}
+                                  } w-full text-left px-3 py-2 text-sm text-gray-700`}
                                 >
                                   Edit
                                 </button>
@@ -316,7 +315,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                                   }
                                   className={`${
                                     active ? "bg-gray-100" : ""
-                                  } w-full text-left px-3 py-2 text-sm text-red-600 disabled:opacity-50`}
+                                  } w-full text-left px-3 py-2 text-sm text-red-600`}
                                 >
                                   Delete
                                 </button>
@@ -325,10 +324,10 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                             <MenuItem>
                               {({ active }) => (
                                 <button
-                                  onClick={() => console.log("Manage clicked")}
                                   className={`${
                                     active ? "bg-gray-100" : ""
-                                  } w-full text-left px-3 py-2 text-sm text-gray-700 disabled:opacity-50`}
+                                  } w-full text-left px-3 py-2 text-sm text-gray-700`}
+                                  onClick={() => console.log("Manage clicked")}
                                 >
                                   Manage
                                 </button>
@@ -336,7 +335,6 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                             </MenuItem>
                           </MenuItems>
                         </Menu>
-
                         {showForm && projectToEdit && (
                           <div className="fixed inset-0 z-50 flex items-center justify-center bg-opacity-60 backdrop-blur-sm overflow-auto">
                             <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-xl m-4 mt-12 max-h-[90vh] overflow-y-auto">
