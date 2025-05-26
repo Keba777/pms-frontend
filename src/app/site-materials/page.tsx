@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Plus } from "lucide-react";
+import { ChevronDown, Plus } from "lucide-react";
 import { useMaterials } from "@/hooks/useMaterials";
 import { useWarehouses } from "@/hooks/useWarehouses";
 import { useSites } from "@/hooks/useSites";
@@ -11,6 +11,7 @@ import { Warehouse } from "@/types/warehouse";
 import { Site } from "@/types/site";
 import MaterialForm from "@/components/forms/MaterialForm";
 import { useAuthStore } from "@/store/authStore";
+import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 
 const MaterialsPage = () => {
   const { user } = useAuthStore();
@@ -52,11 +53,14 @@ const MaterialsPage = () => {
     ) ?? [];
 
   const total = siteMaterials?.length ?? 0;
-  const active =
-    siteMaterials?.filter((l) => l.status === "Active").length ?? 0;
+  const available = siteMaterials.filter(
+    (l) => l.quantity !== undefined && l.quantity >= 1
+  ).length;
 
-  const inactive =
-    siteMaterials?.filter((l) => l.status === "Inactive").length ?? 0;
+  // siteMaterials?.filter((l) => l.status === "Active").length ?? 0;
+
+  const inactive = siteMaterials.filter((l) => l.quantity === 0).length;
+  // siteMaterials?.filter((l) => l.status === "Inactive").length ?? 0;
 
   return (
     <div className="max-w-6xl mx-auto p-6 bg-white shadow-lg rounded-lg mt-6">
@@ -90,7 +94,7 @@ const MaterialsPage = () => {
       <div className="flex flex-wrap gap-4 mb-4">
         {[
           { label: "Total", value: total },
-          { label: "Available", value: active },
+          { label: "Available", value: available },
           { label: "Out of Store", value: inactive },
         ].map((item) => (
           <div
@@ -133,18 +137,25 @@ const MaterialsPage = () => {
                   Qty
                 </th>
                 <th className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase">
+                  Min-Qty
+                </th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase">
                   Unit Price
                 </th>
-
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase">
+                  Total Price
+                </th>
                 <th className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase">
                   Re‑Qty
                 </th>
                 <th className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase">
                   Shelf No
                 </th>
-
                 <th className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase">
                   Status
+                </th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase">
+                  Action
                 </th>
               </tr>
             </thead>
@@ -159,7 +170,6 @@ const MaterialsPage = () => {
                     {idx + 1}
                   </td>
                   <td className="px-4 py-2 border border-gray-200">
-                    {/* Link to single material detail if desired */}
                     <Link
                       href={`/resources/materials/${mat.id}`}
                       className="text-blue-600 hover:underline"
@@ -177,6 +187,12 @@ const MaterialsPage = () => {
                     {mat.quantity ?? "-"}
                   </td>
                   <td className="px-4 py-2 border border-gray-200">
+                    {mat.minQuantity ?? "-"}
+                  </td>
+                  <td className="px-4 py-2 border border-gray-200">
+                    {mat.rate ?? "-"}
+                  </td>
+                  <td className="px-4 py-2 border border-gray-200">
                     {mat.totalPrice ?? "-"}
                   </td>
                   <td className="px-4 py-2 border border-gray-200">
@@ -185,8 +201,87 @@ const MaterialsPage = () => {
                   <td className="px-4 py-2 border border-gray-200">
                     {mat.shelfNo ?? "-"}
                   </td>
+                  <td
+                    className={`${
+                      mat.quantity !== undefined && mat.quantity >= 1
+                        ? "bg-green-500 border px-5 "
+                        : "bg-red-500 px-5"
+                    }  border border-gray-200 text-gray-100`}
+                  >
+                    {mat.quantity !== undefined
+                      ? mat.quantity >= 1
+                        ? "Available"
+                        : mat.quantity === 0
+                        ? "Not-Avail"
+                        : "-"
+                      : "-"}
+                  </td>
                   <td className="px-4 py-2 border border-gray-200">
-                    {mat.status ?? "-"}
+                    <Menu as="div" className="relative inline-block text-left">
+                      <MenuButton className="flex items-center gap-1 px-3 py-1 text-sm bg-cyan-700 text-white rounded hover:bg-cyan-800">
+                        Action <ChevronDown className="w-4 h-4" />
+                      </MenuButton>
+                      <MenuItems className="absolute left-0 mt-2 w-full origin-top-left bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow-lg focus:outline-none z-50">
+                        <MenuItem>
+                          {({ active }) => (
+                            <button
+                              // onClick={() => handleView(project.id)}
+                              className={`${
+                                active ? "bg-gray-100" : ""
+                              } w-full text-left px-3 py-2 text-sm text-gray-700`}
+                            >
+                              View
+                            </button>
+                          )}
+                        </MenuItem>
+                        <MenuItem>
+                          {({ active }) => (
+                            <button
+                              // onClick={() => {
+                              //   setProjectToEdit({
+                              //     ...project,
+                              //     members: project.members?.map(
+                              //       (m) => m.id
+                              //     ),
+                              //   });
+                              //   setShowForm(true);
+                              // }}
+                              className={`${
+                                active ? "bg-gray-100" : ""
+                              } w-full text-left px-3 py-2 text-sm text-gray-700`}
+                            >
+                              Edit
+                            </button>
+                          )}
+                        </MenuItem>
+                        <MenuItem>
+                          {({ active }) => (
+                            <button
+                              // onClick={() =>
+
+                              // }
+                              className={`${
+                                active ? "bg-gray-100" : ""
+                              } w-full text-left px-3 py-2 text-sm text-red-600`}
+                            >
+                              Delete
+                            </button>
+                          )}
+                        </MenuItem>
+                        <MenuItem>
+                          {({ active }) => (
+                            <button
+                              className={`${
+                                active ? "bg-gray-100" : ""
+                              } w-full text-left px-3 py-2 text-sm text-gray-700`}
+                              onClick={() => console.log("Manage clicked")}
+                            >
+                              Manage
+                            </button>
+                          )}
+                        </MenuItem>
+                      </MenuItems>
+                    </Menu>
                   </td>
                 </tr>
               ))}

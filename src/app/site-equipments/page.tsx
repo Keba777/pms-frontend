@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import {  Plus } from "lucide-react";
+import { ChevronDown, Plus } from "lucide-react";
 import { useEquipments } from "@/hooks/useEquipments";
 import { useSites } from "@/hooks/useSites";
 import Link from "next/link";
@@ -9,6 +9,7 @@ import { Equipment } from "@/types/equipment";
 import { getDuration } from "@/utils/helper";
 import EquipmentForm from "@/components/forms/EquipmentForm";
 import { useAuthStore } from "@/store/authStore";
+import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 
 const EquipmentsPage = () => {
   const { user } = useAuthStore();
@@ -124,6 +125,7 @@ const EquipmentsPage = () => {
                   "Starting Date",
                   "Due Date",
                   "Status",
+                  "Action",
                 ].map((h) => (
                   <th
                     key={h}
@@ -188,7 +190,7 @@ const EquipmentsPage = () => {
 
                   <td className="px-4 py-2 border border-gray-200">
                     {eq.createdAt && eq.updatedAt
-                      ? getDuration(eq.createdAt, eq.updatedAt)
+                      ? 1 + getDuration(eq.createdAt, eq.updatedAt)
                       : "-"}
                   </td>
                   <td className="px-4 py-2 border border-gray-200">
@@ -203,6 +205,73 @@ const EquipmentsPage = () => {
                   </td>
                   <td className="px-4 py-2 border border-gray-200">
                     {eq.status || "-"}
+                  </td>
+                  <td className="px-4 py-2 border border-gray-200">
+                    <Menu as="div" className="relative inline-block text-left">
+                      <MenuButton className="flex items-center gap-1 px-3 py-1 text-sm bg-cyan-700 text-white rounded hover:bg-cyan-800">
+                        Action <ChevronDown className="w-4 h-4" />
+                      </MenuButton>
+                      <MenuItems className="absolute left-0 mt-2 w-full origin-top-left bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow-lg focus:outline-none z-50">
+                        <MenuItem>
+                          {({ active }) => (
+                            <button
+                              // onClick={() => handleView(project.id)}
+                              className={`${
+                                active ? "bg-gray-100" : ""
+                              } w-full text-left px-3 py-2 text-sm text-gray-700`}
+                            >
+                              View
+                            </button>
+                          )}
+                        </MenuItem>
+                        <MenuItem>
+                          {({ active }) => (
+                            <button
+                              // onClick={() => {
+                              //   setProjectToEdit({
+                              //     ...project,
+                              //     members: project.members?.map(
+                              //       (m) => m.id
+                              //     ),
+                              //   });
+                              //   setShowForm(true);
+                              // }}
+                              className={`${
+                                active ? "bg-gray-100" : ""
+                              } w-full text-left px-3 py-2 text-sm text-gray-700`}
+                            >
+                              Edit
+                            </button>
+                          )}
+                        </MenuItem>
+                        <MenuItem>
+                          {({ active }) => (
+                            <button
+                              // onClick={() =>
+
+                              // }
+                              className={`${
+                                active ? "bg-gray-100" : ""
+                              } w-full text-left px-3 py-2 text-sm text-red-600`}
+                            >
+                              Delete
+                            </button>
+                          )}
+                        </MenuItem>
+                        <MenuItem>
+                          {({ active }) => (
+                            <button
+                              className={`${
+                                active ? "bg-gray-100" : ""
+                              } w-full text-left px-3 py-2 text-sm text-gray-700`}
+                              onClick={() => console.log("Manage clicked")}
+                            >
+                              Manage
+                            </button>
+                          )}
+                        </MenuItem>
+                      </MenuItems>
+                    </Menu>
                   </td>
                 </tr>
               ))}

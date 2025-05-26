@@ -78,6 +78,12 @@ const menuItems = [
   //   iconColor: "text-blue-500",
   // },
   {
+    title: "Issues",
+    link: "/issues",
+    icon: ArrowUp,
+    iconColor: "text-red-500",
+  },
+  {
     title: "Manage Resources",
     icon: Clipboard,
     iconColor: "text-yellow-500",
@@ -116,11 +122,14 @@ const menuItems = [
     badge: 5,
   },
   {
-    title: "Resource Allocation",
+    title: " Allocation",
     link: "/resource-allocation",
     icon: ListCheck,
     iconColor: "text-blue-500",
     badge: 0,
+     submenu: [
+      { title: "Delivery Report", link: "/deliveries" },
+    ]
   },
   {
     title: "My Warehouse",

@@ -566,6 +566,31 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
           </button>
         </div>
 
+        <h2 className="font-2xl font-semibold text-cyan-700">
+          List of Work force
+        </h2>
+        <table className="min-w-max divide-y divide-gray-200">
+          <thead className="bg-cyan-700">
+            <tr>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+                #
+              </th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+                Man Power
+              </th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+                Qty
+              </th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+                Rate
+              </th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+                Est-Hrs
+              </th>
+            </tr>
+          </thead>
+        </table>
+
         <div>
           <h3 className="font-semibold">Machinery</h3>
           <div className="my-1">
@@ -598,8 +623,55 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
           </button>
         </div>
 
+        <h2 className="font-2xl font-semibold text-cyan-700">
+          List of Machinery
+        </h2>
+        <table className="min-w-max divide-y divide-gray-200">
+          <thead className="bg-cyan-700">
+            <tr>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+                #
+              </th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+                Equipment
+              </th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+                Qty
+              </th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+                Rate
+              </th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+                Est-Hrs
+              </th>
+            </tr>
+          </thead>
+        </table>
+
+        <h2 className="font-2xl font-semibold text-cyan-700">
+          List of Materials
+        </h2>
+        <table className="min-w-max divide-y divide-gray-200">
+          <thead className="bg-cyan-700">
+            <tr>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+                #
+              </th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+                Material
+              </th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+                Qty
+              </th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+                Rate
+              </th>
+            </tr>
+          </thead>
+        </table>
+
         {/* Progress */}
-        <div className="flex items-center space-x-4">
+        {/* <div className="flex items-center space-x-4">
           <label className="w-32 text-sm font-medium text-gray-700">
             Progress (%):
           </label>
@@ -635,7 +707,7 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
             id=""
             className="ml-4 px-3 border  focus:outline-none focus:ring-2 focus:ring-bs-primary"
           />
-        </div>
+        </div> */}
 
         {/* Form Actions */}
         <div className="flex justify-end gap-4 pt-6 border-t">

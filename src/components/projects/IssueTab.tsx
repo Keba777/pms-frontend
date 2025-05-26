@@ -10,11 +10,17 @@ export default function IssueTab() {
           <tr className="bg-cyan-700 text-white">
             <th className="border px-3 py-2">#</th>
             <th className="border px-3 py-2">ID</th>
-            <th className="border px-3 py-2">Type</th>
+            <th className="border px-3 py-2">Date</th>
+            <th className="border px-3 py-2">Issue Type</th>
             <th className="border px-3 py-2">Description</th>
             <th className="border px-3 py-2">Raised By</th>
             <th className="border px-3 py-2">Priority</th>
-            <th className="border px-3 py-2">Status</th>
+            <th className="border px-3 py-2">Site</th>
+            <th className="border px-3 py-2">Department</th>
+            <th className="border px-3 py-2">Responsible</th>
+            <th className="border px-3 py-2">Action Taken</th>
+             <th className="border px-3 py-2">Status</th>
+              <th className="border px-3 py-2">Action</th>
           </tr>
         </thead>
         <tbody>

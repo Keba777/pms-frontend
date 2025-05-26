@@ -34,7 +34,11 @@ const ManageActivityForm: React.FC<{
         </button>
       </div>
 
-      {/* Progress */}
+      {/* Progress Add Color for progress on 25 range 
+
+        Completed - green
+
+      */}
       <div className="flex items-center space-x-4">
         <label className="w-32 text-sm font-medium text-gray-700">
           Progress (%):
@@ -60,6 +64,57 @@ const ManageActivityForm: React.FC<{
       {errors.progress && (
         <p className="text-red-500 text-sm ml-32">{errors.progress.message}</p>
       )}
+
+      <div>
+        <label htmlFor="">Checked by:- </label>
+        <input
+          type="text"
+          // placeholder="Checked by:-"
+          className="ml-4 px-3 border  focus:outline-none focus:ring-2 focus:ring-bs-primary"
+        />
+        <input
+          type="date"
+          name=""
+          id=""
+          className="ml-4 px-3 border  focus:outline-none focus:ring-2 focus:ring-bs-primary"
+        />
+      </div>
+
+      <table className="min-w-max divide-y divide-gray-200">
+        <thead className="bg-cyan-700">
+          <tr>
+            <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+              #
+            </th>
+            <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+              Date & Time
+            </th>
+            <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+              Progress%
+            </th>
+            <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+              Remark
+            </th>
+            <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+              Status
+            </th>
+            <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+              Checked By
+            </th>
+            <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+              Action
+            </th>
+          </tr>
+        </thead>
+      </table>
+
+      <h1 className="underline font-semibold">Summary Report</h1>
+      <textarea name="" id=""></textarea>
+
+      <p>Checked BY</p>
+      <p>Approved By</p>
+      <p>Comment</p>
+      <p>Approved Date</p>
 
       <div className="flex justify-end space-x-4 mt-4">
         <button
