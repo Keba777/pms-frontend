@@ -54,6 +54,13 @@ export const useApprovals = () => {
     return query;
 };
 
+// Hook to fetch approval history for a specific requestId by filtering all approvals
+export const useApprovalHistory = (requestId: string) => {
+    const { data: allApprovals, isLoading, error } = useApprovals();
+    const filtered = allApprovals?.filter((a) => a.requestId === requestId) || [];
+    return { data: filtered, isLoading, error };
+};
+
 // Hook to fetch a single Approval by ID
 export const useApproval = (id: string) => {
     return useQuery<Approval | null, Error>({

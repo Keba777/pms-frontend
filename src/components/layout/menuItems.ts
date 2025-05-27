@@ -123,13 +123,13 @@ const menuItems = [
   },
   {
     title: " Allocation",
-    link: "/resource-allocation",
+    link: "/allocation",
     icon: ListCheck,
     iconColor: "text-blue-500",
     badge: 0,
-     submenu: [
-      { title: "Delivery Report", link: "/deliveries" },
-    ]
+    //  submenu: [
+    //   { title: "Delivery Report", link: "/deliveries" },
+    // ]
   },
   {
     title: "My Warehouse",
