@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { ChevronDown, Plus } from "lucide-react";
 import { useMaterials } from "@/hooks/useMaterials";
 import { useWarehouses } from "@/hooks/useWarehouses";
@@ -13,9 +13,16 @@ import MaterialForm from "@/components/forms/MaterialForm";
 import { useAuthStore } from "@/store/authStore";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 
+// New imports
+import GenericDownloads, { Column } from "@/components/common/GenericDownloads";
+import SearchInput from "@/components/ui/SearchInput";
+
 const MaterialsPage = () => {
   const { user } = useAuthStore();
   const siteId = user?.siteId;
+  const [showForm, setShowForm] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
   const {
     data: materials,
     isLoading: matLoading,
@@ -27,54 +34,89 @@ const MaterialsPage = () => {
     error: whError,
   } = useWarehouses();
   const { data: sites, isLoading: siteLoading, error: siteError } = useSites();
-  const [showForm, setShowForm] = useState(false);
 
-  if (matLoading || whLoading || siteLoading) return <div>Loading...</div>;
-  if (matError || whError || siteError)
-    return <div className="text-red-500">Error loading data.</div>;
-
+  // Find current site and filter materials
   const site: Site | undefined = sites?.find((s) => s.id === siteId);
-  if (!site) {
-    return (
-      <div className="text-center text-red-500 mt-10">Site not found.</div>
-    );
-  }
-
-  // get all warehouses at this site
   const siteWarehouseIds =
     warehouses
       ?.filter((w: Warehouse) => w.siteId === siteId)
       .map((w) => w.id) ?? [];
-
-  // then filter materials stored in those warehouses
   const siteMaterials: Material[] =
     materials?.filter(
       (m) => m.warehouseId && siteWarehouseIds.includes(m.warehouseId)
     ) ?? [];
 
-  const total = siteMaterials?.length ?? 0;
+  // Filter by search query (hook must be unconditional)
+  const filteredMaterials = useMemo(
+    () =>
+      siteMaterials.filter((m) =>
+        m.item.toLowerCase().includes(searchQuery.toLowerCase())
+      ),
+    [searchQuery, siteMaterials]
+  );
+
+  if (matLoading || whLoading || siteLoading) return <div>Loading...</div>;
+  if (matError || whError || siteError)
+    return <div className="text-red-500">Error loading data.</div>;
+  if (!site)
+    return (
+      <div className="text-center text-red-500 mt-10">Site not found.</div>
+    );
+
+  const total = siteMaterials.length;
   const available = siteMaterials.filter(
-    (l) => l.quantity !== undefined && l.quantity >= 1
+    (l) => l.quantity && l.quantity >= 1
   ).length;
-
-  // siteMaterials?.filter((l) => l.status === "Active").length ?? 0;
-
   const inactive = siteMaterials.filter((l) => l.quantity === 0).length;
-  // siteMaterials?.filter((l) => l.status === "Inactive").length ?? 0;
+
+  // Define columns for downloads
+  const columns: Column<Material>[] = [
+    { header: "ID", accessor: (row) => `RC00${row.id}` },
+    { header: "Item Name", accessor: "item" },
+    { header: "Type", accessor: "type" },
+    { header: "Unit", accessor: "unit" },
+    { header: "Qty", accessor: (row) => row.quantity ?? "-" },
+    { header: "Min-Qty", accessor: (row) => row.minQuantity ?? "-" },
+    { header: "Unit Price", accessor: (row) => row.rate ?? "-" },
+    { header: "Total Price", accessor: (row) => row.totalPrice ?? "-" },
+    { header: "Re-Qty", accessor: (row) => row.reorderQuantity ?? "-" },
+    { header: "Shelf No", accessor: (row) => row.shelfNo ?? "-" },
+    {
+      header: "Status",
+      accessor: (row) =>
+        row.quantity !== undefined
+          ? row.quantity >= 1
+            ? "Available"
+            : row.quantity === 0
+            ? "Not-Avail"
+            : "-"
+          : "-",
+    },
+  ];
 
   return (
     <div className="max-w-6xl mx-auto p-6 bg-white shadow-lg rounded-lg mt-6">
-      <div className="flex justify-end mb-4">
-        <button
-          type="button"
-          className="px-3 py-3 text-white bg-cyan-700 rounded hover:bg-cyan-800"
-          onClick={() => setShowForm(true)}
-          title="Create Material"
-        >
-          <Plus className="w-4 h-4" />
-        </button>
+      {/* Top Actions */}
+      <div className="flex justify-between items-center mb-4">
+        <SearchInput value={searchQuery} onChange={setSearchQuery} />
+        <div className="flex gap-4">
+          <GenericDownloads
+            data={filteredMaterials}
+            title={`Materials_${site.name}`}
+            columns={columns}
+          />
+          <button
+            type="button"
+            className="px-3 py-3 text-white bg-cyan-700 rounded hover:bg-cyan-800"
+            onClick={() => setShowForm(true)}
+            title="Create Material"
+          >
+            <Plus className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
+      {/* Form Modal */}
       {showForm && (
         <div className="modal-overlay fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="modal-content bg-white rounded-lg shadow-xl p-6">
@@ -102,17 +144,16 @@ const MaterialsPage = () => {
             className="flex font-2xl font-semibold bg-white p-4 rounded-lg shadow-md"
           >
             <h2 className="mr-2">{item.label} =</h2>
-            <div className="flex items-center">
-              <span className="text-cyan-700 font-stretch-semi-condensed font-semibold">
-                {item.value}
-              </span>
-            </div>
+            <span className="text-cyan-700 font-stretch-semi-condensed font-semibold">
+              {item.value}
+            </span>
           </div>
         ))}
       </div>
 
-      {siteMaterials.length === 0 ? (
-        <p className="text-gray-600">No materials found for this site.</p>
+      {/* Materials Table */}
+      {filteredMaterials.length === 0 ? (
+        <p className="text-gray-600">No materials match your search.</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200 border border-gray-200">
@@ -146,7 +187,7 @@ const MaterialsPage = () => {
                   Total Price
                 </th>
                 <th className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase">
-                  Re‑Qty
+                  Re-Qty
                 </th>
                 <th className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase">
                   Shelf No
@@ -160,7 +201,7 @@ const MaterialsPage = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {siteMaterials.map((mat, idx) => (
+              {filteredMaterials.map((mat, idx) => (
                 <tr key={mat.id}>
                   <td className="px-4 py-2 border border-gray-200">
                     {idx + 1}
@@ -204,9 +245,9 @@ const MaterialsPage = () => {
                   <td
                     className={`${
                       mat.quantity !== undefined && mat.quantity >= 1
-                        ? "bg-green-500 border px-5 "
-                        : "bg-red-500 px-5"
-                    }  border border-gray-200 text-gray-100`}
+                        ? "bg-green-500"
+                        : "bg-red-500"
+                    } border px-5 text-gray-100`}
                   >
                     {mat.quantity !== undefined
                       ? mat.quantity >= 1
@@ -225,7 +266,6 @@ const MaterialsPage = () => {
                         <MenuItem>
                           {({ active }) => (
                             <button
-                              // onClick={() => handleView(project.id)}
                               className={`${
                                 active ? "bg-gray-100" : ""
                               } w-full text-left px-3 py-2 text-sm text-gray-700`}
@@ -237,15 +277,6 @@ const MaterialsPage = () => {
                         <MenuItem>
                           {({ active }) => (
                             <button
-                              // onClick={() => {
-                              //   setProjectToEdit({
-                              //     ...project,
-                              //     members: project.members?.map(
-                              //       (m) => m.id
-                              //     ),
-                              //   });
-                              //   setShowForm(true);
-                              // }}
                               className={`${
                                 active ? "bg-gray-100" : ""
                               } w-full text-left px-3 py-2 text-sm text-gray-700`}
@@ -257,9 +288,6 @@ const MaterialsPage = () => {
                         <MenuItem>
                           {({ active }) => (
                             <button
-                              // onClick={() =>
-
-                              // }
                               className={`${
                                 active ? "bg-gray-100" : ""
                               } w-full text-left px-3 py-2 text-sm text-red-600`}
@@ -271,10 +299,10 @@ const MaterialsPage = () => {
                         <MenuItem>
                           {({ active }) => (
                             <button
+                              onClick={() => console.log("Manage clicked")}
                               className={`${
                                 active ? "bg-gray-100" : ""
                               } w-full text-left px-3 py-2 text-sm text-gray-700`}
-                              onClick={() => console.log("Manage clicked")}
                             >
                               Manage
                             </button>

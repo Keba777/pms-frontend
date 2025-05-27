@@ -1,3 +1,5 @@
+"use client"
+
 import apiClient from "@/services/api-client";
 import { useSiteStore } from "@/store/siteStore";
 import { CreateSiteInput, Site, UpdateSiteInput } from "@/types/site";

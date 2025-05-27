@@ -136,7 +136,7 @@ const GenericDownloads = <T,>({
     const bodyRows = getTableRows()
       .map(
         (row) =>
-          `<tr>${(row as any[])
+          `<tr>${(row as string[])
             .map(
               (cell) =>
                 `<td style="padding:6px; border:1px solid #ddd;">${

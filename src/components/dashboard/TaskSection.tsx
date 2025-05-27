@@ -11,6 +11,8 @@ import ConfirmModal from "../ui/ConfirmModal";
 import EditTaskForm from "../forms/EditTaskForm";
 import { Task, UpdateTaskInput } from "@/types/task";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
+import SearchInput from "../ui/SearchInput";
+import { getDateDuration, getDuration as calcRemaining } from "@/utils/helper";
 
 const priorityBadgeClasses: Record<Task["priority"], string> = {
   Critical: "bg-red-100 text-red-800",
@@ -42,6 +44,8 @@ const TaskSection: React.FC = () => {
     progress: "Progress",
     start_date: "Starts At",
     end_date: "Ends At",
+    duration: "Duration",
+    remaining: "Remaining",
     status: "Status",
     approvalStatus: "Approval",
     actions: "Actions",
@@ -51,44 +55,46 @@ const TaskSection: React.FC = () => {
     Object.keys(columnOptions)
   );
   const [showColumnMenu, setShowColumnMenu] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const menuRef = useRef<HTMLDivElement>(null);
-  const toggleColumn = (col: string) => {
+
+  // toggle columns
+  const toggleColumn = (col: string) =>
     setSelectedColumns((prev) =>
       prev.includes(col) ? prev.filter((c) => c !== col) : [...prev, col]
     );
-  };
-  const handleClickOutside = (e: MouseEvent) => {
-    if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-      setShowColumnMenu(false);
-    }
-  };
+
+  // close menu on outside click
   useEffect(() => {
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    const handler = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setShowColumnMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const formatDate = (date: string | number | Date) => {
+  const formatDateLocal = (date: string | number | Date) => {
     if (!date) return "N/A";
     const d = new Date(date);
     if (isNaN(d.getTime())) return "Invalid Date";
     return d.toLocaleDateString("en-GB");
   };
 
-  // Edit/Delete state
+  // Edit/Delete modal state
   const [showEditForm, setShowEditForm] = useState(false);
   const [taskToEdit, setTaskToEdit] = useState<UpdateTaskInput | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
 
   const handleEditClick = (t: Task) => {
-    const input: UpdateTaskInput = {
+    setTaskToEdit({
       ...t,
       assignedUsers: t.assignedUsers?.map((u) => u.id),
-    };
-    setTaskToEdit(input);
+    });
     setShowEditForm(true);
   };
-
   const handleDeleteClick = (id: string) => {
     setSelectedTaskId(id);
     setIsDeleteModalOpen(true);
@@ -97,25 +103,37 @@ const TaskSection: React.FC = () => {
     if (selectedTaskId) deleteTask(selectedTaskId);
     setIsDeleteModalOpen(false);
   };
-
-  const handleView = (id: string) => {
-    router.push(`/tasks/${id}`);
-  };
+  const handleView = (id: string) => router.push(`/tasks/${id}`);
 
   if (isLoading) return <div>Loading tasks…</div>;
   if (isError) return <div>Error loading tasks.</div>;
+
+  // filter tasks by name or status
+  const filtered = tasks?.filter(
+    (t) =>
+      t.task_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      t.status.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div>
       <h2 className="text-3xl font-semibold mb-4 mt-6">Available Tasks</h2>
 
+      {/* Toolbar: customize + search */}
       <div ref={menuRef} className="relative mb-4">
-        <button
-          onClick={() => setShowColumnMenu((prev) => !prev)}
-          className="flex items-center gap-1 px-5 py-2 text-sm bg-emerald-600 text-white rounded hover:bg-emerald-700"
-        >
-          Customize Columns <ChevronDown className="w-4 h-4" />
-        </button>
+        <div className="flex items-center justify-between gap-4">
+          <button
+            onClick={() => setShowColumnMenu((v) => !v)}
+            className="flex items-center gap-1 px-5 py-2 text-sm bg-emerald-600 text-white rounded hover:bg-emerald-700"
+          >
+            Customize Columns <ChevronDown className="w-4 h-4" />
+          </button>
+          <SearchInput
+            placeholder="Search Tasks"
+            value={searchTerm}
+            onChange={setSearchTerm}
+          />
+        </div>
         {showColumnMenu && (
           <div className="absolute left-0 mt-1 w-48 bg-white border rounded shadow-lg z-10">
             {Object.entries(columnOptions).map(([key, label]) => (
@@ -136,6 +154,7 @@ const TaskSection: React.FC = () => {
         )}
       </div>
 
+      {/* Edit modal */}
       {showEditForm && taskToEdit && (
         <div className="modal-overlay fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="modal-content bg-white rounded-lg shadow-xl p-6 w-full max-w-xl">
@@ -151,186 +170,168 @@ const TaskSection: React.FC = () => {
         </div>
       )}
 
+      {/* Table */}
       <div className="overflow-x-auto">
         <table className="min-w-max border border-gray-200 divide-y divide-gray-200">
           <thead className="bg-cyan-700">
             <tr>
-              {selectedColumns.includes("id") && (
-                <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-50">
-                  {columnOptions.id}
-                </th>
-              )}
-              {selectedColumns.includes("task_name") && (
-                <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-50">
-                  {columnOptions.task_name}
-                </th>
-              )}
-              {selectedColumns.includes("assignedUsers") && (
-                <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-50">
-                  {columnOptions.assignedUsers}
-                </th>
-              )}
-              {selectedColumns.includes("priority") && (
-                <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-50">
-                  {columnOptions.priority}
-                </th>
-              )}
-              {selectedColumns.includes("progress") && (
-                <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-50">
-                  {columnOptions.progress}
-                </th>
-              )}
-              {selectedColumns.includes("start_date") && (
-                <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-50">
-                  {columnOptions.start_date}
-                </th>
-              )}
-              {selectedColumns.includes("end_date") && (
-                <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-50">
-                  {columnOptions.end_date}
-                </th>
-              )}
-              {selectedColumns.includes("status") && (
-                <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-50">
-                  {columnOptions.status}
-                </th>
-              )}
-              {selectedColumns.includes("approvalStatus") && (
-                <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-50">
-                  {columnOptions.approvalStatus}
-                </th>
-              )}
-              {selectedColumns.includes("actions") && (
-                <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-50">
-                  {columnOptions.actions}
-                </th>
+              {Object.keys(columnOptions).map((col) =>
+                selectedColumns.includes(col) ? (
+                  <th
+                    key={col}
+                    className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-50"
+                  >
+                    {columnOptions[col]}
+                  </th>
+                ) : null
               )}
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {tasks && tasks.length > 0 ? (
-              tasks.map((task, idx) => (
-                <tr key={task.id} className="hover:bg-gray-50">
-                  {selectedColumns.includes("id") && (
-                    <td className="border border-gray-200 px-4 py-2">
-                      {idx + 1}
-                    </td>
-                  )}
-                  {selectedColumns.includes("task_name") && (
-                    <td className="border border-gray-200 px-4 py-2 font-medium text-bs-primary text-start">
-                      <Link href={`/tasks/${task.id}`}>{task.task_name}</Link>
-                    </td>
-                  )}
-                  {selectedColumns.includes("assignedUsers") && (
-                    <td className="border border-gray-200 px-4 py-2">
-                      {task.assignedUsers?.length ? (
-                        <ul className="list-none space-y-1">
-                          {task.assignedUsers.map((u) => (
-                            <li key={u.id}>
-                              {u.first_name} {u.last_name} (
-                              <RoleName roleId={u.role_id} />)
-                            </li>
-                          ))}
-                        </ul>
-                      ) : (
-                        "N/A"
-                      )}
-                    </td>
-                  )}
-                  {selectedColumns.includes("priority") && (
-                    <td className="border border-gray-200 px-4 py-2">
-                      <span
-                        className={`px-2 py-1 rounded-full text-sm font-medium ${
-                          priorityBadgeClasses[task.priority]
-                        }`}
-                      >
-                        {task.priority}
-                      </span>
-                    </td>
-                  )}
-                  {selectedColumns.includes("progress") && (
-                    <td className="border border-gray-200 px-4 py-2">
-                      {task.progress ?? 0}%
-                    </td>
-                  )}
-                  {selectedColumns.includes("start_date") && (
-                    <td className="border border-gray-200 px-4 py-2">
-                      {formatDate(task.start_date)}
-                    </td>
-                  )}
-                  {selectedColumns.includes("end_date") && (
-                    <td className="border border-gray-200 px-4 py-2">
-                      {formatDate(task.end_date)}
-                    </td>
-                  )}
-                  {selectedColumns.includes("status") && (
-                    <td className="border border-gray-200 px-4 py-2">
-                      <span
-                        className={`px-2 py-1 rounded-full text-sm font-medium ${
-                          statusBadgeClasses[task.status]
-                        }`}
-                      >
-                        {task.status}
-                      </span>
-                    </td>
-                  )}
-                  {selectedColumns.includes("approvalStatus") && (
-                    <td className="border border-gray-200 px-4 py-2">
-                      {task.approvalStatus}
-                    </td>
-                  )}
-                  {selectedColumns.includes("actions") && (
-                    <td className="border border-gray-200 px-4 py-2">
-                      <Menu
-                        as="div"
-                        className="relative inline-block text-left"
-                      >
-                        <MenuButton className="flex items-center gap-1 px-3 py-1 text-sm bg-cyan-700 text-white rounded hover:bg-cyan-800">
-                          Action <ChevronDown className="w-4 h-4" />
-                        </MenuButton>
-                        <MenuItems className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-10">
-                          <MenuItem>
-                            {({ active }) => (
-                              <button
-                                className={`block w-full px-4 py-2 text-left ${
-                                  active ? "bg-blue-100" : ""
-                                }`}
-                                onClick={() => handleEditClick(task)}
-                              >
-                                <FaEdit className="inline mr-2" /> Edit
-                              </button>
-                            )}
-                          </MenuItem>
-                          <MenuItem>
-                            {({ active }) => (
-                              <button
-                                className={`block w-full px-4 py-2 text-left ${
-                                  active ? "bg-blue-100" : ""
-                                }`}
-                                onClick={() => handleDeleteClick(task.id)}
-                              >
-                                <FaTrash className="inline mr-2" /> Delete
-                              </button>
-                            )}
-                          </MenuItem>
-                          <MenuItem>
-                            {({ active }) => (
-                              <button
-                                className={`block w-full px-4 py-2 text-left ${
-                                  active ? "bg-blue-100" : ""
-                                }`}
-                                onClick={() => handleView(task.id)}
-                              >
-                                <FaEye className="inline mr-2" /> Quick View
-                              </button>
-                            )}
-                          </MenuItem>
-                        </MenuItems>
-                      </Menu>
-                    </td>
-                  )}
-                </tr>
-              ))
+            {filtered && filtered.length > 0 ? (
+              filtered.map((task, idx) => {
+                const duration = getDateDuration(
+                  task.start_date,
+                  task.end_date
+                );
+                const remaining =
+                  task.end_date && new Date(task.end_date) > new Date()
+                    ? calcRemaining(new Date(), task.end_date)
+                    : "N/A";
+
+                return (
+                  <tr key={task.id} className="hover:bg-gray-50">
+                    {selectedColumns.includes("id") && (
+                      <td className="border border-gray-200 px-4 py-2">
+                        {idx + 1}
+                      </td>
+                    )}
+                    {selectedColumns.includes("task_name") && (
+                      <td className="border border-gray-200 px-4 py-2 font-medium text-bs-primary">
+                        <Link href={`/tasks/${task.id}`}>{task.task_name}</Link>
+                      </td>
+                    )}
+                    {selectedColumns.includes("assignedUsers") && (
+                      <td className="border border-gray-200 px-4 py-2">
+                        {task.assignedUsers?.length ? (
+                          <ul className="list-none space-y-1">
+                            {task.assignedUsers.map((u) => (
+                              <li key={u.id}>
+                                {u.first_name} {u.last_name} (
+                                <RoleName roleId={u.role_id} />)
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          "N/A"
+                        )}
+                      </td>
+                    )}
+                    {selectedColumns.includes("priority") && (
+                      <td className="border border-gray-200 px-4 py-2">
+                        <span
+                          className={`px-2 py-1 rounded-full text-sm font-medium ${
+                            priorityBadgeClasses[task.priority]
+                          }`}
+                        >
+                          {task.priority}
+                        </span>
+                      </td>
+                    )}
+                    {selectedColumns.includes("progress") && (
+                      <td className="border border-gray-200 px-4 py-2">
+                        {task.progress ?? 0}%
+                      </td>
+                    )}
+                    {selectedColumns.includes("start_date") && (
+                      <td className="border border-gray-200 px-4 py-2">
+                        {formatDateLocal(task.start_date)}
+                      </td>
+                    )}
+                    {selectedColumns.includes("end_date") && (
+                      <td className="border border-gray-200 px-4 py-2">
+                        {formatDateLocal(task.end_date)}
+                      </td>
+                    )}
+                    {selectedColumns.includes("duration") && (
+                      <td className="border border-gray-200 px-4 py-2">
+                        {duration}
+                      </td>
+                    )}
+                    {selectedColumns.includes("remaining") && (
+                      <td className="border border-gray-200 px-4 py-2">
+                        {remaining}
+                      </td>
+                    )}
+                    {selectedColumns.includes("status") && (
+                      <td className="border border-gray-200 px-4 py-2">
+                        <span
+                          className={`px-2 py-1 rounded-full text-sm font-medium ${
+                            statusBadgeClasses[task.status]
+                          }`}
+                        >
+                          {task.status}
+                        </span>
+                      </td>
+                    )}
+                    {selectedColumns.includes("approvalStatus") && (
+                      <td className="border border-gray-200 px-4 py-2">
+                        {task.approvalStatus}
+                      </td>
+                    )}
+                    {selectedColumns.includes("actions") && (
+                      <td className="border border-gray-200 px-4 py-2">
+                        <Menu
+                          as="div"
+                          className="relative inline-block text-left"
+                        >
+                          <MenuButton className="flex items-center gap-1 px-3 py-1 text-sm bg-cyan-700 text-white rounded hover:bg-cyan-800">
+                            Action <ChevronDown className="w-4 h-4" />
+                          </MenuButton>
+                          <MenuItems className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-10">
+                            <MenuItem>
+                              {({ active }) => (
+                                <button
+                                  className={`block w-full px-4 py-2 text-left ${
+                                    active ? "bg-blue-100" : ""
+                                  }`}
+                                  onClick={() => handleEditClick(task)}
+                                >
+                                  <FaEdit className="inline mr-2" /> Edit
+                                </button>
+                              )}
+                            </MenuItem>
+                            <MenuItem>
+                              {({ active }) => (
+                                <button
+                                  className={`block w-full px-4 py-2 text-left ${
+                                    active ? "bg-blue-100" : ""
+                                  }`}
+                                  onClick={() => handleDeleteClick(task.id)}
+                                >
+                                  <FaTrash className="inline mr-2" /> Delete
+                                </button>
+                              )}
+                            </MenuItem>
+                            <MenuItem>
+                              {({ active }) => (
+                                <button
+                                  className={`block w-full px-4 py-2 text-left ${
+                                    active ? "bg-blue-100" : ""
+                                  }`}
+                                  onClick={() => handleView(task.id)}
+                                >
+                                  <FaEye className="inline mr-2" /> Quick View
+                                </button>
+                              )}
+                            </MenuItem>
+                          </MenuItems>
+                        </Menu>
+                      </td>
+                    )}
+                  </tr>
+                );
+              })
             ) : (
               <tr>
                 <td
@@ -345,6 +346,7 @@ const TaskSection: React.FC = () => {
         </table>
       </div>
 
+      {/* Delete Confirmation */}
       {isDeleteModalOpen && (
         <ConfirmModal
           isVisible={isDeleteModalOpen}
