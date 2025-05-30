@@ -2,17 +2,19 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { ChevronDown } from "lucide-react";
-import ActivityTable from "./ActivityTable";
 import { Task, UpdateTaskInput } from "@/types/task";
 import TaskForm from "../forms/TaskForm";
 import EditTaskForm from "../forms/EditTaskForm";
+import ManageTaskForm from "../forms/ManageTaskForm";
 import ConfirmModal from "../ui/ConfirmModal";
+import GenericDownloads, { Column } from "../common/GenericDownloads";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import { useDeleteTask, useUpdateTask } from "@/hooks/useTasks";
 import { useUsers } from "@/hooks/useUsers";
 import Link from "next/link";
 import { formatDate, getDateDuration } from "@/utils/helper";
+import SearchInput from "../ui/SearchInput";
 
 interface TaskTableProps {
   tasks: Task[];
@@ -20,7 +22,6 @@ interface TaskTableProps {
   projectId?: string;
 }
 
-// Badge class mapping for task status
 const statusBadgeClasses: Record<Task["status"], string> = {
   "Not Started": "bg-gray-100 text-gray-800",
   Started: "bg-blue-100 text-blue-800",
@@ -30,26 +31,31 @@ const statusBadgeClasses: Record<Task["status"], string> = {
   Completed: "bg-green-100 text-green-800",
 };
 
-const TaskTable: React.FC<TaskTableProps> = ({
+export default function TaskTable({
   tasks,
-  projectTitle,
   projectId,
-}) => {
-  const [expandedTaskId] = useState<string | null>(null);
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [showEditForm, setShowEditForm] = useState(false);
-  const [taskToEdit, setTaskToEdit] = useState<UpdateTaskInput | null>(null);
-  const [dropdownTaskId, setDropdownTaskId] = useState<string | null>(null);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+}: TaskTableProps) {
   const router = useRouter();
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
   const { mutate: deleteTask } = useDeleteTask();
   const { mutate: updateTask } = useUpdateTask();
   const { data: users } = useUsers();
 
-  // Column customization setup
+  // Modals & forms
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [taskToEdit, setTaskToEdit] = useState<UpdateTaskInput | null>(null);
+  const [showManageForm, setShowManageForm] = useState(false);
+  const [taskToManage, setTaskToManage] = useState<UpdateTaskInput | null>(
+    null
+  );
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+
+  // Per-row dropdown
+  const [dropdownTaskId, setDropdownTaskId] = useState<string | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Columns customization
   const columnOptions: Record<string, string> = {
     no: "No",
     task_name: "Task",
@@ -65,40 +71,41 @@ const TaskTable: React.FC<TaskTableProps> = ({
   );
   const [showColumnMenu, setShowColumnMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const toggleColumn = (col: string) => {
-    setSelectedColumns((prev) =>
-      prev.includes(col) ? prev.filter((c) => c !== col) : [...prev, col]
-    );
-  };
+
+  // Search
+  const [searchTerm, setSearchTerm] = useState("");
+  const filteredTasks = tasks.filter(
+    (t) =>
+      t.task_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      t.status.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Close menus on outside click
   useEffect(() => {
-    const onClick = (e: MouseEvent) => {
+    function onClick(e: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
         setShowColumnMenu(false);
       }
-    };
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node)
+      ) {
+        setDropdownTaskId(null);
+      }
+    }
     document.addEventListener("mousedown", onClick);
     return () => document.removeEventListener("mousedown", onClick);
   }, []);
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setDropdownTaskId(null);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
+  // Handlers
+  const toggleColumn = (col: string) =>
+    setSelectedColumns((prev) =>
+      prev.includes(col) ? prev.filter((c) => c !== col) : [...prev, col]
+    );
 
   const handleDeleteClick = (taskId: string) => {
     const task = tasks.find((t) => t.id === taskId);
-    if (task?.activities && task.activities.length > 0) {
+    if (task?.activities?.length) {
       toast.error(
         "Cannot delete task with activities. Please delete all activities first."
       );
@@ -107,82 +114,73 @@ const TaskTable: React.FC<TaskTableProps> = ({
     setSelectedTaskId(taskId);
     setIsDeleteModalOpen(true);
   };
-
-  const handleDelete = () => {
+  const handleDeleteConfirm = () => {
     if (selectedTaskId) {
       deleteTask(selectedTaskId, {
-        onSuccess: () => toast.success("Task deleted successfully!"),
-        onError: () => toast.error("Failed to delete task"),
+        onSuccess: () => toast.success("Task deleted"),
+        onError: () => toast.error("Failed to delete"),
       });
-      setIsDeleteModalOpen(false);
     }
+    setIsDeleteModalOpen(false);
   };
 
-  const handleView = (id: string) => {
-    router.push(`/tasks/${id}`);
-  };
+  const handleView = (id: string) => router.push(`/tasks/${id}`);
 
+  const handleEditClick = (t: Task) => {
+    setTaskToEdit({
+      ...t,
+      assignedUsers: t.assignedUsers?.map((u) => u.id),
+    });
+    setShowEditForm(true);
+  };
   const handleEditSubmit = (data: UpdateTaskInput) => {
     updateTask(data);
     setShowEditForm(false);
   };
 
+  const handleManageClick = (t: Task) => {
+    setTaskToManage({
+      ...t,
+      assignedUsers: t.assignedUsers?.map((u) => u.id),
+    });
+    setShowManageForm(true);
+  };
+  const handleManageSubmit = (data: UpdateTaskInput) => {
+    updateTask(data);
+    setShowManageForm(false);
+  };
+
+  // Prepare columns for download
+  const downloadColumns: Column<Task>[] = [
+    { header: "Task", accessor: "task_name" },
+    {
+      header: "Start Date",
+      accessor: (row) => formatDate(row.start_date),
+    },
+    {
+      header: "End Date",
+      accessor: (row) => formatDate(row.end_date),
+    },
+    {
+      header: "Duration",
+      accessor: (row) => getDateDuration(row.start_date, row.end_date),
+    },
+    { header: "Progress", accessor: (row) => `${row.progress}%` },
+    { header: "Status", accessor: "status" },
+  ];
+
   return (
-    <div className="ml-3">
-      {projectTitle && (
-        <div className="bg-white py-2 rounded-lg flex items-center justify-between mb-4 px-4">
-          <div className="font-bold text-xl text-teal-700">
-            Project:
-            <span className="font-semibold ml-1 text-bs-gray-dark">
-              {projectTitle}
-            </span>
-          </div>
-          <div className="font-bold text-xl text-teal-700">
-            Total Tasks:
-            <span className="font-semibold ml-1 text-bs-gray-dark">
-              {tasks.length}
-            </span>
-          </div>
-          <button
-            onClick={() => {
-              setShowCreateForm(true);
-            }}
-            className="px-4 py-2 bg-teal-700 text-white rounded hover:bg-teal-800 disabled:opacity-50"
-          >
-            Create Task
-          </button>
-        </div>
-      )}
+    <div className="ml-3 space-y-4">
+      <GenericDownloads
+        data={filteredTasks}
+        title="Tasks"
+        columns={downloadColumns}
+      />
 
-      {showCreateForm && (
-        <div className="modal-overlay fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="modal-content bg-white rounded-lg shadow-xl p-6">
-            <TaskForm
-              onClose={() => setShowCreateForm(false)}
-              defaultProjectId={projectId}
-            />
-          </div>
-        </div>
-      )}
-
-      {showEditForm && taskToEdit && (
-        <div className="modal-overlay fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="modal-content bg-white rounded-lg shadow-xl p-6">
-            <EditTaskForm
-              onClose={() => setShowEditForm(false)}
-              onSubmit={handleEditSubmit}
-              task={taskToEdit}
-              users={users}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Customize Columns Button */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between">
         <div ref={menuRef} className="relative">
           <button
-            onClick={() => setShowColumnMenu((prev) => !prev)}
+            onClick={() => setShowColumnMenu((v) => !v)}
             className="flex items-center gap-1 px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 text-sm"
           >
             Customize Columns <ChevronDown className="w-4 h-4" />
@@ -206,63 +204,106 @@ const TaskTable: React.FC<TaskTableProps> = ({
             </div>
           )}
         </div>
+        <SearchInput
+          placeholder="Search tasks..."
+          value={searchTerm}
+          onChange={setSearchTerm}
+        />
       </div>
 
+      {/* Modals */}
+      {showCreateForm && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white rounded-lg shadow-xl p-6">
+            <TaskForm
+              onClose={() => setShowCreateForm(false)}
+              defaultProjectId={projectId}
+            />
+          </div>
+        </div>
+      )}
+      {showEditForm && taskToEdit && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white rounded-lg shadow-xl p-6">
+            <EditTaskForm
+              onClose={() => setShowEditForm(false)}
+              onSubmit={handleEditSubmit}
+              task={taskToEdit}
+              users={users}
+            />
+          </div>
+        </div>
+      )}
+      {showManageForm && taskToManage && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+            <ManageTaskForm
+              onClose={() => setShowManageForm(false)}
+              onSubmit={handleManageSubmit}
+              task={taskToManage}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Table */}
       <div className="overflow-x-auto">
         <table className="min-w-full border border-gray-200 divide-y divide-gray-200">
           <thead className="bg-teal-700">
             <tr>
               {selectedColumns.includes("no") && (
-                <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-50 w-16">
-                  {columnOptions.no}
+                <th className="border px-4 py-3 text-left text-sm font-medium text-gray-50 w-16">
+                  No
                 </th>
               )}
               {selectedColumns.includes("task_name") && (
-                <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-50">
-                  {columnOptions.task_name}
+                <th className="border px-4 py-3 text-left text-sm font-medium text-gray-50">
+                  Task
                 </th>
               )}
               {selectedColumns.includes("start_date") && (
-                <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-50">
-                  {columnOptions.start_date}
+                <th className="border px-4 py-3 text-left text-sm font-medium text-gray-50">
+                  Start Date
                 </th>
               )}
               {selectedColumns.includes("end_date") && (
-                <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-50">
-                  {columnOptions.end_date}
+                <th className="border px-4 py-3 text-left text-sm font-medium text-gray-50">
+                  End Date
                 </th>
               )}
               {selectedColumns.includes("duration") && (
-                <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-50">
-                  {columnOptions.duration}
+                <th className="border px-4 py-3 text-left text-sm font-medium text-gray-50">
+                  Duration
                 </th>
               )}
               {selectedColumns.includes("progress") && (
-                <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-50">
-                  {columnOptions.progress}
+                <th className="border px-4 py-3 text-left text-sm font-medium text-gray-50">
+                  Progress
                 </th>
               )}
               {selectedColumns.includes("status") && (
-                <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-50">
-                  {columnOptions.status}
+                <th className="border px-4 py-3 text-left text-sm font-medium text-gray-50">
+                  Status
                 </th>
               )}
               {selectedColumns.includes("actions") && (
-                <th className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-50 w-32">
-                  {columnOptions.actions}
+                <th className="border px-4 py-3 text-left text-sm font-medium text-gray-50 w-32">
+                  Actions
                 </th>
               )}
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {tasks.length ? (
-              tasks.map((task, index) => (
-                <React.Fragment key={task.id}>
-                  <tr className="hover:bg-gray-50 relative">
+            {filteredTasks.length > 0 ? (
+              filteredTasks.map((task, idx) => {
+                const duration = getDateDuration(
+                  task.start_date,
+                  task.end_date
+                );
+                return (
+                  <tr key={task.id} className="hover:bg-gray-50 relative">
                     {selectedColumns.includes("no") && (
-                      <td className="border border-gray-200 px-4 py-2">
-                        {index + 1}
-                      </td>
+                      <td className="border px-4 py-2">{idx + 1}</td>
                     )}
                     {selectedColumns.includes("task_name") && (
                       <td className="border border-gray-200 px-4 py-2 font-medium">
@@ -272,27 +313,23 @@ const TaskTable: React.FC<TaskTableProps> = ({
                       </td>
                     )}
                     {selectedColumns.includes("start_date") && (
-                      <td className="border border-gray-200 px-4 py-2">
+                      <td className="border px-4 py-2">
                         {formatDate(task.start_date)}
                       </td>
                     )}
                     {selectedColumns.includes("end_date") && (
-                      <td className="border border-gray-200 px-4 py-2">
+                      <td className="border px-4 py-2">
                         {formatDate(task.end_date)}
                       </td>
                     )}
                     {selectedColumns.includes("duration") && (
-                      <td className="border border-gray-200 px-4 py-2">
-                        {getDateDuration(task.start_date, task.end_date)}
-                      </td>
+                      <td className="border px-4 py-2">{duration}</td>
                     )}
                     {selectedColumns.includes("progress") && (
-                      <td className="border border-gray-200 px-4 py-2">
-                        {task.progress}%
-                      </td>
+                      <td className="border px-4 py-2">{task.progress}%</td>
                     )}
                     {selectedColumns.includes("status") && (
-                      <td className="border border-gray-200 px-4 py-2">
+                      <td className="border px-4 py-2">
                         <span
                           className={`px-2 py-1 rounded-full text-sm font-medium ${
                             statusBadgeClasses[task.status]
@@ -303,7 +340,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
                       </td>
                     )}
                     {selectedColumns.includes("actions") && (
-                      <td className="border border-gray-200 px-4 py-2">
+                      <td className="border px-4 py-2">
                         <div className="relative">
                           <button
                             onClick={(e) => {
@@ -314,7 +351,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
                             }}
                             className="flex items-center justify-between gap-1 px-3 py-1 bg-teal-700 text-white rounded w-full"
                           >
-                            <span>Actions</span>
+                            Actions
                             <ChevronDown className="w-4 h-4" />
                           </button>
                           {dropdownTaskId === task.id && (
@@ -334,13 +371,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
                               <button
                                 onClick={() => {
                                   setDropdownTaskId(null);
-                                  setTaskToEdit({
-                                    ...task,
-                                    assignedUsers: task.assignedUsers?.map(
-                                      (u) => u.id
-                                    ),
-                                  });
-                                  setShowEditForm(true);
+                                  handleEditClick(task);
                                 }}
                                 className="w-full text-left px-3 py-2 hover:bg-gray-100"
                               >
@@ -356,7 +387,10 @@ const TaskTable: React.FC<TaskTableProps> = ({
                                 Delete
                               </button>
                               <button
-                                onClick={() => console.log("Manage clicked")}
+                                onClick={() => {
+                                  setDropdownTaskId(null);
+                                  handleManageClick(task);
+                                }}
                                 className="w-full text-left px-3 py-2 hover:bg-gray-100"
                               >
                                 Manage
@@ -367,23 +401,13 @@ const TaskTable: React.FC<TaskTableProps> = ({
                       </td>
                     )}
                   </tr>
-                  {expandedTaskId === task.id && (
-                    <tr>
-                      <td
-                        colSpan={selectedColumns.length}
-                        className="border border-gray-200 px-4 py-2 bg-gray-50"
-                      >
-                        <ActivityTable taskId={task.id} />
-                      </td>
-                    </tr>
-                  )}
-                </React.Fragment>
-              ))
+                );
+              })
             ) : (
               <tr>
                 <td
                   colSpan={selectedColumns.length}
-                  className="border border-gray-200 px-4 py-2 text-center"
+                  className="border px-4 py-2 text-center text-gray-500"
                 >
                   No tasks found
                 </td>
@@ -393,6 +417,7 @@ const TaskTable: React.FC<TaskTableProps> = ({
         </table>
       </div>
 
+      {/* Delete confirm */}
       {isDeleteModalOpen && (
         <ConfirmModal
           isVisible={isDeleteModalOpen}
@@ -402,11 +427,9 @@ const TaskTable: React.FC<TaskTableProps> = ({
           confirmText="DELETE"
           confirmButtonText="Delete"
           onClose={() => setIsDeleteModalOpen(false)}
-          onConfirm={handleDelete}
+          onConfirm={handleDeleteConfirm}
         />
       )}
     </div>
   );
-};
-
-export default TaskTable;
+}

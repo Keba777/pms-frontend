@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import Link from "next/link";
 import { Menu, MenuButton, MenuItems, MenuItem } from "@headlessui/react";
 import { ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -14,17 +15,17 @@ import { formatDate, getDuration } from "@/utils/helper";
 import EditActivityForm from "../forms/EditActivityForm";
 import ConfirmModal from "../ui/ConfirmModal";
 import ActivityTableSkeleton from "./ActivityTableSkeleton";
-import Link from "next/link";
 import RoleName from "../common/RoleName";
+import SearchInput from "../ui/SearchInput";
+import ManageActivityForm from "../forms/ManageActivityForm";
 
 const DataTableActivities: React.FC = () => {
   const { data: activities = [], isLoading, error } = useActivities();
   const { mutate: deleteActivity } = useDeleteActivity();
   const { mutate: updateActivity } = useUpdateActivity();
 
-  // Column customization setup
+  const [searchTerm, setSearchTerm] = useState("");
   const columnOptions: Record<string, string> = {
-    select: "",
     activity_name: "Activity",
     assignedUsers: "Assigned To",
     priority: "Priority",
@@ -34,6 +35,9 @@ const DataTableActivities: React.FC = () => {
     end_date: "End Date",
     duration: "Duration",
     progress: "Progress",
+    materials: "Materials",
+    equipments: "Equipments",
+    labors: "Labors",
     request: "Request",
     status: "Status",
     approvalStatus: "Approval",
@@ -50,21 +54,27 @@ const DataTableActivities: React.FC = () => {
       prev.includes(col) ? prev.filter((c) => c !== col) : [...prev, col]
     );
   };
-
   const handleClickOutside = (e: MouseEvent) => {
     if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
       setShowColumnMenu(false);
     }
   };
-
   useEffect(() => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Edit modal
   const [showEditForm, setShowEditForm] = useState(false);
   const [activityToEdit, setActivityToEdit] =
     useState<UpdateActivityInput | null>(null);
+
+  // Manage modal
+  const [showManageForm, setShowManageForm] = useState(false);
+  const [activityToManage, setActivityToManage] =
+    useState<UpdateActivityInput | null>(null);
+
+  // Delete modal
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedActivityId, setSelectedActivityId] = useState<string | null>(
     null
@@ -74,6 +84,10 @@ const DataTableActivities: React.FC = () => {
 
   if (isLoading) return <ActivityTableSkeleton />;
   if (error) return <div>Error fetching activities.</div>;
+
+  const filteredActivities = activities.filter((act) =>
+    act.activity_name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const handleDeleteActivityClick = (id: string) => {
     setSelectedActivityId(id);
@@ -101,9 +115,19 @@ const DataTableActivities: React.FC = () => {
     setShowEditForm(false);
   };
 
+  const handleManageClick = (activity: UpdateActivityInput) => {
+    setActivityToManage(activity);
+    setShowManageForm(true);
+  };
+
+  const handleManageSubmit = (data: UpdateActivityInput) => {
+    updateActivity(data);
+    setShowManageForm(false);
+  };
+
   return (
     <div>
-      {/* Customize Columns Button */}
+      {/* Toolbar */}
       <div className="flex items-center justify-between mb-4 mt-6">
         <div ref={menuRef} className="relative">
           <button
@@ -125,18 +149,23 @@ const DataTableActivities: React.FC = () => {
                     onChange={() => toggleColumn(key)}
                     className="mr-2"
                   />
-                  {label || <span>&nbsp;</span>}
+                  {label || <span> </span>}
                 </label>
               ))}
             </div>
           )}
         </div>
+        <SearchInput
+          placeholder="Search activities..."
+          value={searchTerm}
+          onChange={setSearchTerm}
+        />
       </div>
 
-      {/* Edit Activity Modal */}
+      {/* Modals */}
       {showEditForm && activityToEdit && (
-        <div className="modal-overlay fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="modal-content bg-white rounded-lg shadow-xl p-6">
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white rounded-lg shadow-xl p-6">
             <EditActivityForm
               onClose={() => setShowEditForm(false)}
               onSubmit={handleEditSubmit}
@@ -146,7 +175,18 @@ const DataTableActivities: React.FC = () => {
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
+      {showManageForm && activityToManage && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white rounded-lg shadow-xl p-6">
+            <ManageActivityForm
+              onClose={() => setShowManageForm(false)}
+              onSubmit={handleManageSubmit}
+              activity={activityToManage}
+            />
+          </div>
+        </div>
+      )}
+
       {isDeleteModalOpen && (
         <ConfirmModal
           isVisible={isDeleteModalOpen}
@@ -160,94 +200,148 @@ const DataTableActivities: React.FC = () => {
         />
       )}
 
+      {/* Table */}
       <div className="overflow-x-auto">
         <table className="min-w-max divide-y divide-gray-200">
           <thead className="bg-cyan-700">
             <tr>
-              {selectedColumns.includes("select") && (
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
-                  <input type="checkbox" className="rounded border-gray-300" />
-                </th>
-              )}
               {selectedColumns.includes("activity_name") && (
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+                <th
+                  rowSpan={2}
+                  className="px-4 py-3 text-left text-sm font-medium text-gray-50"
+                >
                   Activity
                 </th>
               )}
               {selectedColumns.includes("assignedUsers") && (
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+                <th
+                  rowSpan={2}
+                  className="px-4 py-3 text-left text-sm font-medium text-gray-50"
+                >
                   Assigned To
                 </th>
               )}
               {selectedColumns.includes("priority") && (
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+                <th
+                  rowSpan={2}
+                  className="px-4 py-3 text-left text-sm font-medium text-gray-50"
+                >
                   Priority
                 </th>
               )}
               {selectedColumns.includes("quantity") && (
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+                <th
+                  rowSpan={2}
+                  className="px-4 py-3 text-left text-sm font-medium text-gray-50"
+                >
                   Quantity
                 </th>
               )}
               {selectedColumns.includes("unit") && (
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+                <th
+                  rowSpan={2}
+                  className="px-4 py-3 text-left text-sm font-medium text-gray-50"
+                >
                   Unit
                 </th>
               )}
               {selectedColumns.includes("start_date") && (
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+                <th
+                  rowSpan={2}
+                  className="px-4 py-3 text-left text-sm font-medium text-gray-50"
+                >
                   Start Date
                 </th>
               )}
               {selectedColumns.includes("end_date") && (
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+                <th
+                  rowSpan={2}
+                  className="px-4 py-3 text-left text-sm font-medium text-gray-50"
+                >
                   End Date
                 </th>
               )}
               {selectedColumns.includes("duration") && (
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+                <th
+                  rowSpan={2}
+                  className="px-4 py-3 text-left text-sm font-medium text-gray-50"
+                >
                   Duration
                 </th>
               )}
               {selectedColumns.includes("progress") && (
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+                <th
+                  rowSpan={2}
+                  className="px-4 py-3 text-left text-sm font-medium text-gray-50"
+                >
                   Progress
                 </th>
               )}
+              {(selectedColumns.includes("materials") ||
+                selectedColumns.includes("equipments") ||
+                selectedColumns.includes("labors")) && (
+                <th
+                  colSpan={3}
+                  className="px-4 py-3 text-left text-sm font-medium text-gray-50"
+                >
+                  Resources
+                </th>
+              )}
               {selectedColumns.includes("request") && (
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+                <th
+                  rowSpan={2}
+                  className="px-4 py-3 text-left text-sm font-medium text-gray-50"
+                >
                   Request
                 </th>
               )}
               {selectedColumns.includes("status") && (
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+                <th
+                  rowSpan={2}
+                  className="px-4 py-3 text-left text-sm font-medium text-gray-50"
+                >
                   Status
                 </th>
               )}
               {selectedColumns.includes("approvalStatus") && (
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+                <th
+                  rowSpan={2}
+                  className="px-4 py-3 text-left text-sm font-medium text-gray-50"
+                >
                   Approval
                 </th>
               )}
               {selectedColumns.includes("actions") && (
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+                <th
+                  rowSpan={2}
+                  className="px-4 py-3 text-left text-sm font-medium text-gray-50"
+                >
                   Actions
+                </th>
+              )}
+            </tr>
+            <tr>
+              {selectedColumns.includes("materials") && (
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+                  Materials
+                </th>
+              )}
+              {selectedColumns.includes("equipments") && (
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+                  Equipments
+                </th>
+              )}
+              {selectedColumns.includes("labors") && (
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+                  Labors
                 </th>
               )}
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {activities.length > 0 ? (
-              activities.map((activity) => (
+            {filteredActivities.length > 0 ? (
+              filteredActivities.map((activity) => (
                 <tr key={activity.id} className="hover:bg-gray-50">
-                  {selectedColumns.includes("select") && (
-                    <td className="px-4 py-2">
-                      <input
-                        type="checkbox"
-                        className="rounded border-gray-300"
-                      />
-                    </td>
-                  )}
                   {selectedColumns.includes("activity_name") && (
                     <td className="px-4 py-2 font-medium text-bs-primary">
                       <Link
@@ -326,6 +420,30 @@ const DataTableActivities: React.FC = () => {
                       </div>
                     </td>
                   )}
+                  {selectedColumns.includes("materials") && (
+                    <td className="px-4 py-2">
+                      {activity.requests?.reduce(
+                        (sum, req) => sum + (req.materialCount || 0),
+                        0
+                      ) || 0}
+                    </td>
+                  )}
+                  {selectedColumns.includes("equipments") && (
+                    <td className="px-4 py-2">
+                      {activity.requests?.reduce(
+                        (sum, req) => sum + (req.equipmentCount || 0),
+                        0
+                      ) || 0}
+                    </td>
+                  )}
+                  {selectedColumns.includes("labors") && (
+                    <td className="px-4 py-2">
+                      {activity.requests?.reduce(
+                        (sum, req) => sum + (req.laborCount || 0),
+                        0
+                      ) || 0}
+                    </td>
+                  )}
                   {selectedColumns.includes("request") && (
                     <td className="px-4 py-2">
                       <Link
@@ -348,10 +466,7 @@ const DataTableActivities: React.FC = () => {
                   )}
                   {selectedColumns.includes("actions") && (
                     <td className="px-4 py-2">
-                      <Menu
-                        as="div"
-                        className="relative inline-block text-left"
-                      >
+                      <Menu>
                         <MenuButton className="flex items-center gap-1 px-3 py-1 text-sm bg-cyan-700 text-white rounded hover:bg-cyan-800">
                           Action <ChevronDown className="w-4 h-4" />
                         </MenuButton>
@@ -401,6 +516,25 @@ const DataTableActivities: React.FC = () => {
                               </button>
                             )}
                           </MenuItem>
+                          <MenuItem>
+                            {({ active }) => (
+                              <button
+                                className={`block w-full px-4 py-2 text-left ${
+                                  active ? "bg-blue-100" : ""
+                                }`}
+                                onClick={() =>
+                                  handleManageClick({
+                                    ...activity,
+                                    assignedUsers: activity.assignedUsers?.map(
+                                      (u) => u.id
+                                    ),
+                                  })
+                                }
+                              >
+                                Manage
+                              </button>
+                            )}
+                          </MenuItem>
                         </MenuItems>
                       </Menu>
                     </td>
@@ -421,11 +555,11 @@ const DataTableActivities: React.FC = () => {
         </table>
       </div>
 
-      {/* Pagination */}
+      {/* Pagination placeholder */}
       <div className="flex items-center justify-between p-4">
         <div className="flex items-center gap-4">
           <span className="text-sm text-gray-700">
-            Showing {activities.length} rows
+            Showing {filteredActivities.length} rows
           </span>
           <select className="rounded border-gray-300 text-sm">
             <option>10</option>
@@ -435,11 +569,11 @@ const DataTableActivities: React.FC = () => {
         </div>
         <div className="flex gap-2">
           <button className="px-3 py-1 rounded border hover:bg-gray-50">
-            &lsaquo;
+            ‹
           </button>
           <button className="px-3 py-1 rounded border bg-gray-100">1</button>
           <button className="px-3 py-1 rounded border hover:bg-gray-50">
-            &rsaquo;
+            ›
           </button>
         </div>
       </div>

@@ -1,8 +1,12 @@
+import { Equipment } from "./equipment";
+import { Labor } from "./labor";
+import { Material } from "./material";
 import { Request } from "./request";
 import { Task } from "./task";
 import { User } from "./user";
 
 export interface Activity {
+    resource: Material | Equipment | Labor;
     id: string;
     activity_name: string;
     description?: string;

@@ -6,7 +6,7 @@ import { ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "react-toastify";
-import { Menu } from "@headlessui/react";
+import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 
 import { Project, UpdateProjectInput } from "@/types/project";
 import { formatDate, getDateDuration } from "@/utils/helper";
@@ -14,6 +14,7 @@ import { formatDate, getDateDuration } from "@/utils/helper";
 import ProjectTableSkeleton from "./ProjectTableSkeleton";
 import ConfirmModal from "../ui/ConfirmModal";
 import EditProjectForm from "../forms/EditProjectForm";
+import ManageProjectForm from "../forms/ManageProjectForm";
 
 import { useDeleteProject, useUpdateProject } from "@/hooks/useProjects";
 import { useUsers } from "@/hooks/useUsers";
@@ -82,10 +83,17 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
     null
   );
-  const [showForm, setShowForm] = useState(false);
-  const [projectToEdit, setProjectToEdit] = useState<
-    UpdateProjectInput | null
-  >(null);
+
+  // Edit modal
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [projectToEdit, setProjectToEdit] = useState<UpdateProjectInput | null>(
+    null
+  );
+
+  // Manage modal
+  const [showManageForm, setShowManageForm] = useState(false);
+  const [projectToManage, setProjectToManage] =
+    useState<UpdateProjectInput | null>(null);
 
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -122,9 +130,16 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
   const handleView = (id: string) => {
     router.push(`/projects/${id}`);
   };
+
   const handleEditSubmit = (data: UpdateProjectInput) => {
     updateProject(data);
-    setShowForm(false);
+    setShowEditForm(false);
+  };
+
+  const handleManageSubmit = (data: UpdateProjectInput) => {
+    // only progress is updated in Manage form
+    updateProject(data);
+    setShowManageForm(false);
   };
 
   const filteredProjects = projects.filter((p) =>
@@ -229,7 +244,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                     )}
                     {selectedColumns.includes("title") && (
                       <td className="px-5 py-2 font-medium text-blue-600 hover:underline">
-                        <Link href={`/projects/${project.id}`}>
+                        <Link href={`/master-schedule/project/${project.id}`}>
                           {project.title}
                         </Link>
                       </td>
@@ -257,10 +272,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                     )}
                     {selectedColumns.includes("duration") && (
                       <td className="px-5 py-2">
-                        {getDateDuration(
-                          project.start_date,
-                          project.end_date
-                        )}
+                        {getDateDuration(project.start_date, project.end_date)}
                       </td>
                     )}
                     {selectedColumns.includes("status") && (
@@ -276,12 +288,15 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                     )}
                     {selectedColumns.includes("action") && (
                       <td className="px-5 py-2">
-                        <Menu as="div" className="relative inline-block text-left">
-                          <Menu.Button className="flex items-center gap-1 px-3 py-1 text-sm bg-cyan-700 text-white rounded hover:bg-cyan-800">
+                        <Menu
+                          as="div"
+                          className="relative inline-block text-left"
+                        >
+                          <MenuButton className="flex items-center gap-1 px-3 py-1 text-sm bg-cyan-700 text-white rounded hover:bg-cyan-800">
                             Action <ChevronDown className="w-4 h-4" />
-                          </Menu.Button>
-                          <Menu.Items className="absolute left-0 mt-2 w-40 bg-white border divide-y divide-gray-100 rounded-md shadow-lg z-50">
-                            <Menu.Item>
+                          </MenuButton>
+                          <MenuItems className="absolute left-0 mt-2 w-40 bg-white border divide-y divide-gray-100 rounded-md shadow-lg z-50">
+                            <MenuItem>
                               {({ active }) => (
                                 <button
                                   onClick={() => handleView(project.id)}
@@ -292,8 +307,8 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                                   View
                                 </button>
                               )}
-                            </Menu.Item>
-                            <Menu.Item>
+                            </MenuItem>
+                            <MenuItem>
                               {({ active }) => (
                                 <button
                                   onClick={() => {
@@ -303,7 +318,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                                         (m) => m.id
                                       ),
                                     });
-                                    setShowForm(true);
+                                    setShowEditForm(true);
                                   }}
                                   className={`w-full text-left px-3 py-2 text-sm ${
                                     active ? "bg-gray-100" : ""
@@ -312,8 +327,8 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                                   Edit
                                 </button>
                               )}
-                            </Menu.Item>
-                            <Menu.Item>
+                            </MenuItem>
+                            <MenuItem>
                               {({ active }) => (
                                 <button
                                   onClick={() =>
@@ -329,23 +344,29 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                                   Delete
                                 </button>
                               )}
-                            </Menu.Item>
-                          </Menu.Items>
+                            </MenuItem>
+                            <MenuItem>
+                              {({ active }) => (
+                                <button
+                                  onClick={() => {
+                                    setProjectToManage({
+                                      ...project,
+                                      members: project.members?.map(
+                                        (m) => m.id
+                                      ),
+                                    });
+                                    setShowManageForm(true);
+                                  }}
+                                  className={`w-full text-left px-3 py-2 text-sm ${
+                                    active ? "bg-gray-100" : ""
+                                  }`}
+                                >
+                                  Manage
+                                </button>
+                              )}
+                            </MenuItem>
+                          </MenuItems>
                         </Menu>
-
-                        {showForm && projectToEdit && (
-                          <div className="fixed inset-0 z-50 flex items-center justify-center bg-opacity-60 backdrop-blur-sm">
-                            <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-xl m-4 max-h-[90vh] overflow-y-auto">
-                              <EditProjectForm
-                                onClose={() => setShowForm(false)}
-                                onSubmit={handleEditSubmit}
-                                project={projectToEdit}
-                                users={users}
-                                tags={tags}
-                              />
-                            </div>
-                          </div>
-                        )}
                       </td>
                     )}
                   </tr>
@@ -365,6 +386,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
         </table>
       </div>
 
+      {/* Delete Confirmation */}
       {isDeleteModalOpen && (
         <ConfirmModal
           isVisible={isDeleteModalOpen}
@@ -376,6 +398,34 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
           onClose={() => setIsDeleteModalOpen(false)}
           onConfirm={handleDeleteConfirm}
         />
+      )}
+
+      {/* Edit Project Modal */}
+      {showEditForm && projectToEdit && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-xl m-4 max-h-[90vh] overflow-y-auto">
+            <EditProjectForm
+              onClose={() => setShowEditForm(false)}
+              onSubmit={handleEditSubmit}
+              project={projectToEdit}
+              users={users}
+              tags={tags}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Manage Progress Modal */}
+      {showManageForm && projectToManage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md m-4">
+            <ManageProjectForm
+              onClose={() => setShowManageForm(false)}
+              onSubmit={handleManageSubmit}
+              project={projectToManage}
+            />
+          </div>
+        </div>
       )}
     </div>
   );

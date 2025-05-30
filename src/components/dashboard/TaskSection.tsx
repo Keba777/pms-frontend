@@ -2,13 +2,14 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
-import { FaEdit, FaTrash, FaEye } from "react-icons/fa";
+import { FaEdit, FaTrash, FaEye, FaTasks } from "react-icons/fa";
 import { useTasks, useDeleteTask, useUpdateTask } from "@/hooks/useTasks";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import RoleName from "../common/RoleName";
 import ConfirmModal from "../ui/ConfirmModal";
 import EditTaskForm from "../forms/EditTaskForm";
+import ManageTaskForm from "../forms/ManageTaskForm";
 import { Task, UpdateTaskInput } from "@/types/task";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import SearchInput from "../ui/SearchInput";
@@ -35,7 +36,6 @@ const TaskSection: React.FC = () => {
   const { mutate: deleteTask } = useDeleteTask();
   const { mutate: updateTask } = useUpdateTask();
 
-  // define columns
   const columnOptions: Record<string, string> = {
     id: "ID",
     task_name: "Task",
@@ -88,6 +88,12 @@ const TaskSection: React.FC = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
 
+  // Manage modal state
+  const [showManageForm, setShowManageForm] = useState(false);
+  const [taskToManage, setTaskToManage] = useState<UpdateTaskInput | null>(
+    null
+  );
+
   const handleEditClick = (t: Task) => {
     setTaskToEdit({
       ...t,
@@ -104,6 +110,18 @@ const TaskSection: React.FC = () => {
     setIsDeleteModalOpen(false);
   };
   const handleView = (id: string) => router.push(`/tasks/${id}`);
+
+  const handleManageClick = (t: Task) => {
+    setTaskToManage({
+      ...t,
+      assignedUsers: t.assignedUsers?.map((u) => u.id),
+    });
+    setShowManageForm(true);
+  };
+  const handleManageSubmit = (data: UpdateTaskInput) => {
+    updateTask(data);
+    setShowManageForm(false);
+  };
 
   if (isLoading) return <div>Loading tasks…</div>;
   if (isError) return <div>Error loading tasks.</div>;
@@ -156,15 +174,28 @@ const TaskSection: React.FC = () => {
 
       {/* Edit modal */}
       {showEditForm && taskToEdit && (
-        <div className="modal-overlay fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="modal-content bg-white rounded-lg shadow-xl p-6 w-full max-w-xl">
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-xl m-4 max-h-[90vh] overflow-y-auto">
             <EditTaskForm
               task={taskToEdit}
-              onSubmit={() => {
-                updateTask(taskToEdit);
+              onSubmit={(data) => {
+                updateTask(data);
                 setShowEditForm(false);
               }}
               onClose={() => setShowEditForm(false)}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Manage modal */}
+      {showManageForm && taskToManage && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md m-4">
+            <ManageTaskForm
+              onSubmit={handleManageSubmit}
+              onClose={() => setShowManageForm(false)}
+              task={taskToManage}
             />
           </div>
         </div>
@@ -322,6 +353,18 @@ const TaskSection: React.FC = () => {
                                   onClick={() => handleView(task.id)}
                                 >
                                   <FaEye className="inline mr-2" /> Quick View
+                                </button>
+                              )}
+                            </MenuItem>
+                            <MenuItem>
+                              {({ active }) => (
+                                <button
+                                  className={`block w-full px-4 py-2 text-left ${
+                                    active ? "bg-blue-100" : ""
+                                  }`}
+                                  onClick={() => handleManageClick(task)}
+                                >
+                                  <FaTasks className="inline mr-2" /> Manage
                                 </button>
                               )}
                             </MenuItem>

@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
-import { FaEdit, FaTrash, FaEye } from "react-icons/fa";
+import { FaEdit, FaTrash, FaEye, FaTasks } from "react-icons/fa";
 import {
   useDeleteProject,
   useProjects,
@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import ConfirmModal from "../ui/ConfirmModal";
 import EditProjectForm from "../forms/EditProjectForm";
+import ManageProjectForm from "../forms/ManageProjectForm";
 import { Project, UpdateProjectInput } from "@/types/project";
 import RoleName from "../common/RoleName";
 import { toast } from "react-toastify";
@@ -71,7 +72,6 @@ const ProjectSection: React.FC = () => {
   const [showColumnMenu, setShowColumnMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // new: search state
   const [searchTerm, setSearchTerm] = useState<string>("");
 
   const toggleColumn = (col: string) => {
@@ -85,23 +85,24 @@ const ProjectSection: React.FC = () => {
       setShowColumnMenu(false);
     }
   };
-
   useEffect(() => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Edit state
   const [showEditForm, setShowEditForm] = useState(false);
   const [projectToEdit, setProjectToEdit] =
     useState<UpdateProjectInput | null>(null);
+  // Manage state
+  const [showManageForm, setShowManageForm] = useState(false);
+  const [projectToManage, setProjectToManage] =
+    useState<UpdateProjectInput | null>(null);
+  // Delete state
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
-
-  const handleEditProject = (proj: UpdateProjectInput) => {
-    setProjectToEdit(proj);
-    updateProject(proj);
-    setShowEditForm(true);
-  };
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
+    null
+  );
 
   const handleDeleteProjectClick = (projectId: string) => {
     const project = projects?.find((p) => p.id === projectId);
@@ -114,7 +115,6 @@ const ProjectSection: React.FC = () => {
     setSelectedProjectId(projectId);
     setIsDeleteModalOpen(true);
   };
-
   const handleDeleteProject = () => {
     if (selectedProjectId) {
       deleteProject(selectedProjectId);
@@ -126,10 +126,35 @@ const ProjectSection: React.FC = () => {
     router.push(`/projects/${projectId}`);
   };
 
+  const handleEditClick = (proj: Project) => {
+    setProjectToEdit({
+      ...proj,
+      members: proj.members?.map((m) => m.id),
+    });
+    setShowEditForm(true);
+  };
+
+  const handleEditSubmit = (data: UpdateProjectInput) => {
+    updateProject(data);
+    setShowEditForm(false);
+  };
+
+  const handleManageClick = (proj: Project) => {
+    setProjectToManage({
+      ...proj,
+      members: proj.members?.map((m) => m.id),
+    });
+    setShowManageForm(true);
+  };
+
+  const handleManageSubmit = (data: UpdateProjectInput) => {
+    updateProject(data);
+    setShowManageForm(false);
+  };
+
   if (isLoading) return <div>Loading projects…</div>;
   if (isError) return <div>Error loading projects.</div>;
 
-  // apply search filter
   const filtered = projects?.filter((p) =>
     p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.client.toLowerCase().includes(searchTerm.toLowerCase())
@@ -173,20 +198,6 @@ const ProjectSection: React.FC = () => {
         )}
       </div>
 
-      {showEditForm && projectToEdit && (
-        <div className="modal-overlay fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="modal-content bg-white rounded-lg shadow-xl p-6 w-full max-w-xl">
-            <EditProjectForm
-              project={projectToEdit}
-              onSubmit={() => handleEditProject(projectToEdit)}
-              onClose={() => setShowEditForm(false)}
-              users={users}
-              tags={tags}
-            />
-          </div>
-        </div>
-      )}
-
       <div className="overflow-x-auto">
         <table className="min-w-max border border-gray-200 divide-y divide-gray-200">
           <thead className="bg-cyan-700">
@@ -228,7 +239,7 @@ const ProjectSection: React.FC = () => {
                       </td>
                     )}
                     {selectedColumns.includes("members") && (
-                      <td className="border border-gray-200:px-4 py-2">
+                      <td className="border border-gray-200 px-4 py-2">
                         {project.members?.length ? (
                           <ul className="list-none space-y-1">
                             {project.members.map((m) => (
@@ -244,12 +255,12 @@ const ProjectSection: React.FC = () => {
                       </td>
                     )}
                     {selectedColumns.includes("client") && (
-                      <td className="border border-gray-200:px-4 py-2">
+                      <td className="border border-gray-200 px-4 py-2">
                         {project.client}
                       </td>
                     )}
                     {selectedColumns.includes("status") && (
-                      <td className="border border-gray-200:px-4 py-2">
+                      <td className="border border-gray-200 px-4 py-2">
                         <span
                           className={`px-2 py-1 rounded-full text-sm font-medium ${
                             statusBadgeClasses[project.status]
@@ -260,7 +271,7 @@ const ProjectSection: React.FC = () => {
                       </td>
                     )}
                     {selectedColumns.includes("priority") && (
-                      <td className="border border-gray-200:px-4 py-2">
+                      <td className="border border-gray-200 px-4 py-2">
                         <span
                           className={`px-2 py-1 rounded-full text-sm font-medium ${
                             priorityBadgeClasses[project.priority]
@@ -271,32 +282,32 @@ const ProjectSection: React.FC = () => {
                       </td>
                     )}
                     {selectedColumns.includes("progress") && (
-                      <td className="border border-gray-200:px-4 py-2">
+                      <td className="border border-gray-200 px-4 py-2">
                         {project.progress ?? 0}%
                       </td>
                     )}
                     {selectedColumns.includes("start_date") && (
-                      <td className="border border-gray-200:px-4 py-2">
+                      <td className="border border-gray-200 px-4 py-2">
                         {formatDate(project.start_date)}
                       </td>
                     )}
                     {selectedColumns.includes("end_date") && (
-                      <td className="border border-gray-200:px-4 py-2">
+                      <td className="border border-gray-200 px-4 py-2">
                         {formatDate(project.end_date)}
                       </td>
                     )}
                     {selectedColumns.includes("duration") && (
-                      <td className="border border-gray-200:px-4 py-2">
+                      <td className="border border-gray-200 px-4 py-2">
                         {getDateDuration(project.start_date, project.end_date)}
                       </td>
                     )}
                     {selectedColumns.includes("remaining") && (
-                      <td className="border border-gray-200:px-4 py-2">
+                      <td className="border border-gray-200 px-4 py-2">
                         {remaining}
                       </td>
                     )}
                     {selectedColumns.includes("actions") && (
-                      <td className="border border-gray-200:px-4 py-2">
+                      <td className="border border-gray-200 px-4 py-2">
                         <Menu as="div" className="relative inline-block text-left">
                           <MenuButton className="flex items-center gap-1 px-3 py-1 text-sm bg-cyan-700 text-white rounded hover:bg-cyan-800">
                             Action <ChevronDown className="w-4 h-4" />
@@ -308,15 +319,7 @@ const ProjectSection: React.FC = () => {
                                   className={`block w-full px-4 py-2 text-left ${
                                     active ? "bg-blue-100" : ""
                                   }`}
-                                  onClick={() => {
-                                    setProjectToEdit({
-                                      ...project,
-                                      members: project.members?.map(
-                                        (m) => m.id
-                                      ),
-                                    });
-                                    setShowEditForm(true);
-                                  }}
+                                  onClick={() => handleEditClick(project)}
                                 >
                                   <FaEdit className="inline mr-2" /> Edit
                                 </button>
@@ -345,6 +348,18 @@ const ProjectSection: React.FC = () => {
                                   onClick={() => handleViewProject(project.id)}
                                 >
                                   <FaEye className="inline mr-2" /> Quick View
+                                </button>
+                              )}
+                            </MenuItem>
+                            <MenuItem>
+                              {({ active }) => (
+                                <button
+                                  className={`block w-full px-4 py-2 text-left ${
+                                    active ? "bg-blue-100" : ""
+                                  }`}
+                                  onClick={() => handleManageClick(project)}
+                                >
+                                  <FaTasks className="inline mr-2" /> Manage
                                 </button>
                               )}
                             </MenuItem>
@@ -380,6 +395,32 @@ const ProjectSection: React.FC = () => {
           onClose={() => setIsDeleteModalOpen(false)}
           onConfirm={handleDeleteProject}
         />
+      )}
+
+      {showEditForm && projectToEdit && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-xl m-4 max-h-[90vh] overflow-y-auto">
+            <EditProjectForm
+              project={projectToEdit}
+              onSubmit={handleEditSubmit}
+              onClose={() => setShowEditForm(false)}
+              users={users}
+              tags={tags}
+            />
+          </div>
+        </div>
+      )}
+
+      {showManageForm && projectToManage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md m-4">
+            <ManageProjectForm
+              onSubmit={handleManageSubmit}
+              onClose={() => setShowManageForm(false)}
+              project={projectToManage}
+            />
+          </div>
+        </div>
       )}
     </div>
   );

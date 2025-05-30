@@ -1,4 +1,3 @@
-// ManageActivityForm.tsx
 "use client";
 
 import { UpdateActivityInput } from "@/types/activity";
@@ -18,6 +17,13 @@ const ManageActivityForm: React.FC<{
     defaultValues: activity,
   });
 
+  const getProgressColor = (value: number) => {
+    if (value <= 25) return "#EF4444"; // red-500
+    if (value <= 50) return "#F97316"; // orange-500
+    if (value <= 75) return "#EAB308"; // yellow-500
+    return "#22C55E"; // green-500
+  };
+
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
@@ -30,35 +36,75 @@ const ManageActivityForm: React.FC<{
           className="text-3xl text-red-500 hover:text-red-600"
           onClick={onClose}
         >
-          &times;
+          ×
         </button>
       </div>
 
-      {/* Progress Add Color for progress on 25 range 
-
-        Completed - green
-
-      */}
-      <div className="flex items-center space-x-4">
+      <div className="flex items-center space-x-4 my-10">
         <label className="w-32 text-sm font-medium text-gray-700">
           Progress (%):
         </label>
         <Controller
           name="progress"
           control={control}
-          render={({ field }) => (
-            <div className="flex-1 flex items-center space-x-2">
-              <input
-                type="range"
-                min={0}
-                max={100}
-                {...field}
-                className="flex-1"
-                onChange={(e) => field.onChange(parseInt(e.target.value, 10))}
-              />
-              <span className="w-12 text-right">{field.value}%</span>
-            </div>
-          )}
+          render={({ field }) => {
+            const color = getProgressColor(field.value ?? 0);
+            return (
+              <div className="flex-1 flex flex-col space-y-2">
+                {/* Progress Bar with Percentage Display */}
+                <div className="relative flex items-center">
+                  <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    step={1}
+                    {...field}
+                    className="w-full h-1 rounded-lg appearance-none cursor-pointer"
+                    style={{
+                      background: `linear-gradient(to right, ${color} ${
+                        field.value ?? 0
+                      }%, #E5E7EB ${field.value ?? 0}%)`,
+                    }}
+                    onChange={(e) => field.onChange(parseInt(e.target.value, 10))}
+                  />
+                  {/* Current Progress Percentage Above Bar */}
+                  <span
+                    className="absolute text-sm font-bold text-black"
+                    style={{
+                      left: `${field.value}%`,
+                      transform: "translateX(-50%)",
+                      top: "-1.5rem",
+                    }}
+                  >
+                    {field.value}%
+                  </span>
+                </div>
+
+                {/* Percentage Markers Below Bar */}
+                <div className="relative flex justify-between -mt-2">
+                  {[0, 25, 50, 75, 100].map((mark) => (
+                    <span
+                      key={mark}
+                      className="text-xs text-gray-800"
+                      style={{
+                        position: "absolute",
+                        left: `${mark}%`,
+                        transform: "translateX(-50%)",
+                      }}
+                    >
+                      {mark}
+                    </span>
+                  ))}
+                </div>
+
+                {/* 0% and 100% Labels Above Bar Ends */}
+                <div className="flex justify-between text-sm font-bold text-gray-800 mt-1">
+                  <span>0%</span>
+                  <span>100%</span>
+                </div>
+              </div>
+            );
+          }}
         />
       </div>
       {errors.progress && (
@@ -66,17 +112,18 @@ const ManageActivityForm: React.FC<{
       )}
 
       <div>
-        <label htmlFor="">Checked by:- </label>
+        <label htmlFor="checkedBy" className="mr-2">
+          Checked by:-
+        </label>
         <input
           type="text"
-          // placeholder="Checked by:-"
-          className="ml-4 px-3 border  focus:outline-none focus:ring-2 focus:ring-bs-primary"
+          id="checkedBy"
+          className="ml-4 px-3 border focus:outline-none focus:ring-2 focus:ring-bs-primary"
         />
         <input
           type="date"
-          name=""
-          id=""
-          className="ml-4 px-3 border  focus:outline-none focus:ring-2 focus:ring-bs-primary"
+          id="checkedDate"
+          className="ml-4 px-3 border focus:outline-none focus:ring-2 focus:ring-bs-primary"
         />
       </div>
 
@@ -109,7 +156,7 @@ const ManageActivityForm: React.FC<{
       </table>
 
       <h1 className="underline font-semibold">Summary Report</h1>
-      <textarea name="" id=""></textarea>
+      <textarea className="w-full border p-2 focus:outline-none focus:ring-2 focus:ring-bs-primary" />
 
       <p>Checked BY</p>
       <p>Approved By</p>

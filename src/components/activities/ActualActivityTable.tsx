@@ -16,24 +16,30 @@ import ConfirmModal from "../ui/ConfirmModal";
 import ActivityTableSkeleton from "./ActivityTableSkeleton";
 import Link from "next/link";
 
+interface ResourceCosts {
+  labor: { ot: number; dt: number };
+  material: { ot: number; dt: number };
+  equipment: { ot: number; dt: number };
+  total: number;
+}
+
 interface ExtendedActivity extends Activity {
-  resourceCosts: {
-    labor: number;
-    material: number;
-    equipment: number;
-    total: number;
-  };
+  resourceCosts: ResourceCosts;
   overUnder: string;
 }
 
 const ActualActivityTable: React.FC = () => {
-  // data-fetching & router
-  const { data: activities, isLoading: loadingAct, error: errorAct } = useActivities();
+  // Data-fetching & router
+  const {
+    data: activities,
+    isLoading: loadingAct,
+    error: errorAct,
+  } = useActivities();
   const { mutate: deleteActivity } = useDeleteActivity();
   const { mutate: updateActivity } = useUpdateActivity();
   const router = useRouter();
 
-  // column-customization state
+  // Column-customization state
   const columnOptions: Record<string, string> = {
     id: "ID",
     activity_name: "Activities",
@@ -51,17 +57,22 @@ const ActualActivityTable: React.FC = () => {
     overUnder: "Over/Under",
     actions: "Actions",
   };
-  const [selectedColumns, setSelectedColumns] = useState<string[]>(Object.keys(columnOptions));
+  const [selectedColumns, setSelectedColumns] = useState<string[]>(
+    Object.keys(columnOptions)
+  );
   const [showColumnMenu, setShowColumnMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // edit/delete modals state
+  // Edit/delete modals state
   const [showEditForm, setShowEditForm] = useState(false);
-  const [activityToEdit, setActivityToEdit] = useState<UpdateActivityInput | null>(null);
+  const [activityToEdit, setActivityToEdit] =
+    useState<UpdateActivityInput | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [selectedActivityId, setSelectedActivityId] = useState<string | null>(null);
+  const [selectedActivityId, setSelectedActivityId] = useState<string | null>(
+    null
+  );
 
-  // handle outside-click for column menu
+  // Handle outside-click for column menu
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
@@ -72,29 +83,39 @@ const ActualActivityTable: React.FC = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // derived extendedActivities
+  // Derived extendedActivities with OT and DT
   const extendedActivities: ExtendedActivity[] = useMemo(() => {
     if (!activities) return [];
     return activities.map((act) => {
-      const laborCost = 0;
-      const materialCost = 0;
-      const equipmentCost = 0;
-      const total = laborCost + materialCost + equipmentCost;
+      // Using quantity as a proxy for "count" from backend; replace with actual fields when available
+      const count = act.quantity ?? 0;
+      const laborOt = count;
+      const laborDt = 0;
+      const materialOt = count;
+      const materialDt = 0;
+      const equipmentOt = count;
+      const equipmentDt = 0;
+      const total = laborOt + materialOt + equipmentOt; // Adjust as per actual requirements
       return {
         ...act,
-        resourceCosts: { labor: laborCost, material: materialCost, equipment: equipmentCost, total },
+        resourceCosts: {
+          labor: { ot: laborOt, dt: laborDt },
+          material: { ot: materialOt, dt: materialDt },
+          equipment: { ot: equipmentOt, dt: equipmentDt },
+          total,
+        },
         overUnder: "$0",
       };
     });
   }, [activities]);
 
-  // column toggle
+  // Column toggle
   const toggleColumn = (col: string) =>
     setSelectedColumns((prev) =>
       prev.includes(col) ? prev.filter((c) => c !== col) : [...prev, col]
     );
 
-  // edit/delete handlers
+  // Edit/delete handlers
   const handleDeleteClick = (id: string) => {
     setSelectedActivityId(id);
     setIsDeleteModalOpen(true);
@@ -104,7 +125,10 @@ const ActualActivityTable: React.FC = () => {
     setIsDeleteModalOpen(false);
   };
   const handleEditClick = (item: ExtendedActivity) => {
-    setActivityToEdit({ ...item, assignedUsers: item.assignedUsers?.map((u) => u.id) || [] });
+    setActivityToEdit({
+      ...item,
+      assignedUsers: item.assignedUsers?.map((u) => u.id) || [],
+    });
     setShowEditForm(true);
   };
   const handleEditSubmit = (data: UpdateActivityInput) => {
@@ -112,7 +136,17 @@ const ActualActivityTable: React.FC = () => {
     setShowEditForm(false);
   };
 
-  // render (hooks are all above; no conditional hook calls)
+  // Calculate total columns for colSpan
+  const resourceCols = ["labor", "material", "equipment"];
+  const totalColumns = selectedColumns.reduce((acc, col) => {
+    if (resourceCols.includes(col)) {
+      return acc + 2; // Each resource column has 2 subcolumns (OT and DT)
+    } else {
+      return acc + 1;
+    }
+  }, 0);
+
+  // Render
   return loadingAct ? (
     <ActivityTableSkeleton />
   ) : errorAct ? (
@@ -144,7 +178,10 @@ const ActualActivityTable: React.FC = () => {
           {showColumnMenu && (
             <div className="absolute right-0 mt-1 w-48 bg-white border rounded shadow-lg z-10">
               {Object.entries(columnOptions).map(([key, label]) => (
-                <label key={key} className="flex items-center w-full px-4 py-2 hover:bg-gray-100 cursor-pointer">
+                <label
+                  key={key}
+                  className="flex items-center w-full px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                >
                   <input
                     type="checkbox"
                     checked={selectedColumns.includes(key)}
@@ -164,151 +201,309 @@ const ActualActivityTable: React.FC = () => {
         <table className="min-w-max border-collapse border border-gray-300">
           <thead className="bg-cyan-700 text-gray-50">
             <tr>
-              {selectedColumns.map((col) => (
+              {selectedColumns.includes("id") && (
                 <th
-                  key={col}
-                  className={`border border-gray-300 px-4 py-3 text-sm font-medium ${
-                    ["labor", "material", "equipment", "total"].includes(col)
-                      ? "text-center"
-                      : "text-left"
-                  } whitespace-nowrap`}
+                  rowSpan={2}
+                  className="border border-gray-300 px-4 py-3 text-sm font-medium text-left whitespace-nowrap"
                 >
-                  {columnOptions[col]}
+                  ID
                 </th>
-              ))}
+              )}
+              {selectedColumns.includes("activity_name") && (
+                <th
+                  rowSpan={2}
+                  className="border border-gray-300 px-4 py-3 text-sm font-medium text-left whitespace-nowrap"
+                >
+                  Activities
+                </th>
+              )}
+              {selectedColumns.includes("unit") && (
+                <th
+                  rowSpan={2}
+                  className="border border-gray-300 px-4 py-3 text-sm font-medium text-left whitespace-nowrap"
+                >
+                  Unit
+                </th>
+              )}
+              {selectedColumns.includes("quantity") && (
+                <th
+                  rowSpan={2}
+                  className="border border-gray-300 px-4 py-3 text-sm font-medium text-left whitespace-nowrap"
+                >
+                  Qty
+                </th>
+              )}
+              {selectedColumns.includes("start_date") && (
+                <th
+                  rowSpan={2}
+                  className="border border-gray-300 px-4 py-3 text-sm font-medium text-left whitespace-nowrap"
+                >
+                  Start Date
+                </th>
+              )}
+              {selectedColumns.includes("end_date") && (
+                <th
+                  rowSpan={2}
+                  className="border border-gray-300 px-4 py-3 text-sm font-medium text-left whitespace-nowrap"
+                >
+                  End Date
+                </th>
+              )}
+              {selectedColumns.includes("duration") && (
+                <th
+                  rowSpan={2}
+                  className="border border-gray-300 px-4 py-3 text-sm font-medium text-left whitespace-nowrap"
+                >
+                  Duration
+                </th>
+              )}
+              {selectedColumns.includes("progress") && (
+                <th
+                  rowSpan={2}
+                  className="border border-gray-300 px-4 py-3 text-sm font-medium text-left whitespace-nowrap"
+                >
+                  Progress
+                </th>
+              )}
+              {selectedColumns.includes("status") && (
+                <th
+                  rowSpan={2}
+                  className="border border-gray-300 px-4 py-3 text-sm font-medium text-left whitespace-nowrap"
+                >
+                  Status
+                </th>
+              )}
+              {selectedColumns.includes("labor") && (
+                <th
+                  colSpan={2}
+                  className="border border-gray-300 px-4 py-3 text-sm font-medium text-center whitespace-nowrap"
+                >
+                  Labor
+                </th>
+              )}
+              {selectedColumns.includes("material") && (
+                <th
+                  colSpan={2}
+                  className="border border-gray-300 px-4 py-3 text-sm font-medium text-center whitespace-nowrap"
+                >
+                  Material
+                </th>
+              )}
+              {selectedColumns.includes("equipment") && (
+                <th
+                  colSpan={2}
+                  className="border border-gray-300 px-4 py-3 text-sm font-medium text-center whitespace-nowrap"
+                >
+                  Equipment
+                </th>
+              )}
+              {selectedColumns.includes("total") && (
+                <th
+                  rowSpan={2}
+                  className="border border-gray-300 px-4 py-3 text-sm font-medium text-center whitespace-nowrap"
+                >
+                  Total
+                </th>
+              )}
+              {selectedColumns.includes("overUnder") && (
+                <th
+                  rowSpan={2}
+                  className="border border-gray-300 px-4 py-3 text-sm font-medium text-left whitespace-nowrap"
+                >
+                  Over/Under
+                </th>
+              )}
+              {selectedColumns.includes("actions") && (
+                <th
+                  rowSpan={2}
+                  className="border border-gray-300 px-4 py-3 text-sm font-medium text-left whitespace-nowrap"
+                >
+                  Actions
+                </th>
+              )}
+            </tr>
+            <tr>
+              {selectedColumns.includes("labor") && (
+                <>
+                  <th className="border border-gray-300 px-4 py-3 text-sm font-medium text-center whitespace-nowrap">
+                    OT
+                  </th>
+                  <th className="border border-gray-300 px-4 py-3 text-sm font-medium text-center whitespace-nowrap">
+                    DT
+                  </th>
+                </>
+              )}
+              {selectedColumns.includes("material") && (
+                <>
+                  <th className="border border-gray-300 px-4 py-3 text-sm font-medium text-center whitespace-nowrap">
+                    OT
+                  </th>
+                  <th className="border border-gray-300 px-4 py-3 text-sm font-medium text-center whitespace-nowrap">
+                    DT
+                  </th>
+                </>
+              )}
+              {selectedColumns.includes("equipment") && (
+                <>
+                  <th className="border border-gray-300 px-4 py-3 text-sm font-medium text-center whitespace-nowrap">
+                    OT
+                  </th>
+                  <th className="border border-gray-300 px-4 py-3 text-sm font-medium text-center whitespace-nowrap">
+                    DT
+                  </th>
+                </>
+              )}
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {extendedActivities.length > 0 ? (
               extendedActivities.map((item, idx) => (
                 <tr key={item.id} className="hover:bg-gray-50">
-                  {selectedColumns.includes("id") && (
-                    <td className="border border-gray-300 px-4 py-2 text-sm whitespace-nowrap">
-                      {`RC${String(idx + 1).padStart(3, "0")}`}
-                    </td>
-                  )}
-                  {selectedColumns.includes("activity_name") && (
-                    <td className="border border-gray-300 px-4 py-2 text-sm font-medium whitespace-nowrap">
-                      <Link href={`/activities/${item.id}`} className="hover:underline">
-                        {item.activity_name}
-                      </Link>
-                    </td>
-                  )}
-                  {selectedColumns.includes("unit") && (
-                    <td className="border border-gray-300 px-4 py-2 text-sm whitespace-nowrap">
-                      {item.unit}
-                    </td>
-                  )}
-                  {selectedColumns.includes("quantity") && (
-                    <td className="border border-gray-300 px-4 py-2 text-sm whitespace-nowrap">
-                      {item.quantity ?? "–"}
-                    </td>
-                  )}
-                  {selectedColumns.includes("start_date") && (
-                    <td className="border border-gray-300 px-4 py-2 text-sm whitespace-nowrap">
-                      {formatDate(item.start_date)}
-                    </td>
-                  )}
-                  {selectedColumns.includes("end_date") && (
-                    <td className="border border-gray-300 px-4 py-2 text-sm whitespace-nowrap">
-                      {formatDate(item.end_date)}
-                    </td>
-                  )}
-                  {selectedColumns.includes("duration") && (
-                    <td className="border border-gray-300 px-4 py-2 text-sm whitespace-nowrap">
-                      {getDuration(item.start_date, item.end_date)}
-                    </td>
-                  )}
-                  {selectedColumns.includes("progress") && (
-                    <td className="border border-gray-300 px-4 py-2 text-sm whitespace-nowrap">
-                      <div className="relative h-5 bg-gray-200 rounded">
-                        <div
-                          className="absolute h-full bg-blue-600 rounded"
-                          style={{ width: `${item.progress}%` }}
+                  {selectedColumns.flatMap((col) => {
+                    if (col === "labor") {
+                      return [
+                        <td
+                          key="labor_ot"
+                          className="border border-gray-300 px-4 py-2 text-sm text-center whitespace-nowrap"
                         >
-                          <span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-white">
-                            {item.progress}%
-                          </span>
-                        </div>
-                      </div>
-                    </td>
-                  )}
-                  {selectedColumns.includes("status") && (
-                    <td className="border border-gray-300 px-4 py-2 text-sm whitespace-nowrap">
-                      {item.status}
-                    </td>
-                  )}
-                  {selectedColumns.includes("labor") && (
-                    <td className="border border-gray-300 px-4 py-2 text-sm text-center whitespace-nowrap">
-                      {item.resourceCosts.labor}
-                    </td>
-                  )}
-                  {selectedColumns.includes("material") && (
-                    <td className="border border-gray-300 px-4 py-2 text-sm text-center whitespace-nowrap">
-                      {item.resourceCosts.material}
-                    </td>
-                  )}
-                  {selectedColumns.includes("equipment") && (
-                    <td className="border border-gray-300 px-4 py-2 text-sm text-center whitespace-nowrap">
-                      {item.resourceCosts.equipment}
-                    </td>
-                  )}
-                  {selectedColumns.includes("total") && (
-                    <td className="border border-gray-300 px-4 py-2 text-sm text-center whitespace-nowrap">
-                      {item.resourceCosts.total}
-                    </td>
-                  )}
-                  {selectedColumns.includes("overUnder") && (
-                    <td className="border border-gray-300 px-4 py-2 text-sm whitespace-nowrap">
-                      {item.overUnder}
-                    </td>
-                  )}
-                  {selectedColumns.includes("actions") && (
-                    <td className="border border-gray-300 px-4 py-2 text-sm whitespace-nowrap">
-                      <Menu as="div" className="relative inline-block text-left">
-                        <MenuButton className="flex items-center gap-1 px-3 py-1 text-sm bg-cyan-700 text-white rounded hover:bg-cyan-800">
-                          Action <ChevronDown className="w-4 h-4" />
-                        </MenuButton>
-                        <MenuItems className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-10">
-                          <MenuItem>
-                            {({ active }) => (
-                              <button
-                                className={`block w-full px-4 py-2 text-left ${active ? "bg-blue-100" : ""}`}
-                                onClick={() => router.push(`/activities/${item.id}`)}
+                          {item.resourceCosts.labor.ot}
+                        </td>,
+                        <td
+                          key="labor_dt"
+                          className="border border-gray-300 px-4 py-2 text-sm text-center whitespace-nowrap"
+                        >
+                          {item.resourceCosts.labor.dt}
+                        </td>,
+                      ];
+                    } else if (col === "material") {
+                      return [
+                        <td
+                          key="material_ot"
+                          className="border border-gray-300 px-4 py-2 text-sm text-center whitespace-nowrap"
+                        >
+                          {item.resourceCosts.material.ot}
+                        </td>,
+                        <td
+                          key="material_dt"
+                          className="border border-gray-300 px-4 py-2 text-sm text-center whitespace-nowrap"
+                        >
+                          {item.resourceCosts.material.dt}
+                        </td>,
+                      ];
+                    } else if (col === "equipment") {
+                      return [
+                        <td
+                          key="equipment_ot"
+                          className="border border-gray-300 px-4 py-2 text-sm text-center whitespace-nowrap"
+                        >
+                          {item.resourceCosts.equipment.ot}
+                        </td>,
+                        <td
+                          key="equipment_dt"
+                          className="border border-gray-300 px-4 py-2 text-sm text-center whitespace-nowrap"
+                        >
+                          {item.resourceCosts.equipment.dt}
+                        </td>,
+                      ];
+                    } else {
+                      return [
+                        <td
+                          key={col}
+                          className="border border-gray-300 px-4 py-2 text-sm whitespace-nowrap"
+                        >
+                          {col === "id" &&
+                            `RC${String(idx + 1).padStart(3, "0")}`}
+                          {col === "activity_name" && (
+                            <Link
+                              href={`/activities/${item.id}`}
+                              className="hover:underline"
+                            >
+                              {item.activity_name}
+                            </Link>
+                          )}
+                          {col === "unit" && item.unit}
+                          {col === "quantity" && (item.quantity ?? "–")}
+                          {col === "start_date" && formatDate(item.start_date)}
+                          {col === "end_date" && formatDate(item.end_date)}
+                          {col === "duration" &&
+                            getDuration(item.start_date, item.end_date)}
+                          {col === "progress" && (
+                            <div className="relative h-5 bg-gray-200 rounded">
+                              <div
+                                className="absolute h-full bg-blue-600 rounded"
+                                style={{ width: `${item.progress}%` }}
                               >
-                                Quick View
-                              </button>
-                            )}
-                          </MenuItem>
-                          <MenuItem>
-                            {({ active }) => (
-                              <button
-                                className={`block w-full px-4 py-2 text-left ${active ? "bg-blue-100" : ""}`}
-                                onClick={() => handleEditClick(item)}
-                              >
-                                Update
-                              </button>
-                            )}
-                          </MenuItem>
-                          <MenuItem>
-                            {({ active }) => (
-                              <button
-                                className={`block w-full px-4 py-2 text-left ${active ? "bg-blue-100" : ""}`}
-                                onClick={() => handleDeleteClick(item.id)}
-                              >
-                                Delete
-                              </button>
-                            )}
-                          </MenuItem>
-                        </MenuItems>
-                      </Menu>
-                    </td>
-                  )}
+                                <span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-white">
+                                  {item.progress}%
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                          {col === "status" && item.status}
+                          {col === "total" && item.resourceCosts.total}
+                          {col === "overUnder" && item.overUnder}
+                          {col === "actions" && (
+                            <Menu
+                              as="div"
+                              className="relative inline-block text-left"
+                            >
+                              <MenuButton className="flex items-center gap-1 px-3 py-1 text-sm bg-cyan-700 text-white rounded hover:bg-cyan-800">
+                                Action <ChevronDown className="w-4 h-4" />
+                              </MenuButton>
+                              <MenuItems className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-10">
+                                <MenuItem>
+                                  {({ active }) => (
+                                    <button
+                                      className={`block w-full px-4 py-2 text-left ${
+                                        active ? "bg-blue-100" : ""
+                                      }`}
+                                      onClick={() =>
+                                        router.push(`/activities/${item.id}`)
+                                      }
+                                    >
+                                      Quick View
+                                    </button>
+                                  )}
+                                </MenuItem>
+                                <MenuItem>
+                                  {({ active }) => (
+                                    <button
+                                      className={`block w-full px-4 py-2 text-left ${
+                                        active ? "bg-blue-100" : ""
+                                      }`}
+                                      onClick={() => handleEditClick(item)}
+                                    >
+                                      Update
+                                    </button>
+                                  )}
+                                </MenuItem>
+                                <MenuItem>
+                                  {({ active }) => (
+                                    <button
+                                      className={`block w-full px-4 py-2 text-left ${
+                                        active ? "bg-blue-100" : ""
+                                      }`}
+                                      onClick={() => handleDeleteClick(item.id)}
+                                    >
+                                      Delete
+                                    </button>
+                                  )}
+                                </MenuItem>
+                              </MenuItems>
+                            </Menu>
+                          )}
+                        </td>,
+                      ];
+                    }
+                  })}
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={selectedColumns.length} className="border border-gray-300 px-4 py-2 text-center text-sm">
+                <td
+                  colSpan={totalColumns}
+                  className="border border-gray-300 px-4 py-2 text-center text-sm"
+                >
                   No activities found.
                 </td>
               </tr>
@@ -333,7 +528,9 @@ const ActualActivityTable: React.FC = () => {
 
       {/* Footer */}
       <div className="flex items-center justify-between p-4">
-        <span className="text-sm text-gray-700">Showing {extendedActivities.length} rows</span>
+        <span className="text-sm text-gray-700">
+          Showing {extendedActivities.length} rows
+        </span>
       </div>
     </div>
   );

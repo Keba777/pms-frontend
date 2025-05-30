@@ -20,15 +20,13 @@ const BreadcrumbTasks: React.FC = () => {
         </nav>
       </div>
       <div className="flex space-x-2">
-        <Link href="/graggable">
-          <button
-            type="button"
-            className="px-3 py-1 text-white bg-cyan-700 rounded hover:bg-cyan-800"
-            title="Draggable"
-          >
-            <LayoutDashboard className="w-4 h-4" />
-          </button>
-        </Link>
+        <button
+          type="button"
+          className="px-3 py-1 text-white bg-cyan-700 rounded hover:bg-cyan-800"
+          title="Draggable"
+        >
+          <LayoutDashboard className="w-4 h-4" />
+        </button>
       </div>
     </div>
   );

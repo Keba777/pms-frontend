@@ -7,15 +7,14 @@ import { ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTaskStore } from "@/store/taskStore";
 import { formatDate, getDuration } from "@/utils/helper";
-import DataTableToolbar from "./DataTableToolbar";
-import Filters from "@/components/common/Filters";
 import GenericDownloads from "@/components/common/GenericDownloads";
 import { Task, UpdateTaskInput } from "@/types/task";
 import { useDeleteTask, useUpdateTask } from "@/hooks/useTasks";
-import { usePermissionsStore } from "@/store/permissionsStore";
 import EditTaskForm from "@/components/forms/EditTaskForm";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import RoleName from "../common/RoleName";
+import SearchInput from "../ui/SearchInput";
+import ManageTaskForm from "../forms/ManageTaskForm";
 
 const DataTable: React.FC = () => {
   const tasks = useTaskStore((state) => state.tasks) as Task[];
@@ -41,7 +40,6 @@ const DataTable: React.FC = () => {
 
   // define columns for customization
   const columnOptions: Record<string, string> = {
-    select: "",
     task_name: "Task",
     assignedUsers: "Assigned To",
     priority: "Priority",
@@ -59,6 +57,7 @@ const DataTable: React.FC = () => {
   );
   const [showColumnMenu, setShowColumnMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
   const toggleColumn = (col: string) => {
     setSelectedColumns((prev) =>
       prev.includes(col) ? prev.filter((c) => c !== col) : [...prev, col]
@@ -77,20 +76,16 @@ const DataTable: React.FC = () => {
   // modal and action state
   const [showEditForm, setShowEditForm] = useState(false);
   const [taskToEdit, setTaskToEdit] = useState<UpdateTaskInput | null>(null);
+  const [showManageForm, setShowManageForm] = useState(false);
+  const [taskToManage, setTaskToManage] = useState<UpdateTaskInput | null>(
+    null
+  );
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
 
   const router = useRouter();
   const { mutate: deleteTask } = useDeleteTask();
   const { mutate: updateTask } = useUpdateTask();
-  const hasPermission = usePermissionsStore((state) => state.hasPermission);
-  const canView = hasPermission("view tasks");
-  const canUpdate = hasPermission("edit tasks");
-  const canDelete = hasPermission("delete tasks");
-
-  const onRefresh = () => {
-    console.log("Refresh tasks");
-  };
 
   const filteredTasks = tasks.filter((task) =>
     task.task_name.toLowerCase().includes(search.toLowerCase())
@@ -115,19 +110,44 @@ const DataTable: React.FC = () => {
     updateTask(data);
     setShowEditForm(false);
   };
+  const handleManageClick = (t: Task) => {
+    setTaskToManage({
+      ...t,
+      assignedUsers: t.assignedUsers?.map((u) => u.id),
+    });
+    setShowManageForm(true);
+  };
+
+  const handleManageSubmit = (data: UpdateTaskInput) => {
+    updateTask(data);
+    setShowManageForm(false);
+  };
 
   if (isLoading) return <div>Loading tasks...</div>;
   if (error) return <div>{error}</div>;
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-4 mt-6">
-        <DataTableToolbar
-          onRefresh={onRefresh}
-          searchValue={search}
-          onSearchChange={setSearch}
+      <div className="mt-2 mb-6">
+        <GenericDownloads<Task>
+          data={filteredTasks}
+          title="Task Report"
+          columns={Object.entries(columnOptions)
+            .filter(([k]) => selectedColumns.includes(k))
+            .map(([key, label]) => ({
+              header: label,
+              accessor: key as keyof Task,
+            }))}
         />
+      </div>
+      <div className="mb-5 flex items-center justify-between">
         <div ref={menuRef} className="relative">
+          <button
+            onClick={() => setShowColumnMenu((prev) => !prev)}
+            className="flex items-center gap-1 px-4 py-2 text-sm bg-emerald-600 text-white rounded hover:bg-emerald-700"
+          >
+            Customize Columns <ChevronDown className="w-4 h-4" />
+          </button>
           {showColumnMenu && (
             <div className="absolute right-0 mt-1 w-48 bg-white border rounded shadow-lg z-10">
               {Object.entries(columnOptions).map(([key, label]) => (
@@ -141,44 +161,23 @@ const DataTable: React.FC = () => {
                     onChange={() => toggleColumn(key)}
                     className="mr-2"
                   />
-                  {label || <input type="checkbox" disabled />}
+                  {label || <span>&nbsp;</span>}
                 </label>
               ))}
             </div>
           )}
         </div>
-      </div>
-      <div className="mt-2 mb-6">
-        <Filters />
-        <GenericDownloads<Task>
-          data={filteredTasks}
-          title="Task Report"
-          columns={Object.entries(columnOptions)
-            .filter(([k]) => selectedColumns.includes(k))
-            .map(([key, label]) => ({
-              header: label,
-              accessor: key as keyof Task,
-            }))}
+        <SearchInput
+          placeholder="Search tasks..."
+          value={search}
+          onChange={setSearch}
         />
-      </div>
-      <div className="mb-5">
-        <button
-          onClick={() => setShowColumnMenu((prev) => !prev)}
-          className="flex items-center gap-1 px-4 py-2 text-sm bg-emerald-600 text-white rounded hover:bg-emerald-700"
-        >
-          Customize Columns <ChevronDown className="w-4 h-4" />
-        </button>
       </div>
 
       <div className="overflow-x-auto">
         <table className="min-w-max divide-y divide-gray-200">
           <thead className="bg-cyan-700">
             <tr>
-              {selectedColumns.includes("select") && (
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
-                  <input type="checkbox" className="rounded border-gray-300" />
-                </th>
-              )}
               {selectedColumns.includes("task_name") && (
                 <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
                   Task
@@ -235,14 +234,6 @@ const DataTable: React.FC = () => {
             {filteredTasks.length > 0 ? (
               filteredTasks.map((task) => (
                 <tr key={task.id} className="hover:bg-gray-50">
-                  {selectedColumns.includes("select") && (
-                    <td className="px-4 py-2">
-                      <input
-                        type="checkbox"
-                        className="rounded border-gray-300"
-                      />
-                    </td>
-                  )}
                   {selectedColumns.includes("task_name") && (
                     <td className="px-4 py-2 font-medium text-bs-primary">
                       <Link
@@ -336,16 +327,13 @@ const DataTable: React.FC = () => {
                                   active ? "bg-blue-100" : ""
                                 }`}
                                 onClick={() =>
-                                  canUpdate
-                                    ? handleUpdateTask({
-                                        ...task,
-                                        assignedUsers: task.assignedUsers?.map(
-                                          (u) => u.id
-                                        ),
-                                      })
-                                    : alert("No permission")
+                                  handleUpdateTask({
+                                    ...task,
+                                    assignedUsers: task.assignedUsers?.map(
+                                      (u) => u.id
+                                    ),
+                                  })
                                 }
-                                disabled={!canUpdate}
                               >
                                 Update
                               </button>
@@ -357,12 +345,7 @@ const DataTable: React.FC = () => {
                                 className={`block w-full px-4 py-2 text-left ${
                                   active ? "bg-blue-100" : ""
                                 }`}
-                                onClick={() =>
-                                  canDelete
-                                    ? handleDeleteTaskClick(task.id)
-                                    : alert("No permission")
-                                }
-                                disabled={!canDelete}
+                                onClick={() => handleDeleteTaskClick(task.id)}
                               >
                                 Delete
                               </button>
@@ -374,14 +357,21 @@ const DataTable: React.FC = () => {
                                 className={`block w-full px-4 py-2 text-left ${
                                   active ? "bg-blue-100" : ""
                                 }`}
-                                onClick={() =>
-                                  canView
-                                    ? handleViewTask(task.id)
-                                    : alert("No permission")
-                                }
-                                disabled={!canView}
+                                onClick={() => handleViewTask(task.id)}
                               >
                                 Quick View
+                              </button>
+                            )}
+                          </MenuItem>
+                          <MenuItem>
+                            {({ active }) => (
+                              <button
+                                className={`block w-full px-4 py-2 text-left ${
+                                  active ? "bg-blue-100" : ""
+                                }`}
+                                onClick={() => handleManageClick(task)}
+                              >
+                                Manage
                               </button>
                             )}
                           </MenuItem>
@@ -438,6 +428,20 @@ const DataTable: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Manage modal */}
+      {showManageForm && taskToManage && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md m-4">
+            <ManageTaskForm
+              onSubmit={handleManageSubmit}
+              onClose={() => setShowManageForm(false)}
+              task={taskToManage}
+            />
+          </div>
+        </div>
+      )}
+
       {isDeleteModalOpen && (
         <ConfirmModal
           isVisible={isDeleteModalOpen}

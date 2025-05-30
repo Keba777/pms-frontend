@@ -6,14 +6,12 @@ import { useEquipments } from "@/hooks/useEquipments";
 import { useSites } from "@/hooks/useSites";
 import Link from "next/link";
 import { Equipment } from "@/types/equipment";
-import { getDuration } from "@/utils/helper";
-import EquipmentForm from "@/components/forms/EquipmentForm";
 import { useAuthStore } from "@/store/authStore";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
-
-// New imports for search & download
 import GenericDownloads, { Column } from "@/components/common/GenericDownloads";
 import SearchInput from "@/components/ui/SearchInput";
+import EquipmentForm from "@/components/forms/EquipmentForm";
+import { getDuration } from "@/utils/helper";
 
 const EquipmentsPage = () => {
   const { user } = useAuthStore();
@@ -32,9 +30,11 @@ const EquipmentsPage = () => {
   // find current site
   const site = sites?.find((s) => s.id === siteId);
 
-  // filter equipments by site
-  const siteEquipment: Equipment[] =
-    equipments?.filter((e) => e.siteId === siteId) ?? [];
+  // filter equipments by site with memoization
+  const siteEquipment = useMemo(
+    () => equipments?.filter((e) => e.siteId === siteId) ?? [],
+    [equipments, siteId]
+  );
 
   // filtered list based on searchQuery
   const filteredEquipment = useMemo(

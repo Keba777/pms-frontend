@@ -12,8 +12,6 @@ import { Site } from "@/types/site";
 import MaterialForm from "@/components/forms/MaterialForm";
 import { useAuthStore } from "@/store/authStore";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
-
-// New imports
 import GenericDownloads, { Column } from "@/components/common/GenericDownloads";
 import SearchInput from "@/components/ui/SearchInput";
 
@@ -35,18 +33,28 @@ const MaterialsPage = () => {
   } = useWarehouses();
   const { data: sites, isLoading: siteLoading, error: siteError } = useSites();
 
-  // Find current site and filter materials
+  // Find current site
   const site: Site | undefined = sites?.find((s) => s.id === siteId);
-  const siteWarehouseIds =
-    warehouses
-      ?.filter((w: Warehouse) => w.siteId === siteId)
-      .map((w) => w.id) ?? [];
-  const siteMaterials: Material[] =
-    materials?.filter(
-      (m) => m.warehouseId && siteWarehouseIds.includes(m.warehouseId)
-    ) ?? [];
 
-  // Filter by search query (hook must be unconditional)
+  // Memoize siteWarehouseIds
+  const siteWarehouseIds = useMemo(
+    () =>
+      warehouses
+        ?.filter((w: Warehouse) => w.siteId === siteId)
+        .map((w) => w.id) ?? [],
+    [warehouses, siteId]
+  );
+
+  // Memoize siteMaterials to prevent recalculation on every render
+  const siteMaterials = useMemo(
+    () =>
+      materials?.filter(
+        (m) => m.warehouseId && siteWarehouseIds.includes(m.warehouseId)
+      ) ?? [],
+    [materials, siteWarehouseIds]
+  );
+
+  // Filter by search query
   const filteredMaterials = useMemo(
     () =>
       siteMaterials.filter((m) =>

@@ -3,8 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import DataTableActivities from "@/components/activities/DataTableActivities";
-import ActualActivityTable from "@/components/activities/ActualActivityTable"; // Import the planned table component
-import TopBarActions from "@/components/activities/TopBarActions";
+import ActualActivityTable from "@/components/activities/ActualActivityTable";
 import GenericDownloads, { Column } from "@/components/common/GenericDownloads";
 import { useActivityStore } from "@/store/activityStore";
 import { Activity } from "@/types/activity";
@@ -47,11 +46,9 @@ const ActivitiesPage = () => {
         columns={columns}
       />
 
-      <div className="rounded-lg border border-gray-200">
-        <TopBarActions refetch={() => {}} />
-
+      <div className="rounded-lg border border-gray-200 mt-4">
         {/* Tabs Navigation moved below TopBarActions */}
-        <div className="flex space-x-4 border-b border-gray-200 mb-4">
+        <div className="flex space-x-4  mb-4 p-3">
           <button
             onClick={() => setActiveTab("planned")}
             className={`py-2 px-4 focus:outline-none ${
