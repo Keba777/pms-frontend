@@ -12,6 +12,7 @@ import ProjectGanttChart from "@/components/master-schedule/ProjectGanttChart";
 
 const MasterSchedulePage: React.FC = () => {
   const { projects = [] } = useProjectStore();
+
   const [view, setView] = useState<"schedule" | "gantt">("schedule");
   const [filters, setFilters] = useState<FilterValues>({
     period: "",
@@ -24,11 +25,11 @@ const MasterSchedulePage: React.FC = () => {
     "default" | "title" | "start_date" | "end_date"
   >("default");
 
-  // Apply filters
+  // 1) Filter the projects array based on the selected "filters"
   const filtered = useMemo(() => {
-    // derive period boundaries
     let periodStart: Date | null = null;
     const now = new Date();
+
     switch (filters.period) {
       case "today":
         periodStart = new Date(
@@ -38,7 +39,7 @@ const MasterSchedulePage: React.FC = () => {
         );
         break;
       case "week": {
-        const day = now.getDay(); // 0 (Sun) - 6
+        const day = now.getDay(); // 0 (Sun) - 6 (Sat)
         const diff = now.getDate() - day + (day === 0 ? -6 : 1);
         periodStart = new Date(now.setDate(diff));
         break;
@@ -54,26 +55,36 @@ const MasterSchedulePage: React.FC = () => {
     }
 
     return projects.filter((p) => {
-      const start = new Date(p.start_date);
+      const startDate = new Date(p.start_date);
+
       if (periodStart) {
-        if (start < periodStart || start > new Date()) return false;
+        if (startDate < periodStart || startDate > new Date()) {
+          return false;
+        }
       }
-      if (filters.status && p.status !== filters.status) return false;
-      if (filters.priority && p.priority !== filters.priority) return false;
+      if (filters.status && p.status !== filters.status) {
+        return false;
+      }
+      if (filters.priority && p.priority !== filters.priority) {
+        return false;
+      }
       if (
         filters.startDate &&
         new Date(p.start_date) < new Date(filters.startDate)
-      )
+      ) {
         return false;
-      if (filters.endDate && new Date(p.end_date) > new Date(filters.endDate))
+      }
+      if (filters.endDate && new Date(p.end_date) > new Date(filters.endDate)) {
         return false;
+      }
       return true;
     });
   }, [projects, filters]);
 
-  // Apply sorting
+  // 2) Sort the filtered array
   const sortedProjects = useMemo(() => {
     if (sortBy === "default") return filtered;
+
     const copy = [...filtered];
     if (sortBy === "title") {
       return copy.sort((a, b) => a.title.localeCompare(b.title));
@@ -84,15 +95,18 @@ const MasterSchedulePage: React.FC = () => {
           new Date(a.start_date).getTime() - new Date(b.start_date).getTime()
       );
     }
-    // end_date
+    // If end_date
     return copy.sort(
       (a, b) => new Date(a.end_date).getTime() - new Date(b.end_date).getTime()
     );
   }, [filtered, sortBy]);
 
-  // Columns for download/export
+  // 3) Setup columns for CSV / XLSX export
   const columns: Column<Project>[] = [
-    { header: "No", accessor: (_: Project) => projects.indexOf(_) + 1 },
+    {
+      header: "No",
+      accessor: (_: Project) => projects.indexOf(_) + 1,
+    },
     { header: "Project", accessor: "title" },
     {
       header: "Start Date",
@@ -183,7 +197,11 @@ const MasterSchedulePage: React.FC = () => {
           <ProjectTable projects={sortedProjects} />
         </>
       ) : (
-        <ProjectGanttChart projects={filtered} viewMode={ViewMode.Month} />
+        <ProjectGanttChart
+          /** Pass in exactly the filtered array */
+          projects={filtered}
+          viewMode={ViewMode.Month}
+        />
       )}
     </section>
   );

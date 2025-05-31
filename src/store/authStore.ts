@@ -48,10 +48,25 @@ export const useAuthStore = create<AuthStore>()(
 
             hasPermission: (resource, action) => {
                 const { user, permissions } = get();
-                if (user?.role?.name?.toLowerCase() === "admin") return true;
+                // Admin exceptions: these resources are restricted even for admins
+                const adminExceptions = [
+                    'site-labors',
+                    'site-materials',
+                    'site-equipments',
+                ];
+
+                // If user is admin
+                if (user?.role?.name?.toLowerCase() === "admin") {
+                    // Deny access if resource is in exceptions
+                    if (adminExceptions.includes(resource)) {
+                        return false;
+                    }
+                    return true;
+                }
+
+                // Non-admin permission check
                 const resourcePerms =
-                    (permissions?.[resource] as Record<string, boolean> | undefined) ||
-                    {};
+                    (permissions?.[resource] as Record<string, boolean> | undefined) || {};
                 return Boolean(resourcePerms[action]);
             },
         }),
