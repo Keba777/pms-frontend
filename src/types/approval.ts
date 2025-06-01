@@ -5,6 +5,7 @@ export interface Approval {
     id: string;
     requestId: string;
     departmentId: string;
+    department?: Department;
     stepOrder: number;
     status: "Pending" | "Approved" | "Rejected";
     approvedBy?: string;
