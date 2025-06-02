@@ -1,10 +1,16 @@
+import { Activity } from "./activity";
+import { Department } from "./department";
 import { Site } from "./site";
+import { User } from "./user";
 
 export interface Request {
     id: string;
     userId: string;
+    user: User;
     departmentId?: string;
+    department?: Department
     activityId?: string;
+    activity?: Activity;
     siteId?: string;
     site?: Site;
     materialCount?: number;

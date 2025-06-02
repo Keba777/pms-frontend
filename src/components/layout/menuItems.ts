@@ -108,28 +108,27 @@ const menuItems = [
       },
     ],
   },
+
   {
-    title: "Requests Resource",
-    link: "/resource-requests",
-    icon: Folder,
-    iconColor: "text-blue-500",
-  },
-  {
-    title: "Incoming Requests",
-    link: "/requests",
+    title: "Requests",
+
     icon: ListCheck,
     iconColor: "text-blue-500",
-    badge: 5,
+    submenu: [
+      { title: "Incoming Requests", link: "/requests-incoming", },
+      { title: "View Requests", link: "/requests" },
+      { title: "Requests Resource", link: "/resource-requests" },
+    ]
   },
   {
     title: " Allocation",
-    link: "/allocation",
-    icon: ListCheck,
+    icon: CheckSquare,
     iconColor: "text-blue-500",
-    badge: 0,
-    //  submenu: [
-    //   { title: "Delivery Report", link: "/deliveries" },
-    // ]
+    submenu: [
+      { title: "Request Allocation", link: "/allocation" },
+      { title: "Approvals", link: "/request-approval" },
+      { title: "Delivery Report", link: "/deliveries" },
+    ]
   },
   {
     title: "My Warehouse",
@@ -174,12 +173,12 @@ const menuItems = [
   //   icon: ArrowUp,
   //   iconColor: "text-green-500",
   // },
-  {
-    title: "Workspaces",
-    link: "/workspaces",
-    icon: CheckSquare,
-    iconColor: "text-red-500",
-  },
+  // {
+  //   title: "Workspaces",
+  //   link: "/workspaces",
+  //   icon: CheckSquare,
+  //   iconColor: "text-red-500",
+  // },
   {
     title: "Chat",
     link: "/chat",
