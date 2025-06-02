@@ -4,7 +4,6 @@ import {
   CheckSquare,
   ClipboardList,
   Grid,
-  Folder,
   ListCheck,
   MessageSquare,
   Users,

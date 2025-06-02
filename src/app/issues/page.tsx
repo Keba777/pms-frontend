@@ -5,11 +5,6 @@ import { ChevronDown, Plus } from "lucide-react";
 import { useIssues } from "@/hooks/useIssues";
 import { useSites } from "@/hooks/useSites";
 import { useDepartments } from "@/hooks/useDepartments";
-import { useActivities } from "@/hooks/useActivities";
-import { useProjects } from "@/hooks/useProjects";
-import { useTasks } from "@/hooks/useTasks";
-import { useUsers } from "@/hooks/useUsers";
-import Link from "next/link";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import GenericDownloads, { Column } from "@/components/common/GenericDownloads";
 import SearchInput from "@/components/ui/SearchInput";
@@ -27,59 +22,31 @@ const IssuesPage = () => {
     isLoading: deptLoading,
     error: deptError,
   } = useDepartments();
-  const {
-    data: activities,
-    isLoading: actLoading,
-    error: actError,
-  } = useActivities();
-  const {
-    data: projects,
-    isLoading: projLoading,
-    error: projError,
-  } = useProjects();
-  const { data: tasks, isLoading: taskLoading, error: taskError } = useTasks();
-  const { data: users, isLoading: userLoading, error: userError } = useUsers();
 
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Compute filteredIssues using useMemo, with a fallback for when issues is undefined
+  const filteredIssues = useMemo(() => {
+    if (!issues) return [];
+    return issues.filter((i: Issue) => {
+      const issueType = i.issueType.toLowerCase();
+      const raisedByName = i.raisedBy?.first_name?.toLowerCase() || "";
+      return (
+        issueType.includes(searchQuery.toLowerCase()) ||
+        raisedByName.includes(searchQuery.toLowerCase())
+      );
+    });
+  }, [searchQuery, issues]);
+
   // Combine loading and error states
-  if (
-    issueLoading ||
-    siteLoading ||
-    deptLoading ||
-    actLoading ||
-    projLoading ||
-    taskLoading ||
-    userLoading
-  )
-    return <div>Loading...</div>;
+  const isLoading = issueLoading || siteLoading || deptLoading;
 
-  if (
-    issueError ||
-    siteError ||
-    deptError ||
-    actError ||
-    projError ||
-    taskError ||
-    userError
-  )
-    return <div className="text-red-500">Error loading data.</div>;
+  const isError = issueError || siteError || deptError;
 
-  // Filtered list based on searchQuery (search by issueType or raisedBy name)
-  const filteredIssues = useMemo(
-    () =>
-      issues?.filter((i: Issue) => {
-        const issueType = i.issueType.toLowerCase();
-        const raisedByName = i.raisedBy?.first_name?.toLowerCase() || "";
-        return (
-          issueType.includes(searchQuery.toLowerCase()) ||
-          raisedByName.includes(searchQuery.toLowerCase())
-        );
-      }) ?? [],
-    [searchQuery, issues]
-  );
+  if (isLoading) return <div>Loading...</div>;
+  if (isError) return <div className="text-red-500">Error loading data.</div>;
 
-  // Status summary values
+  // Status summary values based on full issues list
   const total = issues?.length ?? 0;
   const openCount = issues?.filter((i) => i.status === "Open").length ?? 0;
   const inProgressCount =
@@ -137,15 +104,14 @@ const IssuesPage = () => {
             title="Issues_List"
             columns={columns}
           />
-          <Link href="/issues/create">
-            <button
-              type="button"
-              className="px-3 py-3 text-white bg-cyan-700 rounded hover:bg-cyan-800"
-              title="New Issue"
-            >
-              <Plus className="w-4 h-4" />
-            </button>
-          </Link>
+
+          <button
+            type="button"
+            className="px-3 py-3 text-white bg-cyan-700 rounded hover:bg-cyan-800"
+            title="New Issue"
+          >
+            <Plus className="w-4 h-4" />
+          </button>
         </div>
       </div>
 
