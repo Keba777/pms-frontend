@@ -15,9 +15,11 @@ import { formatDate, getDuration } from "@/utils/helper";
 import EditActivityForm from "../forms/EditActivityForm";
 import ConfirmModal from "../ui/ConfirmModal";
 import ActivityTableSkeleton from "./ActivityTableSkeleton";
-import RoleName from "../common/RoleName";
+// import RoleName from "../common/RoleName";
 import SearchInput from "../ui/SearchInput";
 import ManageActivityForm from "../forms/ManageActivityForm";
+import UserAvatar from "./UserAvatar";
+
 
 const DataTableActivities: React.FC = () => {
   const { data: activities = [], isLoading, error } = useActivities();
@@ -357,9 +359,14 @@ const DataTableActivities: React.FC = () => {
                       {activity.assignedUsers?.length ? (
                         <ul className="list-none space-y-1">
                           {activity.assignedUsers.map((u) => (
-                            <li key={u.id}>
-                              {u.first_name} {u.last_name} (
-                              <RoleName roleId={u.role_id} />)
+                            <li key={u.id } className="rounded-full">
+                              <UserAvatar
+                                firstName={u.first_name}
+                                lastName={u.last_name}
+                                
+                              />
+                              {/* {u.first_name} {u.last_name} (
+                              <RoleName roleId={u.role_id} />) */}
                             </li>
                           ))}
                         </ul>

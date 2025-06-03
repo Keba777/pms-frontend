@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Plus } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useMaterials } from "@/hooks/useMaterials";
 import { useWarehouses } from "@/hooks/useWarehouses";
 import { useSites } from "@/hooks/useSites";
@@ -10,7 +10,6 @@ import Link from "next/link";
 import { Material } from "@/types/material";
 import { Warehouse } from "@/types/warehouse";
 import { Site } from "@/types/site";
-import MaterialForm from "@/components/forms/MaterialForm";
 
 interface ClientMaterialDetailProps {
   siteId: string;
@@ -31,7 +30,6 @@ export default function ClientMaterialDetail({
     error: whError,
   } = useWarehouses();
   const { data: sites, isLoading: siteLoading, error: siteError } = useSites();
-  const [showForm, setShowForm] = useState(false);
 
   if (matLoading || whLoading || siteLoading) return <div>Loading...</div>;
   if (matError || whError || siteError)
@@ -73,27 +71,7 @@ export default function ClientMaterialDetail({
           <ArrowLeft className="w-5 h-5 mr-2" />
           Back to Sites
         </button>
-
-        <button
-          type="button"
-          className="px-3 text-white bg-cyan-700 rounded hover:bg-cyan-800"
-          onClick={() => setShowForm(true)}
-          title="Create Material"
-        >
-          <Plus className="w-4 h-4" />
-        </button>
       </div>
-
-      {showForm && (
-        <div className="modal-overlay fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="modal-content bg-white rounded-lg shadow-xl p-6">
-            <MaterialForm
-              warehouseId={siteWarehouseIds[0]}
-              onClose={() => setShowForm(false)}
-            />
-          </div>
-        </div>
-      )}
 
       <h1 className="text-4xl font-bold text-cyan-800 mb-4">
         Materials at “{site.name}”

@@ -1,15 +1,14 @@
 // components/ClientLaborDetail.tsx
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Plus } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useLabors } from "@/hooks/useLabors";
 import { useSites } from "@/hooks/useSites";
 import Link from "next/link";
 import { Labor } from "@/types/labor";
 import { getDuration } from "@/utils/helper";
-import LaborForm from "@/components/forms/LaborForm";
 
 interface ClientLaborDetailProps {
   siteId: string;
@@ -19,7 +18,6 @@ export default function ClientLaborDetail({ siteId }: ClientLaborDetailProps) {
   const router = useRouter();
   const { data: labors, isLoading: labLoading, error: labError } = useLabors();
   const { data: sites, isLoading: siteLoading, error: siteError } = useSites();
-  const [showForm, setShowForm] = useState(false);
 
   if (labLoading || siteLoading) return <div>Loading...</div>;
   if (labError || siteError)
@@ -45,24 +43,7 @@ export default function ClientLaborDetail({ siteId }: ClientLaborDetailProps) {
           <ArrowLeft className="w-5 h-5 mr-2" />
           Back to Sites
         </button>
-
-        <button
-          type="button"
-          className="px-3 text-white bg-cyan-700 rounded hover:bg-cyan-800"
-          onClick={() => setShowForm(true)}
-          title="Create Material"
-        >
-          <Plus className="w-4 h-4" />
-        </button>
       </div>
-
-      {showForm && (
-        <div className="modal-overlay fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="modal-content bg-white rounded-lg shadow-xl p-6">
-            <LaborForm siteId={siteId} onClose={() => setShowForm(false)} />
-          </div>
-        </div>
-      )}
 
       <h1 className="text-4xl font-bold text-cyan-800 mb-4">
         Labor at “{site.name}”

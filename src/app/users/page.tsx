@@ -18,6 +18,7 @@ import {
   Shield as RolesIcon,
   ChevronDown,
   PlusIcon,
+  LucideEdit2 as Edit2,
 } from "lucide-react";
 import AssignBadge from "@/components/users/AssignBadge";
 import ConfirmModal from "@/components/ui/ConfirmModal";
@@ -49,11 +50,23 @@ const UsersPage = () => {
 
   const { mutate: deleteUser } = useDeleteUser();
   const { mutate: updateUser } = useUpdateUser();
+
+  // State for showing the “Create User” and “Edit User” modals:
   const [showForm, setShowForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
   const [userToEdit, setUserToEdit] = useState<User | null>(null);
+
+  // State for delete confirmation:
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+
+  // NEW: Track which user’s “access” is being edited inline
+  const [editingAccessUserId, setEditingAccessUserId] = useState<string | null>(
+    null
+  );
+  const [, setTempAccessValue] = useState<
+    "Low Access" | "Average Access" | "Full Access"
+  >("Low Access");
 
   if (loading) {
     return (
@@ -129,6 +142,15 @@ const UsersPage = () => {
     setShowEditForm(false);
   };
 
+  // When the inline-select value changes, immediately call updateUser({ id, access })
+  const handleAccessChange = (
+    userId: string,
+    newAccess: "Low Access" | "Average Access" | "Full Access"
+  ) => {
+    updateUser({ id: userId, access: newAccess });
+    setEditingAccessUserId(null);
+  };
+
   return (
     <div className="p-4 space-y-6">
       {/* Breadcrumb */}
@@ -154,6 +176,7 @@ const UsersPage = () => {
         </div>
       </div>
 
+      {/* Create User Modal */}
       {showForm && (
         <div className="modal-overlay">
           <div className="modal-content">
@@ -161,6 +184,8 @@ const UsersPage = () => {
           </div>
         </div>
       )}
+
+      {/* Edit User Modal (opens when “Update” in the Action menu is clicked) */}
       {showEditForm && userToEdit && (
         <div className="modal-overlay">
           <div className="modal-content">
@@ -247,18 +272,54 @@ const UsersPage = () => {
                 <td className="border border-gray-200 px-6 py-3 whitespace-nowrap">
                   {user.role?.name || "—"}
                 </td>
-                <td className="border border-gray-200 px-6 py-3 whitespace-nowrap">
-                  {user.role?.name === "Admin"
-                    ? "Full access"
-                    : user.role?.name === "User"
-                    ? "Low access"
-                    : "Average access"}
+                {/* Permission Level (access) cell */}
+                <td className="border border-gray-200 px-6 py-3 whitespace-nowrap flex items-center">
+                  {editingAccessUserId === user.id ? (
+                    // If this row is in “edit mode”, show a <select>
+                    <select
+                      className="border border-gray-300 rounded px-2 py-1 text-sm"
+                      defaultValue={user.access ?? "Low Access"}
+                      onChange={(e) =>
+                        handleAccessChange(
+                          user.id,
+                          e.target.value as
+                            | "Low Access"
+                            | "Average Access"
+                            | "Full Access"
+                        )
+                      }
+                      onBlur={() => setEditingAccessUserId(null)}
+                    >
+                      <option value="Low Access">Low Access</option>
+                      <option value="Average Access">Average Access</option>
+                      <option value="Full Access">Full Access</option>
+                    </select>
+                  ) : (
+                    <>
+                      <span>{user.access || "Low Access"}</span>
+                      <button
+                        onClick={() => {
+                          // Enter “edit mode” for this user
+                          setTempAccessValue(
+                            (user.access as
+                              | "Low Access"
+                              | "Average Access"
+                              | "Full Access") || "Low Access"
+                          );
+                          setEditingAccessUserId(user.id);
+                        }}
+                        className="ml-2 text-xs text-blue-600 hover:underline"
+                      >
+                        <Edit2 />
+                      </button>
+                    </>
+                  )}
                 </td>
                 <td className="border border-gray-200 px-6 py-3 whitespace-nowrap">
                   {user.department?.name || "—"}
                 </td>
                 <td className="border border-gray-200 px-6 py-3 whitespace-nowrap">
-                  {user.site?.name}
+                  {user.site?.name || "—"}
                 </td>
                 <td className="border border-gray-200 px-6 py-3 whitespace-nowrap">
                   {user.phone}
@@ -333,6 +394,7 @@ const UsersPage = () => {
         </table>
       </div>
 
+      {/* Delete Confirmation Modal */}
       {isDeleteModalOpen && (
         <ConfirmModal
           isVisible={isDeleteModalOpen}

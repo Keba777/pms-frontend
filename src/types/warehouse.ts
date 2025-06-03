@@ -1,7 +1,10 @@
+import { Site } from "./site";
+
 export interface Warehouse {
     id: string;
     type: string;
     siteId?: string;
+    site: Site
     owner: string;
     workingStatus: 'Operational' | 'Non-Operational';
     approvedBy?: string;

@@ -1,14 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Plus } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useEquipments } from "@/hooks/useEquipments";
 import { useSites } from "@/hooks/useSites";
 import Link from "next/link";
 import { Equipment } from "@/types/equipment";
 import { getDuration } from "@/utils/helper";
-import EquipmentForm from "@/components/forms/EquipmentForm";
 
 interface ClientEquipmentDetailProps {
   siteId: string;
@@ -24,7 +23,6 @@ export default function ClientEquipmentDetail({
     error: eqError,
   } = useEquipments();
   const { data: sites, isLoading: siteLoading, error: siteError } = useSites();
-  const [showForm, setShowForm] = useState(false);
 
   if (eqLoading || siteLoading) return <div>Loading...</div>;
   if (eqError || siteError)
@@ -64,22 +62,7 @@ export default function ClientEquipmentDetail({
           <ArrowLeft className="w-5 h-5 mr-2" />
           Back to Sites
         </button>
-        <button
-          type="button"
-          className="px-3 text-white bg-cyan-700 rounded hover:bg-cyan-800"
-          onClick={() => setShowForm(true)}
-          title="Create Material"
-        >
-          <Plus className="w-4 h-4" />
-        </button>
       </div>
-      {showForm && (
-        <div className="modal-overlay fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="modal-content bg-white rounded-lg shadow-xl p-6">
-            <EquipmentForm siteId={siteId} onClose={() => setShowForm(false)} />
-          </div>
-        </div>
-      )}
 
       <h1 className="text-4xl font-bold text-cyan-800 mb-4">
         Equipment at “{site.name}”

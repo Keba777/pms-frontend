@@ -111,6 +111,9 @@ const WarehouseTable: React.FC<WarehouseTableProps> = ({
               <td className="px-4 py-2 text-sm whitespace-nowrap">
                 {warehouse.workingStatus}
               </td>
+              <td className="px-4 py-2 text-sm whitespace-nowrap">
+                {warehouse?.site.name ?? "-"}
+              </td>
               {showApprovedBy && (
                 <td className="px-4 py-2 text-sm whitespace-nowrap">
                   {warehouse.approvedBy ?? "-"}

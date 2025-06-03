@@ -20,6 +20,7 @@ export interface User {
     siteId: string;
     site?: Site
     responsiblities?: string[]
+    access?: "Low Access" | "Full Access" | "Average Access";
     status?: "Active" | "InActive";
     projects?: Project[];
     tasks?: Task[];
@@ -38,6 +39,7 @@ export interface CreateUserInput {
     role_name: string;
     siteId: string;
     responsiblities?: string[]
+    access?: "Low Access" | "Full Access" | "Average Access";
 }
 
 export interface UpdateUserInput {
@@ -51,8 +53,9 @@ export interface UpdateUserInput {
     department_id?: string;
     status?: "Active" | "InActive";
     role_id?: string;
-    siteId: string;
+    siteId?: string;
     responsiblities?: string[]
+    access?: "Low Access" | "Full Access" | "Average Access";
 }
 
 export type PermissionActions = "create" | "update" | "delete" | "manage";
