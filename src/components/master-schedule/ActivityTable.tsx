@@ -20,21 +20,28 @@ interface ActivityTableProps {
 }
 
 const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
-  // Custom hooks
+  // Hooks for API mutations/queries
   const { mutate: deleteActivity } = useDeleteActivity();
   const { mutate: updateActivity } = useUpdateActivity();
   const { data: taskDetail, isLoading: taskLoading } = useTask(taskId);
   const router = useRouter();
 
-  // State hooks
+  // Local state
   const [showForm, setShowForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
   const [showManageForm, setShowManageForm] = useState(false);
-  const [activityToEdit, setActivityToEdit] = useState<UpdateActivityInput | null>(null);
-  const [dropdownActivityId, setDropdownActivityId] = useState<string | null>(null);
+  const [activityToEdit, setActivityToEdit] =
+    useState<UpdateActivityInput | null>(null);
+  const [dropdownActivityId, setDropdownActivityId] = useState<string | null>(
+    null
+  );
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [selectedActivityId, setSelectedActivityId] = useState<string | null>(null);
+  const [selectedActivityId, setSelectedActivityId] = useState<string | null>(
+    null
+  );
   const [searchTerm, setSearchTerm] = useState("");
+
+  // Columns shown by default (now including "remaining")
   const [selectedColumns, setSelectedColumns] = useState<string[]>([
     "no",
     "activity_name",
@@ -43,22 +50,26 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
     "start_date",
     "end_date",
     "duration",
+    "remaining",
     "resource",
     "actions",
   ]);
   const [showColumnMenu, setShowColumnMenu] = useState(false);
 
-  // Ref hooks
+  // Refs to detect outside clicks
   const dropdownRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Effect hooks
+  // Close menus if clicking outside
   useEffect(() => {
     const handleOutside = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
         setShowColumnMenu(false);
       }
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node)
+      ) {
         setDropdownActivityId(null);
       }
     };
@@ -66,7 +77,7 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
     return () => document.removeEventListener("mousedown", handleOutside);
   }, []);
 
-  // Download columns setup
+  // Download columns setup, including "Remaining"
   const downloadColumns: Column<Activity>[] = [
     { header: "Activity", accessor: "activity_name" },
     { header: "Unit", accessor: "unit" },
@@ -77,10 +88,15 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
       header: "Duration",
       accessor: (row) => getDateDuration(row.start_date, row.end_date),
     },
+    {
+      header: "Remaining",
+      accessor: (row) =>
+        getDateDuration(new Date().toISOString(), row.end_date),
+    },
     { header: "Resource", accessor: (row) => row.resource?.toString() ?? "" },
   ];
 
-  // Column customization
+  // Label mapping for column customization
   const columnOptions: Record<string, string> = {
     no: "No",
     activity_name: "Activity",
@@ -89,6 +105,7 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
     start_date: "Start Date",
     end_date: "End Date",
     duration: "Duration",
+    remaining: "Remaining",
     resource: "Resource",
     actions: "Actions",
   };
@@ -97,7 +114,7 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
   if (taskLoading) return <div className="p-4">Loading...</div>;
   if (!taskDetail) return <div className="p-4">Task not found</div>;
 
-  // Component logic
+  // Filter activities by search term
   const activities = taskDetail.activities as Activity[];
   const filteredActivities = activities.filter(
     (a) =>
@@ -198,8 +215,8 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
 
       {/* Modals */}
       {showForm && (
-        <div className="modal-overlay fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="modal-content bg-white rounded-lg shadow-xl p-6">
+        <div className="modal-overlay">
+          <div className="modal-content">
             <ActivityForm
               onClose={() => setShowForm(false)}
               defaultTaskId={taskId}
@@ -208,8 +225,8 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
         </div>
       )}
       {showEditForm && activityToEdit && (
-        <div className="modal-overlay fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="modal-content bg-white rounded-lg shadow-xl p-6">
+        <div className="modal-overlay">
+          <div className="modal-content">
             <EditActivityForm
               onClose={() => setShowEditForm(false)}
               onSubmit={handleEditSubmit}
@@ -219,8 +236,8 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
         </div>
       )}
       {showManageForm && activityToEdit && (
-        <div className="modal-overlay fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="modal-content bg-white rounded-lg shadow-xl p-6">
+        <div className="modal-overlay">
+          <div className="modal-content">
             <ManageActivityForm
               onClose={() => setShowManageForm(false)}
               onSubmit={handleManageSubmit}
@@ -230,7 +247,7 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
         </div>
       )}
 
-      {/* Table */}
+      {/* Activity Table */}
       <div className="overflow-x-auto">
         <table className="min-w-full border border-gray-200 divide-y divide-gray-200">
           <thead className="bg-emerald-700 text-gray-200">
@@ -270,6 +287,11 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
                   Duration
                 </th>
               )}
+              {selectedColumns.includes("remaining") && (
+                <th className="border px-4 py-2 text-left text-sm font-medium">
+                  Remaining
+                </th>
+              )}
               {selectedColumns.includes("resource") && (
                 <th className="border px-4 py-2 text-left text-sm font-medium">
                   Resource
@@ -284,123 +306,137 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {filteredActivities.length > 0 ? (
-              filteredActivities.map((activity, index) => (
-                <tr key={activity.id} className="hover:bg-gray-50 relative">
-                  {selectedColumns.includes("no") && (
-                    <td className="border px-4 py-2">{index + 1}</td>
-                  )}
-                  {selectedColumns.includes("activity_name") && (
-                    <td className="border px-4 py-2 font-medium">
-                      <Link href={`/activities/${activity.id}`}>
-                        {activity.activity_name}
-                      </Link>
-                    </td>
-                  )}
-                  {selectedColumns.includes("unit") && (
-                    <td className="border px-4 py-2">{activity.unit}</td>
-                  )}
-                  {selectedColumns.includes("quantity") && (
-                    <td className="border px-4 py-2">{activity.quantity}</td>
-                  )}
-                  {selectedColumns.includes("start_date") && (
-                    <td className="border px-4 py-2">
-                      {formatDate(activity.start_date)}
-                    </td>
-                  )}
-                  {selectedColumns.includes("end_date") && (
-                    <td className="border px-4 py-2">
-                      {formatDate(activity.end_date)}
-                    </td>
-                  )}
-                  {selectedColumns.includes("duration") && (
-                    <td className="border px-4 py-2">
-                      {getDateDuration(activity.start_date, activity.end_date)}
-                    </td>
-                  )}
-                  {selectedColumns.includes("resource") && (
-                    <td className="border px-4 py-2">
-                      <Link
-                        href={`/resources/${activity.id}`}
-                        className="text-emerald-700 hover:underline"
-                      >
-                        Request
-                      </Link>
-                    </td>
-                  )}
-                  {selectedColumns.includes("actions") && (
-                    <td className="border px-4 py-2 relative">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setDropdownActivityId(
-                            dropdownActivityId === activity.id
-                              ? null
-                              : activity.id
-                          );
-                        }}
-                        className="flex items-center gap-1 px-3 py-1 bg-emerald-700 text-white rounded w-full"
-                      >
-                        Actions <ChevronDown className="w-4 h-4" />
-                      </button>
-                      {dropdownActivityId === activity.id && (
-                        <div
-                          ref={dropdownRef}
-                          className="absolute left-0 top-full mt-1 w-full bg-white border rounded shadow-lg z-50"
+              filteredActivities.map((activity, index) => {
+                // Compute “Remaining” as days from today until end_date
+                const remainingDays = getDateDuration(
+                  new Date().toISOString(),
+                  activity.end_date
+                );
+
+                return (
+                  <tr key={activity.id} className="hover:bg-gray-50 relative">
+                    {selectedColumns.includes("no") && (
+                      <td className="border px-4 py-2">{index + 1}</td>
+                    )}
+                    {selectedColumns.includes("activity_name") && (
+                      <td className="border px-4 py-2 font-medium">
+                        <Link href={`/activities/${activity.id}`}>
+                          {activity.activity_name}
+                        </Link>
+                      </td>
+                    )}
+                    {selectedColumns.includes("unit") && (
+                      <td className="border px-4 py-2">{activity.unit}</td>
+                    )}
+                    {selectedColumns.includes("quantity") && (
+                      <td className="border px-4 py-2">{activity.quantity}</td>
+                    )}
+                    {selectedColumns.includes("start_date") && (
+                      <td className="border px-4 py-2">
+                        {formatDate(activity.start_date)}
+                      </td>
+                    )}
+                    {selectedColumns.includes("end_date") && (
+                      <td className="border px-4 py-2">
+                        {formatDate(activity.end_date)}
+                      </td>
+                    )}
+                    {selectedColumns.includes("duration") && (
+                      <td className="border px-4 py-2">
+                        {getDateDuration(
+                          activity.start_date,
+                          activity.end_date
+                        )}
+                      </td>
+                    )}
+                    {selectedColumns.includes("remaining") && (
+                      <td className="border px-4 py-2">{remainingDays}</td>
+                    )}
+                    {selectedColumns.includes("resource") && (
+                      <td className="border px-4 py-2">
+                        <Link
+                          href={`/resources/${activity.id}`}
+                          className="text-emerald-700 hover:underline"
                         >
-                          <button
-                            onClick={() => {
-                              setDropdownActivityId(null);
-                              handleView(activity.id);
-                            }}
-                            className="w-full text-left px-3 py-2 hover:bg-gray-100"
+                          Request
+                        </Link>
+                      </td>
+                    )}
+                    {selectedColumns.includes("actions") && (
+                      <td className="border px-4 py-2 relative">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDropdownActivityId(
+                              dropdownActivityId === activity.id
+                                ? null
+                                : activity.id
+                            );
+                          }}
+                          className="flex items-center gap-1 px-3 py-1 bg-emerald-700 text-white rounded w-full"
+                        >
+                          Actions <ChevronDown className="w-4 h-4" />
+                        </button>
+                        {dropdownActivityId === activity.id && (
+                          <div
+                            ref={dropdownRef}
+                            className="absolute left-0 top-full mt-1 w-full bg-white border rounded shadow-lg z-50"
                           >
-                            View
-                          </button>
-                          <button
-                            onClick={() => {
-                              setDropdownActivityId(null);
-                              setActivityToEdit({
-                                ...activity,
-                                assignedUsers: activity.assignedUsers?.map(
-                                  (u) => u.id
-                                ),
-                              });
-                              setShowEditForm(true);
-                            }}
-                            className="w-full text-left px-3 py-2 hover:bg-gray-100"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => {
-                              setDropdownActivityId(null);
-                              handleDeleteClick(activity.id);
-                            }}
-                            className="w-full text-left px-3 py-2 text-red-600 hover:bg-gray-100"
-                          >
-                            Delete
-                          </button>
-                          <button
-                            onClick={() => {
-                              setDropdownActivityId(null);
-                              setActivityToEdit({
-                                ...activity,
-                                assignedUsers: activity.assignedUsers?.map(
-                                  (u) => u.id
-                                ),
-                              });
-                              setShowManageForm(true);
-                            }}
-                            className="w-full text-left px-3 py-2 hover:bg-gray-100"
-                          >
-                            Manage
-                          </button>
-                        </div>
-                      )}
-                    </td>
-                  )}
-                </tr>
-              ))
+                            <button
+                              onClick={() => {
+                                setDropdownActivityId(null);
+                                handleView(activity.id);
+                              }}
+                              className="w-full text-left px-3 py-2 hover:bg-gray-100"
+                            >
+                              View
+                            </button>
+                            <button
+                              onClick={() => {
+                                setDropdownActivityId(null);
+                                setActivityToEdit({
+                                  ...activity,
+                                  assignedUsers: activity.assignedUsers?.map(
+                                    (u) => u.id
+                                  ),
+                                });
+                                setShowEditForm(true);
+                              }}
+                              className="w-full text-left px-3 py-2 hover:bg-gray-100"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => {
+                                setDropdownActivityId(null);
+                                handleDeleteClick(activity.id);
+                              }}
+                              className="w-full text-left px-3 py-2 text-red-600 hover:bg-gray-100"
+                            >
+                              Delete
+                            </button>
+                            <button
+                              onClick={() => {
+                                setDropdownActivityId(null);
+                                setActivityToEdit({
+                                  ...activity,
+                                  assignedUsers: activity.assignedUsers?.map(
+                                    (u) => u.id
+                                  ),
+                                });
+                                setShowManageForm(true);
+                              }}
+                              className="w-full text-left px-3 py-2 hover:bg-gray-100"
+                            >
+                              Manage
+                            </button>
+                          </div>
+                        )}
+                      </td>
+                    )}
+                  </tr>
+                );
+              })
             ) : (
               <tr>
                 <td
@@ -415,7 +451,7 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
         </table>
       </div>
 
-      {/* Delete Confirm */}
+      {/* Delete Confirmation Modal */}
       {isDeleteModalOpen && (
         <ConfirmModal
           isVisible={isDeleteModalOpen}

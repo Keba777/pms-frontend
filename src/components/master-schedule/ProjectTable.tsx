@@ -402,8 +402,8 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
 
       {/* Edit Project Modal */}
       {showEditForm && projectToEdit && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-xl m-4 max-h-[90vh] overflow-y-auto">
+        <div className="modal-overlay">
+          <div className="modal-content">
             <EditProjectForm
               onClose={() => setShowEditForm(false)}
               onSubmit={handleEditSubmit}
@@ -417,8 +417,8 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
 
       {/* Manage Progress Modal */}
       {showManageForm && projectToManage && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md m-4">
+       <div className="modal-overlay">
+          <div className="modal-content">
             <ManageProjectForm
               onClose={() => setShowManageForm(false)}
               onSubmit={handleManageSubmit}
