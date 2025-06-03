@@ -1,10 +1,9 @@
-// components/TaskTable.tsx
+// components/ActualTaskTable.tsx
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
 import { ChevronDown } from "lucide-react";
 import { Task, UpdateTaskInput } from "@/types/task";
-import TaskForm from "../forms/TaskForm";
 import EditTaskForm from "../forms/EditTaskForm";
 import ManageTaskForm from "../forms/ManageTaskForm";
 import ConfirmModal from "../ui/ConfirmModal";
@@ -17,9 +16,8 @@ import Link from "next/link";
 import { formatDate, getDateDuration } from "@/utils/helper";
 import SearchInput from "../ui/SearchInput";
 
-interface TaskTableProps {
+interface ActualTaskTableProps {
   tasks: Task[];
-  projectTitle?: string;
   projectId?: string;
 }
 
@@ -32,14 +30,17 @@ const statusBadgeClasses: Record<Task["status"], string> = {
   Completed: "bg-green-100 text-green-800",
 };
 
-export default function TaskTable({ tasks, projectId }: TaskTableProps) {
+export default function ActualTaskTable({
+  tasks,
+  projectId,
+}: ActualTaskTableProps) {
   const router = useRouter();
   const { mutate: deleteTask } = useDeleteTask();
   const { mutate: updateTask } = useUpdateTask();
   const { data: users } = useUsers();
+  console.log(projectId);
 
-  // Modals & forms
-  const [showCreateForm, setShowCreateForm] = useState(false);
+  // Edit & Manage modals state
   const [showEditForm, setShowEditForm] = useState(false);
   const [taskToEdit, setTaskToEdit] = useState<UpdateTaskInput | null>(null);
   const [showManageForm, setShowManageForm] = useState(false);
@@ -49,11 +50,11 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
 
-  // Per-row dropdown
+  // Per‑row dropdown
   const [dropdownTaskId, setDropdownTaskId] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Columns customization
+  // Column customization
   const columnOptions: Record<string, string> = {
     no: "No",
     task_name: "Task",
@@ -72,7 +73,7 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
   const [showColumnMenu, setShowColumnMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Search
+  // Search filter
   const [searchTerm, setSearchTerm] = useState("");
   const filteredTasks = tasks.filter(
     (t) =>
@@ -80,7 +81,7 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
       t.status.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Close menus on outside click
+  // Handle clicks outside menus
   useEffect(() => {
     function onClick(e: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
@@ -150,7 +151,7 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
     setShowManageForm(false);
   };
 
-  // Prepare columns for download
+  // Columns for downloads (budget always “0”)
   const downloadColumns: Column<Task>[] = [
     { header: "Task", accessor: "task_name" },
     {
@@ -170,11 +171,7 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
       accessor: (row) =>
         getDateDuration(new Date().toISOString(), row.end_date),
     },
-    {
-      header: "Budget (Random)",
-      accessor: () =>
-        Math.floor(1000000 + Math.random() * 9000000).toString(),
-    },
+    { header: "Budget", accessor: () => "0" },
     { header: "Progress", accessor: (row) => `${row.progress}%` },
     { header: "Status", accessor: "status" },
   ];
@@ -183,7 +180,7 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
     <div className="ml-3 space-y-4">
       <GenericDownloads
         data={filteredTasks}
-        title="Tasks"
+        title="Actual Tasks"
         columns={downloadColumns}
       />
 
@@ -221,17 +218,7 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
         />
       </div>
 
-      {/* Modals */}
-      {showCreateForm && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <TaskForm
-              onClose={() => setShowCreateForm(false)}
-              defaultProjectId={projectId}
-            />
-          </div>
-        </div>
-      )}
+      {/* Edit Task Modal */}
       {showEditForm && taskToEdit && (
         <div className="modal-overlay">
           <div className="modal-content">
@@ -244,6 +231,8 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
           </div>
         </div>
       )}
+
+      {/* Manage Task Modal */}
       {showManageForm && taskToManage && (
         <div className="modal-overlay">
           <div className="modal-content">
@@ -255,19 +244,6 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
           </div>
         </div>
       )}
-
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold text-gray-800">
-          {projectId ? "Project Tasks" : "All Tasks"}
-        </h2>
-        <button
-          onClick={() => setShowCreateForm(true)}
-          className="px-4 py-2 bg-teal-700 text-white rounded hover:bg-teal-800"
-        >
-          Create Task
-        </button>
-      </div>
 
       {/* Table */}
       <div className="overflow-x-auto">
@@ -337,10 +313,6 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
                   new Date().toISOString(),
                   task.end_date
                 );
-                // Generate random 7-digit budget each render
-                const randomBudget = Math.floor(
-                  1000000 + Math.random() * 9000000
-                );
                 return (
                   <tr key={task.id} className="hover:bg-gray-50 relative">
                     {selectedColumns.includes("no") && (
@@ -370,7 +342,7 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
                       <td className="border px-4 py-2">{remaining}</td>
                     )}
                     {selectedColumns.includes("budget") && (
-                      <td className="border px-4 py-2">{randomBudget}</td>
+                      <td className="border px-4 py-2">0</td>
                     )}
                     {selectedColumns.includes("progress") && (
                       <td className="border px-4 py-2">{task.progress}%</td>

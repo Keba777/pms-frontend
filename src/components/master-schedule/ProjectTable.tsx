@@ -50,6 +50,7 @@ const columnOptions: Record<string, string> = {
   start_date: "Start Date",
   end_date: "End Date",
   duration: "Duration",
+  remaining: "Remaining",
   status: "Status",
   action: "Action",
 };
@@ -74,6 +75,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
     "start_date",
     "end_date",
     "duration",
+    "remaining",
     "status",
     "action",
   ]);
@@ -222,6 +224,11 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                   Duration
                 </th>
               )}
+              {selectedColumns.includes("remaining") && (
+                <th className="px-5 py-3 text-left text-sm font-medium text-white">
+                  Remaining
+                </th>
+              )}
               {selectedColumns.includes("status") && (
                 <th className="px-5 py-3 text-left text-sm font-medium text-white">
                   Status
@@ -236,9 +243,13 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {filteredProjects.length > 0 ? (
-              filteredProjects.map((project, idx) => (
-                <React.Fragment key={project.id}>
-                  <tr className="hover:bg-gray-50">
+              filteredProjects.map((project, idx) => {
+                const remaining = getDateDuration(
+                  new Date().toISOString(),
+                  project.end_date
+                );
+                return (
+                  <tr key={project.id} className="hover:bg-gray-50">
                     {selectedColumns.includes("no") && (
                       <td className="px-5 py-2">{idx + 1}</td>
                     )}
@@ -274,6 +285,9 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                       <td className="px-5 py-2">
                         {getDateDuration(project.start_date, project.end_date)}
                       </td>
+                    )}
+                    {selectedColumns.includes("remaining") && (
+                      <td className="px-5 py-2">{remaining}</td>
                     )}
                     {selectedColumns.includes("status") && (
                       <td className="px-5 py-2">
@@ -370,8 +384,8 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                       </td>
                     )}
                   </tr>
-                </React.Fragment>
-              ))
+                );
+              })
             ) : (
               <tr>
                 <td
@@ -417,7 +431,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
 
       {/* Manage Progress Modal */}
       {showManageForm && projectToManage && (
-       <div className="modal-overlay">
+        <div className="modal-overlay">
           <div className="modal-content">
             <ManageProjectForm
               onClose={() => setShowManageForm(false)}
