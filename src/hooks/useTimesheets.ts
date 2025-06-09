@@ -24,7 +24,7 @@ interface ApiResponse<T> {
 // --- Labor Timesheets ---
 const fetchLaborTimesheets = async (): Promise<LaborTimesheet[]> => {
     const response = await apiClient.get<ApiResponse<LaborTimesheet[]>>(
-        "/labor-timesheets"
+        "/timesheets/labor"
     );
     return response.data.data;
 };
@@ -34,7 +34,7 @@ const fetchLaborTimesheetById = async (
 ): Promise<LaborTimesheet | null> => {
     try {
         const response = await apiClient.get<ApiResponse<LaborTimesheet>>(
-            `/labor-timesheets/${id}`
+            `/timesheets/labor/${id}`
         );
         return response.data.data;
     } catch (error) {
@@ -47,7 +47,7 @@ const createLaborTimesheet = async (
     data: createLaborTimesheetInput
 ): Promise<LaborTimesheet> => {
     const response = await apiClient.post<ApiResponse<LaborTimesheet>>(
-        "/labor-timesheets",
+        "/timesheets/labor",
         data
     );
     return response.data.data;
@@ -57,7 +57,7 @@ const updateLaborTimesheet = async (
     data: updateLaborTimesheetInput & { id: string }
 ): Promise<LaborTimesheet> => {
     const response = await apiClient.put<ApiResponse<LaborTimesheet>>(
-        `/labor-timesheets/${data.id}`,
+        `/timesheets/labor/${data.id}`,
         data
     );
     return response.data.data;
@@ -67,7 +67,7 @@ const deleteLaborTimesheet = async (
     id: string
 ): Promise<{ message: string }> => {
     const response = await apiClient.delete<ApiResponse<{ message: string }>>(
-        `/labor-timesheets/${id}`
+        `/timesheets/labor/${id}`
     );
     return response.data.data;
 };
@@ -75,7 +75,7 @@ const deleteLaborTimesheet = async (
 // --- Equipment Timesheets ---
 const fetchEquipmentTimesheets = async (): Promise<EquipmentTimesheet[]> => {
     const response = await apiClient.get<ApiResponse<EquipmentTimesheet[]>>(
-        "/equipment-timesheets"
+        "/timesheets/equipment"
     );
     return response.data.data;
 };
@@ -85,7 +85,7 @@ const fetchEquipmentTimesheetById = async (
 ): Promise<EquipmentTimesheet | null> => {
     try {
         const response = await apiClient.get<ApiResponse<EquipmentTimesheet>>(
-            `/equipment-timesheets/${id}`
+            `/timesheets/equipment/${id}`
         );
         return response.data.data;
     } catch (error) {
@@ -98,7 +98,7 @@ const createEquipmentTimesheet = async (
     data: createEquipmentTimesheetInput
 ): Promise<EquipmentTimesheet> => {
     const response = await apiClient.post<ApiResponse<EquipmentTimesheet>>(
-        "/equipment-timesheets",
+        "/timesheets/equipment",
         data
     );
     return response.data.data;
@@ -108,7 +108,7 @@ const updateEquipmentTimesheet = async (
     data: updateEquipmentTimesheetInput & { id: string }
 ): Promise<EquipmentTimesheet> => {
     const response = await apiClient.put<ApiResponse<EquipmentTimesheet>>(
-        `/equipment-timesheets/${data.id}`,
+        `/timesheets/equipment/${data.id}`,
         data
     );
     return response.data.data;
@@ -118,7 +118,7 @@ const deleteEquipmentTimesheet = async (
     id: string
 ): Promise<{ message: string }> => {
     const response = await apiClient.delete<ApiResponse<{ message: string }>>(
-        `/equipment-timesheets/${id}`
+        `/timesheets/equipment/${id}`
     );
     return response.data.data;
 };
@@ -126,7 +126,7 @@ const deleteEquipmentTimesheet = async (
 // --- Material Balance Sheets ---
 const fetchMaterialSheets = async (): Promise<MaterialBalanceSheet[]> => {
     const response = await apiClient.get<ApiResponse<MaterialBalanceSheet[]>>(
-        "/material-balance-sheets"
+        "/timesheets/material"
     );
     return response.data.data;
 };
@@ -136,7 +136,7 @@ const fetchMaterialSheetById = async (
 ): Promise<MaterialBalanceSheet | null> => {
     try {
         const response = await apiClient.get<ApiResponse<MaterialBalanceSheet>>(
-            `/material-balance-sheets/${id}`
+            `/timesheets/material${id}`
         );
         return response.data.data;
     } catch (error) {
@@ -149,7 +149,7 @@ const createMaterialSheet = async (
     data: createMaterialBalanceSheetInput
 ): Promise<MaterialBalanceSheet> => {
     const response = await apiClient.post<ApiResponse<MaterialBalanceSheet>>(
-        "/material-balance-sheets",
+        "/timesheets/material",
         data
     );
     return response.data.data;
@@ -159,7 +159,7 @@ const updateMaterialSheet = async (
     data: updateMaterialBalanceSheetInput & { id: string }
 ): Promise<MaterialBalanceSheet> => {
     const response = await apiClient.put<ApiResponse<MaterialBalanceSheet>>(
-        `/material-balance-sheets/${data.id}`,
+        `/timesheets/material/${data.id}`,
         data
     );
     return response.data.data;
@@ -169,7 +169,7 @@ const deleteMaterialSheet = async (
     id: string
 ): Promise<{ message: string }> => {
     const response = await apiClient.delete<ApiResponse<{ message: string }>>(
-        `/material-balance-sheets/${id}`
+        `/timesheets/material/${id}`
     );
     return response.data.data;
 };

@@ -15,18 +15,18 @@ import { formatDate, getDuration } from "@/utils/helper";
 import EditActivityForm from "../forms/EditActivityForm";
 import ConfirmModal from "../ui/ConfirmModal";
 import ActivityTableSkeleton from "./ActivityTableSkeleton";
-// import RoleName from "../common/RoleName";
-import SearchInput from "../ui/SearchInput";
 import ManageActivityForm from "../forms/ManageActivityForm";
 import UserAvatar from "./UserAvatar";
-
+import { FilterField, GenericFilter, Option } from "../common/GenericFilter"; 
 
 const DataTableActivities: React.FC = () => {
   const { data: activities = [], isLoading, error } = useActivities();
   const { mutate: deleteActivity } = useDeleteActivity();
   const { mutate: updateActivity } = useUpdateActivity();
 
-  const [searchTerm, setSearchTerm] = useState("");
+  // State to hold filter values from GenericFilter
+  const [filterValues, setFilterValues] = useState<Record<string, any>>({});
+
   const columnOptions: Record<string, string> = {
     activity_name: "Activity",
     assignedUsers: "Assigned To",
@@ -45,6 +45,7 @@ const DataTableActivities: React.FC = () => {
     approvalStatus: "Approval",
     actions: "Actions",
   };
+
   const [selectedColumns, setSelectedColumns] = useState<string[]>(
     Object.keys(columnOptions)
   );
@@ -56,11 +57,13 @@ const DataTableActivities: React.FC = () => {
       prev.includes(col) ? prev.filter((c) => c !== col) : [...prev, col]
     );
   };
+
   const handleClickOutside = (e: MouseEvent) => {
     if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
       setShowColumnMenu(false);
     }
   };
+
   useEffect(() => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -87,9 +90,93 @@ const DataTableActivities: React.FC = () => {
   if (isLoading) return <ActivityTableSkeleton />;
   if (error) return <div>Error fetching activities.</div>;
 
-  const filteredActivities = activities.filter((act) =>
-    act.activity_name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Define filter options
+  const priorityOptions: Option<string>[] = [
+    { label: "Low", value: "Low" },
+    { label: "Medium", value: "Medium" },
+    { label: "High", value: "High" },
+    { label: "Critical", value: "Critical" },
+  ];
+
+  const statusOptions: Option<string>[] = [
+    { label: "Not Started", value: "Not Started" },
+    { label: "In Progress", value: "In Progress" },
+    { label: "Completed", value: "Completed" },
+  ];
+
+  const approvalStatusOptions: Option<string>[] = [
+    { label: "Pending", value: "Pending" },
+    { label: "Approved", value: "Approved" },
+    { label: "Rejected", value: "Rejected" },
+  ];
+
+  // Define filter fields for GenericFilter
+  const filterFields: FilterField[] = [
+    {
+      name: "activity_name",
+      label: "Activity Name",
+      type: "text",
+      placeholder: "Search by name...",
+    },
+    {
+      name: "priority",
+      label: "Priority",
+      type: "select",
+      options: priorityOptions,
+    },
+    {
+      name: "status",
+      label: "Status",
+      type: "select",
+      options: statusOptions,
+    },
+    {
+      name: "approvalStatus",
+      label: "Approval Status",
+      type: "select",
+      options: approvalStatusOptions,
+    },
+    {
+      name: "startDateAfter",
+      label: "Start Date After",
+      type: "date",
+    },
+    {
+      name: "endDateBefore",
+      label: "End Date Before",
+      type: "date",
+    },
+  ];
+
+  // Filter activities based on filterValues
+  const filteredActivities = activities.filter((act) => {
+    let matches = true;
+
+    if (filterValues.activity_name) {
+      matches = matches && act.activity_name.toLowerCase().includes(filterValues.activity_name.toLowerCase());
+    }
+    if (filterValues.priority) {
+      matches = matches && act.priority === filterValues.priority;
+    }
+    if (filterValues.status) {
+      matches = matches && act.status === filterValues.status;
+    }
+    if (filterValues.approvalStatus) {
+      matches = matches && act.approvalStatus === filterValues.approvalStatus;
+    }
+    if (filterValues.startDateAfter) {
+      const startDate = new Date(act.start_date);
+      const filterDate = new Date(filterValues.startDateAfter);
+      matches = matches && startDate >= filterDate;
+    }
+    if (filterValues.endDateBefore) {
+      const endDate = new Date(act.end_date);
+      const filterDate = new Date(filterValues.endDateBefore);
+      matches = matches && endDate <= filterDate;
+    }
+
+    return matches;
+  });
 
   const handleDeleteActivityClick = (id: string) => {
     setSelectedActivityId(id);
@@ -129,6 +216,9 @@ const DataTableActivities: React.FC = () => {
 
   return (
     <div>
+      {/* GenericFilter added above the toolbar */}
+      <GenericFilter fields={filterFields} onFilterChange={setFilterValues} />
+
       {/* Toolbar */}
       <div className="flex items-center justify-between mb-4 mt-6">
         <div ref={menuRef} className="relative">
@@ -157,11 +247,6 @@ const DataTableActivities: React.FC = () => {
             </div>
           )}
         </div>
-        <SearchInput
-          placeholder="Search activities..."
-          value={searchTerm}
-          onChange={setSearchTerm}
-        />
       </div>
 
       {/* Modals */}
@@ -359,14 +444,11 @@ const DataTableActivities: React.FC = () => {
                       {activity.assignedUsers?.length ? (
                         <ul className="list-none space-y-1">
                           {activity.assignedUsers.map((u) => (
-                            <li key={u.id } className="rounded-full">
+                            <li key={u.id} className="rounded-full">
                               <UserAvatar
                                 firstName={u.first_name}
                                 lastName={u.last_name}
-                                
                               />
-                              {/* {u.first_name} {u.last_name} (
-                              <RoleName roleId={u.role_id} />) */}
                             </li>
                           ))}
                         </ul>

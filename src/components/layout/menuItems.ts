@@ -117,6 +117,13 @@ const menuItems = [
       { title: "Incoming Requests", link: "/requests-incoming", },
       { title: "View Requests", link: "/requests" },
       { title: "Requests Resource", link: "/resource-requests" },
+      {
+        title: "Request Materials", link: "/request-material",
+      },
+      {
+        title: "Request Equipment", link: "/request-equipment",
+      },
+      { title: "Request Labor", link: "/request-labor", },
     ]
   },
   {

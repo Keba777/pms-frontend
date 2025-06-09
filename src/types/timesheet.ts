@@ -1,4 +1,4 @@
-enum TimeSheetStatus {
+export enum TimeSheetStatus {
     Pending = "Pending",
     Approved = "Approved",
     Rejected = "Rejected",
