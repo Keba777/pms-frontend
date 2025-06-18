@@ -17,106 +17,104 @@ import ConfirmModal from "../ui/ConfirmModal";
 import ActivityTableSkeleton from "./ActivityTableSkeleton";
 import ManageActivityForm from "../forms/ManageActivityForm";
 import UserAvatar from "./UserAvatar";
-import { FilterField, GenericFilter, Option } from "../common/GenericFilter"; 
+import {
+  FilterField,
+  FilterValues,
+  GenericFilter,
+  Option,
+} from "../common/GenericFilter";
+
+const columnOptions: Record<string, string> = {
+  activity_name: "Activity",
+  assignedUsers: "Assigned To",
+  priority: "Priority",
+  quantity: "Quantity",
+  unit: "Unit",
+  start_date: "Start Date",
+  end_date: "End Date",
+  duration: "Duration",
+  progress: "Progress",
+  materials: "Materials",
+  equipments: "Equipments",
+  labors: "Labors",
+  request: "Request",
+  status: "Status",
+  approvalStatus: "Approval",
+  actions: "Actions",
+};
 
 const DataTableActivities: React.FC = () => {
   const { data: activities = [], isLoading, error } = useActivities();
   const { mutate: deleteActivity } = useDeleteActivity();
   const { mutate: updateActivity } = useUpdateActivity();
+  const router = useRouter();
 
-  // State to hold filter values from GenericFilter
-  const [filterValues, setFilterValues] = useState<Record<string, any>>({});
+  // Filter state
+  const [filterValues, setFilterValues] = useState<FilterValues>({});
 
-  const columnOptions: Record<string, string> = {
-    activity_name: "Activity",
-    assignedUsers: "Assigned To",
-    priority: "Priority",
-    quantity: "Quantity",
-    unit: "Unit",
-    start_date: "Start Date",
-    end_date: "End Date",
-    duration: "Duration",
-    progress: "Progress",
-    materials: "Materials",
-    equipments: "Equipments",
-    labors: "Labors",
-    request: "Request",
-    status: "Status",
-    approvalStatus: "Approval",
-    actions: "Actions",
-  };
-
+  // Column selection state
   const [selectedColumns, setSelectedColumns] = useState<string[]>(
     Object.keys(columnOptions)
   );
   const [showColumnMenu, setShowColumnMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const toggleColumn = (col: string) => {
-    setSelectedColumns((prev) =>
-      prev.includes(col) ? prev.filter((c) => c !== col) : [...prev, col]
-    );
-  };
-
-  const handleClickOutside = (e: MouseEvent) => {
-    if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-      setShowColumnMenu(false);
-    }
-  };
-
-  useEffect(() => {
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  // Edit modal
+  // Modal state
   const [showEditForm, setShowEditForm] = useState(false);
   const [activityToEdit, setActivityToEdit] =
     useState<UpdateActivityInput | null>(null);
-
-  // Manage modal
   const [showManageForm, setShowManageForm] = useState(false);
   const [activityToManage, setActivityToManage] =
     useState<UpdateActivityInput | null>(null);
-
-  // Delete modal
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedActivityId, setSelectedActivityId] = useState<string | null>(
     null
   );
 
-  const router = useRouter();
+  // Close column menu when clicking outside
+  const toggleColumn = (col: string) => {
+    setSelectedColumns((prev) =>
+      prev.includes(col) ? prev.filter((c) => c !== col) : [...prev, col]
+    );
+  };
+  const handleClickOutside = (e: Event) => {
+    if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+      setShowColumnMenu(false);
+    }
+  };
+  useEffect(() => {
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   if (isLoading) return <ActivityTableSkeleton />;
   if (error) return <div>Error fetching activities.</div>;
 
-  // Define filter options
+  // Filter options
   const priorityOptions: Option<string>[] = [
     { label: "Low", value: "Low" },
     { label: "Medium", value: "Medium" },
     { label: "High", value: "High" },
     { label: "Critical", value: "Critical" },
   ];
-
   const statusOptions: Option<string>[] = [
     { label: "Not Started", value: "Not Started" },
     { label: "In Progress", value: "In Progress" },
     { label: "Completed", value: "Completed" },
   ];
-
   const approvalStatusOptions: Option<string>[] = [
     { label: "Pending", value: "Pending" },
     { label: "Approved", value: "Approved" },
     { label: "Rejected", value: "Rejected" },
   ];
 
-  // Define filter fields for GenericFilter
-  const filterFields: FilterField[] = [
+  // Filter fields
+  const filterFields: FilterField<string>[] = [
     {
       name: "activity_name",
       label: "Activity Name",
       type: "text",
-      placeholder: "Search by name...",
+      placeholder: "Search by name…",
     },
     {
       name: "priority",
@@ -124,36 +122,26 @@ const DataTableActivities: React.FC = () => {
       type: "select",
       options: priorityOptions,
     },
-    {
-      name: "status",
-      label: "Status",
-      type: "select",
-      options: statusOptions,
-    },
+    { name: "status", label: "Status", type: "select", options: statusOptions },
     {
       name: "approvalStatus",
       label: "Approval Status",
       type: "select",
       options: approvalStatusOptions,
     },
-    {
-      name: "startDateAfter",
-      label: "Start Date After",
-      type: "date",
-    },
-    {
-      name: "endDateBefore",
-      label: "End Date Before",
-      type: "date",
-    },
+    { name: "startDateAfter", label: "Start Date After", type: "date" },
+    { name: "endDateBefore", label: "End Date Before", type: "date" },
   ];
 
-  // Filter activities based on filterValues
+  // Filtered list
   const filteredActivities = activities.filter((act) => {
     let matches = true;
-
     if (filterValues.activity_name) {
-      matches = matches && act.activity_name.toLowerCase().includes(filterValues.activity_name.toLowerCase());
+      matches =
+        matches &&
+        act.activity_name
+          .toLowerCase()
+          .includes((filterValues.activity_name as string).toLowerCase());
     }
     if (filterValues.priority) {
       matches = matches && act.priority === filterValues.priority;
@@ -165,50 +153,44 @@ const DataTableActivities: React.FC = () => {
       matches = matches && act.approvalStatus === filterValues.approvalStatus;
     }
     if (filterValues.startDateAfter) {
-      const startDate = new Date(act.start_date);
-      const filterDate = new Date(filterValues.startDateAfter);
-      matches = matches && startDate >= filterDate;
+      matches =
+        matches &&
+        new Date(act.start_date) >=
+          new Date(filterValues.startDateAfter as string);
     }
     if (filterValues.endDateBefore) {
-      const endDate = new Date(act.end_date);
-      const filterDate = new Date(filterValues.endDateBefore);
-      matches = matches && endDate <= filterDate;
+      matches =
+        matches &&
+        new Date(act.end_date) <=
+          new Date(filterValues.endDateBefore as string);
     }
-
     return matches;
   });
 
+  // Handlers
   const handleDeleteActivityClick = (id: string) => {
     setSelectedActivityId(id);
     setIsDeleteModalOpen(true);
   };
-
   const handleDeleteActivity = () => {
     if (selectedActivityId) {
       deleteActivity(selectedActivityId);
       setIsDeleteModalOpen(false);
     }
   };
-
-  const handleViewActivity = (id: string) => {
-    router.push(`/activities/${id}`);
-  };
-
+  const handleViewActivity = (id: string) => router.push(`/activities/${id}`);
   const handleEditClick = (activity: UpdateActivityInput) => {
     setActivityToEdit(activity);
     setShowEditForm(true);
   };
-
   const handleEditSubmit = (data: UpdateActivityInput) => {
     updateActivity(data);
     setShowEditForm(false);
   };
-
   const handleManageClick = (activity: UpdateActivityInput) => {
     setActivityToManage(activity);
     setShowManageForm(true);
   };
-
   const handleManageSubmit = (data: UpdateActivityInput) => {
     updateActivity(data);
     setShowManageForm(false);
@@ -216,7 +198,6 @@ const DataTableActivities: React.FC = () => {
 
   return (
     <div>
-      {/* GenericFilter added above the toolbar */}
       <GenericFilter fields={filterFields} onFilterChange={setFilterValues} />
 
       {/* Toolbar */}

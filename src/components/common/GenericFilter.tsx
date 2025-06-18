@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, ChangeEvent } from "react";
 import Select, {
   MultiValue,
-  GroupBase,
   StylesConfig,
+  GroupBase,
   CSSObjectWithLabel,
 } from "react-select";
 import { LucideIcon } from "lucide-react";
 
 // Define the shape of a generic option
-export interface Option<T = any> {
+export interface Option<T = unknown> {
   label: string;
   value: T;
 }
@@ -17,7 +17,7 @@ export interface Option<T = any> {
 export type FieldType = "select" | "multiselect" | "text" | "number" | "date";
 
 // Definition for each filter field
-export interface FilterField<T = any> {
+export interface FilterField<T = unknown> {
   /** Unique key for the field, used in the result object */
   name: string;
   /** Label shown next to the input */
@@ -32,13 +32,16 @@ export interface FilterField<T = any> {
   required?: boolean;
 }
 
+// Record type for filter values: single value or array of values
+export type FilterValues = Record<string, string | unknown[]>;
+
 export interface GenericFilterProps {
   /** Array of field definitions to render */
   fields: FilterField[];
   /** Optional icon for the filter button */
   Icon?: LucideIcon;
   /** Called when any field changes or the filter button is clicked */
-  onFilterChange: (values: Record<string, any>) => void;
+  onFilterChange: (values: FilterValues) => void;
 }
 
 export const GenericFilter: React.FC<GenericFilterProps> = ({
@@ -47,20 +50,20 @@ export const GenericFilter: React.FC<GenericFilterProps> = ({
   onFilterChange,
 }) => {
   // Local state holds current values for each field
-  const [values, setValues] = useState<Record<string, any>>(
+  const [values, setValues] = useState<FilterValues>(
     fields.reduce((acc, f) => {
       acc[f.name] = f.type === "multiselect" ? [] : "";
       return acc;
-    }, {} as Record<string, any>)
+    }, {} as FilterValues)
   );
 
   // Whenever values update and any required fields are satisfied, emit filter change
   useEffect(() => {
     onFilterChange(values);
-  }, [values]);
+  }, [values, onFilterChange]);
 
   // Shared select styles
-  const selectStyles: StylesConfig<Option, boolean, GroupBase<Option>> = {
+  const selectStyles: StylesConfig<Option, true, GroupBase<Option>> = {
     control: (provided: CSSObjectWithLabel, state) => ({
       ...provided,
       border: "1px solid #d1d5db",
@@ -75,16 +78,11 @@ export const GenericFilter: React.FC<GenericFilterProps> = ({
     menu: (p) => ({ ...p, zIndex: 9999 }),
   };
 
-  const handleChange = (field: FilterField) => (eventOrValue: any) => {
-    let newValue: any;
-    if (field.type === "select") {
-      newValue = eventOrValue?.value ?? "";
-    } else if (field.type === "multiselect") {
-      newValue =
-        (eventOrValue as MultiValue<Option>)?.map((o) => o.value) ?? [];
-    } else {
-      newValue = eventOrValue.target.value;
-    }
+  // Unified handler for updating field values
+  const handleFieldChange = (
+    field: FilterField,
+    newValue: string | unknown[]
+  ) => {
     setValues((prev) => ({ ...prev, [field.name]: newValue }));
   };
 
@@ -104,14 +102,18 @@ export const GenericFilter: React.FC<GenericFilterProps> = ({
               type={field.type}
               className="w-full rounded border border-gray-300 p-2 focus:outline-none focus:border-blue-500"
               placeholder={field.placeholder ?? field.label}
-              value={values[field.name]}
-              onChange={handleChange(field)}
+              value={values[field.name] as string}
+              onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                handleFieldChange(field, e.target.value)
+              }
             />
           ) : field.type === "select" ? (
             <select
               className="w-full rounded border border-gray-300 p-2 focus:outline-none focus:border-blue-500"
-              value={values[field.name]}
-              onChange={handleChange(field)}
+              value={values[field.name] as string}
+              onChange={(e: ChangeEvent<HTMLSelectElement>) =>
+                handleFieldChange(field, e.target.value)
+              }
             >
               <option value="">{field.placeholder ?? field.label}</option>
               {field.options?.map((opt) => (
@@ -121,15 +123,20 @@ export const GenericFilter: React.FC<GenericFilterProps> = ({
               ))}
             </select>
           ) : (
-            <Select
+            <Select<Option, true>
               isMulti
               options={field.options}
               getOptionLabel={(o) => o.label}
               getOptionValue={(o) => String(o.value)}
               value={field.options?.filter((o) =>
-                (values[field.name] as any[]).includes(o.value)
+                (values[field.name] as unknown[]).includes(o.value)
               )}
-              onChange={handleChange(field)}
+              onChange={(vals: MultiValue<Option>) =>
+                handleFieldChange(
+                  field,
+                  vals.map((o) => o.value)
+                )
+              }
               placeholder={field.placeholder ?? field.label}
               styles={selectStyles}
               className="w-full"
