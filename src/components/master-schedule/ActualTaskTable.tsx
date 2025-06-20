@@ -21,6 +21,13 @@ interface ActualTaskTableProps {
   projectId?: string;
 }
 
+// Add type definition for filters
+interface TaskFilters {
+  taskName?: string;
+  status?: string;
+  progress?: string;
+}
+
 const statusBadgeClasses: Record<Task["status"], string> = {
   "Not Started": "bg-gray-100 text-gray-800",
   Started: "bg-blue-100 text-blue-800",
@@ -30,9 +37,7 @@ const statusBadgeClasses: Record<Task["status"], string> = {
   Completed: "bg-green-100 text-green-800",
 };
 
-export default function ActualTaskTable({
-  tasks,
-}: ActualTaskTableProps) {
+export default function ActualTaskTable({ tasks }: ActualTaskTableProps) {
   const router = useRouter();
   const { mutate: deleteTask } = useDeleteTask();
   const { mutate: updateTask } = useUpdateTask();
@@ -71,8 +76,8 @@ export default function ActualTaskTable({
   const [showColumnMenu, setShowColumnMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Filter state
-  const [filters, setFilters] = useState<Record<string, any>>({});
+  // Filter state - use TaskFilters interface instead of any
+  const [filters, setFilters] = useState<TaskFilters>({});
   const [filteredTasks, setFilteredTasks] = useState<Task[]>(tasks);
 
   // Filter configuration
@@ -113,7 +118,9 @@ export default function ActualTaskTable({
 
     if (filters.taskName) {
       result = result.filter((t) =>
-        t.task_name.toLowerCase().includes(filters.taskName.toLowerCase())
+        t.task_name
+          .toLowerCase()
+          .includes((filters?.taskName ?? "").toLowerCase())
       );
     }
 
@@ -267,7 +274,7 @@ export default function ActualTaskTable({
       <div className="mb-4">
         <GenericFilter
           fields={filterFields}
-          onFilterChange={(values) => setFilters(values)}
+          onFilterChange={(values) => setFilters(values as TaskFilters)}
         />
       </div>
 
