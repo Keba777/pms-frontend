@@ -15,7 +15,7 @@ import { useDeleteTask, useUpdateTask } from "@/hooks/useTasks";
 import { useUsers } from "@/hooks/useUsers";
 import Link from "next/link";
 import { formatDate, getDateDuration } from "@/utils/helper";
-import SearchInput from "../ui/SearchInput";
+import { FilterField, GenericFilter } from "../common/GenericFilter";
 
 interface TaskTableProps {
   tasks: Task[];
@@ -72,13 +72,68 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
   const [showColumnMenu, setShowColumnMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Search
-  const [searchTerm, setSearchTerm] = useState("");
-  const filteredTasks = tasks.filter(
-    (t) =>
-      t.task_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      t.status.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filter state
+  const [filters, setFilters] = useState<Record<string, any>>({});
+  const [filteredTasks, setFilteredTasks] = useState<Task[]>(tasks);
+
+  // Filter configuration
+  const filterFields: FilterField[] = [
+    {
+      name: "taskName",
+      label: "Task Name",
+      type: "text",
+      placeholder: "Search by task name...",
+    },
+    {
+      name: "status",
+      label: "Status",
+      type: "select",
+      options: Object.keys(statusBadgeClasses).map((status) => ({
+        label: status,
+        value: status,
+      })),
+      placeholder: "Select status...",
+    },
+    {
+      name: "progress",
+      label: "Progress",
+      type: "select",
+      options: [
+        { label: "0-25%", value: "0-25" },
+        { label: "26-50%", value: "26-50" },
+        { label: "51-75%", value: "51-75" },
+        { label: "76-100%", value: "76-100" },
+      ],
+      placeholder: "Select progress range...",
+    },
+  ];
+
+  // Apply filters whenever filters or tasks change
+  useEffect(() => {
+    let result = [...tasks];
+
+    if (filters.taskName) {
+      result = result.filter((t) =>
+        t.task_name.toLowerCase().includes(filters.taskName.toLowerCase())
+      );
+    }
+
+    if (filters.status) {
+      result = result.filter((t) => t.status === filters.status);
+    }
+
+    if (filters.progress) {
+      const [min, max] = filters.progress.split("-").map(Number);
+      result = result.filter(
+        (t) =>
+          typeof t.progress === "number" &&
+          t.progress >= min &&
+          t.progress <= max
+      );
+    }
+
+    setFilteredTasks(result);
+  }, [filters, tasks]);
 
   // Close menus on outside click
   useEffect(() => {
@@ -172,8 +227,7 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
     },
     {
       header: "Budget (Random)",
-      accessor: () =>
-        Math.floor(1000000 + Math.random() * 9000000).toString(),
+      accessor: () => Math.floor(1000000 + Math.random() * 9000000).toString(),
     },
     { header: "Progress", accessor: (row) => `${row.progress}%` },
     { header: "Status", accessor: "status" },
@@ -214,10 +268,13 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
             </div>
           )}
         </div>
-        <SearchInput
-          placeholder="Search tasks..."
-          value={searchTerm}
-          onChange={setSearchTerm}
+      </div>
+
+      {/* Filter Section */}
+      <div className="mb-4">
+        <GenericFilter
+          fields={filterFields}
+          onFilterChange={(values) => setFilters(values)}
         />
       </div>
 

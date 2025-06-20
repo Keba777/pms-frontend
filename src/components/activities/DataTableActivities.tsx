@@ -102,11 +102,11 @@ const DataTableActivities: React.FC = () => {
     { label: "In Progress", value: "In Progress" },
     { label: "Completed", value: "Completed" },
   ];
-  const approvalStatusOptions: Option<string>[] = [
-    { label: "Pending", value: "Pending" },
-    { label: "Approved", value: "Approved" },
-    { label: "Rejected", value: "Rejected" },
-  ];
+  // const approvalStatusOptions: Option<string>[] = [
+  //   { label: "Pending", value: "Pending" },
+  //   { label: "Approved", value: "Approved" },
+  //   { label: "Rejected", value: "Rejected" },
+  // ];
 
   // Filter fields
   const filterFields: FilterField<string>[] = [
@@ -123,12 +123,7 @@ const DataTableActivities: React.FC = () => {
       options: priorityOptions,
     },
     { name: "status", label: "Status", type: "select", options: statusOptions },
-    {
-      name: "approvalStatus",
-      label: "Approval Status",
-      type: "select",
-      options: approvalStatusOptions,
-    },
+
     { name: "startDateAfter", label: "Start Date After", type: "date" },
     { name: "endDateBefore", label: "End Date Before", type: "date" },
   ];

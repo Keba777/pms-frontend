@@ -14,7 +14,7 @@ import { useDeleteTask, useUpdateTask } from "@/hooks/useTasks";
 import { useUsers } from "@/hooks/useUsers";
 import Link from "next/link";
 import { formatDate, getDateDuration } from "@/utils/helper";
-import SearchInput from "../ui/SearchInput";
+import { FilterField, GenericFilter } from "../common/GenericFilter";
 
 interface ActualTaskTableProps {
   tasks: Task[];
@@ -32,13 +32,11 @@ const statusBadgeClasses: Record<Task["status"], string> = {
 
 export default function ActualTaskTable({
   tasks,
-  projectId,
 }: ActualTaskTableProps) {
   const router = useRouter();
   const { mutate: deleteTask } = useDeleteTask();
   const { mutate: updateTask } = useUpdateTask();
   const { data: users } = useUsers();
-  console.log(projectId);
 
   // Edit & Manage modals state
   const [showEditForm, setShowEditForm] = useState(false);
@@ -73,13 +71,65 @@ export default function ActualTaskTable({
   const [showColumnMenu, setShowColumnMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Search filter
-  const [searchTerm, setSearchTerm] = useState("");
-  const filteredTasks = tasks.filter(
-    (t) =>
-      t.task_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      t.status.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filter state
+  const [filters, setFilters] = useState<Record<string, any>>({});
+  const [filteredTasks, setFilteredTasks] = useState<Task[]>(tasks);
+
+  // Filter configuration
+  const filterFields: FilterField[] = [
+    {
+      name: "taskName",
+      label: "Task Name",
+      type: "text",
+      placeholder: "Search by task name...",
+    },
+    {
+      name: "status",
+      label: "Status",
+      type: "select",
+      options: Object.keys(statusBadgeClasses).map((status) => ({
+        label: status,
+        value: status,
+      })),
+      placeholder: "Select status...",
+    },
+    {
+      name: "progress",
+      label: "Progress",
+      type: "select",
+      options: [
+        { label: "0-25%", value: "0-25" },
+        { label: "26-50%", value: "26-50" },
+        { label: "51-75%", value: "51-75" },
+        { label: "76-100%", value: "76-100" },
+      ],
+      placeholder: "Select progress range...",
+    },
+  ];
+
+  // Apply filters whenever filters or tasks change
+  useEffect(() => {
+    let result = [...tasks];
+
+    if (filters.taskName) {
+      result = result.filter((t) =>
+        t.task_name.toLowerCase().includes(filters.taskName.toLowerCase())
+      );
+    }
+
+    if (filters.status) {
+      result = result.filter((t) => t.status === filters.status);
+    }
+
+    if (filters.progress) {
+      const [min, max] = filters.progress.split("-").map(Number);
+      result = result.filter(
+        (t) => (t.progress ?? 0) >= min && (t.progress ?? 0) <= max
+      );
+    }
+
+    setFilteredTasks(result);
+  }, [filters, tasks]);
 
   // Handle clicks outside menus
   useEffect(() => {
@@ -151,7 +201,7 @@ export default function ActualTaskTable({
     setShowManageForm(false);
   };
 
-  // Columns for downloads (budget always “0”)
+  // Columns for downloads (budget always "0")
   const downloadColumns: Column<Task>[] = [
     { header: "Task", accessor: "task_name" },
     {
@@ -211,10 +261,13 @@ export default function ActualTaskTable({
             </div>
           )}
         </div>
-        <SearchInput
-          placeholder="Search tasks..."
-          value={searchTerm}
-          onChange={setSearchTerm}
+      </div>
+
+      {/* Filter Section */}
+      <div className="mb-4">
+        <GenericFilter
+          fields={filterFields}
+          onFilterChange={(values) => setFilters(values)}
         />
       </div>
 
