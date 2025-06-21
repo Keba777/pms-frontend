@@ -30,18 +30,6 @@ interface ClientProjectDetailProps {
   projectId: string;
 }
 
-const tabs = [
-  { key: "discussion", label: "Discussion", component: <DiscussionTab /> },
-  { key: "issue", label: "Issue", component: <IssueTab /> },
-  { key: "files", label: "Files", component: <FilesTab /> },
-  {
-    key: "notification",
-    label: "Notification",
-    component: <NotificationTab />,
-  },
-  { key: "activityLog", label: "Activity Log", component: <ActivityLogTab /> },
-];
-
 export default function ClientProjectDetail({
   projectId,
 }: ClientProjectDetailProps) {
@@ -56,6 +44,26 @@ export default function ClientProjectDetail({
 
   const { data: roles = [] } = useRoles();
   const { data: tags = [] } = useTags();
+
+  const tabs = [
+    { key: "discussion", label: "Discussion", component: <DiscussionTab /> },
+    {
+      key: "issue",
+      label: "Issue",
+      component: <IssueTab projectId={projectId} />,
+    },
+    { key: "files", label: "Files", component: <FilesTab /> },
+    {
+      key: "notification",
+      label: "Notification",
+      component: <NotificationTab />,
+    },
+    {
+      key: "activityLog",
+      label: "Activity Log",
+      component: <ActivityLogTab />,
+    },
+  ];
 
   if (!project) {
     return (
