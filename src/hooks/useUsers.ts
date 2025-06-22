@@ -39,7 +39,33 @@ const createUser = async (data: Omit<User, "id">): Promise<User> => {
 
 // Update an existing user
 const updateUser = async (data: UpdateUserInput): Promise<User> => {
-    const response = await apiClient.put<ApiResponse<User>>(`/users/${data.id}`, data);
+    const formData = new FormData();
+
+    // Append all fields (skip undefined)
+    Object.entries(data).forEach(([key, value]) => {
+        if (value == null) return;
+
+        if (key === "profile_picture" && value instanceof File) {
+            formData.append(key, value);
+        } else if (Array.isArray(value)) {
+            // e.g. responsiblities[]
+            value.forEach((item) => formData.append(`${key}[]`, item));
+        } else {
+            formData.append(key, String(value));
+        }
+    });
+
+    const response = await apiClient.put<ApiResponse<User>>(
+        `/users/${data.id}`,
+        formData,
+        {
+            headers: {
+                // Let axios set the correct boundary
+                "Content-Type": "multipart/form-data",
+            },
+        }
+    );
+
     return response.data.data;
 };
 
@@ -113,11 +139,11 @@ export const useUpdateUser = () => {
     const queryClient = useQueryClient();
     const updateUserInStore = useUserStore((state) => state.updateUser);
 
-    return useMutation({
+    return useMutation<User, unknown, UpdateUserInput>({
         mutationFn: updateUser,
         onSuccess: (updatedUser) => {
             toast.success("User updated successfully!");
-            queryClient.invalidateQueries({ queryKey: ["users"] }); // Refetch users
+            queryClient.invalidateQueries({ queryKey: ["users"] });
             updateUserInStore(updatedUser);
         },
         onError: () => {

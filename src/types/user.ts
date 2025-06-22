@@ -49,7 +49,7 @@ export interface UpdateUserInput {
     phone?: string;
     email?: string;
     password?: string;
-    profile_picture?: string;
+    profile_picture?: File;
     department_id?: string;
     status?: "Active" | "InActive";
     role_id?: string;

@@ -39,7 +39,7 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
       email: user.email,
       phone: user.phone,
       password: undefined,
-      profile_picture: user.profile_picture,
+      profile_picture: undefined, // start undefined for File
       siteId: user.siteId,
       department_id: user.department_id,
       role_id: user.role_id,
@@ -47,6 +47,20 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
       responsiblities: user.responsiblities || [],
     },
   });
+
+  // local preview URL
+  const [previewUrl, setPreviewUrl] = useState<string | null>(
+    user.profile_picture || null
+  );
+
+  // when user selects a file, update RHF's state and set preview
+  const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setValue("profile_picture", file, { shouldValidate: true });
+      setPreviewUrl(URL.createObjectURL(file));
+    }
+  };
 
   const {
     data: sites,
@@ -58,10 +72,7 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
     isLoading: depsLoading,
     error: depsError,
   } = useDepartments();
-  const {
-    data: roles,
-    isLoading: rolesLoading,
-  } = useRoles();
+  const { data: roles, isLoading: rolesLoading } = useRoles();
 
   const siteOptions: SelectOption[] =
     sites?.map((s) => ({ value: s.id, label: s.name })) || [];
@@ -91,7 +102,7 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
     setValue("responsiblities", updated);
   };
 
-  // Make sure selects pick up existing values once data loads
+  // sync selects to existing user on load
   useEffect(() => {
     if (sites) setValue("siteId", user.siteId);
     if (roles) setValue("role_id", user.role_id);
@@ -107,6 +118,7 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
     <form
       onSubmit={handleSubmit(submit)}
       className="bg-white rounded-lg shadow p-6 space-y-6"
+      encType="multipart/form-data"
     >
       <div className="flex justify-between items-center border-b pb-4">
         <h3 className="text-lg font-semibold">Edit User</h3>
@@ -120,6 +132,32 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
       </div>
 
       <div className="space-y-4">
+        {/* Profile picture */}
+        <div>
+          <label className="block text-sm font-medium mb-1">
+            Profile Picture
+          </label>
+          {previewUrl && (
+            <img
+              src={previewUrl}
+              alt="Preview"
+              className="w-24 h-24 rounded-full object-cover mb-2"
+            />
+          )}
+          <input
+            type="file"
+            accept="image/*"
+            {...register("profile_picture")}
+            onChange={onFileChange}
+            className="block"
+          />
+          {errors.profile_picture && (
+            <p className="text-red-500 text-sm">
+              {errors.profile_picture.message}
+            </p>
+          )}
+        </div>
+
         {/* First / Last */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -127,11 +165,13 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
               First Name <span className="text-red-500">*</span>
             </label>
             <input
-              {...register("first_name", { required: true })}
+              {...register("first_name", { required: "Required" })}
               className="w-full border px-3 py-2 rounded"
             />
             {errors.first_name && (
-              <p className="text-red-500 text-sm">Required</p>
+              <p className="text-red-500 text-sm">
+                {errors.first_name.message}
+              </p>
             )}
           </div>
           <div>
@@ -139,11 +179,11 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
               Last Name <span className="text-red-500">*</span>
             </label>
             <input
-              {...register("last_name", { required: true })}
+              {...register("last_name", { required: "Required" })}
               className="w-full border px-3 py-2 rounded"
             />
             {errors.last_name && (
-              <p className="text-red-500 text-sm">Required</p>
+              <p className="text-red-500 text-sm">{errors.last_name.message}</p>
             )}
           </div>
         </div>
@@ -156,10 +196,12 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
             </label>
             <input
               type="email"
-              {...register("email", { required: true })}
+              {...register("email", { required: "Required" })}
               className="w-full border px-3 py-2 rounded"
             />
-            {errors.email && <p className="text-red-500 text-sm">Required</p>}
+            {errors.email && (
+              <p className="text-red-500 text-sm">{errors.email.message}</p>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium">
@@ -167,10 +209,12 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
             </label>
             <input
               type="tel"
-              {...register("phone", { required: true })}
+              {...register("phone", { required: "Required" })}
               className="w-full border px-3 py-2 rounded"
             />
-            {errors.phone && <p className="text-red-500 text-sm">Required</p>}
+            {errors.phone && (
+              <p className="text-red-500 text-sm">{errors.phone.message}</p>
+            )}
           </div>
         </div>
 
@@ -242,7 +286,7 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
             <Controller
               name="role_id"
               control={control}
-              rules={{ required: true }}
+              rules={{ required: "Required" }}
               render={({ field }) => (
                 <Select
                   {...field}
@@ -255,7 +299,9 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
                 />
               )}
             />
-            {errors.role_id && <p className="text-red-500 text-sm">Required</p>}
+            {errors.role_id && (
+              <p className="text-red-500 text-sm">{errors.role_id.message}</p>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium">Status</label>
