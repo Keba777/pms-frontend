@@ -7,6 +7,7 @@ import { useSites } from "@/hooks/useSites";
 import { useDepartments } from "@/hooks/useDepartments";
 import { useRoles } from "@/hooks/useRoles";
 import { UpdateUserInput, User } from "@/types/user";
+import Image from "next/image";
 
 interface EditUserFormProps {
   onSubmit: (data: UpdateUserInput) => void;
@@ -138,7 +139,7 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
             Profile Picture
           </label>
           {previewUrl && (
-            <img
+            <Image
               src={previewUrl}
               alt="Preview"
               className="w-24 h-24 rounded-full object-cover mb-2"
