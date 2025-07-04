@@ -1,32 +1,61 @@
-import React from "react";
-import WorkspaceDropdown from "@/components/ui/WorkspaceDropdown";
-import MenuItem from "@/components/ui/MenuItem";
-import menuItems from "./menuItems";
+// Sidebar.tsx
+"use client";
+
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { FiX } from "react-icons/fi";
-import logo from "@/../public/images/logo.jpg";
-import { useAuthStore } from "@/store/authStore";
 
-const Sidebar = ({
-  isOpen,
-  toggleSidebar,
-}: {
+import WorkspaceDropdown from "@/components/ui/WorkspaceDropdown";
+import MenuItem from "@/components/ui/MenuItem";
+import menuItems from "./menuItems";
+import { useAuthStore } from "@/store/authStore";
+import { supabase } from "@/lib/supabase"; // ← import your supabase client
+import logo from "@/../public/images/logo.jpg";
+
+interface SidebarProps {
   isOpen: boolean;
   toggleSidebar: () => void;
-}) => {
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
+  const user = useAuthStore((state) => state.user);
   const { hasPermission } = useAuthStore();
 
-  // Filter menu items based on permissions
-  const filteredMenuItems = menuItems.filter((item) => {
-    // Always show dashboard
-    if (item.link === "/") return true;
+  const [chatBadge, setChatBadge] = useState(0);
 
-    // Check if the item has submenu
+  // Fetch unread message count for “Chat” badge
+  useEffect(() => {
+    if (!user) {
+      setChatBadge(0);
+      return;
+    }
+
+    supabase
+      .from("messages")
+      .select("*", { count: "exact", head: true })
+      .eq("receiver_id", user.id)
+      .eq("is_read", false)
+      .then(({ count, error }) => {
+        if (error) {
+          console.error("Error fetching unread count:", error);
+        } else {
+          setChatBadge(count ?? 0);
+        }
+      });
+  }, [user]);
+
+  // Override only the Chat item’s badge
+  const menuItemsWithBadge = menuItems.map((item) =>
+    item.title === "Chat" ? { ...item, badge: chatBadge } : item
+  );
+
+  // Apply your existing permission-based filtering
+  const filteredMenuItems = menuItemsWithBadge.filter((item) => {
+    if (item.link === "/") return true;
     if (item.submenu) {
-      // Filter submenu items first
-      const filteredSubmenu = item.submenu.filter((subItem) => {
-        const resource = subItem.link?.split("/")[1]; // Get resource from link
+      const filteredSub = item.submenu.filter((s) => {
+        const resource = s.link?.split("/")[1];
         return resource
           ? hasPermission(resource, "manage") ||
               hasPermission(resource, "delete") ||
@@ -34,13 +63,9 @@ const Sidebar = ({
               hasPermission(resource, "create")
           : true;
       });
-
-      // Only show the parent item if there are visible subitems
-      return filteredSubmenu.length > 0;
+      return filteredSub.length > 0;
     }
-
-    // For regular items, check permission based on the link
-    const resource = item.link?.split("/")[1]; // Get resource from link
+    const resource = item.link?.split("/")[1];
     return resource
       ? hasPermission(resource, "manage") ||
           hasPermission(resource, "delete") ||
@@ -54,7 +79,7 @@ const Sidebar = ({
       id="layout-menu"
       className={`${
         isOpen ? "fixed top-0 bottom-0 z-50" : "hidden"
-      } lg:fixed lg:top-0 lg:bottom-0 lg:left-0 lg:block lg:w-64 font-medium bg-white  shadow-md transition-all duration-300 overflow-y-auto`}
+      } lg:fixed lg:top-0 lg:bottom-0 lg:left-0 lg:block lg:w-64 font-medium bg-white shadow-md transition-all duration-300 overflow-y-auto`}
     >
       <button
         onClick={toggleSidebar}
@@ -62,8 +87,8 @@ const Sidebar = ({
       >
         <FiX size={24} />
       </button>
-      {/* Header with logo and toggle */}
-      <div className="flex items-center justify-center">
+
+      <div className="flex items-center justify-center py-4">
         <Link href="/" className="flex items-center">
           <Image
             src={logo}
@@ -74,12 +99,12 @@ const Sidebar = ({
           />
         </Link>
       </div>
-      {/* Workspace Dropdown */}
+
       <WorkspaceDropdown />
-      {/* Menu List */}
+
       <ul className="py-1 px-3">
-        {filteredMenuItems.map((item, index) => (
-          <MenuItem key={index} item={item} />
+        {filteredMenuItems.map((item, idx) => (
+          <MenuItem key={idx} item={item} />
         ))}
       </ul>
     </aside>
