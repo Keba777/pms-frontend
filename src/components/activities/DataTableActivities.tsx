@@ -16,13 +16,13 @@ import EditActivityForm from "../forms/EditActivityForm";
 import ConfirmModal from "../ui/ConfirmModal";
 import ActivityTableSkeleton from "./ActivityTableSkeleton";
 import ManageActivityForm from "../forms/ManageActivityForm";
-import UserAvatar from "./UserAvatar";
 import {
   FilterField,
   FilterValues,
   GenericFilter,
   Option,
 } from "../common/GenericFilter";
+import ProfileAvatar from "../common/ProfileAvatar";
 
 const columnOptions: Record<string, string> = {
   activity_name: "Activity",
@@ -420,12 +420,7 @@ const DataTableActivities: React.FC = () => {
                       {activity.assignedUsers?.length ? (
                         <ul className="list-none space-y-1">
                           {activity.assignedUsers.map((u) => (
-                            <li key={u.id} className="rounded-full">
-                              <UserAvatar
-                                firstName={u.first_name}
-                                lastName={u.last_name}
-                              />
-                            </li>
+                            <ProfileAvatar key={u.id} user={u} />
                           ))}
                         </ul>
                       ) : (

@@ -326,30 +326,30 @@ const ActualActivityTable: React.FC = () => {
               {selectedColumns.includes("labor") && (
                 <>
                   <th className="border border-gray-300 px-4 py-3 text-sm font-medium text-center whitespace-nowrap">
-                    OT
+                    +
                   </th>
                   <th className="border border-gray-300 px-4 py-3 text-sm font-medium text-center whitespace-nowrap">
-                    DT
+                    -
                   </th>
                 </>
               )}
               {selectedColumns.includes("material") && (
                 <>
                   <th className="border border-gray-300 px-4 py-3 text-sm font-medium text-center whitespace-nowrap">
-                    OT
+                    +
                   </th>
                   <th className="border border-gray-300 px-4 py-3 text-sm font-medium text-center whitespace-nowrap">
-                    DT
+                    -
                   </th>
                 </>
               )}
               {selectedColumns.includes("equipment") && (
                 <>
                   <th className="border border-gray-300 px-4 py-3 text-sm font-medium text-center whitespace-nowrap">
-                    OT
+                    +
                   </th>
                   <th className="border border-gray-300 px-4 py-3 text-sm font-medium text-center whitespace-nowrap">
-                    DT
+                    -
                   </th>
                 </>
               )}

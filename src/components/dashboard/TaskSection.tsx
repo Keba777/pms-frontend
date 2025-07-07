@@ -6,7 +6,6 @@ import { FaEdit, FaTrash, FaEye, FaTasks } from "react-icons/fa";
 import { useTasks, useDeleteTask, useUpdateTask } from "@/hooks/useTasks";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import RoleName from "../common/RoleName";
 import ConfirmModal from "../ui/ConfirmModal";
 import EditTaskForm from "../forms/EditTaskForm";
 import ManageTaskForm from "../forms/ManageTaskForm";
@@ -14,6 +13,7 @@ import { Task, UpdateTaskInput } from "@/types/task";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import SearchInput from "../ui/SearchInput";
 import { getDateDuration, getDuration as calcRemaining } from "@/utils/helper";
+import ProfileAvatar from "../common/ProfileAvatar";
 
 const priorityBadgeClasses: Record<Task["priority"], string> = {
   Critical: "bg-red-100 text-red-800",
@@ -245,12 +245,10 @@ const TaskSection: React.FC = () => {
                     {selectedColumns.includes("assignedUsers") && (
                       <td className="border border-gray-200 px-4 py-2">
                         {task.assignedUsers?.length ? (
-                          <ul className="list-none space-y-1">
+                          <ul className="list-none space-x-1 flex">
                             {task.assignedUsers.map((u) => (
-                              <li key={u.id}>
-                                {u.first_name} {u.last_name} (
-                                <RoleName roleId={u.role_id} />)
-                              </li>
+                              <ProfileAvatar key={u.id} user={u} />
+                              
                             ))}
                           </ul>
                         ) : (

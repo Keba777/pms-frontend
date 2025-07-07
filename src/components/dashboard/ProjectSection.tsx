@@ -25,6 +25,7 @@ import {
   getDuration as calcRemaining,
 } from "@/utils/helper";
 import SearchInput from "../ui/SearchInput";
+import ProfileAvatar from "../common/ProfileAvatar";
 
 const priorityBadgeClasses: Record<Project["priority"], string> = {
   Critical: "bg-red-100 text-red-800",
@@ -92,8 +93,9 @@ const ProjectSection: React.FC = () => {
 
   // Edit state
   const [showEditForm, setShowEditForm] = useState(false);
-  const [projectToEdit, setProjectToEdit] =
-    useState<UpdateProjectInput | null>(null);
+  const [projectToEdit, setProjectToEdit] = useState<UpdateProjectInput | null>(
+    null
+  );
   // Manage state
   const [showManageForm, setShowManageForm] = useState(false);
   const [projectToManage, setProjectToManage] =
@@ -155,9 +157,10 @@ const ProjectSection: React.FC = () => {
   if (isLoading) return <div>Loading projects…</div>;
   if (isError) return <div>Error loading projects.</div>;
 
-  const filtered = projects?.filter((p) =>
-    p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.client.toLowerCase().includes(searchTerm.toLowerCase())
+  const filtered = projects?.filter(
+    (p) =>
+      p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.client.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -241,12 +244,9 @@ const ProjectSection: React.FC = () => {
                     {selectedColumns.includes("members") && (
                       <td className="border border-gray-200 px-4 py-2">
                         {project.members?.length ? (
-                          <ul className="list-none space-y-1">
+                          <ul className="list-none space-x-1 flex">
                             {project.members.map((m) => (
-                              <li key={m.id}>
-                                {m.first_name} {m.last_name} (
-                                <RoleName roleId={m.role_id} />)
-                              </li>
+                              <ProfileAvatar key={m.id} user={m} />
                             ))}
                           </ul>
                         ) : (
@@ -308,7 +308,10 @@ const ProjectSection: React.FC = () => {
                     )}
                     {selectedColumns.includes("actions") && (
                       <td className="border border-gray-200 px-4 py-2">
-                        <Menu as="div" className="relative inline-block text-left">
+                        <Menu
+                          as="div"
+                          className="relative inline-block text-left"
+                        >
                           <MenuButton className="flex items-center gap-1 px-3 py-1 text-sm bg-cyan-700 text-white rounded hover:bg-cyan-800">
                             Action <ChevronDown className="w-4 h-4" />
                           </MenuButton>

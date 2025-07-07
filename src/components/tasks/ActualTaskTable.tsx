@@ -13,9 +13,9 @@ import { Task, UpdateTaskInput } from "@/types/task";
 import { useDeleteTask, useUpdateTask } from "@/hooks/useTasks";
 import EditTaskForm from "@/components/forms/EditTaskForm";
 import ConfirmModal from "@/components/ui/ConfirmModal";
-import RoleName from "../common/RoleName";
 import SearchInput from "../ui/SearchInput";
 import ManageTaskForm from "../forms/ManageTaskForm";
+import ProfileAvatar from "../common/ProfileAvatar";
 
 const ActualTaskTable: React.FC = () => {
   const tasks = useTaskStore((state) => state.tasks) as Task[];
@@ -280,10 +280,7 @@ const ActualTaskTable: React.FC = () => {
                         {task.assignedUsers?.length ? (
                           <ul className="list-none space-y-1">
                             {task.assignedUsers.map((u) => (
-                              <li key={u.id}>
-                                {u.first_name} {u.last_name} (
-                                <RoleName roleId={u.role_id} />)
-                              </li>
+                              <ProfileAvatar key={u.id} user={u} />
                             ))}
                           </ul>
                         ) : (

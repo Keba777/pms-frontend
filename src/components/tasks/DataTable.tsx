@@ -12,9 +12,9 @@ import { Task, UpdateTaskInput } from "@/types/task";
 import { useDeleteTask, useUpdateTask } from "@/hooks/useTasks";
 import EditTaskForm from "@/components/forms/EditTaskForm";
 import ConfirmModal from "@/components/ui/ConfirmModal";
-import RoleName from "../common/RoleName";
 import SearchInput from "../ui/SearchInput";
 import ManageTaskForm from "../forms/ManageTaskForm";
+import ProfileAvatar from "../common/ProfileAvatar";
 
 const DataTable: React.FC = () => {
   const tasks = useTaskStore((state) => state.tasks) as Task[];
@@ -247,12 +247,9 @@ const DataTable: React.FC = () => {
                   {selectedColumns.includes("assignedUsers") && (
                     <td className="px-4 py-2">
                       {task.assignedUsers?.length ? (
-                        <ul className="list-none space-y-1">
+                        <ul className="list-none flex space-x-1">
                           {task.assignedUsers.map((u) => (
-                            <li key={u.id}>
-                              {u.first_name} {u.last_name} (
-                              <RoleName roleId={u.role_id} />)
-                            </li>
+                            <ProfileAvatar key={u.id} user={u}/>
                           ))}
                         </ul>
                       ) : (
