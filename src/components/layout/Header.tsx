@@ -189,7 +189,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
               className="p-2"
             >
               <Image
-                src={userAvatar}
+                src={ user?.profile_picture? user.profile_picture: userAvatar}
                 alt="User Avatar"
                 width={40}
                 height={40}
