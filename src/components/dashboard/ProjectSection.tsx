@@ -14,7 +14,6 @@ import ConfirmModal from "../ui/ConfirmModal";
 import EditProjectForm from "../forms/EditProjectForm";
 import ManageProjectForm from "../forms/ManageProjectForm";
 import { Project, UpdateProjectInput } from "@/types/project";
-import RoleName from "../common/RoleName";
 import { toast } from "react-toastify";
 import { useUsers } from "@/hooks/useUsers";
 import { useTags } from "@/hooks/useTags";
