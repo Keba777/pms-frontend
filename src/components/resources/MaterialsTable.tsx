@@ -121,7 +121,7 @@ const MaterialsTable: React.FC<MaterialsTableProps> = ({
       totalPrice: parseFloat(newRow.total) || 0,
       shelfNo: newRow.shelfNo,
       status:
-        newRow.status === "Active" || newRow.status === "Inactive"
+        newRow.status === "Allocated" || newRow.status === "Unallocated"
           ? newRow.status
           : undefined,
     };

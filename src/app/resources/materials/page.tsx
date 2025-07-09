@@ -52,7 +52,7 @@ const ResourceMaterialsPage: React.FC = () => {
         };
       }
       map[site.id].totalItems += 1;
-      if (mat.status === "Active") map[site.id].outOfStore += 1;
+      if (mat.status === "Allocated") map[site.id].outOfStore += 1;
     });
     return Object.values(map).map((item, idx) => ({
       id: idx + 1,
@@ -152,7 +152,7 @@ const ResourceMaterialsPage: React.FC = () => {
       {/* Summary Cards */}
       <div className="flex flex-wrap gap-4 mb-4">
         {[
-          { label: "Total Items", value: allRows.length },
+          { label: "Total Items", value: materials?.length },
           { label: "Out of Store", value: allRows.reduce((sum, r) => sum + r.outOfStore, 0) },
           { label: "Re-Qty", value: allRows.reduce((sum, r) => sum + r.reQty, 0) },
         ].map(item => (

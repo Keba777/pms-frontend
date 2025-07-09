@@ -6,7 +6,6 @@ import { ArrowLeft } from "lucide-react";
 import { useMaterials } from "@/hooks/useMaterials";
 import { useWarehouses } from "@/hooks/useWarehouses";
 import { useSites } from "@/hooks/useSites";
-import Link from "next/link";
 import { Material } from "@/types/material";
 import { Warehouse } from "@/types/warehouse";
 import { Site } from "@/types/site";
@@ -55,11 +54,11 @@ export default function ClientMaterialDetail({
     ) ?? [];
 
   const total = siteMaterials?.length ?? 0;
-  const active =
-    siteMaterials?.filter((l) => l.status === "Active").length ?? 0;
+  const allocated =
+    siteMaterials?.filter((l) => l.status === "Allocated").length ?? 0;
 
-  const inactive =
-    siteMaterials?.filter((l) => l.status === "Inactive").length ?? 0;
+  const unallocted =
+    siteMaterials?.filter((l) => l.status === "Unallocated").length ?? 0;
 
   return (
     <div className="max-w-6xl mx-auto p-6 bg-white shadow-lg rounded-lg mt-6">
@@ -81,8 +80,8 @@ export default function ClientMaterialDetail({
       <div className="flex flex-wrap gap-4 mb-4">
         {[
           { label: "Total", value: total },
-          { label: "Available", value: active },
-          { label: "Out of Store", value: inactive },
+          { label: "Available", value: unallocted },
+          { label: "Out of Store", value: allocated },
         ].map((item) => (
           <div
             key={item.label}
@@ -151,12 +150,12 @@ export default function ClientMaterialDetail({
                   </td>
                   <td className="px-4 py-2 border border-gray-200">
                     {/* Link to single material detail if desired */}
-                    <Link
+                    {/* <Link
                       href={`/resources/materials/${mat.id}`}
                       className="text-blue-600 hover:underline"
-                    >
-                      {mat.item}
-                    </Link>
+                    > */}
+                    {mat.item}
+                    {/* </Link> */}
                   </td>
                   <td className="px-4 py-2 border border-gray-200">
                     {mat.type}
