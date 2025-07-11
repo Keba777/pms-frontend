@@ -1,11 +1,8 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { ChevronDown, Plus } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { useRequests } from "@/hooks/useRequests";
-import { useSites } from "@/hooks/useSites";
-import { useDepartments } from "@/hooks/useDepartments";
-import { useActivities } from "@/hooks/useActivities";
 import Link from "next/link";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import GenericDownloads, { Column } from "@/components/common/GenericDownloads";
@@ -16,58 +13,55 @@ import {
   FilterValues,
   GenericFilter,
 } from "@/components/common/GenericFilter";
+import { useSites } from "@/hooks/useSites";
+import { useDepartments } from "@/hooks/useDepartments";
 
-const IncomingRequestsPage = () => {
+const EquipmentRequests = () => {
   const {
     data: requests,
     isLoading: reqLoading,
     error: reqError,
   } = useRequests();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterValues, setFilterValues] = useState<FilterValues>({});
+
+  const searchFilteredRequest = useMemo(
+    () =>
+      requests?.filter((r: Request) => {
+        const userName = r.user?.first_name?.toLowerCase() || "";
+        const status = r.status.toLowerCase();
+        return (
+          (userName.includes(searchQuery.toLowerCase()) ||
+            status.includes(searchQuery.toLowerCase())) &&
+          (r.equipmentCount ?? 0) > 0
+        );
+      }) ?? [],
+    [searchQuery, requests]
+  );
+
   const { data: sites, isLoading: siteLoading, error: siteError } = useSites();
   const {
     data: departments,
     isLoading: deptLoading,
     error: deptError,
   } = useDepartments();
-  const {
-    data: activities,
-    isLoading: actLoading,
-    error: actError,
-  } = useActivities();
-
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filterValues, setFilterValues] = useState<FilterValues>({});
-
-  // filtered list based on searchQuery (search by user name or status)
-  const searchfilteredRequests = useMemo(
-    () =>
-      requests?.filter((r: Request) => {
-        const userName = r.user?.first_name?.toLowerCase() || "";
-        const status = r.status.toLowerCase();
-        return (
-          userName.includes(searchQuery.toLowerCase()) ||
-          status.includes(searchQuery.toLowerCase())
-        );
-      }) ?? [],
-    [searchQuery, requests]
-  );
 
   // loading / error guards
-  if (reqLoading || siteLoading || deptLoading || actLoading)
-    return <div>Loading...</div>;
-  if (reqError || siteError || deptError || actError)
+  if (reqLoading || siteLoading || deptLoading) return <div>Loading...</div>;
+  if (reqError || siteError || deptError)
     return <div className="text-red-500">Error loading data.</div>;
 
-  // status summary values
-  const total = requests?.length ?? 0;
-  const pending = requests?.filter((r) => r.status === "Pending").length ?? 0;
+  const total = searchFilteredRequest?.length ?? 0;
+  const pending =
+    searchFilteredRequest?.filter((r) => r.status === "Pending").length ?? 0;
   const inProgress =
-    requests?.filter((r) => r.status === "In Progress").length ?? 0;
+    searchFilteredRequest?.filter((r) => r.status === "In Progress").length ??
+    0;
   const completed =
-    requests?.filter((r) => r.status === "Completed").length ?? 0;
-  const rejected = requests?.filter((r) => r.status === "Rejected").length ?? 0;
+    searchFilteredRequest?.filter((r) => r.status === "Completed").length ?? 0;
+  const rejected =
+    searchFilteredRequest?.filter((r) => r.status === "Rejected").length ?? 0;
 
-  // define download columns
   const columns: Column<Request & { displayId: string }>[] = [
     {
       header: "Request ID",
@@ -79,26 +73,15 @@ const IncomingRequestsPage = () => {
     },
     {
       header: "Department",
-      accessor: (row: Request) =>
-        departments?.find((d) => d.id === row.departmentId)?.name || "-",
+      accessor: (row: Request) => row.department?.name || "-",
     },
     {
       header: "Activity",
-      accessor: (row: Request) =>
-        activities?.find((a) => a.id === row.activityId)?.activity_name || "-",
+      accessor: (row: Request) => row.activity?.activity_name || "-",
     },
     {
       header: "Site",
-      accessor: (row: Request) =>
-        sites?.find((s) => s.id === row.siteId)?.name || "-",
-    },
-    {
-      header: "Material Count",
-      accessor: (row: Request) => row.materialCount ?? "-",
-    },
-    {
-      header: "Labor Count",
-      accessor: (row: Request) => row.laborCount ?? "-",
+      accessor: (row: Request) => row.site?.name || "-",
     },
     {
       header: "Equipment Count",
@@ -150,7 +133,8 @@ const IncomingRequestsPage = () => {
         })) || [],
     },
   ];
-  const filteredRequests = searchfilteredRequests?.filter((request) => {
+
+  const filteredRequests = searchFilteredRequest?.filter((request) => {
     let matches = true;
 
     if (filterValues.status) {
@@ -169,11 +153,11 @@ const IncomingRequestsPage = () => {
   return (
     <div className="max-w-7xl mx-auto p-6 bg-white shadow-lg rounded-lg mt-6">
       <h1 className="text-4xl font-bold text-cyan-800 mb-4">
-        Incoming Requests
+        Equipment Requests
       </h1>
 
       {/* Status Summary */}
-      <div className="flex flex-wrap gap-4 mb-6">
+      <div className="flex flex-wrap gap-4 mb-4">
         {[
           { label: "Total", value: total },
           { label: "Pending", value: pending },
@@ -194,7 +178,7 @@ const IncomingRequestsPage = () => {
       </div>
 
       {/* Top Actions */}
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex justify-between items-center mb-4">
         <SearchInput value={searchQuery} onChange={setSearchQuery} />
         <div className="flex gap-4">
           <GenericDownloads
@@ -202,21 +186,12 @@ const IncomingRequestsPage = () => {
               ...req,
               displayId: `RC${String(idx + 1).padStart(3, "0")}`,
             }))}
-            title="All_Requests"
+            title="Equipment_Requests"
             columns={[
               { header: "Request ID", accessor: "displayId" },
               ...columns.slice(1),
             ]}
           />
-          <Link href="/requests/create">
-            <button
-              type="button"
-              className="px-3 py-3 text-white bg-cyan-700 rounded hover:bg-cyan-800"
-              title="New Request"
-            >
-              <Plus className="w-4 h-4" />
-            </button>
-          </Link>
         </div>
       </div>
 
@@ -226,7 +201,7 @@ const IncomingRequestsPage = () => {
 
       {/* Requests Table */}
       {filteredRequests.length === 0 ? (
-        <p className="text-gray-600">No requests match your search.</p>
+        <p className="text-gray-600">No material requests match your search.</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200 border border-gray-200">
@@ -241,8 +216,6 @@ const IncomingRequestsPage = () => {
                   "Department",
                   "Activity",
                   "Site",
-                  "Material Count",
-                  "Labor Count",
                   "Equipment Count",
                   "Status",
                   "Created Date",
@@ -278,21 +251,13 @@ const IncomingRequestsPage = () => {
                       {req.user?.first_name || "-"}
                     </td>
                     <td className="px-4 py-2 border border-gray-200">
-                      {departments?.find((d) => d.id === req.departmentId)
-                        ?.name || "-"}
+                      {req.department?.name || "-"}
                     </td>
                     <td className="px-4 py-2 border border-gray-200">
-                      {activities?.find((a) => a.id === req.activityId)
-                        ?.activity_name || "-"}
+                      {req.activity?.activity_name || "-"}
                     </td>
                     <td className="px-4 py-2 border border-gray-200">
-                      {sites?.find((s) => s.id === req.siteId)?.name || "-"}
-                    </td>
-                    <td className="px-4 py-2 border border-gray-200">
-                      {req.materialCount ?? "-"}
-                    </td>
-                    <td className="px-4 py-2 border border-gray-200">
-                      {req.laborCount ?? "-"}
+                      {req.site?.name || "-"}
                     </td>
                     <td className="px-4 py-2 border border-gray-200">
                       {req.equipmentCount ?? "-"}
@@ -362,4 +327,4 @@ const IncomingRequestsPage = () => {
   );
 };
 
-export default IncomingRequestsPage;
+export default EquipmentRequests;

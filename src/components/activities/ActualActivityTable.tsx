@@ -10,7 +10,6 @@ import {
   useUpdateActivity,
 } from "@/hooks/useActivities";
 import { UpdateActivityInput, Activity } from "@/types/activity";
-import { formatDate, getDuration } from "@/utils/helper";
 import EditActivityForm from "../forms/EditActivityForm";
 import ConfirmModal from "../ui/ConfirmModal";
 import ActivityTableSkeleton from "./ActivityTableSkeleton";
@@ -326,30 +325,30 @@ const ActualActivityTable: React.FC = () => {
               {selectedColumns.includes("labor") && (
                 <>
                   <th className="border border-gray-300 px-4 py-3 text-sm font-medium text-center whitespace-nowrap">
-                    +
+                    cost
                   </th>
                   <th className="border border-gray-300 px-4 py-3 text-sm font-medium text-center whitespace-nowrap">
-                    -
+                    +/-
                   </th>
                 </>
               )}
               {selectedColumns.includes("material") && (
                 <>
                   <th className="border border-gray-300 px-4 py-3 text-sm font-medium text-center whitespace-nowrap">
-                    +
+                    cost
                   </th>
                   <th className="border border-gray-300 px-4 py-3 text-sm font-medium text-center whitespace-nowrap">
-                    -
+                    +/-
                   </th>
                 </>
               )}
               {selectedColumns.includes("equipment") && (
                 <>
                   <th className="border border-gray-300 px-4 py-3 text-sm font-medium text-center whitespace-nowrap">
-                    +
+                    cost
                   </th>
                   <th className="border border-gray-300 px-4 py-3 text-sm font-medium text-center whitespace-nowrap">
-                    -
+                    +/-
                   </th>
                 </>
               )}
@@ -421,20 +420,23 @@ const ActualActivityTable: React.FC = () => {
                               {item.activity_name}
                             </Link>
                           )}
-                          {col === "unit" && item.unit}
-                          {col === "quantity" && (item.quantity ?? "–")}
-                          {col === "start_date" && formatDate(item.start_date)}
-                          {col === "end_date" && formatDate(item.end_date)}
+                          {col === "unit" && "-"}
+                          {col === "quantity" && ("0")}
+                          {col === "start_date" && "-"}
+                          {col === "end_date" && "-"}
                           {col === "duration" &&
-                            getDuration(item.start_date, item.end_date)}
+                            // getDuration(item.start_date, item.end_date)
+                            "0"
+                            }
                           {col === "progress" && (
                             <div className="relative h-5 bg-gray-200 rounded">
                               <div
-                                className="absolute h-full bg-blue-600 rounded"
-                                style={{ width: `${item.progress}%` }}
+                                // className="absolute h-full bg-blue-600 rounded"
+                                // style={{ width: `${item.progress}%` }}
                               >
                                 <span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-white">
-                                  {item.progress}%
+                                  {/* {item.progress}% */}
+                                  0%
                                 </span>
                               </div>
                             </div>

@@ -115,15 +115,11 @@ const menuItems = [
     iconColor: "text-blue-500",
     submenu: [
       { title: "Incoming Requests", link: "/requests-incoming", },
-      { title: "View Requests", link: "/requests" },
-      { title: "Requests Resource", link: "/resource-requests" },
-      {
-        title: "Request Materials", link: "/request-material",
-      },
-      {
-        title: "Request Equipment", link: "/request-equipment",
-      },
-      { title: "Request Labor", link: "/request-labor", },
+      // { title: "View Requests", link: "/requests" },
+      // { title: "Requests Resource", link: "/resource-requests" },
+      { title: "Request Materials", link: "/requests/materials" },
+      { title: "Request Equipment", link: "/requests/equipments" },
+      { title: "Request Labor", link: "/requests/labors", },
     ]
   },
   {
