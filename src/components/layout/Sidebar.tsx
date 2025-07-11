@@ -95,7 +95,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
         <FiX size={24} />
       </button>
 
-      <div className="flex items-center justify-center py-4">
+      <div className="flex items-center justify-center ">
         <Link href="/" className="flex items-center">
           <Image
             src={logo}
