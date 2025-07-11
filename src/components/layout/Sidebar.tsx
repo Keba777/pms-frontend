@@ -1,16 +1,13 @@
-// Sidebar.tsx
 "use client";
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { FiX } from "react-icons/fi";
-
-import WorkspaceDropdown from "@/components/ui/WorkspaceDropdown";
 import MenuItem from "@/components/ui/MenuItem";
 import menuItems from "./menuItems";
 import { useAuthStore } from "@/store/authStore";
-import { supabase } from "@/lib/supabase"; // ← import your supabase client
+import { supabase } from "@/lib/supabase";
 import logo from "@/../public/images/logo.jpg";
 
 interface SidebarProps {
@@ -23,6 +20,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
   const { hasPermission } = useAuthStore();
 
   const [chatBadge, setChatBadge] = useState(0);
+  const [groupChatBadge, setGroupChatBadge] = useState(0);
 
   // Fetch unread message count for “Chat” badge
   useEffect(() => {
@@ -43,12 +41,21 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
           setChatBadge(count ?? 0);
         }
       });
+    supabase
+      .from("group_messages")
+      .select("id", { count: "exact" })
+      .not("readers", "cs", `{"${user.id}"}`)
+      .then(({ count, error }) => {
+        if (error) console.error("Error fetching group unread count:", error);
+        else setGroupChatBadge(count ?? 0);
+      });
   }, [user]);
 
-  // Override only the Chat item’s badge
-  const menuItemsWithBadge = menuItems.map((item) =>
-    item.title === "Chat" ? { ...item, badge: chatBadge } : item
-  );
+  const menuItemsWithBadge = menuItems.map((item) => {
+    if (item.title === "Chat") return { ...item, badge: chatBadge };
+    if (item.title === "Team Chats") return { ...item, badge: groupChatBadge };
+    return item;
+  });
 
   // Apply your existing permission-based filtering
   const filteredMenuItems = menuItemsWithBadge.filter((item) => {
@@ -100,7 +107,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
         </Link>
       </div>
 
-      <WorkspaceDropdown />
+      <div className="px-2">
+        <h2 className="w-full bg-cyan-700 hover:bg-cyan-800 text-white px-4 py-2 rounded inline-flex items-center">
+          Raycon Construction
+        </h2>
+      </div>
 
       <ul className="py-1 px-3">
         {filteredMenuItems.map((item, idx) => (

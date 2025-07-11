@@ -18,169 +18,125 @@ import {
   ArrowUp,
   Hexagon,
   Lock,
-  Languages
+  Languages,
+  Activity,
+  CalendarRange,
 } from "lucide-react";
 
 const menuItems = [
-  { title: "Dashboard", link: "/", icon: Home, iconColor: "text-red-500" },
+  { title: "Dashboard", link: "/", icon: Home, iconColor: "text-rose-500" },
+
   {
     title: "Projects",
     icon: Briefcase,
-    iconColor: "text-green-500",
+    iconColor: "text-emerald-600",
     submenu: [
       { title: "Manage Projects", link: "/projects", active: true },
       { title: "Favorite Projects", link: "/projects/favorite" },
       { title: "Project Phase", link: "/projects/phase" },
-      { title: "Tags", link: "/tags/manage" },
     ],
   },
+
   {
     title: "Tasks",
     link: "/tasks",
     icon: ClipboardList,
-    iconColor: "text-blue-500",
+    iconColor: "text-sky-600",
   },
   {
     title: "Activities",
     link: "/activities",
-    icon: ClipboardList,
-    iconColor: "text-blue-500",
-  },
-  {
-    title: "Schedule",
-    link: "/schedule",
-    icon: ClipboardList,
-    iconColor: "text-blue-500",
+    icon: Activity,
+    iconColor: "text-orange-500",
   },
   {
     title: "Master-schedule",
     link: "/master-schedule",
-    icon: ClipboardList,
-    iconColor: "text-blue-500",
+    icon: CalendarRange,
+    iconColor: "text-indigo-600",
   },
-  {
-    title: "Daily Task Report",
-    link: "/dailyreports",
-    icon: ListCheck,
-    iconColor: "text-red-500",
-  },
-  // {
-  //   title: "Statuses",
-  //   link: "/status/manage",
-  //   icon: Grid,
-  //   iconColor: "text-gray-500",
-  // },
-  // {
-  //   title: "Resources",
-  //   link: "/resources",
-  //   icon: Grid,
-  //   iconColor: "text-blue-500",
-  // },
+
   {
     title: "Issues",
     link: "/issues",
     icon: ArrowUp,
-    iconColor: "text-red-500",
+    iconColor: "text-red-600",
   },
+
   {
     title: "Manage Resources",
     icon: Clipboard,
-    iconColor: "text-yellow-500",
+    iconColor: "text-yellow-600",
     submenu: [
       {
         title: "Manage Materials",
         link: "/resources/materials",
         icon: BoxIcon,
-        iconColor: "text-blue-500",
+        iconColor: "text-cyan-600",
       },
       {
         title: "Manage Equipment",
         link: "/resources/equipments",
         icon: PenTool,
-        iconColor: "text-gray-500",
+        iconColor: "text-zinc-600",
       },
       {
         title: "Manage Labors",
         link: "/resources/labors",
         icon: Users,
-        iconColor: "text-gray-500",
+        iconColor: "text-gray-600",
       },
     ],
   },
 
   {
     title: "Requests",
-
     icon: ListCheck,
-    iconColor: "text-blue-500",
+    iconColor: "text-blue-600",
     submenu: [
-      { title: "Incoming Requests", link: "/requests-incoming", },
-      // { title: "View Requests", link: "/requests" },
-      // { title: "Requests Resource", link: "/resource-requests" },
+      { title: "Incoming Requests", link: "/requests-incoming" },
       { title: "Request Materials", link: "/requests/materials" },
       { title: "Request Equipment", link: "/requests/equipments" },
-      { title: "Request Labor", link: "/requests/labors", },
-    ]
+      { title: "Request Labor", link: "/requests/labors" },
+    ],
   },
+
   {
-    title: " Allocation",
+    title: "Allocation",
     icon: CheckSquare,
-    iconColor: "text-blue-500",
+    iconColor: "text-lime-600",
     submenu: [
       { title: "Request Allocation", link: "/allocation" },
       { title: "Approvals", link: "/request-approval" },
       { title: "Delivery Report", link: "/deliveries" },
-    ]
+    ],
   },
+
   {
     title: "My Warehouse",
     link: "/mywarehouse",
     icon: ListCheck,
-    iconColor: "text-blue-500",
+    iconColor: "text-teal-600",
   },
   {
     title: "My Materials",
     link: "/site-materials",
     icon: BoxIcon,
-    iconColor: "text-blue-500",
+    iconColor: "text-violet-600",
   },
   {
     title: "My Equipment",
     link: "/site-equipments",
     icon: PenTool,
-    iconColor: "text-gray-500",
+    iconColor: "text-gray-600",
   },
   {
     title: "My Labors",
     link: "/site-labors",
     icon: Users,
-    iconColor: "text-gray-500",
+    iconColor: "text-gray-600",
   },
-  // {
-  //   title: "Warehouse Balance",
-  //   link: "/mywarehouse",
-  //   icon: ListCheck,
-  //   iconColor: "text-blue-500",
-  // },
-  // { title: "Users", link: "/users", icon: Users, iconColor: "text-blue-500" },
-  // {
-  //   title: "Department",
-  //   link: "/departments",
-  //   icon: Home,
-  //   iconColor: "text-red-500",
-  // },
-  // {
-  //   title: "Priorities",
-  //   link: "/priority/manage",
-  //   icon: ArrowUp,
-  //   iconColor: "text-green-500",
-  // },
-  // {
-  //   title: "Workspaces",
-  //   link: "/workspaces",
-  //   icon: CheckSquare,
-  //   iconColor: "text-red-500",
-  // },
+
   {
     title: "Chat",
     link: "/chat",
@@ -189,27 +145,123 @@ const menuItems = [
     badge: 0,
   },
   {
-    title: "Todos",
-    link: "/todos",
-    icon: ListCheck,
-    iconColor: "text-gray-800",
+    title: "Team Chats",
+    link: "/group-chat",
+    icon: Users,
+    iconColor: "text-purple-600",
     badge: 0,
   },
+
   {
     title: "Meetings",
     link: "/meetings",
     icon: Hexagon,
-    iconColor: "text-green-500",
+    iconColor: "text-green-600",
     badge: 0,
   },
   {
     title: "Announcements",
     link: "/announcements",
     icon: MessageSquare,
-    iconColor: "text-yellow-500",
+    iconColor: "text-orange-400",
   },
 
-  // { title: "Sites", link: "/sites", icon: Users, iconColor: "text-yellow-500" },
+  {
+    title: "Schedule",
+    link: "/schedule",
+    icon: ClipboardList,
+    iconColor: "text-indigo-500",
+  },
+
+  {
+    title: "Task Reports",
+    link: "/taskreports",
+    icon: FileText,
+    iconColor: "text-rose-600",
+  },
+
+  {
+    title: "Leave Requests",
+    link: "/leave-requests",
+    icon: ArrowRight,
+    iconColor: "text-red-500",
+    badge: 3,
+  },
+
+  {
+    title: "Activity Log",
+    link: "/activity-log",
+    icon: LineChart,
+    iconColor: "text-amber-600",
+  },
+  {
+    title: "Settings",
+    icon: Settings,
+    iconColor: "text-emerald-700",
+    submenu: [
+      {
+        title: "General",
+        link: "/settings",
+        icon: Settings2,
+        iconColor: "text-blue-600",
+      },
+      {
+        title: "Permissions",
+        link: "/settings/permission",
+        icon: Lock,
+        iconColor: "text-rose-600",
+      },
+      {
+        title: "Users",
+        link: "/users",
+        icon: Users,
+        iconColor: "text-indigo-600",
+      },
+      {
+        title: "Department",
+        link: "/departments",
+        icon: Home,
+        iconColor: "text-yellow-600",
+      },
+      {
+        title: "Priorities",
+        link: "/priority/manage",
+        icon: ArrowUp,
+        iconColor: "text-orange-600",
+      },
+      {
+        title: "Statuses",
+        link: "/status/manage",
+        icon: Grid,
+        iconColor: "text-gray-700",
+      },
+      {
+        title: "Clients",
+        link: "/clients",
+        icon: Users,
+        iconColor: "text-emerald-600",
+      },
+      {
+        title: "Sites",
+        link: "/sites",
+        icon: Users,
+        iconColor: "text-violet-600",
+      },
+      {
+        title: "Languages",
+        link: "/settings/languages",
+        icon: Languages,
+        iconColor: "text-cyan-600",
+      },
+    ]
+  },
+
+  {
+    title: "",
+  },
+  {
+    title: "",
+  }
   // {
   //   title: "Contracts",
   //   icon: FileText,
@@ -283,12 +335,12 @@ const menuItems = [
   //     },
   //   ],
   // },
-  {
-    title: "Hr Dashboard",
-    link: "/hrm",
-    icon: Users,
-    iconColor: "text-yellow-500",
-  },
+  // {
+  //   title: "Hr Dashboard",
+  //   link: "/hrm",
+  //   icon: Users,
+  //   iconColor: "text-yellow-500",
+  // },
   // {
   //   title: "Job Position",
   //   link: "/employee_possition",
@@ -331,71 +383,15 @@ const menuItems = [
   //   icon: BookOpen, // replaced Note with BookOpen
   //   iconColor: "text-blue-500",
   // },
-  {
-    title: "Leave Requests",
-    link: "/leave-requests",
-    icon: ArrowRight,
-    iconColor: "text-red-500",
-    badge: 3,
-  },
-  {
-    title: "Activity Log",
-    link: "/activity-log",
-    icon: LineChart,
-    iconColor: "text-yellow-500",
-  },
-  {
-    title: "Settings",
-    icon: Settings,
-    iconColor: "text-green-500",
-    submenu: [
-      { title: "General", link: "/settings", icon: Settings2, iconColor: "text-blue-500" },
-      { title: "Permissions", link: "/settings/permission", icon: Lock, iconColor: "text-green-500" },
-
-      { title: "Users", link: "/users", icon: Users, iconColor: "text-blue-500" },
-      {
-        title: "Department",
-        link: "/departments",
-        icon: Home,
-        iconColor: "text-red-500",
-      },
-      {
-        title: "Priorities",
-        link: "/priority/manage",
-        icon: ArrowUp,
-        iconColor: "text-green-500",
-      },
-      {
-        title: "Statuses",
-        link: "/status/manage",
-        icon: Grid,
-        iconColor: "text-gray-500",
-      },
-      {
-        title: "Clients",
-        link: "/clients",
-        icon: Users,
-        iconColor: "text-yellow-500",
-      },
-      { title: "Sites", link: "/sites", icon: Users, iconColor: "text-yellow-500" },
-      { title: "Languages", link: "/settings/languages", icon: Languages, iconColor: "text-cyan-600" },
-      // { title: "E-mail", link: "/settings/email" },
-      // { title: "SMS Gateway", link: "/settings/sms-gateway" },
-      // { title: "Pusher", link: "/settings/pusher" },
-      // { title: "Media Storage", link: "/settings/media-storage" },
-      // { title: "Templates", link: "/settings/templates" },
-      // { title: "System Updater", link: "/settings/system-updater" },
-    ],
-  },
-  {
-    title: "Report",
-    icon: FileText,
-    iconColor: "text-green-500",
-    submenu: [
-      { title: "Project", link: "/project/report" },
-      { title: "Tasks", link: "/task/report" },
-    ],
-  },
+  // {
+  //   title: "Report",
+  //   icon: FileText,
+  //   iconColor: "text-green-500",
+  //   submenu: [
+  //     { title: "Project", link: "/project/report" },
+  //     { title: "Tasks", link: "/task/report" },
+  //   ],
+  // },
 ];
 
 export default menuItems;
