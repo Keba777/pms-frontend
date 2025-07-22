@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, useFieldArray } from "react-hook-form";
 import Select from "react-select";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -34,11 +34,13 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
   } = useForm<CreateActivityInput>({
     defaultValues: {
       task_id: defaultTaskId || undefined,
-      priority: "Medium", // Default value for priority
-      status: "Not Started", // Default value for status
-      approvalStatus: "Pending", // Default value for approvalStatus
-      progress: 0, // Default progress
-      // quantity remains optional
+      priority: "Medium",
+      status: "Not Started",
+      approvalStatus: "Pending",
+      progress: 0,
+      work_force: [],
+      machinery_list: [],
+      materials_list: [],
     },
   });
 
@@ -61,6 +63,21 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
   } = useUsers();
   const { data: roles } = useRoles();
   const [duration, setDuration] = useState<string>("");
+  const {
+    fields: wfFields,
+    append: wfAppend,
+    remove: wfRemove,
+  } = useFieldArray({ control, name: "work_force" });
+  const {
+    fields: machFields,
+    append: machAppend,
+    remove: machRemove,
+  } = useFieldArray({ control, name: "machinery_list" });
+  const {
+    fields: matFields,
+    append: matAppend,
+    remove: matRemove,
+  } = useFieldArray({ control, name: "materials_list" });
 
   const startDate = watch("start_date");
   const endDate = watch("end_date");
@@ -122,12 +139,6 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
     { value: "Medium", label: "Medium" },
     { value: "Low", label: "Low" },
   ];
-
-  // const approvalStatusOptions = [
-  //   { value: "Approved", label: "Approved" },
-  //   { value: "Not Approved", label: "Not Approved" },
-  //   { value: "Pending", label: "Pending" },
-  // ];
 
   const CLIENT_ROLE_ID = "aa192529-c692-458e-bf96-42b7d4782c3d";
 
@@ -427,30 +438,6 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
               </p>
             )}
           </div>
-
-          {/* <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Approval Status
-            </label>
-            <Controller
-              name="approvalStatus"
-              control={control}
-              render={({ field }) => (
-                <Select
-                  {...field}
-                  options={approvalStatusOptions}
-                  className="basic-single"
-                  classNamePrefix="select"
-                  onChange={(selectedOption) =>
-                    field.onChange(selectedOption?.value)
-                  }
-                  value={approvalStatusOptions.find(
-                    (option) => option.value === field.value
-                  )}
-                />
-              )}
-            />
-          </div> */}
         </div>
 
         {/* Unit and Progress */}
@@ -531,183 +518,277 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
           )}
         </div>
 
-        <h2 className="text-xl font-bold text-center underline">
+        <h2 className="text-2xl font-bold text-center text-gray-800 mb-6 underline underline-offset-4">
           Basic Assumptions
         </h2>
-        <div>
-          <h3 className="font-semibold">Labor</h3>
-          <div className="my-1">
-            <label htmlFor="">1. Index factor:- </label>
-            <input
-              type="text"
-              // placeholder="Index factor:-"
-              className="ml-[88px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-            />
-          </div>
-          <div className="my-1 ">
-            <label htmlFor="">2. Utilization Factor:- </label>
-            <input
-              type="text"
-              // placeholder="UF"
-              className="ml-14 px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-            />
-          </div>
 
+        {/* Labor / Machinery / Materials factors */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
-            <label htmlFor="">3. Working hours per day:- </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Labor Index Factor
+            </label>
             <input
-              type="text"
-              // placeholder="Working hours per day"
-              className="ml-4 px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+              type="number"
+              step="0.01"
+              {...register("labor_index_factor")}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary focus:border-bs-primary transition-colors duration-200"
+              placeholder="Enter labor index factor"
             />
           </div>
-          <button className="bg-cyan-700 text-gray-100 px-4 py-2 rounded-md">
-            Add More
-          </button>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Labor Utilization Factor
+            </label>
+            <input
+              type="number"
+              step="0.01"
+              {...register("labor_utilization_factor")}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary focus:border-bs-primary transition-colors duration-200"
+              placeholder="Enter utilization factor"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Labor Working Hrs/Day
+            </label>
+            <input
+              type="number"
+              step="0.1"
+              {...register("labor_working_hours_per_day")}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary focus:border-bs-primary transition-colors duration-200"
+              placeholder="Enter working hours"
+            />
+          </div>
         </div>
 
-        <h2 className="font-2xl font-semibold text-cyan-700">
-          List of Work force
-        </h2>
-        <table className="min-w-max divide-y divide-gray-200">
-          <thead className="bg-cyan-700">
-            <tr>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
-                #
-              </th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
-                Man Power
-              </th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
-                Qty
-              </th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
-                Rate
-              </th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
-                Est-Hrs
-              </th>
-            </tr>
-          </thead>
-        </table>
-
-        <div>
-          <h3 className="font-semibold">Machinery</h3>
-          <div className="my-1">
-            <label htmlFor="">1. Index factor:- </label>
-            <input
-              type="text"
-              // placeholder="Index factor:-"
-              className="ml-[88px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-            />
-          </div>
-          <div className="my-1 ">
-            <label htmlFor="">2. Utilization Factor:- </label>
-            <input
-              type="text"
-              // placeholder="UF"
-              className="ml-14 px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-            />
-          </div>
-
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
           <div>
-            <label htmlFor="">3. Working hours per day:- </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Machinery Index Factor
+            </label>
             <input
-              type="text"
-              // placeholder="Working hours per day"
-              className="ml-4 px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+              type="number"
+              step="0.01"
+              {...register("machinery_index_factor")}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary focus:border-bs-primary transition-colors duration-200"
+              placeholder="Enter machinery index factor"
             />
           </div>
-          <button className="bg-cyan-700 text-gray-100 px-4 py-2 rounded-md">
-            Add More
-          </button>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Machinery Utilization Factor
+            </label>
+            <input
+              type="number"
+              step="0.01"
+              {...register("machinery_utilization_factor")}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary focus:border-bs-primary transition-colors duration-200"
+              placeholder="Enter utilization factor"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Machinery Working Hrs/Day
+            </label>
+            <input
+              type="number"
+              step="0.1"
+              {...register("machinery_working_hours_per_day")}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary focus:border-bs-primary transition-colors duration-200"
+              placeholder="Enter working hours"
+            />
+          </div>
         </div>
 
-        <h2 className="font-2xl font-semibold text-cyan-700">
-          List of Machinery
-        </h2>
-        <table className="min-w-max divide-y divide-gray-200">
-          <thead className="bg-cyan-700">
-            <tr>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
-                #
-              </th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
-                Equipment
-              </th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
-                Qty
-              </th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
-                Rate
-              </th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
-                Est-Hrs
-              </th>
-            </tr>
-          </thead>
-        </table>
+        {/* Dynamic workforce */}
+        <section className="mt-6">
+          <h4 className="text-lg font-semibold text-gray-800 mb-4">
+            Work Force
+          </h4>
+          {wfFields.map((f, i) => (
+            <div key={f.id} className="flex gap-4 mb-4 items-center">
+              <input
+                placeholder="Man Power"
+                {...register(`work_force.${i}.man_power` as const, {})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary focus:border-bs-primary transition-colors duration-200"
+              />
+              <input
+                type="number"
+                placeholder="Quantity"
+                {...register(`work_force.${i}.qty`, { valueAsNumber: true })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary focus:border-bs-primary transition-colors duration-200"
+              />
+              <input
+                type="number"
+                placeholder="Rate"
+                {...register(`work_force.${i}.rate`, { valueAsNumber: true })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary focus:border-bs-primary transition-colors duration-200"
+              />
+              <input
+                type="number"
+                placeholder="Estimated Hours"
+                {...register(`work_force.${i}.est_hrs`, {
+                  valueAsNumber: true,
+                })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary focus:border-bs-primary transition-colors duration-200"
+              />
+              <button
+                type="button"
+                onClick={() => wfRemove(i)}
+                className="px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors duration-200"
+              >
+                –
+              </button>
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() =>
+              wfAppend({ man_power: "", qty: 0, rate: 0, est_hrs: 0 })
+            }
+            className="mt-2 px-4 py-2 bg-bs-primary text-white rounded-md hover:bg-bs-primary/90 transition-colors duration-200"
+          >
+            + Add Work Force
+          </button>
+        </section>
 
-        <h2 className="font-2xl font-semibold text-cyan-700">
-          List of Materials
-        </h2>
-        <table className="min-w-max divide-y divide-gray-200">
-          <thead className="bg-cyan-700">
-            <tr>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
-                #
-              </th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
-                Material
-              </th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
-                Qty
-              </th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
-                Rate
-              </th>
-            </tr>
-          </thead>
-        </table>
+        {/* Dynamic machinery list */}
+        <section className="mt-6">
+          <h4 className="text-lg font-semibold text-gray-800 mb-4">
+            Machinery List
+          </h4>
+          {machFields.map((f, i) => (
+            <div key={f.id} className="flex gap-4 mb-4 items-center">
+              <input
+                placeholder="Equipment"
+                {...register(`machinery_list.${i}.equipment` as const)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary focus:border-bs-primary transition-colors duration-200"
+              />
+              <input
+                type="number"
+                placeholder="Quantity"
+                {...register(`machinery_list.${i}.qty`, {
+                  valueAsNumber: true,
+                })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary focus:border-bs-primary transition-colors duration-200"
+              />
+              <input
+                type="number"
+                placeholder="Rate"
+                {...register(`machinery_list.${i}.rate`, {
+                  valueAsNumber: true,
+                })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary focus:border-bs-primary transition-colors duration-200"
+              />
+              <input
+                type="number"
+                placeholder="Estimated Hours"
+                {...register(`machinery_list.${i}.est_hrs`, {
+                  valueAsNumber: true,
+                })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary focus:border-bs-primary transition-colors duration-200"
+              />
+              <button
+                type="button"
+                onClick={() => machRemove(i)}
+                className="px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors duration-200"
+              >
+                –
+              </button>
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() =>
+              machAppend({ equipment: "", qty: 0, rate: 0, est_hrs: 0 })
+            }
+            className="mt-2 px-4 py-2 bg-bs-primary text-white rounded-md hover:bg-bs-primary/90 transition-colors duration-200"
+          >
+            + Add Machinery
+          </button>
+        </section>
 
-        {/* Progress */}
-        {/* <div className="flex items-center space-x-4">
-          <label className="w-32 text-sm font-medium text-gray-700">
-            Progress (%):
-          </label>
-          <Controller
-            name="progress"
-            control={control}
-            defaultValue={0}
-            render={({ field }) => (
-              <div className="flex-1 flex items-center space-x-2">
-                <input
-                  type="range"
-                  min={0}
-                  max={100}
-                  {...field}
-                  className="flex-1"
-                  onChange={(e) => field.onChange(parseInt(e.target.value, 10))}
+        {/* Dynamic materials list */}
+        <section className="mt-6">
+          <h4 className="text-lg font-semibold text-gray-800 mb-4">
+            Materials List
+          </h4>
+          {matFields.map((f, i) => (
+            <div key={f.id} className="flex gap-4 mb-4 items-center">
+              <input
+                placeholder="Material"
+                {...register(`materials_list.${i}.material` as const)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary focus:border-bs-primary transition-colors duration-200"
+              />
+              <input
+                type="number"
+                placeholder="Quantity"
+                {...register(`materials_list.${i}.qty`, {
+                  valueAsNumber: true,
+                })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary focus:border-bs-primary transition-colors duration-200"
+              />
+              <input
+                type="number"
+                placeholder="Rate"
+                {...register(`materials_list.${i}.rate`, {
+                  valueAsNumber: true,
+                })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary focus:border-bs-primary transition-colors duration-200"
+              />
+              <button
+                type="button"
+                onClick={() => matRemove(i)}
+                className="px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors duration-200"
+              >
+                –
+              </button>
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() => matAppend({ material: "", qty: 0, rate: 0 })}
+            className="mt-2 px-4 py-2 bg-bs-primary text-white rounded-md hover:bg-bs-primary/90 transition-colors duration-200"
+          >
+            + Add Material
+          </button>
+        </section>
+
+        {/* Checked by */}
+        <div className="grid grid-cols-1 md:gap-6 mt-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Checked By Name
+            </label>
+            <input
+              type="text"
+              {...register("checked_by_name")}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary focus:border-bs-primary transition-colors duration-200"
+              placeholder="Enter name"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Checked By Date
+            </label>
+            <Controller
+              control={control}
+              name="checked_by_date"
+              render={({ field }) => (
+                <DatePicker
+                  selected={field.value ? new Date(field.value) : null}
+                  onChange={field.onChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary focus:border-bs-primary transition-colors duration-200"
+                  dateFormat="MM/dd/yyy"
+                  placeholderText="Select date"
+                  showYearDropdown
+                  scrollableYearDropdown
                 />
-                <span className="w-12 text-right">{field.value}%</span>
-              </div>
-            )}
-          />
+              )}
+            />
+          </div>
         </div>
-        <div>
-          <label htmlFor="">Checked by:- </label>
-          <input
-            type="text"
-            // placeholder="Checked by:-"
-            className="ml-4 px-3 border  focus:outline-none focus:ring-2 focus:ring-bs-primary"
-          />
-          <input
-            type="date"
-            name=""
-            id=""
-            className="ml-4 px-3 border  focus:outline-none focus:ring-2 focus:ring-bs-primary"
-          />
-        </div> */}
 
         {/* Form Actions */}
         <div className="flex justify-end gap-4 pt-6 border-t">

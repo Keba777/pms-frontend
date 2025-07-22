@@ -65,7 +65,7 @@ export const useCreateLaborInformation = () => {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: createLaborInformation,
-        onSuccess: (data) => {
+        onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["labor-informations"] });
             toast.success("Labor Information created successfully");
         },
@@ -79,7 +79,7 @@ export const useUpdateLaborInformation = () => {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: updateLaborInformation,
-        onSuccess: (data) => {
+        onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["labor-informations"] });
             toast.success("Labor Information updated successfully");
         },
@@ -93,7 +93,7 @@ export const useDeleteLaborInformation = () => {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: deleteLaborInformation,
-        onSuccess: (data) => {
+        onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["labor-informations"] });
             toast.success("Labor Information deleted successfully");
         },
