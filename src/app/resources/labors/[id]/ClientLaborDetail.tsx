@@ -1,4 +1,3 @@
-// components/ClientLaborDetail.tsx
 "use client";
 
 import React from "react";
@@ -6,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { useLabors } from "@/hooks/useLabors";
 import { useSites } from "@/hooks/useSites";
-import Link from "next/link";
 import { Labor } from "@/types/labor";
 import { getDuration } from "@/utils/helper";
 
@@ -30,7 +28,6 @@ export default function ClientLaborDetail({ siteId }: ClientLaborDetailProps) {
     );
   }
 
-  // filter labors by siteId
   const siteLabors: Labor[] = labors?.filter((l) => l.siteId === siteId) ?? [];
 
   return (
@@ -58,16 +55,16 @@ export default function ClientLaborDetail({ siteId }: ClientLaborDetailProps) {
               <tr>
                 {[
                   "#",
+                  "First Name",
+                  "Last Name",
                   "Role",
                   "Unit",
-                  "Qyt",
-                  "Min Qty",
+                  // "Qyt",
+                  // "Min Qty",
                   "Est-Hrs",
                   "Rate",
                   "OT",
                   "Total Amount",
-                  // "Responsible Person",
-                  // "Allocation Status",
                   "Starting Date",
                   "Due Date",
                   "Duration",
@@ -83,68 +80,65 @@ export default function ClientLaborDetail({ siteId }: ClientLaborDetailProps) {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {siteLabors.map((l, idx) => (
-                <tr key={l.id}>
-                  <td className="px-4 py-2 border border-gray-200">
-                    {idx + 1}
-                  </td>
-                  <td className="px-4 py-2 border border-gray-200">
-                    <Link
-                      href={`/resources/labor/${l.id}`}
-                      className="text-blue-600 hover:underline"
-                    >
-                      {l.role}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-2 border border-gray-200">{l.unit}</td>
-                  <td className="px-4 py-2 border border-gray-200">
-                    {l.quantity ?? "-"}
-                  </td>
-                  <td className="px-4 py-2 border border-gray-200">
-                    {l.minQuantity ?? "-"}
-                  </td>
-                  <td className="px-4 py-2 border border-gray-200">
-                    {l.estimatedHours ?? "-"}
-                  </td>
-                  <td className="px-4 py-2 border border-gray-200">
-                    {l.rate ?? "-"}
-                  </td>
-                  <td className="px-4 py-2 border border-gray-200">
-                    {l.overtimeRate ?? "-"}
-                  </td>
-                  <td className="px-4 py-2 border border-gray-200">
-                    {l.totalAmount ?? "-"}
-                  </td>
-                  {/* <td className="px-4 py-2 border border-gray-200">
-                    {l.skill_level ?? "-"}
-                  </td> */}
-                  {/* <td className="px-4 py-2 border border-gray-200">
-                    {l.responsiblePerson ?? "-"}
-                  </td> */}
-                  {/* <td className="px-4 py-2 border border-gray-200">
-                    {l.allocationStatus ?? "-"}
-                  </td> */}
-
-                  <td className="px-4 py-2 border border-gray-200">
-                    {l.createdAt
-                      ? new Date(l.createdAt).toLocaleDateString()
-                      : "-"}
-                  </td>
-                  <td className="px-4 py-2 border border-gray-200">
-                    {l.updatedAt
-                      ? new Date(l.updatedAt).toLocaleDateString()
-                      : "-"}
-                  </td>
-                  <td className="px-4 py-2 border border-gray-200">
-                    {l.createdAt &&
-                      l.updatedAt &&
-                      getDuration(l.createdAt, l.updatedAt)}
-                  </td>
-                  <td className="px-4 py-2 border border-gray-200">
-                    {l.status}
-                  </td>
-                </tr>
-              ))}
+              {siteLabors.flatMap((l, laborIndex) => {
+                return (
+                  l.laborInformations?.map((info, infoIndex) => (
+                    <tr key={`${l.id}-${info.id}`}>
+                      <td className="px-4 py-2 border border-gray-200">
+                        {laborIndex + 1}.{infoIndex + 1}
+                      </td>
+                      <td className="px-4 py-2 border border-gray-200">
+                        {info.firstName}
+                      </td>
+                      <td className="px-4 py-2 border border-gray-200">
+                        {info.lastName}
+                      </td>
+                      <td className="px-4 py-2 border border-gray-200">
+                        {l.role}
+                      </td>
+                      <td className="px-4 py-2 border border-gray-200">
+                        {l.unit}
+                      </td>
+                      {/* <td className="px-4 py-2 border border-gray-200">
+                        {l.quantity ?? "-"}
+                      </td>
+                      <td className="px-4 py-2 border border-gray-200">
+                        {l.minQuantity ?? "-"}
+                      </td> */}
+                      <td className="px-4 py-2 border border-gray-200">
+                        {l.estimatedHours ?? "-"}
+                      </td>
+                      <td className="px-4 py-2 border border-gray-200">
+                        {l.rate ?? "-"}
+                      </td>
+                      <td className="px-4 py-2 border border-gray-200">
+                        {l.overtimeRate ?? "-"}
+                      </td>
+                      <td className="px-4 py-2 border border-gray-200">
+                        {l.totalAmount ?? "-"}
+                      </td>
+                      <td className="px-4 py-2 border border-gray-200">
+                        {info.startsAt
+                          ? new Date(info.startsAt).toLocaleDateString()
+                          : "-"}
+                      </td>
+                      <td className="px-4 py-2 border border-gray-200">
+                        {info.endsAt
+                          ? new Date(info.endsAt).toLocaleDateString()
+                          : "-"}
+                      </td>
+                      <td className="px-4 py-2 border border-gray-200">
+                        {info.startsAt && info.endsAt
+                          ? getDuration(info.startsAt, info.endsAt)
+                          : "-"}
+                      </td>
+                      <td className="px-4 py-2 border border-gray-200">
+                        {info.status}
+                      </td>
+                    </tr>
+                  )) ?? []
+                );
+              })}
             </tbody>
           </table>
         </div>

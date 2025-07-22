@@ -1,3 +1,4 @@
+import { LaborInformation } from "./laborInformation";
 import { Site } from "./site";
 
 export interface Labor {
@@ -14,6 +15,7 @@ export interface Labor {
     totalAmount?: number;
     skill_level?: string;
     responsiblePerson?: string
+    laborInformations?: LaborInformation[];
     allocationStatus?: "Allocated" | "Unallocated" | "OnLeave"
     status?: "Active" | "InActive"
     createdAt?: Date;
