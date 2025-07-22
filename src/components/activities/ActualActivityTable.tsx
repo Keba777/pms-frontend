@@ -441,7 +441,7 @@ const ActualActivityTable: React.FC = () => {
                               </div>
                             </div>
                           )}
-                          {col === "status" && item.status}
+                          {col === "status" && "-"}
                           {col === "total" && item.resourceCosts.total}
                           {col === "overUnder" && item.overUnder}
                           {col === "actions" && (

@@ -7,7 +7,7 @@ import { Menu, MenuButton, MenuItems, MenuItem } from "@headlessui/react";
 import { ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTaskStore } from "@/store/taskStore";
-import { formatDate, getDuration } from "@/utils/helper";
+import { getDuration } from "@/utils/helper";
 import GenericDownloads from "@/components/common/GenericDownloads";
 import { Task, UpdateTaskInput } from "@/types/task";
 import { useDeleteTask, useUpdateTask } from "@/hooks/useTasks";
@@ -263,11 +263,11 @@ const ActualTaskTable: React.FC = () => {
           <tbody className="bg-white divide-y divide-gray-200">
             {filteredTasks.length > 0 ? (
               filteredTasks.map((task) => {
-                const duration = getDuration(task.start_date, task.end_date);
-                const remaining = getDuration(
-                  new Date().toISOString(),
-                  task.end_date
-                );
+                // const duration = getDuration(task.start_date, task.end_date);
+                // const remaining = getDuration(
+                //   new Date().toISOString(),
+                //   task.end_date
+                // );
                 return (
                   <tr key={task.id} className="hover:bg-gray-50">
                     {selectedColumns.includes("task_name") && (
@@ -295,23 +295,23 @@ const ActualTaskTable: React.FC = () => {
                             priorityBadgeClasses[task.priority]
                           }`}
                         >
-                          {task.priority}
+                          {"-"}
                         </span>
                       </td>
                     )}
                     {selectedColumns.includes("start_date") && (
                       <td className="px-4 py-2">
-                        {formatDate(task.start_date)}
+                        {"-"}
                       </td>
                     )}
                     {selectedColumns.includes("end_date") && (
-                      <td className="px-4 py-2">{formatDate(task.end_date)}</td>
+                      <td className="px-4 py-2">{"-"}</td>
                     )}
                     {selectedColumns.includes("duration") && (
-                      <td className="px-4 py-2">{duration}</td>
+                      <td className="px-4 py-2">{"-"}</td>
                     )}
                     {selectedColumns.includes("remaining") && (
-                      <td className="px-4 py-2">{remaining}</td>
+                      <td className="px-4 py-2">{"-"}</td>
                     )}
                     {selectedColumns.includes("budget") && (
                       <td className="px-4 py-2">0</td>
@@ -324,7 +324,7 @@ const ActualTaskTable: React.FC = () => {
                             style={{ width: `${task.progress ?? 0}%` }}
                           >
                             <span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-white">
-                              {task.progress ?? 0}%
+                              {"-"}%
                             </span>
                           </div>
                         </div>
@@ -337,12 +337,12 @@ const ActualTaskTable: React.FC = () => {
                             statusBadgeClasses[task.status]
                           }`}
                         >
-                          {task.status}
+                          {"-"}
                         </span>
                       </td>
                     )}
                     {selectedColumns.includes("approvalStatus") && (
-                      <td className="px-4 py-2">{task.approvalStatus}</td>
+                      <td className="px-4 py-2">{}</td>
                     )}
                     {selectedColumns.includes("actions") && (
                       <td className="px-4 py-2">
