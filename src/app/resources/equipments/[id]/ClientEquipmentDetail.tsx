@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { useEquipments } from "@/hooks/useEquipments";
 import { useSites } from "@/hooks/useSites";
-import Link from "next/link";
 import { Equipment } from "@/types/equipment";
 import { getDuration } from "@/utils/helper";
 
@@ -136,12 +135,7 @@ export default function ClientEquipmentDetail({
                     {idx + 1}
                   </td>
                   <td className="px-4 py-2 border border-gray-200">
-                    <Link
-                      href={`/resources/equipment/${eq.id}`}
-                      className="text-blue-600 hover:underline"
-                    >
-                      {eq.item}
-                    </Link>
+                    {eq.item}
                   </td>
                   <td className="px-4 py-2 border border-gray-200">
                     {eq.type || "-"}
