@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { CreateEquipmentInput } from "@/types/equipment";
 import { useCreateEquipment } from "@/hooks/useEquipments";
+import DatePicker from "react-datepicker";
 
 interface EquipmentFormProps {
   siteId: string;
@@ -16,6 +17,7 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ siteId, onClose }) => {
     handleSubmit,
     watch,
     setValue,
+    control,
     formState: { errors },
   } = useForm<CreateEquipmentInput>();
 
@@ -305,6 +307,95 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ siteId, onClose }) => {
               <option value="OnMaintainance">On Maintainance</option>
               <option value="InActive">In Active</option>
             </select>
+          </div>
+        </div>
+        {/* New Fields: Utilization Factor, Total Time, Starting Date, Due Date, Shifting Date */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Utilization Factor
+            </label>
+            <input
+              type="number"
+              step="0.01"
+              {...register("utilization_factor", { valueAsNumber: true })}
+              placeholder="Enter Utilization Factor (optional)"
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Total Time
+            </label>
+            <input
+              type="number"
+              step="0.01"
+              {...register("totalTime", { valueAsNumber: true })}
+              readOnly
+              className="w-full px-3 py-2 bg-gray-100 border rounded-md focus:outline-none"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Starting Date
+            </label>
+            <Controller
+              name="startingDate"
+              control={control}
+              render={({ field }) => (
+                <DatePicker
+                  selected={field.value ? new Date(field.value) : null}
+                  onChange={field.onChange}
+                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+                  dateFormat="MM/dd/yyyy"
+                  placeholderText="Select Starting Date (optional)"
+                  showYearDropdown
+                  scrollableYearDropdown
+                />
+              )}
+            />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Due Date
+            </label>
+            <Controller
+              name="dueDate"
+              control={control}
+              render={({ field }) => (
+                <DatePicker
+                  selected={field.value ? new Date(field.value) : null}
+                  onChange={field.onChange}
+                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+                  dateFormat="MM/dd/yyyy"
+                  placeholderText="Select Due Date (optional)"
+                  showYearDropdown
+                  scrollableYearDropdown
+                />
+              )}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Shifting Date
+            </label>
+            <Controller
+              name="shiftingDate"
+              control={control}
+              render={({ field }) => (
+                <DatePicker
+                  selected={field.value ? new Date(field.value) : null}
+                  onChange={field.onChange}
+                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+                  dateFormat="MM/dd/yyyy"
+                  placeholderText="Select Shifting Date (optional)"
+                  showYearDropdown
+                  scrollableYearDropdown
+                />
+              )}
+            />
           </div>
         </div>
       </div>

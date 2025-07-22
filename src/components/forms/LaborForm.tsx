@@ -1,9 +1,11 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { CreateLaborInput } from "@/types/labor";
 import { useCreateLabor } from "@/hooks/useLabors";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 interface LaborFormProps {
   siteId: string;
@@ -16,6 +18,7 @@ const LaborForm: React.FC<LaborFormProps> = ({ siteId, onClose }) => {
     handleSubmit,
     watch,
     setValue,
+    control,
     formState: { errors },
   } = useForm<CreateLaborInput>();
 
@@ -30,6 +33,12 @@ const LaborForm: React.FC<LaborFormProps> = ({ siteId, onClose }) => {
     const total = Number(minQuantity) * Number(estimatedHours) * Number(rate);
     setValue("totalAmount", total);
   }, [minQuantity, estimatedHours, rate, setValue]);
+
+  // Auto-calculate total_time = estimatedHours if not explicitly set
+  useEffect(
+    () => setValue("totalTime", Number(estimatedHours)),
+    [estimatedHours, setValue]
+  );
 
   const onSubmit = (data: CreateLaborInput) => {
     createLabor(
@@ -56,7 +65,7 @@ const LaborForm: React.FC<LaborFormProps> = ({ siteId, onClose }) => {
           className="text-3xl text-red-500 hover:text-red-600"
           onClick={onClose}
         >
-          &times;
+          ×
         </button>
       </div>
 
@@ -245,6 +254,96 @@ const LaborForm: React.FC<LaborFormProps> = ({ siteId, onClose }) => {
               <option value="Active">Active</option>
               <option value="InActive">In Active</option>
             </select>
+          </div>
+        </div>
+
+        {/* New Fields: Utilization Factor, Total Time, Starting Date, Due Date, Shifting Date */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Utilization Factor
+            </label>
+            <input
+              type="number"
+              step="0.01"
+              {...register("utilization_factor", { valueAsNumber: true })}
+              placeholder="Enter Utilization Factor (optional)"
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Total Time
+            </label>
+            <input
+              type="number"
+              step="0.01"
+              {...register("totalTime", { valueAsNumber: true })}
+              readOnly
+              className="w-full px-3 py-2 bg-gray-100 border rounded-md focus:outline-none"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Starting Date
+            </label>
+            <Controller
+              name="startingDate"
+              control={control}
+              render={({ field }) => (
+                <DatePicker
+                  selected={field.value ? new Date(field.value) : null}
+                  onChange={field.onChange}
+                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+                  dateFormat="MM/dd/yyyy"
+                  placeholderText="Select Starting Date (optional)"
+                  showYearDropdown
+                  scrollableYearDropdown
+                />
+              )}
+            />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Due Date
+            </label>
+            <Controller
+              name="dueDate"
+              control={control}
+              render={({ field }) => (
+                <DatePicker
+                  selected={field.value ? new Date(field.value) : null}
+                  onChange={field.onChange}
+                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+                  dateFormat="MM/dd/yyyy"
+                  placeholderText="Select Due Date (optional)"
+                  showYearDropdown
+                  scrollableYearDropdown
+                />
+              )}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Shifting Date
+            </label>
+            <Controller
+              name="shiftingDate"
+              control={control}
+              render={({ field }) => (
+                <DatePicker
+                  selected={field.value ? new Date(field.value) : null}
+                  onChange={field.onChange}
+                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+                  dateFormat="MM/dd/yyyy"
+                  placeholderText="Select Shifting Date (optional)"
+                  showYearDropdown
+                  scrollableYearDropdown
+                />
+              )}
+            />
           </div>
         </div>
       </div>

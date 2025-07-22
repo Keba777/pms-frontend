@@ -21,6 +21,11 @@ export interface Equipment {
     condition?: string
     owner?: "Raycon" | "Rental"
     status?: "Allocated" | "Unallocated" | "OnMaintainance" | "InActive"
+    utilization_factor?: number;
+    totalTime?: number;
+    startingDate?: Date;
+    dueDate?: Date;
+    shiftingDate?: Date;
     createdAt?: Date;
     updatedAt?: Date;
 }
@@ -43,6 +48,11 @@ export interface CreateEquipmentInput {
     condition?: string
     owner?: "Raycon" | "Rental"
     status?: "Allocated" | "Unallocated" | "OnMaintainance" | "InActive"
+    utilization_factor?: number;
+    totalTime?: number;
+    startingDate?: Date;
+    dueDate?: Date;
+    shiftingDate?: Date;
 }
 
 export interface UpdateEquipmentInput {
@@ -64,4 +74,9 @@ export interface UpdateEquipmentInput {
     condition?: string
     owner?: "Raycon" | "Rental"
     status?: "Allocated" | "Unallocated" | "OnMaintainance" | "InActive"
+    utilization_factor?: number;
+    totalTime?: number;
+    startingDate?: Date;
+    dueDate?: Date;
+    shiftingDate?: Date;
 }

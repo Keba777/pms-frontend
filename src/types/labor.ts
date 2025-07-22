@@ -18,6 +18,11 @@ export interface Labor {
     laborInformations?: LaborInformation[];
     allocationStatus?: "Allocated" | "Unallocated" | "OnLeave"
     status?: "Active" | "InActive"
+    utilization_factor?: number;
+    totalTime?: number;
+    startingDate?: Date;
+    dueDate?: Date;
+    shiftingDate?: Date;
     createdAt?: Date;
     updatedAt?: Date;
 }
@@ -37,6 +42,11 @@ export interface CreateLaborInput {
     responsiblePerson?: string
     allocationStatus?: "Allocated" | "Unallocated" | "OnLeave"
     status?: "Active" | "InActive"
+    utilization_factor?: number;
+    totalTime?: number;
+    startingDate?: Date;
+    dueDate?: Date;
+    shiftingDate?: Date;
 }
 
 export interface UpdateLaborInput {
@@ -55,4 +65,9 @@ export interface UpdateLaborInput {
     responsiblePerson?: string
     allocationStatus?: "Allocated" | "Unallocated" | "OnLeave"
     status?: "Active" | "InActive"
+    utilization_factor?: number;
+    totalTime?: number;
+    startingDate?: Date;
+    dueDate?: Date;
+    shiftingDate?: Date;
 }
