@@ -111,6 +111,26 @@ const menuItems = [
       { title: "Delivery Report", link: "/deliveries" },
     ],
   },
+  {
+    title: "Dispatch",
+    link: "/dispatches",
+    icon: ArrowRight,
+    iconColor: "text-purple-600",
+  },
+
+  {
+    title: "Request Delivery",
+    link: "/request-delivery",
+    icon: FileText,
+    iconColor: "text-teal-600",
+  },
+
+  {
+    title: "KPI",
+    link: "/kpis",
+    icon: LineChart,
+    iconColor: "text-pink-600",
+  },
 
   {
     title: "My Warehouse",
