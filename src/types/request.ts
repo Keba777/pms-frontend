@@ -1,4 +1,5 @@
 import { Activity } from "./activity";
+import { Approval } from "./approval";
 import { Department } from "./department";
 import { Site } from "./site";
 import { User } from "./user";
@@ -20,6 +21,7 @@ export interface Request {
     laborIds?: string[];
     materialIds?: string[];
     equipmentIds?: string[];
+    approvals?: Approval[];
     createdAt: Date;
     updatedAt: Date;
 }

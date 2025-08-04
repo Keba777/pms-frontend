@@ -107,6 +107,116 @@ export default function ClientActivityDetail({
       <div className="mt-8">
         <TimeSheets />
       </div>
+      {activity.requests && (
+        <div className="mt-12">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">
+            Approved Requests
+          </h2>
+
+          {activity.requests
+            .filter((req) =>
+              req.approvals?.some(
+                (approval) =>
+                  approval.finalDepartment === true &&
+                  approval.status === "Approved"
+              )
+            )
+            .map((request) => (
+              <div
+                key={request.id}
+                className="border border-gray-200 rounded-lg shadow p-4 mb-6"
+              >
+                <p className="font-semibold text-gray-700 mb-2">
+                  Requested by: {request.user?.first_name}
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Materials Table */}
+                  {Array.isArray(request.materialIds) &&
+                    request.materialIds?.length > 0 && (
+                      <div>
+                        <h3 className="text-lg font-bold mb-2">Materials</h3>
+                        <table className="min-w-full table-auto text-sm border border-gray-300">
+                          <thead>
+                            <tr className="bg-gray-100">
+                              <th className="border p-2">Name</th>
+                              <th className="border p-2">Qty</th>
+                              <th className="border p-2">Rate</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {activity.materials_list?.map((mat, idx) => (
+                              <tr key={idx}>
+                                <td className="border p-2">{mat.material}</td>
+                                <td className="border p-2">{mat.qty}</td>
+                                <td className="border p-2">{mat.rate}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+
+                  {/* Equipment Table */}
+                  {Array.isArray(request.equipmentIds) &&
+                    request.equipmentIds?.length > 0 && (
+                      <div>
+                        <h3 className="text-lg font-bold mb-2">Equipment</h3>
+                        <table className="min-w-full table-auto text-sm border border-gray-300">
+                          <thead>
+                            <tr className="bg-gray-100">
+                              <th className="border p-2">Name</th>
+                              <th className="border p-2">Qty</th>
+                              <th className="border p-2">Rate</th>
+                              <th className="border p-2">Est. Hrs</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {activity.machinery_list?.map((eq, idx) => (
+                              <tr key={idx}>
+                                <td className="border p-2">{eq.equipment}</td>
+                                <td className="border p-2">{eq.qty}</td>
+                                <td className="border p-2">{eq.rate}</td>
+                                <td className="border p-2">{eq.est_hrs}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+
+                  {/* Labor Table */}
+                  {Array.isArray(request.laborIds) &&
+                    request.laborIds.length > 0 && (
+                      <div>
+                        <h3 className="text-lg font-bold mb-2">Labor</h3>
+                        <table className="min-w-full table-auto text-sm border border-gray-300">
+                          <thead>
+                            <tr className="bg-gray-100">
+                              <th className="border p-2">Role</th>
+                              <th className="border p-2">Qty</th>
+                              <th className="border p-2">Rate</th>
+                              <th className="border p-2">Est. Hrs</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {activity.work_force?.map((lab, idx) => (
+                              <tr key={idx}>
+                                <td className="border p-2">{lab.man_power}</td>
+                                <td className="border p-2">{lab.qty}</td>
+                                <td className="border p-2">{lab.rate}</td>
+                                <td className="border p-2">{lab.est_hrs}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                </div>
+              </div>
+            ))}
+        </div>
+      )}
     </div>
   );
 }
