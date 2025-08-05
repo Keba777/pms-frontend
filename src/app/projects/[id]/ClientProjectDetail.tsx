@@ -61,7 +61,7 @@ export default function ClientProjectDetail({
     {
       key: "activityLog",
       label: "Activity Log",
-      component: <ActivityLogTab />,
+      component: <ActivityLogTab projectId={projectId} />,
     },
   ];
 

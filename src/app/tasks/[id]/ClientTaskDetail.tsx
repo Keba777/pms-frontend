@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { useTaskStore } from "@/store/taskStore";
 import { Task } from "@/types/task";
+import WorkflowLogTable from "@/components/common/WorkflowLogTable";
 
 interface ClientTaskDetailProps {
   taskId: string;
@@ -106,6 +107,8 @@ export default function ClientTaskDetail({ taskId }: ClientTaskDetailProps) {
           </div>
         </div>
       </div>
+      <h1 className="text-2xl font-semibold text-cyan-700 mb-6 mt-8">Task Workflow Logs</h1>
+      <WorkflowLogTable entityType="Task" entityId={taskId} />
     </div>
   );
 }

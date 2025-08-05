@@ -265,11 +265,7 @@ const KpisPage: React.FC = () => {
                   Score
                 </th>
               )}
-              {selectedColumns.includes("status") && (
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
-                  Status
-                </th>
-              )}
+
               {selectedColumns.includes("remark") && (
                 <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
                   Remark
@@ -299,6 +295,12 @@ const KpisPage: React.FC = () => {
                 </th>
               )}
 
+              {selectedColumns.includes("status") && (
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+                  Status
+                </th>
+              )}
+
               {selectedColumns.includes("actions") && (
                 <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
                   Actions
@@ -323,23 +325,7 @@ const KpisPage: React.FC = () => {
                   {selectedColumns.includes("score") && (
                     <td className="px-4 py-2">{kpi.score}</td>
                   )}
-                  {selectedColumns.includes("status") && (
-                    <td className="px-4 py-2">
-                      <span
-                        className={`badge bg-gray-100 px-2 py-1 rounded ${
-                          kpi.status === "Excellent"
-                            ? "text-green-600"
-                            : kpi.status === "V.Good"
-                            ? "text-blue-500"
-                            : kpi.status === "Good"
-                            ? "text-yellow-500"
-                            : "text-red-500"
-                        }`}
-                      >
-                        {kpi.status}
-                      </span>
-                    </td>
-                  )}
+
                   {selectedColumns.includes("remark") && (
                     <td className="px-4 py-2">{kpi.remark || "N/A"}</td>
                   )}
@@ -386,6 +372,24 @@ const KpisPage: React.FC = () => {
                     )}
                   {selectedColumns.includes("target") && (
                     <td className="px-4 py-2">{kpi.target ?? "N/A"}</td>
+                  )}
+
+                  {selectedColumns.includes("status") && (
+                    <td className="px-4 py-2">
+                      <span
+                        className={`badge bg-gray-100 px-2 py-1 rounded ${
+                          kpi.status === "Excellent"
+                            ? "text-green-600"
+                            : kpi.status === "V.Good"
+                            ? "text-blue-500"
+                            : kpi.status === "Good"
+                            ? "text-yellow-500"
+                            : "text-red-500"
+                        }`}
+                      >
+                        {kpi.status}
+                      </span>
+                    </td>
                   )}
 
                   {selectedColumns.includes("actions") && (

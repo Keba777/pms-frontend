@@ -1,27 +1,17 @@
-// components/tabs/ActivityLogTab.tsx
 import React from "react";
+import WorkflowLogTable from "../common/WorkflowLogTable";
 
-export default function ActivityLogTab() {
+interface ActivityLogTabProps {
+  projectId: string;
+}
+
+export default function ActivityLogTab({ projectId }: ActivityLogTabProps) {
   return (
     <div>
-      <h2 className="text-2xl font-semibold mb-4">Activity Log</h2>
-      <table className="w-full border-collapse">
-        <thead>
-          <tr className="bg-cyan-700 text-white">
-            <th className="border px-3 py-2">Time</th>
-            <th className="border px-3 py-2">User</th>
-            <th className="border px-3 py-2">Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {/* TODO: map over your activity entries */}
-          <tr>
-            <td className="border px-3 py-2">2025-05-20 14:32</td>
-            <td className="border px-3 py-2">Charlie</td>
-            <td className="border px-3 py-2">Created new task “Design UI”</td>
-          </tr>
-        </tbody>
-      </table>
+      <h1 className="text-2xl font-semibold text-cyan-700 mb-6 mt-8">
+        Project Workflow Logs
+      </h1>
+      <WorkflowLogTable entityType="Project" entityId={projectId} />
     </div>
   );
 }

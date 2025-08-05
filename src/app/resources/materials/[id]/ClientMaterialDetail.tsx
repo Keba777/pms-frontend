@@ -176,7 +176,7 @@ export default function ClientMaterialDetail({
                     {mat.shelfNo ?? "-"}
                   </td>
                   <td className="px-4 py-2 border border-gray-200">
-                    {mat.status ?? "-"}
+                    {mat.status === "Allocated" ? "Available" : "Not Available"}
                   </td>
                 </tr>
               ))}
