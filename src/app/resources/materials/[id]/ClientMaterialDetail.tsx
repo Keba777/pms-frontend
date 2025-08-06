@@ -55,10 +55,10 @@ export default function ClientMaterialDetail({
 
   const total = siteMaterials?.length ?? 0;
   const allocated =
-    siteMaterials?.filter((l) => l.status === "Allocated").length ?? 0;
+    siteMaterials?.filter((l) => l.status === "Available").length ?? 0;
 
   const unallocted =
-    siteMaterials?.filter((l) => l.status === "Unallocated").length ?? 0;
+    siteMaterials?.filter((l) => l.status === "Unavailable").length ?? 0;
 
   return (
     <div className="max-w-6xl mx-auto p-6 bg-white shadow-lg rounded-lg mt-6">
@@ -176,7 +176,7 @@ export default function ClientMaterialDetail({
                     {mat.shelfNo ?? "-"}
                   </td>
                   <td className="px-4 py-2 border border-gray-200">
-                    {mat.status === "Allocated" ? "Available" : "Not Available"}
+                    {mat.status}
                   </td>
                 </tr>
               ))}

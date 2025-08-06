@@ -177,14 +177,14 @@ const MaterialForm: React.FC<MaterialFormProps> = ({
           <Controller
             control={control}
             name="status"
-            defaultValue="Unallocated"
+            defaultValue="Unavailable"
             render={({ field }) => (
               <select
                 {...field}
                 className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
               >
-                <option value="Allocated">Allocated</option>
-                <option value="Unallocated">Unallocated</option>
+                <option value="Available">Available</option>
+                <option value="Unavailable">Unavailable</option>
               </select>
             )}
           />

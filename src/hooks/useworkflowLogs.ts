@@ -30,7 +30,7 @@ const fetchWorkflowLogById = async (id: string): Promise<WorkflowLog | null> => 
 
 export const useWorkflowLogs = (entityType: string, entityId: string) => {
     const setWorkflowLogs = useWorkflowLogStore((state) => state.setWorkflowLogs);
-    const key = `${entityType}-${entityId}`;
+    // const key = `${entityType}-${entityId}`;
 
     const query = useQuery({
         queryKey: ["workflow-logs", entityType, entityId],

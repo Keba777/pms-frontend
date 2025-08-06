@@ -10,7 +10,7 @@ export interface Material {
     outOfStore?: number;
     rate?: number;
     shelfNo?: string;
-    status?: "Allocated" | "Unallocated";
+    status?: "Available" | "Unavailable";
     totalPrice?: number;
 }
 export interface CreateMaterialInput {
@@ -24,7 +24,7 @@ export interface CreateMaterialInput {
     outOfStore?: number;
     rate?: number;
     shelfNo?: string;
-    status?: "Allocated" | "Unallocated";
+    status?: "Available" | "Unavailable";
 }
 export interface UpdateMaterialInput {
     id?: string;
@@ -38,5 +38,5 @@ export interface UpdateMaterialInput {
     outOfStore?: number;
     rate?: number;
     shelfNo?: string;
-    status?: "Allocated" | "Unallocated";
+    status?: "Available" | "Unavailable";
 }
