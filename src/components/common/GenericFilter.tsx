@@ -87,14 +87,14 @@ export const GenericFilter: React.FC<GenericFilterProps> = ({
   };
 
   return (
-    <div className="flex flex-wrap gap-3 mb-3">
+    <div className="flex gap-3 mb-3">
       {fields.map((field) => (
         <div
           key={field.name}
           className={
             field.type === "text" || field.type === "number"
-              ? "w-full md:w-1/4"
-              : "w-full md:w-1/4"
+              ? "w-full md:w-1/2"
+              : "w-full md:w-1/2"
           }
         >
           {field.type === "text" || field.type === "number" ? (
@@ -144,16 +144,6 @@ export const GenericFilter: React.FC<GenericFilterProps> = ({
           )}
         </div>
       ))}
-
-      <div className="flex items-center ml-auto">
-        <button
-          type="button"
-          onClick={() => onFilterChange(values)}
-          className="bg-cyan-700 hover:bg-cyan-800 text-white text-sm font-bold py-2 px-3 rounded flex items-center gap-1"
-        >
-          {Icon && <Icon size={16} />} Filter
-        </button>
-      </div>
     </div>
   );
 };

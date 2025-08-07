@@ -10,7 +10,7 @@ import {
   useDeleteActivity,
   useUpdateActivity,
 } from "@/hooks/useActivities";
-import { UpdateActivityInput } from "@/types/activity";
+import { Activity, UpdateActivityInput } from "@/types/activity";
 import { formatDate, getDuration } from "@/utils/helper";
 import EditActivityForm from "../forms/EditActivityForm";
 import ConfirmModal from "../ui/ConfirmModal";
@@ -23,6 +23,22 @@ import {
   Option,
 } from "../common/GenericFilter";
 import ProfileAvatar from "../common/ProfileAvatar";
+
+const priorityBadgeClasses: Record<Activity["priority"], string> = {
+  Critical: "bg-red-100 text-red-800",
+  High: "bg-orange-100 text-orange-800",
+  Medium: "bg-yellow-100 text-yellow-800",
+  Low: "bg-green-100 text-green-800",
+};
+
+const statusBadgeClasses: Record<Activity["status"], string> = {
+  "Not Started": "bg-gray-100 text-gray-800",
+  Started: "bg-blue-100 text-blue-800",
+  InProgress: "bg-yellow-100 text-yellow-800",
+  Canceled: "bg-red-100 text-red-800",
+  Onhold: "bg-amber-100 text-amber-800",
+  Completed: "bg-green-100 text-green-800",
+};
 
 const columnOptions: Record<string, string> = {
   activity_name: "Activity",
@@ -102,11 +118,6 @@ const DataTableActivities: React.FC = () => {
     { label: "In Progress", value: "In Progress" },
     { label: "Completed", value: "Completed" },
   ];
-  // const approvalStatusOptions: Option<string>[] = [
-  //   { label: "Pending", value: "Pending" },
-  //   { label: "Approved", value: "Approved" },
-  //   { label: "Rejected", value: "Rejected" },
-  // ];
 
   // Filter fields
   const filterFields: FilterField<string>[] = [
@@ -123,9 +134,6 @@ const DataTableActivities: React.FC = () => {
       options: priorityOptions,
     },
     { name: "status", label: "Status", type: "select", options: statusOptions },
-
-    { name: "startDateAfter", label: "Start Date After", type: "date" },
-    { name: "endDateBefore", label: "End Date Before", type: "date" },
   ];
 
   // Filtered list
@@ -144,21 +152,8 @@ const DataTableActivities: React.FC = () => {
     if (filterValues.status) {
       matches = matches && act.status === filterValues.status;
     }
-    if (filterValues.approvalStatus) {
-      matches = matches && act.approvalStatus === filterValues.approvalStatus;
-    }
-    if (filterValues.startDateAfter) {
-      matches =
-        matches &&
-        new Date(act.start_date) >=
-          new Date(filterValues.startDateAfter as string);
-    }
-    if (filterValues.endDateBefore) {
-      matches =
-        matches &&
-        new Date(act.end_date) <=
-          new Date(filterValues.endDateBefore as string);
-    }
+    
+
     return matches;
   });
 
@@ -193,10 +188,7 @@ const DataTableActivities: React.FC = () => {
 
   return (
     <div>
-      <GenericFilter fields={filterFields} onFilterChange={setFilterValues} />
-
-      {/* Toolbar */}
-      <div className="flex items-center justify-between mb-4 mt-6">
+      <div className="flex items-center justify-between mb-4 mt-6 px-2">
         <div ref={menuRef} className="relative">
           <button
             onClick={() => setShowColumnMenu((prev) => !prev)}
@@ -223,6 +215,7 @@ const DataTableActivities: React.FC = () => {
             </div>
           )}
         </div>
+        <GenericFilter fields={filterFields} onFilterChange={setFilterValues} />
       </div>
 
       {/* Modals */}
@@ -264,8 +257,8 @@ const DataTableActivities: React.FC = () => {
       )}
 
       {/* Table */}
-      <div className="overflow-x-auto">
-        <table className="min-w-max divide-y divide-gray-200">
+      <div className="overflow-x-auto px-2 ">
+        <table className="min-w-max divide-y divide-gray-200 border">
           <thead className="bg-cyan-700">
             <tr>
               {selectedColumns.includes("activity_name") && (
@@ -345,7 +338,7 @@ const DataTableActivities: React.FC = () => {
                 selectedColumns.includes("labors")) && (
                 <th
                   colSpan={3}
-                  className="px-4 py-3 text-left text-sm font-medium text-gray-50"
+                  className="px-4 py-3 text-center border-b border-b-gray-400 text-sm font-medium text-gray-50"
                 >
                   Resources
                 </th>
@@ -411,10 +404,12 @@ const DataTableActivities: React.FC = () => {
                         href={`/activities/${activity.id}`}
                         className="hover:underline"
                       >
-                        {activity.activity_name}
+                        {activity.activity_name.charAt(0).toUpperCase() +
+                          activity.activity_name.slice(1)}
                       </Link>
                     </td>
                   )}
+
                   {selectedColumns.includes("assignedUsers") && (
                     <td className="px-4 py-2">
                       {activity.assignedUsers?.length ? (
@@ -431,14 +426,8 @@ const DataTableActivities: React.FC = () => {
                   {selectedColumns.includes("priority") && (
                     <td className="px-4 py-2">
                       <span
-                        className={`badge bg-gray-100 px-2 py-1 rounded ${
-                          activity.priority === "Critical"
-                            ? "text-red-600"
-                            : activity.priority === "High"
-                            ? "text-orange-500"
-                            : activity.priority === "Medium"
-                            ? "text-yellow-500"
-                            : "text-green-500"
+                        className={`px-2 py-1 rounded-full text-sm font-medium ${
+                          priorityBadgeClasses[activity.priority]
                         }`}
                       >
                         {activity.priority}
@@ -516,7 +505,11 @@ const DataTableActivities: React.FC = () => {
                   )}
                   {selectedColumns.includes("status") && (
                     <td className="px-4 py-2">
-                      <span className="badge bg-label-secondary">
+                      <span
+                        className={`px-2 py-1 rounded-full text-sm font-medium ${
+                          statusBadgeClasses[activity.status]
+                        }`}
+                      >
                         {activity.status}
                       </span>
                     </td>

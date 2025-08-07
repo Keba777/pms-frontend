@@ -15,6 +15,12 @@ import ConfirmModal from "@/components/ui/ConfirmModal";
 import SearchInput from "../ui/SearchInput";
 import ManageTaskForm from "../forms/ManageTaskForm";
 import ProfileAvatar from "../common/ProfileAvatar";
+import {
+  FilterField,
+  FilterValues,
+  GenericFilter,
+  Option,
+} from "@/components/common/GenericFilter";
 
 const DataTable: React.FC = () => {
   const tasks = useTaskStore((state) => state.tasks) as Task[];
@@ -82,12 +88,13 @@ const DataTable: React.FC = () => {
   );
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const [filterValues, setFilterValues] = useState<FilterValues>({});
 
   const router = useRouter();
   const { mutate: deleteTask } = useDeleteTask();
   const { mutate: updateTask } = useUpdateTask();
 
-  const filteredTasks = tasks.filter((task) =>
+  const filteredTasksSearch = tasks.filter((task) =>
     task.task_name.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -122,6 +129,45 @@ const DataTable: React.FC = () => {
     updateTask(data);
     setShowManageForm(false);
   };
+
+  const statusOptions: Option<string>[] = [
+    { value: "Not Started", label: "Not Started" },
+    { value: "Started", label: "Started" },
+    { value: "InProgress", label: "In Progress" },
+    { value: "Onhold", label: "On Hold" },
+    { value: "Canceled", label: "Canceled" },
+    { value: "Completed", label: "Completed" },
+  ];
+
+  const filterFields: FilterField<string>[] = [
+    {
+      name: "status",
+      label: "Status",
+      type: "select",
+      options: statusOptions,
+    },
+    {
+      name: "priority",
+      label: "Priority",
+      type: "select",
+      options: [
+        { value: "Critical", label: "Critical" },
+        { value: "High", label: "High" },
+        { value: "Medium", label: "Medium" },
+        { value: "Low", label: "Low" },
+      ],
+    },
+  ];
+
+  const filteredTasks = filteredTasksSearch.filter((task) => {
+    return Object.entries(filterValues).every(([key, value]) => {
+      if (!value) return true; // skip if no filter value
+      if (key === "status" || key === "priority") {
+        return task[key] === value;
+      }
+      return true;
+    });
+  });
 
   if (isLoading) return <div>Loading tasks...</div>;
   if (error) return <div>{error}</div>;
@@ -167,15 +213,17 @@ const DataTable: React.FC = () => {
             </div>
           )}
         </div>
+
         <SearchInput
           placeholder="Search tasks..."
           value={search}
           onChange={setSearch}
         />
+        <GenericFilter fields={filterFields} onFilterChange={setFilterValues} />
       </div>
 
       <div className="overflow-x-auto">
-        <table className="min-w-max divide-y divide-gray-200">
+        <table className="min-w-max divide-y divide-gray-200 border">
           <thead className="bg-cyan-700">
             <tr>
               {selectedColumns.includes("task_name") && (
@@ -249,7 +297,7 @@ const DataTable: React.FC = () => {
                       {task.assignedUsers?.length ? (
                         <ul className="list-none flex space-x-1">
                           {task.assignedUsers.map((u) => (
-                            <ProfileAvatar key={u.id} user={u}/>
+                            <ProfileAvatar key={u.id} user={u} />
                           ))}
                         </ul>
                       ) : (

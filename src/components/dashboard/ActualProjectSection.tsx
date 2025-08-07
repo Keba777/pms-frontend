@@ -16,29 +16,9 @@ import { toast } from "react-toastify";
 import { useUsers } from "@/hooks/useUsers";
 import { useTags } from "@/hooks/useTags";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
-import {
-  formatDate,
-  getDateDuration,
-  getDuration as calcRemaining,
-} from "@/utils/helper";
+import { getDuration as calcRemaining } from "@/utils/helper";
 import SearchInput from "../ui/SearchInput";
 import ProfileAvatar from "../common/ProfileAvatar";
-
-const priorityBadgeClasses: Record<Project["priority"], string> = {
-  Critical: "bg-red-100 text-red-800",
-  High: "bg-orange-100 text-orange-800",
-  Medium: "bg-yellow-100 text-yellow-800",
-  Low: "bg-green-100 text-green-800",
-};
-
-const statusBadgeClasses: Record<Project["status"], string> = {
-  "Not Started": "bg-gray-100 text-gray-800",
-  Started: "bg-blue-100 text-blue-800",
-  InProgress: "bg-yellow-100 text-yellow-800",
-  Onhold: "bg-amber-100 text-amber-800",
-  Canceled: "bg-red-100 text-red-800",
-  Completed: "bg-green-100 text-green-800",
-};
 
 const ActualProjectSection: React.FC = () => {
   const router = useRouter();
@@ -256,24 +236,12 @@ const ActualProjectSection: React.FC = () => {
                     )}
                     {selectedColumns.includes("status") && (
                       <td className="border px-4 py-2">
-                        <span
-                          className={`px-2 py-1 rounded-full text-sm font-medium ${
-                            statusBadgeClasses[project.status]
-                          }`}
-                        >
-                          {project.status}
-                        </span>
+                        <span className={`px-2 py-2 `}>{""}</span>
                       </td>
                     )}
                     {selectedColumns.includes("priority") && (
                       <td className="border px-4 py-2">
-                        <span
-                          className={`px-2 py-1 rounded-full text-sm font-medium ${
-                            priorityBadgeClasses[project.priority]
-                          }`}
-                        >
-                          {project.priority}
-                        </span>
+                        <span className={`px-2 py-2`}>{""}</span>
                       </td>
                     )}
                     {selectedColumns.includes("progress") && (
@@ -282,22 +250,16 @@ const ActualProjectSection: React.FC = () => {
                       </td>
                     )}
                     {selectedColumns.includes("start_date") && (
-                      <td className="border px-4 py-2">
-                        {formatDate(project.start_date)}
-                      </td>
+                      <td className="border px-4 py-2">{""}</td>
                     )}
                     {selectedColumns.includes("end_date") && (
-                      <td className="border px-4 py-2">
-                        {formatDate(project.end_date)}
-                      </td>
+                      <td className="border px-4 py-2">{""}</td>
                     )}
                     {selectedColumns.includes("duration") && (
-                      <td className="border px-4 py-2">
-                        {getDateDuration(project.start_date, project.end_date)}
-                      </td>
+                      <td className="border px-4 py-2">{""}</td>
                     )}
                     {selectedColumns.includes("remaining") && (
-                      <td className="border px-4 py-2">{remaining}</td>
+                      <td className="border px-4 py-2">{""}</td>
                     )}
                     {selectedColumns.includes("budget") && (
                       <td className="border px-4 py-2">{""}</td>
