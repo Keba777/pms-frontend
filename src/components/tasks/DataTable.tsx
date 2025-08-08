@@ -12,7 +12,6 @@ import { Task, UpdateTaskInput } from "@/types/task";
 import { useDeleteTask, useUpdateTask } from "@/hooks/useTasks";
 import EditTaskForm from "@/components/forms/EditTaskForm";
 import ConfirmModal from "@/components/ui/ConfirmModal";
-import SearchInput from "../ui/SearchInput";
 import ManageTaskForm from "../forms/ManageTaskForm";
 import ProfileAvatar from "../common/ProfileAvatar";
 import {
@@ -26,7 +25,6 @@ const DataTable: React.FC = () => {
   const tasks = useTaskStore((state) => state.tasks) as Task[];
   const isLoading = !tasks;
   const error = !tasks ? "Error fetching tasks." : null;
-  const [search, setSearch] = useState("");
 
   // badge class mappings
   const priorityBadgeClasses: Record<Task["priority"], string> = {
@@ -94,10 +92,6 @@ const DataTable: React.FC = () => {
   const { mutate: deleteTask } = useDeleteTask();
   const { mutate: updateTask } = useUpdateTask();
 
-  const filteredTasksSearch = tasks.filter((task) =>
-    task.task_name.toLowerCase().includes(search.toLowerCase())
-  );
-
   const handleViewTask = (id: string) => {
     router.push(`/tasks/${id}`);
   };
@@ -141,6 +135,12 @@ const DataTable: React.FC = () => {
 
   const filterFields: FilterField<string>[] = [
     {
+      name: "task_name",
+      label: "Task Name",
+      type: "text",
+      placeholder: "Search by task name...",
+    },
+    {
       name: "status",
       label: "Status",
       type: "select",
@@ -159,11 +159,16 @@ const DataTable: React.FC = () => {
     },
   ];
 
-  const filteredTasks = filteredTasksSearch.filter((task) => {
+  const filteredTasks = tasks.filter((task) => {
     return Object.entries(filterValues).every(([key, value]) => {
       if (!value) return true; // skip if no filter value
       if (key === "status" || key === "priority") {
         return task[key] === value;
+      }
+      if (key === "task_name") {
+        return task.task_name
+          ?.toLowerCase()
+          .includes((value as string).toLowerCase());
       }
       return true;
     });
@@ -213,12 +218,6 @@ const DataTable: React.FC = () => {
             </div>
           )}
         </div>
-
-        <SearchInput
-          placeholder="Search tasks..."
-          value={search}
-          onChange={setSearch}
-        />
         <GenericFilter fields={filterFields} onFilterChange={setFilterValues} />
       </div>
 

@@ -1,4 +1,3 @@
-// components/ProjectTable.tsx
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
@@ -153,6 +152,15 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
 
   return (
     <div>
+      <style>
+        {`
+          .truncate-ellipsis {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+        `}
+      </style>
       <h2 className="text-3xl font-semibold mb-4 mt-6">Available Projects</h2>
 
       <div className="flex items-center justify-between mb-4">
@@ -191,51 +199,51 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
       </div>
 
       <div className="overflow-x-auto">
-        <table className="min-w-full border border-gray-200 divide-y divide-gray-200">
+        <table className="min-w-full border border-gray-200 divide-y divide-gray-200 table-auto">
           <thead className="bg-cyan-700">
             <tr>
               {selectedColumns.includes("no") && (
-                <th className="px-5 py-3 text-left text-sm font-medium text-white">
+                <th className="px-5 py-3 text-left text-sm font-medium text-white w-16 truncate-ellipsis">
                   No
                 </th>
               )}
               {selectedColumns.includes("title") && (
-                <th className="px-5 py-3 text-left text-sm font-medium text-white">
+                <th className="px-5 py-3 text-left text-sm font-medium text-white min-w-[200px]">
                   PROJECTS
                 </th>
               )}
               {selectedColumns.includes("priority") && (
-                <th className="px-5 py-3 text-left text-sm font-medium text-white">
+                <th className="px-5 py-3 text-left text-sm font-medium text-white w-24 truncate-ellipsis">
                   Priority
                 </th>
               )}
               {selectedColumns.includes("start_date") && (
-                <th className="px-5 py-3 text-left text-sm font-medium text-white">
+                <th className="px-5 py-3 text-left text-sm font-medium text-white w-28 truncate-ellipsis">
                   Start Date
                 </th>
               )}
               {selectedColumns.includes("end_date") && (
-                <th className="px-5 py-3 text-left text-sm font-medium text-white">
+                <th className="px-5 py-3 text-left text-sm font-medium text-white w-28 truncate-ellipsis">
                   End Date
                 </th>
               )}
               {selectedColumns.includes("duration") && (
-                <th className="px-5 py-3 text-left text-sm font-medium text-white">
+                <th className="px-5 py-3 text-left text-sm font-medium text-white w-24 truncate-ellipsis">
                   Duration
                 </th>
               )}
               {selectedColumns.includes("remaining") && (
-                <th className="px-5 py-3 text-left text-sm font-medium text-white">
+                <th className="px-5 py-3 text-left text-sm font-medium text-white w-24 truncate-ellipsis">
                   Remaining
                 </th>
               )}
               {selectedColumns.includes("status") && (
-                <th className="px-5 py-3 text-left text-sm font-medium text-white">
+                <th className="px-5 py-3 text-left text-sm font-medium text-white w-28 truncate-ellipsis">
                   Status
                 </th>
               )}
               {selectedColumns.includes("action") && (
-                <th className="px-5 py-3 text-left text-sm font-medium text-white w-32">
+                <th className="px-5 py-3 text-left text-sm font-medium text-white w-32 truncate-ellipsis">
                   Action
                 </th>
               )}
@@ -251,17 +259,19 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                 return (
                   <tr key={project.id} className="hover:bg-gray-50">
                     {selectedColumns.includes("no") && (
-                      <td className="px-5 py-2">{idx + 1}</td>
+                      <td className="px-5 py-2 w-16 truncate-ellipsis">
+                        {idx + 1}
+                      </td>
                     )}
                     {selectedColumns.includes("title") && (
-                      <td className="px-5 py-2 font-medium text-blue-600 hover:underline">
+                      <td className="px-5 py-2 font-medium text-blue-600 hover:underline min-w-[200px]">
                         <Link href={`/master-schedule/project/${project.id}`}>
                           {project.title}
                         </Link>
                       </td>
                     )}
                     {selectedColumns.includes("priority") && (
-                      <td className="px-5 py-2">
+                      <td className="px-5 py-2 w-24 truncate-ellipsis">
                         <span
                           className={`px-2 py-1 rounded-full text-sm font-medium ${
                             priorityBadgeClasses[project.priority]
@@ -272,25 +282,27 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                       </td>
                     )}
                     {selectedColumns.includes("start_date") && (
-                      <td className="px-5 py-2">
+                      <td className="px-5 py-2 w-28 truncate-ellipsis">
                         {formatDate(project.start_date)}
                       </td>
                     )}
                     {selectedColumns.includes("end_date") && (
-                      <td className="px-5 py-2">
+                      <td className="px-5 py-2 w-28 truncate-ellipsis">
                         {formatDate(project.end_date)}
                       </td>
                     )}
                     {selectedColumns.includes("duration") && (
-                      <td className="px-5 py-2">
+                      <td className="px-5 py-2 w-24 truncate-ellipsis">
                         {getDateDuration(project.start_date, project.end_date)}
                       </td>
                     )}
                     {selectedColumns.includes("remaining") && (
-                      <td className="px-5 py-2">{remaining}</td>
+                      <td className="px-5 py-2 w-24 truncate-ellipsis">
+                        {remaining}
+                      </td>
                     )}
                     {selectedColumns.includes("status") && (
-                      <td className="px-5 py-2">
+                      <td className="px-5 py-2 w-28 truncate-ellipsis">
                         <span
                           className={`px-2 py-1 rounded-full text-sm font-medium ${
                             statusBadgeClasses[project.status]
@@ -301,12 +313,12 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                       </td>
                     )}
                     {selectedColumns.includes("action") && (
-                      <td className="px-5 py-2">
+                      <td className="px-5 py-2 w-32">
                         <Menu
                           as="div"
                           className="relative inline-block text-left"
                         >
-                          <MenuButton className="flex items-center gap-1 px-3 py-1 text-sm bg-cyan-700 text-white rounded hover:bg-cyan-800">
+                          <MenuButton className="flex items-center gap-1 px-3 py-1 text-sm bg-cyan-700 text-white rounded hover:bg-cyan-800 w-full">
                             Action <ChevronDown className="w-4 h-4" />
                           </MenuButton>
                           <MenuItems className="absolute left-0 mt-2 w-40 bg-white border divide-y divide-gray-100 rounded-md shadow-lg z-50">

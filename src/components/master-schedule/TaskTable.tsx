@@ -27,7 +27,7 @@ interface TaskTableProps {
 interface TaskFilters {
   taskName?: string;
   status?: string;
-  progress?: string;
+  priority?: string;
 }
 
 const statusBadgeClasses: Record<Task["status"], string> = {
@@ -37,6 +37,13 @@ const statusBadgeClasses: Record<Task["status"], string> = {
   Onhold: "bg-amber-100 text-amber-800",
   Canceled: "bg-red-100 text-red-800",
   Completed: "bg-green-100 text-green-800",
+};
+
+const priorityBadgeClasses: Record<Task["priority"], string> = {
+  Critical: "bg-red-100 text-red-800",
+  High: "bg-orange-100 text-orange-800",
+  Medium: "bg-yellow-100 text-yellow-800",
+  Low: "bg-green-100 text-green-800",
 };
 
 export default function TaskTable({ tasks, projectId }: TaskTableProps) {
@@ -64,6 +71,7 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
   const columnOptions: Record<string, string> = {
     no: "No",
     task_name: "Task",
+    priority: "Priority",
     start_date: "Start Date",
     end_date: "End Date",
     duration: "Duration",
@@ -79,7 +87,6 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
   const [showColumnMenu, setShowColumnMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Filter state - use TaskFilters interface instead of any
   const [filters, setFilters] = useState<TaskFilters>({});
   const [filteredTasks, setFilteredTasks] = useState<Task[]>(tasks);
 
@@ -102,20 +109,17 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
       placeholder: "Select status...",
     },
     {
-      name: "progress",
-      label: "Progress",
+      name: "priority",
+      label: "Priority",
       type: "select",
-      options: [
-        { label: "0-25%", value: "0-25" },
-        { label: "26-50%", value: "26-50" },
-        { label: "51-75%", value: "51-75" },
-        { label: "76-100%", value: "76-100" },
-      ],
-      placeholder: "Select progress range...",
+      options: Object.keys(priorityBadgeClasses).map((priority) => ({
+        label: priority,
+        value: priority,
+      })),
+      placeholder: "Select priority...",
     },
   ];
 
-  // Apply filters whenever filters or tasks change
   useEffect(() => {
     let result = [...tasks];
 
@@ -131,14 +135,8 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
       result = result.filter((t) => t.status === filters.status);
     }
 
-    if (filters.progress) {
-      const [min, max] = filters.progress.split("-").map(Number);
-      result = result.filter(
-        (t) =>
-          typeof t.progress === "number" &&
-          t.progress >= min &&
-          t.progress <= max
-      );
+    if (filters.priority) {
+      result = result.filter((t) => t.priority === filters.priority);
     }
 
     setFilteredTasks(result);
@@ -217,14 +215,9 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
   // Prepare columns for download
   const downloadColumns: Column<Task>[] = [
     { header: "Task", accessor: "task_name" },
-    {
-      header: "Start Date",
-      accessor: (row) => formatDate(row.start_date),
-    },
-    {
-      header: "End Date",
-      accessor: (row) => formatDate(row.end_date),
-    },
+    { header: "Priority", accessor: "priority" },
+    { header: "Start Date", accessor: (row) => formatDate(row.start_date) },
+    { header: "End Date", accessor: (row) => formatDate(row.end_date) },
     {
       header: "Duration",
       accessor: (row) => getDateDuration(row.start_date, row.end_date),
@@ -244,6 +237,15 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
 
   return (
     <div className="ml-3 space-y-4">
+      <style>
+        {`
+          .truncate-ellipsis {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+        `}
+      </style>
       <GenericDownloads
         data={filteredTasks}
         title="Tasks"
@@ -277,10 +279,6 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
             </div>
           )}
         </div>
-      </div>
-
-      {/* Filter Section */}
-      <div className="mb-4">
         <GenericFilter
           fields={filterFields}
           onFilterChange={(values) => setFilters(values as TaskFilters)}
@@ -337,56 +335,61 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
 
       {/* Table */}
       <div className="overflow-x-auto">
-        <table className="min-w-full border border-gray-200 divide-y divide-gray-200">
+        <table className="min-w-full border border-gray-200 divide-y divide-gray-200 table-auto">
           <thead className="bg-teal-700">
             <tr>
               {selectedColumns.includes("no") && (
-                <th className="border px-4 py-3 text-left text-sm font-medium text-gray-50 w-16">
+                <th className="border px-4 py-3 text-left text-sm font-medium text-gray-50 w-16 truncate-ellipsis">
                   No
                 </th>
               )}
               {selectedColumns.includes("task_name") && (
-                <th className="border px-4 py-3 text-left text-sm font-medium text-gray-50">
+                <th className="border px-4 py-3 text-left text-sm font-medium text-gray-50 min-w-[200px]">
                   Task
                 </th>
               )}
+              {selectedColumns.includes("priority") && (
+                <th className="border px-4 py-3 text-left text-sm font-medium text-gray-50 w-24 truncate-ellipsis">
+                  Priority
+                </th>
+              )}
               {selectedColumns.includes("start_date") && (
-                <th className="border px-4 py-3 text-left text-sm font-medium text-gray-50">
+                <th className="border px-4 py-3 text-left text-sm font-medium text-gray-50 w-28 truncate-ellipsis">
                   Start Date
                 </th>
               )}
               {selectedColumns.includes("end_date") && (
-                <th className="border px-4 py-3 text-left text-sm font-medium text-gray-50">
+                <th className="border px-4 py-3 text-left text-sm font-medium text-gray-50 w-28 truncate-ellipsis">
                   End Date
                 </th>
               )}
               {selectedColumns.includes("duration") && (
-                <th className="border px-4 py-3 text-left text-sm font-medium text-gray-50">
+                <th className="border px-4 py-3 text-left text-sm font-medium text-gray-50 w-24 truncate-ellipsis">
                   Duration
                 </th>
               )}
               {selectedColumns.includes("remaining") && (
-                <th className="border px-4 py-3 text-left text-sm font-medium text-gray-50">
+                <th className="border px-4 py-3 text-left text-sm font-medium text-gray-50 w-24 truncate-ellipsis">
                   Remaining
                 </th>
               )}
               {selectedColumns.includes("budget") && (
-                <th className="border px-4 py-3 text-left text-sm font-medium text-gray-50">
+                <th className="border px-4 py-3 text-left text-sm font-medium text-gray-50 w-24 truncate-ellipsis">
                   Budget
                 </th>
               )}
               {selectedColumns.includes("progress") && (
-                <th className="border px-4 py-3 text-left text-sm font-medium text-gray-50">
+                <th className="border px-4 py-3 text-left text-sm font-medium text-gray-50 w-20 truncate-ellipsis">
                   Progress
                 </th>
               )}
               {selectedColumns.includes("status") && (
-                <th className="border px-4 py-3 text-left text-sm font-medium text-gray-50">
+                <th className="border px-4 py-3 text-left text-sm font-medium text-gray-50 w-28 truncate-ellipsis">
                   Status
                 </th>
               )}
               {selectedColumns.includes("actions") && (
-                <th className="border px-4 py-3 text-left text-sm font-medium text-gray-50 w-32">
+                <th className="border px-4 py-3 text-left text-sm font-medium text-gray-50 w-32 truncate-ellipsis">
                   Actions
                 </th>
               )}
@@ -403,46 +406,66 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
                   new Date().toISOString(),
                   task.end_date
                 );
-                // Generate random 7-digit budget each render
                 const randomBudget = Math.floor(
                   1000000 + Math.random() * 9000000
                 );
                 return (
                   <tr key={task.id} className="hover:bg-gray-50 relative">
                     {selectedColumns.includes("no") && (
-                      <td className="border px-4 py-2">{idx + 1}</td>
+                      <td className="border px-4 py-2 w-16 truncate-ellipsis">
+                        {idx + 1}
+                      </td>
                     )}
                     {selectedColumns.includes("task_name") && (
-                      <td className="border border-gray-200 px-4 py-2 font-medium">
+                      <td className="border border-gray-200 px-4 py-2 font-medium min-w-[200px]">
                         <Link href={`/master-schedule/task/${task.id}`}>
                           {task.task_name}
                         </Link>
                       </td>
                     )}
+                    {selectedColumns.includes("priority") && (
+                      <td className="border px-4 py-2 w-24 truncate-ellipsis">
+                        <span
+                          className={`px-2 py-1 rounded-full text-sm font-medium ${
+                            priorityBadgeClasses[task.priority]
+                          }`}
+                        >
+                          {task.priority}
+                        </span>
+                      </td>
+                    )}
                     {selectedColumns.includes("start_date") && (
-                      <td className="border px-4 py-2">
+                      <td className="border px-4 py-2 w-28 truncate-ellipsis">
                         {formatDate(task.start_date)}
                       </td>
                     )}
                     {selectedColumns.includes("end_date") && (
-                      <td className="border px-4 py-2">
+                      <td className="border px-4 py-2 w-28 truncate-ellipsis">
                         {formatDate(task.end_date)}
                       </td>
                     )}
                     {selectedColumns.includes("duration") && (
-                      <td className="border px-4 py-2">{duration}</td>
+                      <td className="border px-4 py-2 w-24 truncate-ellipsis">
+                        {duration}
+                      </td>
                     )}
                     {selectedColumns.includes("remaining") && (
-                      <td className="border px-4 py-2">{remaining}</td>
+                      <td className="border px-4 py-2 w-24 truncate-ellipsis">
+                        {remaining}
+                      </td>
                     )}
                     {selectedColumns.includes("budget") && (
-                      <td className="border px-4 py-2">{randomBudget}</td>
+                      <td className="border px-4 py-2 w-24 truncate-ellipsis">
+                        {randomBudget}
+                      </td>
                     )}
                     {selectedColumns.includes("progress") && (
-                      <td className="border px-4 py-2">{task.progress}%</td>
+                      <td className="border px-4 py-2 w-20 truncate-ellipsis">
+                        {task.progress}%
+                      </td>
                     )}
                     {selectedColumns.includes("status") && (
-                      <td className="border px-4 py-2">
+                      <td className="border px-4 py-2 w-28 truncate-ellipsis">
                         <span
                           className={`px-2 py-1 rounded-full text-sm font-medium ${
                             statusBadgeClasses[task.status]
@@ -453,7 +476,7 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
                       </td>
                     )}
                     {selectedColumns.includes("actions") && (
-                      <td className="border px-4 py-2">
+                      <td className="border px-4 py-2 w-32">
                         <div className="relative">
                           <button
                             onClick={(e) => {
