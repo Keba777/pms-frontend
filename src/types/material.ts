@@ -10,7 +10,7 @@ export interface Material {
     outOfStore?: number;
     rate?: number;
     shelfNo?: string;
-    status?: "Available" | "Unavailable";
+    status: "Available" | "Unavailable";
     totalPrice?: number;
 }
 export interface CreateMaterialInput {

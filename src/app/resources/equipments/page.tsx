@@ -18,14 +18,11 @@ interface AggregatedRow {
   id: number;
   site: { id: string; name: string };
   total: number;
-  allocated: number;
-  unallocated: number;
-  onMaintainance: number;
-  inactive: number;
+  available: number;
+  unavailable: number;
 }
 
 const ResourceEquipmentsPage: React.FC = () => {
-  // Data-fetching hooks (always called)
   const { data: equipments, isLoading, error } = useEquipments();
   const { data: sites, isLoading: siteLoading } = useSites();
 
@@ -40,25 +37,17 @@ const ResourceEquipmentsPage: React.FC = () => {
         map[site.id] = {
           site,
           total: 0,
-          allocated: 0,
-          unallocated: 0,
-          onMaintainance: 0,
-          inactive: 0,
+          available: 0,
+          unavailable: 0,
         };
       }
       map[site.id].total += 1;
       switch (eqp.status) {
-        case "Allocated":
-          map[site.id].allocated += 1;
+        case "Available":
+          map[site.id].available += 1;
           break;
-        case "Unallocated":
-          map[site.id].unallocated += 1;
-          break;
-        case "OnMaintainance":
-          map[site.id].onMaintainance += 1;
-          break;
-        case "InActive":
-          map[site.id].inactive += 1;
+        case "Unavailable":
+          map[site.id].unavailable += 1;
           break;
       }
     });
@@ -69,13 +58,14 @@ const ResourceEquipmentsPage: React.FC = () => {
   const summaryData = useMemo(
     () => [
       { label: "Total", value: allRows.reduce((s, r) => s + r.total, 0) },
-      { label: "Allocated", value: allRows.reduce((s, r) => s + r.allocated, 0) },
-      { label: "Unallocated", value: allRows.reduce((s, r) => s + r.unallocated, 0) },
       {
-        label: "On Maintainance",
-        value: allRows.reduce((s, r) => s + r.onMaintainance, 0),
+        label: "Available",
+        value: allRows.reduce((s, r) => s + r.available, 0),
       },
-      { label: "Inactive", value: allRows.reduce((s, r) => s + r.inactive, 0) },
+      {
+        label: "Unavailable",
+        value: allRows.reduce((s, r) => s + r.unavailable, 0),
+      },
     ],
     [allRows]
   );
@@ -86,7 +76,9 @@ const ResourceEquipmentsPage: React.FC = () => {
     status: "",
   });
   const [filteredRows, setFilteredRows] = useState<AggregatedRow[]>(allRows);
-  const [selectedColumns, setSelectedColumns] = useState<(keyof AggregatedRow)[]>([]);
+  const [selectedColumns, setSelectedColumns] = useState<
+    (keyof AggregatedRow)[]
+  >([]);
   const [showColumnMenu, setShowColumnMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -146,25 +138,26 @@ const ResourceEquipmentsPage: React.FC = () => {
     id: "ID",
     site: "Site Name",
     total: "Total Equipment",
-    allocated: "Allocated",
-    unallocated: "Unallocated",
-    onMaintainance: "On Maintainance",
-    inactive: "Inactive",
+    available: "Available",
+    unavailable: "Unavailable",
   };
 
   // Filter field definitions
   const filterFields: FilterField[] = [
-    { name: "search", label: "Search", type: "text", placeholder: "Search by site name..." },
+    {
+      name: "search",
+      label: "Search",
+      type: "text",
+      placeholder: "Search by site name...",
+    },
     {
       name: "status",
       label: "Status",
       type: "select",
       placeholder: "Select status...",
       options: [
-        { label: "Allocated", value: "Allocated" },
-        { label: "Unallocated", value: "Unallocated" },
-        { label: "On Maintainance", value: "OnMaintainance" },
-        { label: "Inactive", value: "InActive" },
+        { label: "Available", value: "Available" },
+        { label: "Unavailable", value: "Unavailable" },
       ],
     },
   ];
@@ -174,10 +167,8 @@ const ResourceEquipmentsPage: React.FC = () => {
     { header: "ID", accessor: "id" },
     { header: "Site Name", accessor: (row) => row.site.name },
     { header: "Total Equipment", accessor: "total" },
-    { header: "Allocated", accessor: "allocated" },
-    { header: "Unallocated", accessor: "unallocated" },
-    { header: "On Maintainance", accessor: "onMaintainance" },
-    { header: "Inactive", accessor: "inactive" },
+    { header: "Available", accessor: "available" },
+    { header: "Unavailable", accessor: "unavailable" },
   ];
 
   // Now that all hooks are set up, we can safely return early based on loading/error
@@ -224,7 +215,11 @@ const ResourceEquipmentsPage: React.FC = () => {
       </div>
 
       {/* Downloads */}
-      <GenericDownloads data={filteredRows} title="Equipments" columns={downloadColumns} />
+      <GenericDownloads
+        data={filteredRows}
+        title="Equipments"
+        columns={downloadColumns}
+      />
 
       {/* Controls */}
       <div className="flex items-center justify-between mb-4 mt-4">
@@ -244,7 +239,9 @@ const ResourceEquipmentsPage: React.FC = () => {
                 >
                   <input
                     type="checkbox"
-                    checked={selectedColumns.includes(key as keyof AggregatedRow)}
+                    checked={selectedColumns.includes(
+                      key as keyof AggregatedRow
+                    )}
                     onChange={() => toggleColumn(key as keyof AggregatedRow)}
                     className="mr-2"
                   />
@@ -280,24 +277,14 @@ const ResourceEquipmentsPage: React.FC = () => {
                   Total Equipment
                 </th>
               )}
-              {selectedColumns.includes("allocated") && (
+              {selectedColumns.includes("available") && (
                 <th className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase tracking-wider border border-gray-200">
-                  Allocated
+                  Available
                 </th>
               )}
-              {selectedColumns.includes("unallocated") && (
+              {selectedColumns.includes("unavailable") && (
                 <th className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase tracking-wider border border-gray-200">
-                  Unallocated
-                </th>
-              )}
-              {selectedColumns.includes("onMaintainance") && (
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase tracking-wider border border-gray-200">
-                  On Maintainance
-                </th>
-              )}
-              {selectedColumns.includes("inactive") && (
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase tracking-wider border border-gray-200">
-                  Inactive
+                  Unavailable
                 </th>
               )}
             </tr>
@@ -307,7 +294,9 @@ const ResourceEquipmentsPage: React.FC = () => {
               filteredRows.map((row) => (
                 <tr key={row.id} className="hover:bg-gray-50">
                   {selectedColumns.includes("id") && (
-                    <td className="px-4 py-2 border border-gray-200">{row.id}</td>
+                    <td className="px-4 py-2 border border-gray-200">
+                      {row.id}
+                    </td>
                   )}
                   {selectedColumns.includes("site") && (
                     <td className="px-4 py-2 border border-gray-200">
@@ -320,21 +309,19 @@ const ResourceEquipmentsPage: React.FC = () => {
                     </td>
                   )}
                   {selectedColumns.includes("total") && (
-                    <td className="px-4 py-2 border border-gray-200">{row.total}</td>
-                  )}
-                  {selectedColumns.includes("allocated") && (
-                    <td className="px-4 py-2 border border-gray-200">{row.allocated}</td>
-                  )}
-                  {selectedColumns.includes("unallocated") && (
-                    <td className="px-4 py-2 border border-gray-200">{row.unallocated}</td>
-                  )}
-                  {selectedColumns.includes("onMaintainance") && (
                     <td className="px-4 py-2 border border-gray-200">
-                      {row.onMaintainance}
+                      {row.total}
                     </td>
                   )}
-                  {selectedColumns.includes("inactive") && (
-                    <td className="px-4 py-2 border border-gray-200">{row.inactive}</td>
+                  {selectedColumns.includes("available") && (
+                    <td className="px-4 py-2 border border-gray-200">
+                      {row.available}
+                    </td>
+                  )}
+                  {selectedColumns.includes("unavailable") && (
+                    <td className="px-4 py-2 border border-gray-200">
+                      {row.unavailable}
+                    </td>
                   )}
                 </tr>
               ))

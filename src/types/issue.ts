@@ -12,7 +12,7 @@ export interface Issue {
     description: string;
     raisedById: string;
     raisedBy: User;
-    priority?: "Urgent" | "Medium" | "Low";
+    priority: "Urgent" | "Medium" | "Low";
     siteId?: string;
     site?: Site;
     departmentId?: string;

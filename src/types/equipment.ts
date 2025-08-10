@@ -20,7 +20,7 @@ export interface Equipment {
     overTime?: number;
     condition?: string
     owner?: "Raycon" | "Rental"
-    status?: "Allocated" | "Unallocated" | "OnMaintainance" | "InActive"
+    status: "Available" | "Unavailable"
     utilization_factor?: number;
     totalTime?: number;
     startingDate?: Date;
@@ -47,7 +47,7 @@ export interface CreateEquipmentInput {
     overTime?: number;
     condition?: string
     owner?: "Raycon" | "Rental"
-    status?: "Allocated" | "Unallocated" | "OnMaintainance" | "InActive"
+    status: "Available" | "Unavailable"
     utilization_factor?: number;
     totalTime?: number;
     startingDate?: Date;
@@ -73,7 +73,7 @@ export interface UpdateEquipmentInput {
     overTime?: number;
     condition?: string
     owner?: "Raycon" | "Rental"
-    status?: "Allocated" | "Unallocated" | "OnMaintainance" | "InActive"
+    status: "Available" | "Unavailable"
     utilization_factor?: number;
     totalTime?: number;
     startingDate?: Date;
