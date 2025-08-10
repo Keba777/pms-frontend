@@ -56,16 +56,13 @@ const EquipmentsPage = () => {
 
   // status summary values
   const total = siteEquipment.length;
-  const allocated = siteEquipment.filter(
-    (l) => l.status === "Allocated"
+  const available = siteEquipment.filter(
+    (l) => l.status === "Available"
   ).length;
-  const unallocated = siteEquipment.filter(
-    (l) => l.status === "Unallocated"
+  const unavailable = siteEquipment.filter(
+    (l) => l.status === "Unavailable"
   ).length;
-  const onMaintainance = siteEquipment.filter(
-    (l) => l.status === "OnMaintainance"
-  ).length;
-  const inactive = siteEquipment.filter((l) => l.status === "InActive").length;
+
   const rental = siteEquipment.filter((l) => l.owner === "Rental").length;
   const own = siteEquipment.filter((l) => l.owner === "Raycon").length;
 
@@ -156,10 +153,8 @@ const EquipmentsPage = () => {
       <div className="flex flex-wrap gap-4 mb-4">
         {[
           { label: "Total", value: total },
-          { label: "Allocated", value: allocated },
-          { label: "Unallocated", value: unallocated },
-          { label: "On Maintainance", value: onMaintainance },
-          { label: "Inactive", value: inactive },
+          { label: "Available", value: available },
+          { label: "Unavailable", value: unavailable },
           { label: "Rental", value: rental },
           { label: "Own", value: own },
         ].map((item) => (

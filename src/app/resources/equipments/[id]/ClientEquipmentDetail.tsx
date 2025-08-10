@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ChevronDown, Download } from "lucide-react";
+import { ArrowLeft, ChevronDown} from "lucide-react";
 import { useEquipments } from "@/hooks/useEquipments";
 import { useSites } from "@/hooks/useSites";
 import { Equipment } from "@/types/equipment";
@@ -82,7 +82,7 @@ export default function ClientEquipmentDetail({
 
   // Filter equipments by siteId and filter values
   const filteredEquipments = useMemo(() => {
-    let siteEquipment: Equipment[] =
+    const siteEquipment: Equipment[] =
       equipments?.filter((e) => e.siteId === siteId) ?? [];
 
     return siteEquipment.filter((e: Equipment) => {

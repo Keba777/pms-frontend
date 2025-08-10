@@ -46,7 +46,6 @@ export interface GenericFilterProps {
 
 export const GenericFilter: React.FC<GenericFilterProps> = ({
   fields,
-  Icon,
   onFilterChange,
 }) => {
   // Local state holds current values for each field

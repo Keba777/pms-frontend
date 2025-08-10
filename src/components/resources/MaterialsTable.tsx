@@ -81,6 +81,8 @@ const MaterialsTable: React.FC<MaterialsTableProps> = ({
     []
   );
 
+  type MatStatus = "Available" | "Unavailable";
+
   const newFieldsTemplate = {
     select: false,
     item: "",
@@ -91,8 +93,9 @@ const MaterialsTable: React.FC<MaterialsTableProps> = ({
     rate: "",
     total: "",
     shelfNo: "",
-    status: "",
+    status: "Available" as MatStatus,
   };
+
   const [newRow, setNewRow] =
     useState<typeof newFieldsTemplate>(newFieldsTemplate);
 
@@ -120,10 +123,7 @@ const MaterialsTable: React.FC<MaterialsTableProps> = ({
       rate: parseFloat(newRow.rate) || 0,
       totalPrice: parseFloat(newRow.total) || 0,
       shelfNo: newRow.shelfNo,
-      status:
-        newRow.status === "Available" || newRow.status === "Unavailable"
-          ? newRow.status
-          : undefined,
+      status: newRow.status,
     };
     setAdditionalMaterials((prev) => [...prev, newMaterial]);
     setNewRow(newFieldsTemplate);

@@ -48,13 +48,35 @@ const RequestRow: React.FC<{
 
   const materials = materialQueries
     .map((q) => q.data)
-    .filter((m): m is { id: string; item: string; unit: string } => Boolean(m));
+    .filter(
+      (
+        m
+      ): m is {
+        id: string;
+        item: string;
+        unit: string;
+        status: "Available" | "Unavailable";
+      } => Boolean(m)
+    );
   const equipment = equipmentQueries
     .map((q) => q.data)
-    .filter((e): e is { id: string; item: string; unit: string; siteId: string } => Boolean(e && e.siteId));
+    .filter(
+      (
+        e
+      ): e is {
+        id: string;
+        item: string;
+        unit: string;
+        siteId: string;
+        status: "Available" | "Unavailable";
+      } => Boolean(e && e.siteId)
+    );
   const labor = laborQueries
     .map((q) => q.data)
-    .filter((l): l is { id: string; role: string; unit: string; siteId: string } => Boolean(l && l.unit && l.siteId));
+    .filter(
+      (l): l is { id: string; role: string; unit: string; siteId: string } =>
+        Boolean(l && l.unit && l.siteId)
+    );
 
   const allocated = approvals?.some(
     (app) => app.requestId === req.id && app.departmentId === departmentId
@@ -123,7 +145,8 @@ const ResourceAllocationPage: React.FC = () => {
   };
 
   if (isLoading) return <div className="p-4 text-cyan-700">Loading…</div>;
-  if (isError) return <div className="p-4 text-red-500">Error loading requests</div>;
+  if (isError)
+    return <div className="p-4 text-red-500">Error loading requests</div>;
 
   return (
     <div className="min-h-screen bg-gray-100 p-8">

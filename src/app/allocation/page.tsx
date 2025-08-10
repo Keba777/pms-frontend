@@ -48,13 +48,35 @@ const RequestRow: React.FC<{
 
   const materials = materialQueries
     .map((q) => q.data)
-    .filter((m): m is { id: string; item: string; unit: string } => Boolean(m));
+    .filter(
+      (
+        m
+      ): m is {
+        id: string;
+        item: string;
+        unit: string;
+        status: "Available" | "Unavailable";
+      } => Boolean(m)
+    );
   const equipment = equipmentQueries
     .map((q) => q.data)
-    .filter((e): e is { id: string; item: string; unit: string; siteId: string } => Boolean(e));
+    .filter(
+      (
+        e
+      ): e is {
+        id: string;
+        item: string;
+        unit: string;
+        siteId: string;
+        status: "Available" | "Unavailable";
+      } => Boolean(e)
+    );
   const labor = laborQueries
     .map((q) => q.data)
-    .filter((l): l is { id: string; role: string; unit: string; siteId: string } => Boolean(l));
+    .filter(
+      (l): l is { id: string; role: string; unit: string; siteId: string } =>
+        Boolean(l)
+    );
 
   const allocated = approvals.some(
     (app) => app.requestId === req.id && app.departmentId === departmentId
@@ -183,34 +205,63 @@ const ResourceAllocationPage: React.FC = () => {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Step</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Dept</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Approved By</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Approved At</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Checked By</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Remarks</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                      Step
+                    </th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                      Dept
+                    </th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                      Status
+                    </th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                      Approved By
+                    </th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                      Approved At
+                    </th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                      Checked By
+                    </th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                      Remarks
+                    </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">{history.length > 0 ? (
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {history.length > 0 ? (
                     history.map((h) => (
                       <tr key={h.id}>
                         <td className="px-4 py-2 text-sm">{h.stepOrder}</td>
                         <td className="px-4 py-2 text-sm">{h.departmentId}</td>
                         <td className="px-4 py-2 text-sm">{h.status}</td>
-                        <td className="px-4 py-2 text-sm">{h.approvedBy || "-"}</td>
-                        <td className="px-4 py-2 text-sm">{h.approvedAt ? new Date(h.approvedAt).toLocaleString() : "-"}</td>
-                        <td className="px-4 py-2 text-sm">{h.checkedBy || "-"}</td>
-                        <td className="px-4 py-2 text-sm">{h.remarks || "-"}</td>
+                        <td className="px-4 py-2 text-sm">
+                          {h.approvedBy || "-"}
+                        </td>
+                        <td className="px-4 py-2 text-sm">
+                          {h.approvedAt
+                            ? new Date(h.approvedAt).toLocaleString()
+                            : "-"}
+                        </td>
+                        <td className="px-4 py-2 text-sm">
+                          {h.checkedBy || "-"}
+                        </td>
+                        <td className="px-4 py-2 text-sm">
+                          {h.remarks || "-"}
+                        </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={7} className="px-4 py-4 text-center text-sm text-gray-500">
+                      <td
+                        colSpan={7}
+                        className="px-4 py-4 text-center text-sm text-gray-500"
+                      >
                         No history yet.
                       </td>
                     </tr>
-                  )}</tbody>
+                  )}
+                </tbody>
               </table>
             </div>
             <div className="modal-overlay fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">

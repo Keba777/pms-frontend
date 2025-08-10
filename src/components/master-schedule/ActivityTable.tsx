@@ -60,7 +60,6 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
   const [selectedActivityId, setSelectedActivityId] = useState<string | null>(
     null
   );
-  const [searchTerm, setSearchTerm] = useState("");
   const [filterValues, setFilterValues] = useState<FilterValues>({});
 
   // Columns shown by default (now including "remaining")

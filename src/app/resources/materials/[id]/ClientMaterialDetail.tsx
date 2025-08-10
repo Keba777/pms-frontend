@@ -74,16 +74,18 @@ export default function ClientMaterialDetail({
     return () => document.removeEventListener("mousedown", () => {});
   }, []);
 
-  // Get site and warehouse data
   const site: Site | undefined = sites?.find((s) => s.id === siteId);
-  const siteWarehouseIds =
-    warehouses
-      ?.filter((w: Warehouse) => w.siteId === siteId)
-      .map((w) => w.id) ?? [];
+  const siteWarehouseIds = useMemo(() => {
+    return (
+      warehouses
+        ?.filter((w: Warehouse) => w.siteId === siteId)
+        .map((w) => w.id) ?? []
+    );
+  }, [warehouses, siteId]);
 
   // Filter materials stored in those warehouses
   const filteredMaterials = useMemo(() => {
-    let siteMaterials: Material[] =
+    const siteMaterials: Material[] =
       materials?.filter(
         (m) => m.warehouseId && siteWarehouseIds.includes(m.warehouseId)
       ) ?? [];

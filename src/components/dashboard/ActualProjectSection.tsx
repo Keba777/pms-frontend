@@ -16,7 +16,6 @@ import { toast } from "react-toastify";
 import { useUsers } from "@/hooks/useUsers";
 import { useTags } from "@/hooks/useTags";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
-import { getDuration as calcRemaining } from "@/utils/helper";
 import SearchInput from "../ui/SearchInput";
 import ProfileAvatar from "../common/ProfileAvatar";
 
@@ -199,10 +198,10 @@ const ActualProjectSection: React.FC = () => {
           <tbody className="bg-white divide-y divide-gray-200">
             {filtered && filtered.length > 0 ? (
               filtered.map((project, idx) => {
-                const remaining =
-                  project.end_date && new Date(project.end_date) > new Date()
-                    ? calcRemaining(new Date(), project.end_date)
-                    : "N/A";
+                // const remaining =
+                //   project.end_date && new Date(project.end_date) > new Date()
+                //     ? calcRemaining(new Date(), project.end_date)
+                //     : "N/A";
                 return (
                   <tr key={project.id} className="hover:bg-gray-50">
                     {selectedColumns.includes("id") && (
