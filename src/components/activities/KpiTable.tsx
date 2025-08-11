@@ -10,7 +10,6 @@ import ProfileAvatar from "@/components/common/ProfileAvatar";
 import { useDeleteKpi } from "@/hooks/useKpis";
 import { Kpi } from "@/types/kpi";
 import KpiForm from "../forms/KpiForm";
-import { Activity } from "@/types/activity";
 
 const columnOptions: Record<string, string> = {
   type: "Type",

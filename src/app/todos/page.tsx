@@ -15,6 +15,7 @@ import {
 } from "@/components/common/GenericFilter";
 import TodoForm from "@/components/forms/TodoForm";
 import ProfileAvatar from "@/components/common/ProfileAvatar";
+import Link from "next/link";
 
 const priorityBadgeClasses: Record<Todo["priority"], string> = {
   Urgent: "bg-red-100 text-red-800",
@@ -281,7 +282,6 @@ const TodosPage = () => {
               <th className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase whitespace-nowrap">
                 #
               </th>
-
               {selectedColumns.includes("task") && (
                 <th className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase whitespace-nowrap">
                   Task
@@ -351,8 +351,13 @@ const TodosPage = () => {
                   {idx + 1}
                 </td>
                 {selectedColumns.includes("task") && (
-                  <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
-                    {todo.task}
+                  <td className="px-4 py-2 text-bs-primary border border-gray-200 whitespace-nowrap">
+                    <Link
+                      href={`/todos/${todo.id}`}
+                      className="hover:underline"
+                    >
+                      {todo.task}
+                    </Link>
                   </td>
                 )}
                 {selectedColumns.includes("type") && (
