@@ -3,19 +3,14 @@
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { Menu, MenuButton, MenuItems, MenuItem } from "@headlessui/react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, PlusIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import {
-  FilterField,
-  FilterValues,
-  GenericFilter,
-  Option,
-} from "@/components/common/GenericFilter";
-import GenericDownload from "@/components/common/GenericDownloads";
 import ConfirmModal from "@/components/ui/ConfirmModal";
-import KpiTableSkeleton from "@/components/skeletons/KpiTableSkeleton";
 import ProfileAvatar from "@/components/common/ProfileAvatar";
-import { useKpis, useDeleteKpi } from "@/hooks/useKpis";
+import { useDeleteKpi } from "@/hooks/useKpis";
+import { Kpi } from "@/types/kpi";
+import KpiForm from "../forms/KpiForm";
+import { Activity } from "@/types/activity";
 
 const columnOptions: Record<string, string> = {
   type: "Type",
@@ -30,29 +25,27 @@ const columnOptions: Record<string, string> = {
   actions: "Actions",
 };
 
-const KpisPage: React.FC = () => {
-  const { data: kpis = [], isLoading, error } = useKpis();
+interface KpiProps {
+  kpis?: Kpi[];
+//   activity: Activity
+}
+
+const KpiTable = ({ kpis }: KpiProps) => {
   const { mutate: deleteKpi } = useDeleteKpi();
   const router = useRouter();
 
-  // State for table type (users, labors, equipment)
   const [tableType, setTableType] = useState<"users" | "labors" | "equipment">(
     "users"
   );
-
-  // Filter state
-  const [filterValues, setFilterValues] = useState<FilterValues>({});
-
-  // Column selection state
   const [selectedColumns, setSelectedColumns] = useState<string[]>(
     Object.keys(columnOptions)
   );
   const [showColumnMenu, setShowColumnMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Modal state
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedKpiId, setSelectedKpiId] = useState<string | null>(null);
+  const [showForm, setShowForm] = useState(false);
 
   // Close column menu when clicking outside
   const toggleColumn = (col: string) => {
@@ -71,75 +64,6 @@ const KpisPage: React.FC = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  if (isLoading) return <KpiTableSkeleton />;
-  if (error) return <div>Error fetching KPIs.</div>;
-
-  // Filter options
-
-  const statusOptions: Option<string>[] = [
-    { label: "Bad", value: "Bad" },
-    { label: "Good", value: "Good" },
-    { label: "V.Good", value: "V.Good" },
-    { label: "Excellent", value: "Excellent" },
-  ];
-
-  // Filter fields
-  const filterFields: FilterField<string>[] = [
-    { name: "status", label: "Status", type: "select", options: statusOptions },
-    {
-      name: "scoreMin",
-      label: "Min Score",
-      type: "number",
-      placeholder: "Min score...",
-    },
-    {
-      name: "scoreMax",
-      label: "Max Score",
-      type: "number",
-      placeholder: "Max score...",
-    },
-  ];
-
-  // Filter KPIs based on table type and filter values
-  const filteredKpis = kpis.filter((kpi) => {
-    let matches = true;
-
-    // Filter by table type
-    if (tableType === "users" && !kpi.userLabor) matches = false;
-    if (tableType === "labors" && !kpi.laborInformation) matches = false;
-    if (tableType === "equipment" && !kpi.equipment) matches = false;
-
-    // Apply generic filters
-    if (filterValues.status) {
-      matches = matches && kpi.status === filterValues.status;
-    }
-    if (filterValues.scoreMin) {
-      matches = matches && kpi.score >= Number(filterValues.scoreMin);
-    }
-    if (filterValues.scoreMax) {
-      matches = matches && kpi.score <= Number(filterValues.scoreMax);
-    }
-
-    return matches;
-  });
-
-  // Download data configuration
-  const downloadData = filteredKpis.map((kpi) => ({
-    ID: kpi.id,
-    Type: kpi.type,
-    Score: kpi.score,
-    Status: kpi.status,
-    Remark: kpi.remark || "N/A",
-    User: kpi.userLabor
-      ? `${kpi.userLabor.first_name} ${kpi.userLabor.last_name}`
-      : "N/A",
-    LaborInfo: kpi.laborInformation
-      ? `${kpi.laborInformation.firstName} ${kpi.laborInformation.lastName}`
-      : "N/A",
-    Equipment: kpi.equipment ? kpi.equipment.item : "N/A",
-    Target: kpi.target ?? "N/A",
-  }));
-
   // Handlers
   const handleDeleteKpiClick = (id: string) => {
     setSelectedKpiId(id);
@@ -154,45 +78,75 @@ const KpisPage: React.FC = () => {
   };
 
   const handleViewKpi = (id: string) => router.push(`/lkpi/${id}`);
-
   return (
     <div>
-      {/* Toolbar */}
-      <div className=" mt-8">
-        <GenericDownload data={downloadData} title={""} columns={[]} />
-        <div className="flex items-center justify-between my-5">
-          <div ref={menuRef} className="">
-            <button
-              onClick={() => setShowColumnMenu((prev) => !prev)}
-              className="flex items-center gap-1 px-4 py-2 text-sm bg-emerald-600 text-white rounded hover:bg-emerald-700"
-            >
-              Customize Columns <ChevronDown className="w-4 h-4" />
-            </button>
-            {showColumnMenu && (
-              <div className="absolute right-0 mt-1 w-48 bg-white border rounded shadow-lg z-10">
-                {Object.entries(columnOptions).map(([key, label]) => (
-                  <label
-                    key={key}
-                    className="flex items-center w-full px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selectedColumns.includes(key)}
-                      onChange={() => toggleColumn(key)}
-                      className="mr-2"
-                    />
-                    {label}
-                  </label>
-                ))}
-              </div>
-            )}
-          </div>
-          <GenericFilter
-            fields={filterFields}
-            onFilterChange={setFilterValues}
-          />
+      <div className=" mt-8 flex justify-between">
+        <div ref={menuRef} className="">
+          <button
+            onClick={() => setShowColumnMenu((prev) => !prev)}
+            className="flex items-center gap-1 px-4 py-2 text-sm bg-emerald-600 text-white rounded hover:bg-emerald-700"
+          >
+            Customize Columns <ChevronDown className="w-4 h-4" />
+          </button>
+          {showColumnMenu && (
+            <div className="absolute right-0 mt-1 w-48 bg-white border rounded shadow-lg z-10">
+              {Object.entries(columnOptions).map(([key, label]) => (
+                <label
+                  key={key}
+                  className="flex items-center w-full px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedColumns.includes(key)}
+                    onChange={() => toggleColumn(key)}
+                    className="mr-2"
+                  />
+                  {label}
+                </label>
+              ))}
+            </div>
+          )}
         </div>
+        <button
+          className="bg-cyan-700 hover:bg-cyan-800 text-white font-bold py-2 px-3 rounded text-sm"
+          onClick={() => setShowForm(true)}
+        >
+          <PlusIcon width={15} height={12} />
+        </button>
       </div>
+
+     {showForm && (
+  <div className="modal-overlay">
+    <div className="modal-content">
+      <KpiForm
+        onSubmit={(formData) => {
+          const payload = { ...formData };
+
+          // Example: pulling IDs from your activity object
+          // Assuming you have an `activity` prop or fetched activity data
+        //   if (tableType === "users" && activity?.assignedUsers) {
+        //     payload.userLaborId = activity.assignedUsers;
+        //   } 
+        //   else if (tableType === "labors" && activity?.labor?.id) {
+        //     payload.laborInfoId = activity.labor.id;
+        //   } 
+        //   else if (tableType === "equipment" && activity?.equipment?.id) {
+        //     payload.equipmentId = activity.equipment.id;
+        //   }
+
+          console.log("Submitting KPI:", payload);
+
+          // Call mutation here
+          // createKpi(payload);
+
+          setShowForm(false);
+        }}
+        onClose={() => setShowForm(false)}
+      />
+    </div>
+  </div>
+)}
+
 
       {/* Navigation */}
       <nav className="mb-6 mt-4">
@@ -309,8 +263,8 @@ const KpisPage: React.FC = () => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {filteredKpis.length > 0 ? (
-              filteredKpis.map((kpi) => (
+            {kpis && kpis.length > 0 ? (
+              kpis?.map((kpi) => (
                 <tr key={kpi.id} className="hover:bg-gray-50">
                   {selectedColumns.includes("type") && (
                     <td className="px-4 py-2 font-medium text-bs-primary">
@@ -446,4 +400,4 @@ const KpisPage: React.FC = () => {
   );
 };
 
-export default KpisPage;
+export default KpiTable;

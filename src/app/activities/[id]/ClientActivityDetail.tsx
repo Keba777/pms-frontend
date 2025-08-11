@@ -6,6 +6,8 @@ import { ArrowLeft } from "lucide-react";
 import { useActivityStore } from "@/store/activityStore";
 import { Activity } from "@/types/activity";
 import TimeSheets from "@/components/activities/TimeSheets";
+import KpiTable from "@/components/activities/KpiTable";
+import { useKpis } from "@/hooks/useKpis";
 
 interface ClientActivityDetailProps {
   activityId: string;
@@ -17,6 +19,7 @@ export default function ClientActivityDetail({
   const router = useRouter();
   const activities = useActivityStore((state) => state.activities);
   const activity = activities.find((a: Activity) => a.id === activityId);
+  const { data: kpis } = useKpis();
 
   if (!activity) {
     return (
@@ -217,6 +220,7 @@ export default function ClientActivityDetail({
             ))}
         </div>
       )}
+      <KpiTable kpis={kpis} />
     </div>
   );
 }

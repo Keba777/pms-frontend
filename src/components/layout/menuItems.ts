@@ -22,6 +22,7 @@ import {
   Activity,
   CalendarRange,
   Store,
+  ListTodo,
 } from "lucide-react";
 
 const menuItems = [
@@ -125,12 +126,19 @@ const menuItems = [
     icon: FileText,
     iconColor: "text-teal-600",
   },
-  
+
   {
     title: "Store Requestion",
     link: "/store-requisition",
     icon: Store,
     iconColor: "text-blue-600",
+  },
+
+  {
+    title: "Todos",
+    link: "/todos",
+    icon: ListTodo,
+    iconColor: "text-cyan-600"
   },
 
   {
