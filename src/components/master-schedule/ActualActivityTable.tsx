@@ -12,7 +12,7 @@ import {
 import { UpdateActivityInput, Activity } from "@/types/activity";
 import { formatDate, getDuration } from "@/utils/helper";
 import EditActivityForm from "../forms/EditActivityForm";
-import ConfirmModal from "../ui/ConfirmModal";
+import ConfirmModal from "../common/ui/ConfirmModal";
 
 import Link from "next/link";
 

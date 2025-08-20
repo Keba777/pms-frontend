@@ -10,7 +10,7 @@ import { getDuration } from "@/utils/helper";
 import LaborForm from "@/components/forms/LaborForm";
 import { useAuthStore } from "@/store/authStore";
 import GenericDownloads, { Column } from "@/components/common/GenericDownloads";
-import SearchInput from "@/components/ui/SearchInput";
+import SearchInput from "@/components/common/ui/SearchInput";
 
 const LaborsPage = () => {
   const { user } = useAuthStore();

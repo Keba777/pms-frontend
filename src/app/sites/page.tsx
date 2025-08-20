@@ -6,9 +6,9 @@ import { useRouter } from "next/navigation";
 import { Menu, MenuButton, MenuItems, MenuItem } from "@headlessui/react";
 import { PlusIcon, ChevronDown, Eye, Edit2, Trash2 } from "lucide-react";
 
-import Spinner from "@/components/ui/Spinner";
+import Spinner from "@/components/common/ui/Spinner";
 import MetricsCard from "@/components/users/MetricsCard";
-import ConfirmModal from "@/components/ui/ConfirmModal";
+import ConfirmModal from "@/components/common/ui/ConfirmModal";
 import SiteForm from "@/components/forms/SiteForm";
 import EditSiteForm from "@/components/forms/EditSiteForm";
 

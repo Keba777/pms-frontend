@@ -8,7 +8,7 @@ import {
 } from "@/hooks/useProjects";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import ConfirmModal from "../ui/ConfirmModal";
+import ConfirmModal from "../common/ui/ConfirmModal";
 import EditProjectForm from "../forms/EditProjectForm";
 import ManageProjectForm from "../forms/ManageProjectForm";
 import { Project, UpdateProjectInput } from "@/types/project";
@@ -16,7 +16,7 @@ import { toast } from "react-toastify";
 import { useUsers } from "@/hooks/useUsers";
 import { useTags } from "@/hooks/useTags";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
-import SearchInput from "../ui/SearchInput";
+import SearchInput from "../common/ui/SearchInput";
 import ProfileAvatar from "../common/ProfileAvatar";
 
 const ActualProjectSection: React.FC = () => {

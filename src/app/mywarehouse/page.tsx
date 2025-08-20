@@ -8,7 +8,7 @@ import {
 } from "@/hooks/useWarehouses";
 import { Warehouse } from "@/types/warehouse";
 import WarehouseTable from "@/components/warehouse/WarehouseTable";
-import ConfirmModal from "@/components/ui/ConfirmModal";
+import ConfirmModal from "@/components/common/ui/ConfirmModal";
 import WarehouseForm from "@/components/forms/WarehouseForm";
 import EditWarehouseForm from "@/components/forms/EditWarehouseForm";
 import { PlusIcon } from "lucide-react";

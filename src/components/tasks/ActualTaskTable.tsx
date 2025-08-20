@@ -12,8 +12,8 @@ import GenericDownloads from "@/components/common/GenericDownloads";
 import { Task, UpdateTaskInput } from "@/types/task";
 import { useDeleteTask, useUpdateTask } from "@/hooks/useTasks";
 import EditTaskForm from "@/components/forms/EditTaskForm";
-import ConfirmModal from "@/components/ui/ConfirmModal";
-import SearchInput from "../ui/SearchInput";
+import ConfirmModal from "@/components/common/ui/ConfirmModal";
+import SearchInput from "../common/ui/SearchInput";
 import ManageTaskForm from "../forms/ManageTaskForm";
 import ProfileAvatar from "../common/ProfileAvatar";
 

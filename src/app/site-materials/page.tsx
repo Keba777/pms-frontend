@@ -13,7 +13,7 @@ import MaterialForm from "@/components/forms/MaterialForm";
 import { useAuthStore } from "@/store/authStore";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import GenericDownloads, { Column } from "@/components/common/GenericDownloads";
-import SearchInput from "@/components/ui/SearchInput";
+import SearchInput from "@/components/common/ui/SearchInput";
 
 const MaterialsPage = () => {
   const { user } = useAuthStore();

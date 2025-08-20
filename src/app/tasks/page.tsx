@@ -3,7 +3,7 @@
 
 import React, { useState } from "react";
 import BreadcrumbTasks from "@/components/tasks/BreadcrumbTasks";
-import Card from "@/components/ui/Card";
+import Card from "@/components/common/ui/Card";
 import { CheckCircle, Loader, Clock, XCircle } from "lucide-react";
 import DataTable from "@/components/tasks/DataTable";
 import ActualTaskTable from "@/components/tasks/ActualTaskTable";

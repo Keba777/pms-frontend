@@ -11,7 +11,7 @@ import { Project, UpdateProjectInput } from "@/types/project";
 import { formatDate, getDateDuration } from "@/utils/helper";
 
 import ProjectTableSkeleton from "./ProjectTableSkeleton";
-import ConfirmModal from "../ui/ConfirmModal";
+import ConfirmModal from "../common/ui/ConfirmModal";
 import EditProjectForm from "../forms/EditProjectForm";
 import ManageProjectForm from "../forms/ManageProjectForm";
 
@@ -19,7 +19,7 @@ import { useDeleteProject, useUpdateProject } from "@/hooks/useProjects";
 import { useUsers } from "@/hooks/useUsers";
 import { useTags } from "@/hooks/useTags";
 import { Task } from "@/types/task";
-import SearchInput from "../ui/SearchInput";
+import SearchInput from "../common/ui/SearchInput";
 
 interface ProjectTableProps {
   projects: Project[];

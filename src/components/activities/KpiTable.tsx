@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Menu, MenuButton, MenuItems, MenuItem } from "@headlessui/react";
 import { ChevronDown, PlusIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import ConfirmModal from "@/components/ui/ConfirmModal";
+import ConfirmModal from "@/components/common/ui/ConfirmModal";
 import ProfileAvatar from "@/components/common/ProfileAvatar";
 import { useDeleteKpi } from "@/hooks/useKpis";
 import { Kpi } from "@/types/kpi";

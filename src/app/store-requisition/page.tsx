@@ -6,7 +6,7 @@ import { ChevronDown } from "lucide-react";
 import { useStoreRequisitions } from "@/hooks/useStoreRequisition";
 import { StoreRequisition } from "@/types/storeRequisition";
 import GenericDownloads, { Column } from "@/components/common/GenericDownloads";
-import SearchInput from "@/components/ui/SearchInput";
+import SearchInput from "@/components/common/ui/SearchInput";
 
 const columnOptions: Record<keyof StoreRequisition, string> = {
   id: "ID",

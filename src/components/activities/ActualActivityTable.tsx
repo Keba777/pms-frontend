@@ -11,7 +11,7 @@ import {
 } from "@/hooks/useActivities";
 import { UpdateActivityInput, Activity } from "@/types/activity";
 import EditActivityForm from "../forms/EditActivityForm";
-import ConfirmModal from "../ui/ConfirmModal";
+import ConfirmModal from "../common/ui/ConfirmModal";
 import ActivityTableSkeleton from "./ActivityTableSkeleton";
 import Link from "next/link";
 

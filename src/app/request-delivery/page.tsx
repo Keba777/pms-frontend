@@ -11,7 +11,7 @@ import {
   FilterValues,
   Option,
 } from "@/components/common/GenericFilter";
-import ConfirmModal from "@/components/ui/ConfirmModal";
+import ConfirmModal from "@/components/common/ui/ConfirmModal";
 import {
   useRequestDeliveries,
   useDeleteRequestDelivery,

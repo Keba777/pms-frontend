@@ -6,7 +6,7 @@ import { ChevronDown } from "lucide-react";
 import { Task, UpdateTaskInput } from "@/types/task";
 import EditTaskForm from "../forms/EditTaskForm";
 import ManageTaskForm from "../forms/ManageTaskForm";
-import ConfirmModal from "../ui/ConfirmModal";
+import ConfirmModal from "../common/ui/ConfirmModal";
 import GenericDownloads, { Column } from "../common/GenericDownloads";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";

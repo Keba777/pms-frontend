@@ -9,7 +9,7 @@ import { useActivities } from "@/hooks/useActivities";
 import Link from "next/link";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import GenericDownloads, { Column } from "@/components/common/GenericDownloads";
-import SearchInput from "@/components/ui/SearchInput";
+import SearchInput from "@/components/common/ui/SearchInput";
 import { Request } from "@/types/request";
 import {
   FilterField,

@@ -7,7 +7,7 @@ import { useApprovals } from "@/hooks/useApprovals";
 import { useDepartments } from "@/hooks/useDepartments";
 import { useUsers } from "@/hooks/useUsers";
 import GenericDownloads, { Column } from "@/components/common/GenericDownloads";
-import SearchInput from "@/components/ui/SearchInput";
+import SearchInput from "@/components/common/ui/SearchInput";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import { Approval } from "@/types/approval";
 

@@ -10,7 +10,7 @@ import {
 } from "@/hooks/useProjects";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import ConfirmModal from "../ui/ConfirmModal";
+import ConfirmModal from "../common/ui/ConfirmModal";
 import EditProjectForm from "../forms/EditProjectForm";
 import ManageProjectForm from "../forms/ManageProjectForm";
 import { Project, UpdateProjectInput } from "@/types/project";
@@ -23,7 +23,7 @@ import {
   getDateDuration,
   getDuration as calcRemaining,
 } from "@/utils/helper";
-import SearchInput from "../ui/SearchInput";
+import SearchInput from "../common/ui/SearchInput";
 import ProfileAvatar from "../common/ProfileAvatar";
 
 const priorityBadgeClasses: Record<Project["priority"], string> = {

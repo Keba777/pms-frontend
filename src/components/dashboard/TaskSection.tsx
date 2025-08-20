@@ -6,12 +6,12 @@ import { FaEdit, FaTrash, FaEye, FaTasks } from "react-icons/fa";
 import { useTasks, useDeleteTask, useUpdateTask } from "@/hooks/useTasks";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import ConfirmModal from "../ui/ConfirmModal";
+import ConfirmModal from "../common/ui/ConfirmModal";
 import EditTaskForm from "../forms/EditTaskForm";
 import ManageTaskForm from "../forms/ManageTaskForm";
 import { Task, UpdateTaskInput } from "@/types/task";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
-import SearchInput from "../ui/SearchInput";
+import SearchInput from "../common/ui/SearchInput";
 import { getDateDuration, getDuration as calcRemaining } from "@/utils/helper";
 import ProfileAvatar from "../common/ProfileAvatar";
 

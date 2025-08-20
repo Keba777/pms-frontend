@@ -7,7 +7,7 @@ import { Activity, UpdateActivityInput } from "@/types/activity";
 import ActivityForm from "../forms/ActivityForm";
 import EditActivityForm from "../forms/EditActivityForm";
 import ManageActivityForm from "../forms/ManageActivityForm";
-import ConfirmModal from "../ui/ConfirmModal";
+import ConfirmModal from "../common/ui/ConfirmModal";
 import { useRouter } from "next/navigation";
 import { useDeleteActivity, useUpdateActivity } from "@/hooks/useActivities";
 import Link from "next/link";

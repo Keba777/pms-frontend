@@ -6,7 +6,7 @@ import { Department } from "@/types/department";
 import { format } from "date-fns";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import DepartmentForm from "@/components/forms/DepartmentForm";
-import ConfirmModal from "@/components/ui/ConfirmModal";
+import ConfirmModal from "@/components/common/ui/ConfirmModal";
 
 const DepartmentPage = () => {
   const { data: departments, isLoading, error } = useDepartments();

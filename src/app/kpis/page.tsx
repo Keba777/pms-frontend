@@ -12,7 +12,7 @@ import {
   Option,
 } from "@/components/common/GenericFilter";
 import GenericDownload from "@/components/common/GenericDownloads";
-import ConfirmModal from "@/components/ui/ConfirmModal";
+import ConfirmModal from "@/components/common/ui/ConfirmModal";
 import KpiTableSkeleton from "@/components/skeletons/KpiTableSkeleton";
 import ProfileAvatar from "@/components/common/ProfileAvatar";
 import { useKpis, useDeleteKpi } from "@/hooks/useKpis";

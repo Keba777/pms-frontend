@@ -7,7 +7,7 @@ import { Menu, MenuButton, MenuItems, MenuItem } from "@headlessui/react";
 import { useDeleteUser, useUpdateUser, useUsers } from "@/hooks/useUsers";
 import { useDepartments } from "@/hooks/useDepartments";
 import { useRoles } from "@/hooks/useRoles";
-import Spinner from "@/components/ui/Spinner";
+import Spinner from "@/components/common/ui/Spinner";
 import MetricsCard from "@/components/users/MetricsCard";
 import Link from "next/link";
 import {
@@ -21,7 +21,7 @@ import {
   LucideEdit2 as Edit2,
 } from "lucide-react";
 import AssignBadge from "@/components/users/AssignBadge";
-import ConfirmModal from "@/components/ui/ConfirmModal";
+import ConfirmModal from "@/components/common/ui/ConfirmModal";
 import { UpdateUserInput, User } from "@/types/user";
 import { useRouter } from "next/navigation";
 import UserForm from "@/components/forms/UserForm";

@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { FiX } from "react-icons/fi";
-import MenuItem from "@/components/ui/MenuItem";
+import MenuItem from "@/components/common/ui/MenuItem";
 import menuItems from "./menuItems";
 import { useAuthStore } from "@/store/authStore";
 import { supabase } from "@/lib/supabase";

@@ -1,5 +1,5 @@
 // components/SearchInput.tsx
-import { Input } from "@/components/ui/input";
+import { Input } from "@/components/common/ui/input";
 import { Search } from "lucide-react";
 
 interface SearchInputProps {
