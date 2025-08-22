@@ -10,10 +10,30 @@ import ConfirmModal from "../common/ui/ConfirmModal";
 import EditTaskForm from "../forms/EditTaskForm";
 import ManageTaskForm from "../forms/ManageTaskForm";
 import { Task, UpdateTaskInput } from "@/types/task";
-import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
-import SearchInput from "../common/ui/SearchInput";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 import { getDateDuration, getDuration as calcRemaining } from "@/utils/helper";
 import ProfileAvatar from "../common/ProfileAvatar";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 const priorityBadgeClasses: Record<Task["priority"], string> = {
   Critical: "bg-red-100 text-red-800",
@@ -36,44 +56,30 @@ const TaskSection: React.FC = () => {
   const { mutate: deleteTask } = useDeleteTask();
   const { mutate: updateTask } = useUpdateTask();
 
-  const columnOptions: Record<string, string> = {
-    id: "ID",
-    task_name: "Task",
-    assignedUsers: "Assigned To",
-    priority: "Priority",
-    progress: "Progress",
-    start_date: "Starts At",
-    end_date: "Ends At",
-    duration: "Duration",
-    remaining: "Remaining",
-    status: "Status",
-    approvalStatus: "Approval",
-    actions: "Actions",
-  };
+  const columnOptions = [
+    { value: "id", label: "ID" },
+    { value: "task_name", label: "Task" },
+    { value: "assignedUsers", label: "Assigned To" },
+    { value: "priority", label: "Priority" },
+    { value: "progress", label: "Progress" },
+    { value: "start_date", label: "Starts At" },
+    { value: "end_date", label: "Ends At" },
+    { value: "duration", label: "Duration" },
+    { value: "remaining", label: "Remaining" },
+    { value: "status", label: "Status" },
+    { value: "approvalStatus", label: "Approval" },
+    { value: "actions", label: "Actions" },
+  ];
 
   const [selectedColumns, setSelectedColumns] = useState<string[]>(
-    Object.keys(columnOptions)
+    columnOptions.map((col) => col.value)
   );
-  const [showColumnMenu, setShowColumnMenu] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const menuRef = useRef<HTMLDivElement>(null);
 
-  // toggle columns
   const toggleColumn = (col: string) =>
     setSelectedColumns((prev) =>
       prev.includes(col) ? prev.filter((c) => c !== col) : [...prev, col]
     );
-
-  // close menu on outside click
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setShowColumnMenu(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
 
   const formatDateLocal = (date: string | number | Date) => {
     if (!date) return "N/A";
@@ -123,59 +129,64 @@ const TaskSection: React.FC = () => {
     setShowManageForm(false);
   };
 
-  if (isLoading) return <div>Loading tasks…</div>;
-  if (isError) return <div>Error loading tasks.</div>;
+  if (isLoading)
+    return (
+      <div className="text-center py-8 text-gray-600">Loading tasks...</div>
+    );
+  if (isError)
+    return (
+      <div className="text-center py-8 text-red-600">Error loading tasks.</div>
+    );
 
-  // filter tasks by name or status
-  const filtered = tasks?.filter(
-    (t) =>
-      t.task_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      t.status.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filtered =
+    tasks?.filter(
+      (t) =>
+        t.task_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        t.status.toLowerCase().includes(searchTerm.toLowerCase())
+    ) || [];
 
   return (
-    <div>
-      <h2 className="text-3xl font-semibold mb-4 mt-6">Available Tasks</h2>
+    <div className="space-y-6">
+      <h2 className="text-2xl sm:text-3xl font-bold text-gray-800">
+        Available Tasks
+      </h2>
 
-      {/* Toolbar: customize + search */}
-      <div ref={menuRef} className="relative mb-4">
-        <div className="flex items-center justify-between gap-4">
-          <button
-            onClick={() => setShowColumnMenu((v) => !v)}
-            className="flex items-center gap-1 px-5 py-2 text-sm bg-emerald-600 text-white rounded hover:bg-emerald-700"
-          >
-            Customize Columns <ChevronDown className="w-4 h-4" />
-          </button>
-          <SearchInput
-            placeholder="Search Tasks"
-            value={searchTerm}
-            onChange={setSearchTerm}
-          />
-        </div>
-        {showColumnMenu && (
-          <div className="absolute left-0 mt-1 w-48 bg-white border rounded shadow-lg z-10">
-            {Object.entries(columnOptions).map(([key, label]) => (
-              <label
-                key={key}
-                className="flex items-center w-full px-4 py-2 hover:bg-gray-100 cursor-pointer"
-              >
-                <input
-                  type="checkbox"
-                  checked={selectedColumns.includes(key)}
-                  onChange={() => toggleColumn(key)}
-                  className="mr-2"
-                />
-                {label}
-              </label>
-            ))}
-          </div>
-        )}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" className="w-full sm:w-auto">
+              Customize Columns <ChevronDown className="ml-2 h-4 w-4" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-64 ">
+            <div className="space-y-2">
+              {columnOptions.map((col) => (
+                <div key={col.value} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={col.value}
+                    checked={selectedColumns.includes(col.value)}
+                    onCheckedChange={() => toggleColumn(col.value)}
+                  />
+                  <label htmlFor={col.value} className="">
+                    {col.label}
+                  </label>
+                </div>
+              ))}
+            </div>
+          </PopoverContent>
+        </Popover>
+        <Input
+          placeholder="Search tasks..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full sm:w-64"
+        />
       </div>
 
       {/* Edit modal */}
       {showEditForm && taskToEdit && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-xl m-4 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <EditTaskForm
               task={taskToEdit}
               onSubmit={(data) => {
@@ -190,8 +201,8 @@ const TaskSection: React.FC = () => {
 
       {/* Manage modal */}
       {showManageForm && taskToManage && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md m-4">
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-lg">
             <ManageTaskForm
               onSubmit={handleManageSubmit}
               onClose={() => setShowManageForm(false)}
@@ -201,25 +212,24 @@ const TaskSection: React.FC = () => {
         </div>
       )}
 
-      {/* Table */}
-      <div className="overflow-x-auto">
-        <table className="min-w-max border border-gray-200 divide-y divide-gray-200">
-          <thead className="bg-cyan-700">
-            <tr>
-              {Object.keys(columnOptions).map((col) =>
-                selectedColumns.includes(col) ? (
-                  <th
-                    key={col}
-                    className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-50"
+      <div className="overflow-x-auto rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-cyan-700 hover:bg-cyan-700">
+              {columnOptions
+                .filter((col) => selectedColumns.includes(col.value))
+                .map((col) => (
+                  <TableHead
+                    key={col.value}
+                    className="text-gray-50 font-medium  px-4 py-3"
                   >
-                    {columnOptions[col]}
-                  </th>
-                ) : null
-              )}
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {filtered && filtered.length > 0 ? (
+                    {col.label}
+                  </TableHead>
+                ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filtered.length > 0 ? (
               filtered.map((task, idx) => {
                 const duration = getDateDuration(
                   task.start_date,
@@ -231,160 +241,128 @@ const TaskSection: React.FC = () => {
                     : "N/A";
 
                 return (
-                  <tr key={task.id} className="hover:bg-gray-50">
+                  <TableRow key={task.id} className="hover:bg-gray-50">
                     {selectedColumns.includes("id") && (
-                      <td className="border border-gray-200 px-4 py-2">
-                        {idx + 1}
-                      </td>
+                      <TableCell className="px-4 py-3 ">{idx + 1}</TableCell>
                     )}
                     {selectedColumns.includes("task_name") && (
-                      <td className="border border-gray-200 px-4 py-2 font-medium text-bs-primary">
+                      <TableCell className="px-4 py-3  font-medium text-cyan-700">
                         <Link href={`/tasks/${task.id}`}>{task.task_name}</Link>
-                      </td>
+                      </TableCell>
                     )}
                     {selectedColumns.includes("assignedUsers") && (
-                      <td className="border border-gray-200 px-4 py-2">
+                      <TableCell className="px-4 py-3">
                         {task.assignedUsers?.length ? (
-                          <ul className="list-none space-x-1 flex">
+                          <div className="flex -space-x-2">
                             {task.assignedUsers.map((u) => (
                               <ProfileAvatar key={u.id} user={u} />
-                              
                             ))}
-                          </ul>
+                          </div>
                         ) : (
-                          "N/A"
+                          <span className="text-gray-500">N/A</span>
                         )}
-                      </td>
+                      </TableCell>
                     )}
                     {selectedColumns.includes("priority") && (
-                      <td className="border border-gray-200 px-4 py-2">
+                      <TableCell className="px-4 py-3">
                         <span
-                          className={`px-2 py-1 rounded-full text-sm font-medium ${
+                          className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
                             priorityBadgeClasses[task.priority]
                           }`}
                         >
                           {task.priority}
                         </span>
-                      </td>
+                      </TableCell>
                     )}
                     {selectedColumns.includes("progress") && (
-                      <td className="border border-gray-200 px-4 py-2">
+                      <TableCell className="px-4 py-3 ">
                         {task.progress ?? 0}%
-                      </td>
+                      </TableCell>
                     )}
                     {selectedColumns.includes("start_date") && (
-                      <td className="border border-gray-200 px-4 py-2">
+                      <TableCell className="px-4 py-3 ">
                         {formatDateLocal(task.start_date)}
-                      </td>
+                      </TableCell>
                     )}
                     {selectedColumns.includes("end_date") && (
-                      <td className="border border-gray-200 px-4 py-2">
+                      <TableCell className="px-4 py-3 ">
                         {formatDateLocal(task.end_date)}
-                      </td>
+                      </TableCell>
                     )}
                     {selectedColumns.includes("duration") && (
-                      <td className="border border-gray-200 px-4 py-2">
-                        {duration}
-                      </td>
+                      <TableCell className="px-4 py-3 ">{duration}</TableCell>
                     )}
                     {selectedColumns.includes("remaining") && (
-                      <td className="border border-gray-200 px-4 py-2">
-                        {remaining}
-                      </td>
+                      <TableCell className="px-4 py-3 ">{remaining}</TableCell>
                     )}
                     {selectedColumns.includes("status") && (
-                      <td className="border border-gray-200 px-4 py-2">
+                      <TableCell className="px-4 py-3">
                         <span
-                          className={`px-2 py-1 rounded-full text-sm font-medium ${
+                          className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
                             statusBadgeClasses[task.status]
                           }`}
                         >
                           {task.status}
                         </span>
-                      </td>
+                      </TableCell>
                     )}
                     {selectedColumns.includes("approvalStatus") && (
-                      <td className="border border-gray-200 px-4 py-2">
+                      <TableCell className="px-4 py-3 ">
                         {task.approvalStatus}
-                      </td>
+                      </TableCell>
                     )}
                     {selectedColumns.includes("actions") && (
-                      <td className="border border-gray-200 px-4 py-2">
-                        <Menu
-                          as="div"
-                          className="relative inline-block text-left"
-                        >
-                          <MenuButton className="flex items-center gap-1 px-3 py-1 text-sm bg-cyan-700 text-white rounded hover:bg-cyan-800">
-                            Action <ChevronDown className="w-4 h-4" />
-                          </MenuButton>
-                          <MenuItems className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-10">
-                            <MenuItem>
-                              {({ active }) => (
-                                <button
-                                  className={`block w-full px-4 py-2 text-left ${
-                                    active ? "bg-blue-100" : ""
-                                  }`}
-                                  onClick={() => handleEditClick(task)}
-                                >
-                                  <FaEdit className="inline mr-2" /> Edit
-                                </button>
-                              )}
-                            </MenuItem>
-                            <MenuItem>
-                              {({ active }) => (
-                                <button
-                                  className={`block w-full px-4 py-2 text-left ${
-                                    active ? "bg-blue-100" : ""
-                                  }`}
-                                  onClick={() => handleDeleteClick(task.id)}
-                                >
-                                  <FaTrash className="inline mr-2" /> Delete
-                                </button>
-                              )}
-                            </MenuItem>
-                            <MenuItem>
-                              {({ active }) => (
-                                <button
-                                  className={`block w-full px-4 py-2 text-left ${
-                                    active ? "bg-blue-100" : ""
-                                  }`}
-                                  onClick={() => handleView(task.id)}
-                                >
-                                  <FaEye className="inline mr-2" /> Quick View
-                                </button>
-                              )}
-                            </MenuItem>
-                            <MenuItem>
-                              {({ active }) => (
-                                <button
-                                  className={`block w-full px-4 py-2 text-left ${
-                                    active ? "bg-blue-100" : ""
-                                  }`}
-                                  onClick={() => handleManageClick(task)}
-                                >
-                                  <FaTasks className="inline mr-2" /> Manage
-                                </button>
-                              )}
-                            </MenuItem>
-                          </MenuItems>
-                        </Menu>
-                      </td>
+                      <TableCell className="px-4 py-3">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              className="text-white p-0 bg-cyan-700"
+                            >
+                              Action
+                              <ChevronDown className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={() => handleEditClick(task)}
+                            >
+                              <FaEdit className="mr-2 h-4 w-4" /> Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleDeleteClick(task.id)}
+                            >
+                              <FaTrash className="mr-2 h-4 w-4" /> Delete
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleView(task.id)}
+                            >
+                              <FaEye className="mr-2 h-4 w-4" /> Quick View
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleManageClick(task)}
+                            >
+                              <FaTasks className="mr-2 h-4 w-4" /> Manage
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
                     )}
-                  </tr>
+                  </TableRow>
                 );
               })
             ) : (
-              <tr>
-                <td
+              <TableRow>
+                <TableCell
                   colSpan={selectedColumns.length}
-                  className="px-4 py-2 text-center text-gray-500"
+                  className="text-center py-8 text-gray-500"
                 >
                   No tasks found
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             )}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
 
       {/* Delete Confirmation */}

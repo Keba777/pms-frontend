@@ -17,14 +17,34 @@ import { Project, UpdateProjectInput } from "@/types/project";
 import { toast } from "react-toastify";
 import { useUsers } from "@/hooks/useUsers";
 import { useTags } from "@/hooks/useTags";
-import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   formatDate,
   getDateDuration,
   getDuration as calcRemaining,
 } from "@/utils/helper";
-import SearchInput from "../common/ui/SearchInput";
+import { Input } from "@/components/ui/input";
 import ProfileAvatar from "../common/ProfileAvatar";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 const priorityBadgeClasses: Record<Project["priority"], string> = {
   Critical: "bg-red-100 text-red-800",
@@ -51,27 +71,24 @@ const ProjectSection: React.FC = () => {
   const { mutate: deleteProject } = useDeleteProject();
   const { mutate: updateProject } = useUpdateProject();
 
-  const columnOptions: Record<string, string> = {
-    id: "ID",
-    title: "Project",
-    members: "Assigned To",
-    client: "Client",
-    status: "Status",
-    priority: "Priority",
-    progress: "Progress",
-    start_date: "Starts At",
-    end_date: "Ends At",
-    duration: "Duration",
-    remaining: "Remaining",
-    actions: "Actions",
-  };
+  const columnOptions = [
+    { value: "id", label: "ID" },
+    { value: "title", label: "Project" },
+    { value: "members", label: "Assigned To" },
+    { value: "client", label: "Client" },
+    { value: "status", label: "Status" },
+    { value: "priority", label: "Priority" },
+    { value: "progress", label: "Progress" },
+    { value: "start_date", label: "Starts At" },
+    { value: "end_date", label: "Ends At" },
+    { value: "duration", label: "Duration" },
+    { value: "remaining", label: "Remaining" },
+    { value: "actions", label: "Actions" },
+  ];
 
   const [selectedColumns, setSelectedColumns] = useState<string[]>(
-    Object.keys(columnOptions)
+    columnOptions.map((col) => col.value)
   );
-  const [showColumnMenu, setShowColumnMenu] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-
   const [searchTerm, setSearchTerm] = useState<string>("");
 
   const toggleColumn = (col: string) => {
@@ -79,16 +96,6 @@ const ProjectSection: React.FC = () => {
       prev.includes(col) ? prev.filter((c) => c !== col) : [...prev, col]
     );
   };
-
-  const handleClickOutside = (event: MouseEvent) => {
-    if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-      setShowColumnMenu(false);
-    }
-  };
-  useEffect(() => {
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   // Edit state
   const [showEditForm, setShowEditForm] = useState(false);
@@ -153,237 +160,217 @@ const ProjectSection: React.FC = () => {
     setShowManageForm(false);
   };
 
-  if (isLoading) return <div>Loading projects…</div>;
-  if (isError) return <div>Error loading projects.</div>;
+  if (isLoading)
+    return (
+      <div className="text-center py-8 text-gray-600">Loading projects...</div>
+    );
+  if (isError)
+    return (
+      <div className="text-center py-8 text-red-600">
+        Error loading projects.
+      </div>
+    );
 
-  const filtered = projects?.filter(
-    (p) =>
-      p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.client.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filtered =
+    projects?.filter(
+      (p) =>
+        p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.client.toLowerCase().includes(searchTerm.toLowerCase())
+    ) || [];
 
   return (
-    <div>
-      <h2 className="text-3xl font-semibold mb-4 mt-6">Available Projects</h2>
+    <div className="space-y-6">
+      <h2 className="text-2xl sm:text-3xl font-bold text-gray-800">
+        Available Projects
+      </h2>
 
-      <div ref={menuRef} className="relative mb-4">
-        <div className="flex items-center justify-between gap-4">
-          <button
-            onClick={() => setShowColumnMenu((prev) => !prev)}
-            className="flex items-center gap-1 px-5 py-2 text-sm bg-emerald-600 text-white rounded hover:bg-emerald-700"
-          >
-            Customize Columns <ChevronDown className="w-4 h-4" />
-          </button>
-          <SearchInput
-            placeholder="Search Projects"
-            value={searchTerm}
-            onChange={setSearchTerm}
-          />
-        </div>
-        {showColumnMenu && (
-          <div className="absolute left-0 mt-1 w-48 bg-white border rounded shadow-lg z-10">
-            {Object.entries(columnOptions).map(([key, label]) => (
-              <label
-                key={key}
-                className="flex items-center w-full px-4 py-2 hover:bg-gray-100 cursor-pointer"
-              >
-                <input
-                  type="checkbox"
-                  checked={selectedColumns.includes(key)}
-                  onChange={() => toggleColumn(key)}
-                  className="mr-2"
-                />
-                {label}
-              </label>
-            ))}
-          </div>
-        )}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" className="w-full sm:w-auto">
+              Customize Columns <ChevronDown className="ml-2 h-4 w-4" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-64">
+            <div className="space-y-2">
+              {columnOptions.map((col) => (
+                <div key={col.value} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={col.value}
+                    checked={selectedColumns.includes(col.value)}
+                    onCheckedChange={() => toggleColumn(col.value)}
+                  />
+                  <label htmlFor={col.value} className="">
+                    {col.label}
+                  </label>
+                </div>
+              ))}
+            </div>
+          </PopoverContent>
+        </Popover>
+        <Input
+          placeholder="Search projects..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full sm:w-64"
+        />
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="min-w-max border border-gray-200 divide-y divide-gray-200">
-          <thead className="bg-cyan-700">
-            <tr>
-              {Object.keys(columnOptions).map((col) =>
-                selectedColumns.includes(col) ? (
-                  <th
-                    key={col}
-                    className="border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-50"
+      <div className="overflow-x-auto rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-cyan-700 hover:bg-cyan-700">
+              {columnOptions
+                .filter((col) => selectedColumns.includes(col.value))
+                .map((col) => (
+                  <TableHead
+                    key={col.value}
+                    className="text-gray-50 font-medium  px-4 py-3"
                   >
-                    {columnOptions[col]}
-                  </th>
-                ) : null
-              )}
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {filtered && filtered.length > 0 ? (
+                    {col.label}
+                  </TableHead>
+                ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filtered.length > 0 ? (
               filtered.map((project, idx) => {
                 const remaining =
                   project.end_date && new Date(project.end_date) > new Date()
                     ? calcRemaining(new Date(), project.end_date)
                     : "N/A";
                 return (
-                  <tr key={project.id} className="hover:bg-gray-50">
+                  <TableRow key={project.id} className="hover:bg-gray-50">
                     {selectedColumns.includes("id") && (
-                      <td className="border border-gray-200 px-4 py-2">
-                        {idx + 1}
-                      </td>
+                      <TableCell className="px-4 py-3 ">{idx + 1}</TableCell>
                     )}
                     {selectedColumns.includes("title") && (
-                      <td className="border border-gray-200 px-4 py-2">
+                      <TableCell className="px-4 py-3 ">
                         <Link
                           href={`/projects/${project.id}`}
-                          className="text-cyan-700 hover:underline"
+                          className="text-cyan-700 hover:underline font-medium"
                         >
                           {project.title}
                         </Link>
-                      </td>
+                      </TableCell>
                     )}
                     {selectedColumns.includes("members") && (
-                      <td className="border border-gray-200 px-4 py-2">
+                      <TableCell className="px-4 py-3">
                         {project.members?.length ? (
-                          <ul className="list-none space-x-1 flex">
+                          <div className="flex -space-x-2">
                             {project.members.map((m) => (
                               <ProfileAvatar key={m.id} user={m} />
                             ))}
-                          </ul>
+                          </div>
                         ) : (
-                          "N/A"
+                          <span className="text-gray-500">N/A</span>
                         )}
-                      </td>
+                      </TableCell>
                     )}
                     {selectedColumns.includes("client") && (
-                      <td className="border border-gray-200 px-4 py-2">
+                      <TableCell className="px-4 py-3 ">
                         {project.client}
-                      </td>
+                      </TableCell>
                     )}
                     {selectedColumns.includes("status") && (
-                      <td className="border border-gray-200 px-4 py-2">
+                      <TableCell className="px-4 py-3">
                         <span
-                          className={`px-2 py-1 rounded-full text-sm font-medium ${
+                          className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
                             statusBadgeClasses[project.status]
                           }`}
                         >
                           {project.status}
                         </span>
-                      </td>
+                      </TableCell>
                     )}
                     {selectedColumns.includes("priority") && (
-                      <td className="border border-gray-200 px-4 py-2">
+                      <TableCell className="px-4 py-3">
                         <span
-                          className={`px-2 py-1 rounded-full text-sm font-medium ${
+                          className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
                             priorityBadgeClasses[project.priority]
                           }`}
                         >
                           {project.priority}
                         </span>
-                      </td>
+                      </TableCell>
                     )}
                     {selectedColumns.includes("progress") && (
-                      <td className="border border-gray-200 px-4 py-2">
+                      <TableCell className="px-4 py-3 ">
                         {project.progress ?? 0}%
-                      </td>
+                      </TableCell>
                     )}
                     {selectedColumns.includes("start_date") && (
-                      <td className="border border-gray-200 px-4 py-2">
+                      <TableCell className="px-4 py-3 ">
                         {formatDate(project.start_date)}
-                      </td>
+                      </TableCell>
                     )}
                     {selectedColumns.includes("end_date") && (
-                      <td className="border border-gray-200 px-4 py-2">
+                      <TableCell className="px-4 py-3 ">
                         {formatDate(project.end_date)}
-                      </td>
+                      </TableCell>
                     )}
                     {selectedColumns.includes("duration") && (
-                      <td className="border border-gray-200 px-4 py-2">
+                      <TableCell className="px-4 py-3 ">
                         {getDateDuration(project.start_date, project.end_date)}
-                      </td>
+                      </TableCell>
                     )}
                     {selectedColumns.includes("remaining") && (
-                      <td className="border border-gray-200 px-4 py-2">
-                        {remaining}
-                      </td>
+                      <TableCell className="px-4 py-3 ">{remaining}</TableCell>
                     )}
                     {selectedColumns.includes("actions") && (
-                      <td className="border border-gray-200 px-4 py-2">
-                        <Menu
-                          as="div"
-                          className="relative inline-block text-left"
-                        >
-                          <MenuButton className="flex items-center gap-1 px-3 py-1 text-sm bg-cyan-700 text-white rounded hover:bg-cyan-800">
-                            Action <ChevronDown className="w-4 h-4" />
-                          </MenuButton>
-                          <MenuItems className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-10">
-                            <MenuItem>
-                              {({ active }) => (
-                                <button
-                                  className={`block w-full px-4 py-2 text-left ${
-                                    active ? "bg-blue-100" : ""
-                                  }`}
-                                  onClick={() => handleEditClick(project)}
-                                >
-                                  <FaEdit className="inline mr-2" /> Edit
-                                </button>
-                              )}
-                            </MenuItem>
-                            <MenuItem>
-                              {({ active }) => (
-                                <button
-                                  className={`block w-full px-4 py-2 text-left ${
-                                    active ? "bg-blue-100" : ""
-                                  }`}
-                                  onClick={() =>
-                                    handleDeleteProjectClick(project.id)
-                                  }
-                                >
-                                  <FaTrash className="inline mr-2" /> Delete
-                                </button>
-                              )}
-                            </MenuItem>
-                            <MenuItem>
-                              {({ active }) => (
-                                <button
-                                  className={`block w-full px-4 py-2 text-left ${
-                                    active ? "bg-blue-100" : ""
-                                  }`}
-                                  onClick={() => handleViewProject(project.id)}
-                                >
-                                  <FaEye className="inline mr-2" /> Quick View
-                                </button>
-                              )}
-                            </MenuItem>
-                            <MenuItem>
-                              {({ active }) => (
-                                <button
-                                  className={`block w-full px-4 py-2 text-left ${
-                                    active ? "bg-blue-100" : ""
-                                  }`}
-                                  onClick={() => handleManageClick(project)}
-                                >
-                                  <FaTasks className="inline mr-2" /> Manage
-                                </button>
-                              )}
-                            </MenuItem>
-                          </MenuItems>
-                        </Menu>
-                      </td>
+                      <TableCell className="px-4 py-3">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              className="text-white p-0 bg-cyan-700"
+                            >
+                              Action
+                              <ChevronDown className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={() => handleEditClick(project)}
+                            >
+                              <FaEdit className="mr-2 h-4 w-4" /> Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() =>
+                                handleDeleteProjectClick(project.id)
+                              }
+                            >
+                              <FaTrash className="mr-2 h-4 w-4" /> Delete
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleViewProject(project.id)}
+                            >
+                              <FaEye className="mr-2 h-4 w-4" /> Quick View
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleManageClick(project)}
+                            >
+                              <FaTasks className="mr-2 h-4 w-4" /> Manage
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
                     )}
-                  </tr>
+                  </TableRow>
                 );
               })
             ) : (
-              <tr>
-                <td
+              <TableRow>
+                <TableCell
                   colSpan={selectedColumns.length}
-                  className="px-4 py-2 text-center text-gray-500"
+                  className="text-center py-8 text-gray-500"
                 >
                   No projects found
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             )}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
 
       {isDeleteModalOpen && (
@@ -400,8 +387,8 @@ const ProjectSection: React.FC = () => {
       )}
 
       {showEditForm && projectToEdit && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-xl m-4 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <EditProjectForm
               project={projectToEdit}
               onSubmit={handleEditSubmit}
@@ -414,8 +401,8 @@ const ProjectSection: React.FC = () => {
       )}
 
       {showManageForm && projectToManage && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md m-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-lg">
             <ManageProjectForm
               onSubmit={handleManageSubmit}
               onClose={() => setShowManageForm(false)}

@@ -1,6 +1,7 @@
+// components/common/ui/MenuItem.tsx
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { ChevronDown } from "lucide-react";
 import Link from "next/link";
@@ -44,7 +45,7 @@ const MenuItem: React.FC<MenuItemProps> = ({ item }) => {
   }, [isActive]);
 
   return (
-    <li className="my-1">
+    <li className="my-0.5">
       <Link
         href={item.link || "#"}
         onClick={(e) => {
@@ -53,29 +54,29 @@ const MenuItem: React.FC<MenuItemProps> = ({ item }) => {
             setOpen(!open);
           }
         }}
-        className={`flex items-center py-2 px-4 rounded transition-colors ${
+        className={`flex items-center py-2.5 px-4 rounded-md transition-colors duration-200 text-sm font-medium ${
           isActive
-            ? "bg-gray-200 text-blue-600 font-semibold"
-            : "hover:bg-gray-100"
+            ? "bg-gray-100 text-blue-600 shadow-sm"
+            : "hover:bg-gray-50 text-gray-700"
         }`}
       >
-        {Icon && <Icon className={`w-5 h-5 mr-2 ${item.iconColor}`} />}
-        <span>{item.title}</span>
-        {item.badge !== undefined && (
-          <span className="ml-auto bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+        {Icon && <Icon className={`w-5 h-5 mr-3 flex-shrink-0 ${item.iconColor}`} />}
+        <span className="truncate">{item.title}</span>
+        {item.badge !== undefined && item.badge > 0 && (
+          <span className="ml-auto bg-red-500 text-white text-xs font-bold rounded-full min-w-[1.25rem] h-5 flex items-center justify-center px-1">
             {item.badge}
           </span>
         )}
         {hasSubmenu && (
           <ChevronDown
-            className={`ml-auto w-4 h-4 transition-transform ${
+            className={`ml-auto w-4 h-4 transition-transform duration-200 ${
               open ? "rotate-180" : ""
             }`}
           />
         )}
       </Link>
       {hasSubmenu && open && (
-        <ul className="pl-4">
+        <ul className="pl-4 mt-1 space-y-1 border-l-2 border-gray-200">
           {filteredSubmenu?.map((sub, index) => (
             <MenuItem key={index} item={sub} />
           ))}
