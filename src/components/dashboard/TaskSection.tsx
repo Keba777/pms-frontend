@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState} from "react";
 import { ChevronDown } from "lucide-react";
 import { FaEdit, FaTrash, FaEye, FaTasks } from "react-icons/fa";
 import { useTasks, useDeleteTask, useUpdateTask } from "@/hooks/useTasks";

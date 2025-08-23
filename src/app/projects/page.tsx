@@ -5,12 +5,11 @@ import Link from "next/link";
 import { List, PlusIcon, Grid } from "lucide-react";
 import ProjectCard from "@/components/projects/ProjectCard";
 import { useProjects } from "@/hooks/useProjects";
-import { Project, CreateProjectInput } from "@/types/project";
+import { Project } from "@/types/project";
 import ProjectForm from "@/components/forms/ProjectForm";
 import ProjectSection from "@/components/dashboard/ProjectSection";
 import ActualProjectSection from "@/components/dashboard/ActualProjectSection";
 import GenericDownloads, { Column } from "@/components/common/GenericDownloads";
-import GenericImport from "@/components/common/GenericImport"; 
 import { useProjectStore } from "@/store/projectStore";
 import { useAuthStore } from "@/store/authStore";
 import {
@@ -19,18 +18,15 @@ import {
   GenericFilter,
   Option,
 } from "@/components/common/GenericFilter";
-import { useCreateProject } from "@/hooks/useProjects"; 
-import { toast } from "react-toastify";
 
 const ProjectPage: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [isListView, setIsListView] = useState(false);
   const [activeTab, setActiveTab] = useState<"planned" | "actual">("planned");
-  const { data: projects, refetch } = useProjects(); 
+  const { data: projects } = useProjects();
   const { projects: storeProjects } = useProjectStore();
   const hasPermission = useAuthStore((state) => state.hasPermission);
   const [filterValues, setFilterValues] = useState<FilterValues>({});
-  const { mutateAsync: createProject } = useCreateProject();
 
   const canCreate = hasPermission("projects", "create");
   const canManage = hasPermission("projects", "manage");
@@ -46,10 +42,10 @@ const ProjectPage: React.FC = () => {
     { header: "Status", accessor: "status" },
   ];
 
-  const importColumns = columns.map((c) => ({
-    header: c.header,
-    accessor: c.accessor as string, 
-  }));
+  // const importColumns = columns.map((c) => ({
+  //   header: c.header,
+  //   accessor: c.accessor as string,
+  // }));
 
   const priorityOptions: Option<string>[] = [
     { label: "Low", value: "Low" },
@@ -98,25 +94,25 @@ const ProjectPage: React.FC = () => {
     return matches;
   });
 
-  const handleImport = async (data: any[]) => {
-    try {
-      // Cast data to CreateProjectInput[] - adjust types as needed
-      const projectsToCreate = data as CreateProjectInput[];
-      await Promise.all(
-        projectsToCreate.map((project) => createProject(project))
-      );
-      refetch();
-      toast.success("Projects imported and created successfully!");
-    } catch (error) {
-      toast.error("Error importing and creating projects");
-      console.error("Import error:", error);
-    }
-  };
+  // const handleImport = async (data: Project[]) => {
+  //   try {
+  //     // Cast data to CreateProjectInput[] - adjust types as needed
+  //     const projectsToCreate = data as CreateProjectInput[];
+  //     await Promise.all(
+  //       projectsToCreate.map((project) => createProject(project))
+  //     );
+  //     refetch();
+  //     toast.success("Projects imported and created successfully!");
+  //   } catch (error) {
+  //     toast.error("Error importing and creating projects");
+  //     console.error("Import error:", error);
+  //   }
+  // };
 
-  const handleError = (error: string) => {
-    console.error(error);
-    alert(error);
-  };
+  // const handleError = (error: string) => {
+  //   console.error(error);
+  //   alert(error);
+  // };
 
   return (
     <div className="p-4">
@@ -158,14 +154,14 @@ const ProjectPage: React.FC = () => {
               columns={columns}
             />
           )}
-          {canManage && (
-            <GenericImport
+          {/* {canManage && (
+            <GenericImport<Project>
               expectedColumns={importColumns}
               onImport={handleImport}
               title="Projects"
               onError={handleError}
             />
-          )}
+          )} */}
         </div>
       </div>
 

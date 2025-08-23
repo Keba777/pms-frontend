@@ -1,7 +1,7 @@
 // components/layout/Header.tsx
 "use client";
 
-import React, { useState, useRef, useEffect, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import Link from "next/link";
 import { MenuIcon, Search, Bell, LogOut } from "lucide-react";
 import Image from "next/image";

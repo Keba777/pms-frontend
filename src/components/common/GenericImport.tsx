@@ -1,24 +1,24 @@
 import React, { ChangeEvent, useState } from "react";
 import * as XLSX from "xlsx";
 
-export interface ImportColumn {
+export interface ImportColumn<T> {
   header: string;
-  accessor: string; // Key to map to in the output data object
+  accessor: keyof T & string; // Ensures accessor is a key of T
 }
 
-interface GenericImportProps {
-  expectedColumns: ImportColumn[]; // Expected headers and their corresponding accessors
-  onImport: (data: any[]) => void; // Callback to handle successfully imported data
-  title: string; // Title for the import component (e.g., table name)
-  onError?: (error: string) => void; // Optional callback for errors (e.g., header mismatch)
+interface GenericImportProps<T extends object> {
+  expectedColumns: ImportColumn<T>[];
+  onImport: (data: T[]) => void | Promise<void>;
+  title: string;
+  onError?: (error: string) => void;
 }
 
-const GenericImport = ({
+const GenericImport = <T extends object>({
   expectedColumns,
   onImport,
   title,
   onError,
-}: GenericImportProps) => {
+}: GenericImportProps<T>) => {
   const [loading, setLoading] = useState(false);
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -28,7 +28,7 @@ const GenericImport = ({
     setLoading(true);
     const reader = new FileReader();
 
-    reader.onload = (event) => {
+    reader.onload = async (event) => {
       try {
         const data = event.target?.result;
         if (!data) throw new Error("Failed to read file.");
@@ -36,67 +36,80 @@ const GenericImport = ({
         const workbook = XLSX.read(data, { type: "binary" });
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
-        const jsonData: any[] = XLSX.utils.sheet_to_json(worksheet, {
+
+        const rawData: unknown[][] = XLSX.utils.sheet_to_json(worksheet, {
           header: 1,
         });
 
-        if (jsonData.length < 1) throw new Error("Empty sheet.");
+        if (rawData.length < 1) throw new Error("Empty sheet.");
 
-        // Extract headers from the first row
-        const headers: string[] = jsonData[0] as string[];
+        // Extract headers
+        const headers = rawData[0] as string[];
 
-        // Check if headers match expected columns (case-insensitive, trimmed)
-        const expectedHeaders = expectedColumns.map((col) =>
-          col.header.trim().toLowerCase()
+        // Validate headers
+        const expectedHeaders = expectedColumns.map((c) =>
+          c.header.trim().toLowerCase()
         );
         const actualHeaders = headers.map((h) => h.trim().toLowerCase());
 
-        const missingHeaders = expectedHeaders.filter(
-          (eh) => !actualHeaders.includes(eh)
+        const missing = expectedHeaders.filter(
+          (h) => !actualHeaders.includes(h)
         );
-        if (missingHeaders.length > 0) {
-          const errorMsg = `Header mismatch. Missing or incorrect headers: ${missingHeaders.join(
+        if (missing.length > 0) {
+          const msg = `Header mismatch. Missing or incorrect headers: ${missing.join(
             ", "
           )}.`;
-          if (onError) onError(errorMsg);
-          else alert(errorMsg);
+          if (onError) {
+            onError(msg);
+          } else {
+            alert(msg);
+          }
+          setLoading(false);
           return;
         }
 
-        // Parse data starting from row 1 (skipping header)
-        const parsedData = jsonData.slice(1).map((row: any[]) => {
-          const obj: { [key: string]: any } = {};
+        type Key = keyof T & string;
+
+        // Parse rows into objects of type T
+        const parsedData: T[] = rawData.slice(1).map((row) => {
+          const obj: Partial<Record<Key, unknown>> = {};
           headers.forEach((header, index) => {
             const trimmedHeader = header.trim().toLowerCase();
             const column = expectedColumns.find(
               (col) => col.header.trim().toLowerCase() === trimmedHeader
             );
             if (column) {
-              obj[column.accessor] = row[index];
+              obj[column.accessor as Key] = row[index];
             }
           });
-          return obj;
+          return obj as T;
         });
 
-        // Filter out empty rows (optional: if all values are undefined or empty)
+        // Filter out empty rows
         const filteredData = parsedData.filter((row) =>
           Object.values(row).some((val) => val !== undefined && val !== "")
         );
 
-        onImport(filteredData);
+        await onImport(filteredData);
       } catch (error) {
-        const errorMsg = `Error importing file: ${(error as Error).message}`;
-        if (onError) onError(errorMsg);
-        else alert(errorMsg);
+        const msg = `Error importing file: ${(error as Error).message}`;
+        if (onError) {
+          onError(msg);
+        } else {
+          alert(msg);
+        }
       } finally {
         setLoading(false);
       }
     };
 
     reader.onerror = () => {
-      const errorMsg = "Error reading file.";
-      if (onError) onError(errorMsg);
-      else alert(errorMsg);
+      const msg = "Error reading file.";
+      if (onError) {
+        onError(msg);
+      } else {
+        alert(msg);
+      }
       setLoading(false);
     };
 
