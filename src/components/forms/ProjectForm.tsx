@@ -10,11 +10,8 @@ import { CreateProjectInput } from "@/types/project";
 import { useCreateProject } from "@/hooks/useProjects";
 import { useUsers } from "@/hooks/useUsers";
 import { User } from "@/types/user";
-import { useTags } from "@/hooks/useTags";
-import { Tag } from "@/types/tag";
-import { useRoles } from "@/hooks/useRoles";
-import { Role } from "@/types/user";
 import { useCreateNotification } from "@/hooks/useNotifications";
+import { useSites } from "@/hooks/useSites";
 
 interface ProjectFormProps {
   onClose: () => void; // Function to close the modal
@@ -37,8 +34,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
     isLoading: usersLoading,
     error: usersError,
   } = useUsers();
-  const { data: tags, isLoading: tagsLoading, error: tagsError } = useTags();
-  const { data: roles } = useRoles();
+  const { data: sites, isLoading: sitesLoading, error: sitesError } = useSites();
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -158,22 +154,19 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
 
   const memberOptions =
     users
-      ?.filter((user: User) => user.role_id !== CLIENT_ROLE_ID)
+      ?.filter((user: User) => user.role?.id !== CLIENT_ROLE_ID)
       .map((user: User) => {
-        const roleObj: Role | undefined = roles?.find(
-          (r) => r.id === user.role_id
-        );
-        const roleName = roleObj ? roleObj.name : "No Role";
+        const roleName = user.role?.name || "No Role";
         return {
           value: user.id!,
           label: `${user.first_name} (${roleName})`,
         };
       }) || [];
 
-  const tagOptions =
-    tags?.map((tag: Tag) => ({
-      value: tag.id!,
-      label: tag.name,
+  const siteOptions =
+    sites?.map((site) => ({
+      value: site.id!,
+      label: site.name,
     })) || [];
 
   return (
@@ -386,14 +379,30 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
               Site
               <Info className="inline ml-1 text-bs-primary h-4 w-4" />
             </label>
-            <input
-              type="text"
-              {...register("site", { required: "Site is required" })}
-              placeholder="Enter Site Name"
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+            <Controller
+              name="site_id"
+              control={control}
+              rules={{ required: "Site is required" }}
+              render={({ field }) => (
+                <Select
+                  {...field}
+                  options={siteOptions}
+                  isLoading={sitesLoading}
+                  className="w-full"
+                  onChange={(selectedOption) =>
+                    field.onChange(selectedOption?.value)
+                  }
+                  value={siteOptions.find(
+                    (option) => option.value === field.value
+                  )}
+                />
+              )}
             />
-            {errors.site && (
-              <p className="text-red-500 text-sm mt-1">{errors.site.message}</p>
+            {errors.site_id && (
+              <p className="text-red-500 text-sm mt-1">{errors.site_id.message}</p>
+            )}
+            {sitesError && (
+              <p className="text-red-500 text-sm mt-1">Error loading sites</p>
             )}
           </div>
         </div>
@@ -458,35 +467,6 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
             placeholder="Enter Consultant"
             className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
           />
-        </div>
-
-        {/* Tags Section */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Select Tags
-          </label>
-          <Controller
-            name="tagIds"
-            control={control}
-            render={({ field }) => (
-              <Select
-                isMulti
-                options={tagOptions}
-                isLoading={tagsLoading}
-                className="basic-multi-select"
-                classNamePrefix="select"
-                onChange={(selectedOptions) =>
-                  field.onChange(selectedOptions.map((option) => option.value))
-                }
-                value={tagOptions.filter((option) =>
-                  field.value?.includes(option.value)
-                )}
-              />
-            )}
-          />
-          {tagsError && (
-            <p className="text-red-500 text-sm mt-1">Error loading tags</p>
-          )}
         </div>
 
         {/* Description */}

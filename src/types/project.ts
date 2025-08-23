@@ -1,3 +1,4 @@
+import { Site } from "./site";
 import { Task } from "./task";
 import { User } from "./user";
 
@@ -10,8 +11,8 @@ export interface Project {
     end_date: Date;
     budget: number;
     client: string;
-    site: string;
     site_id?: string;
+    site?: Site
     progress?: number;
     isFavourite?: boolean;
     status: 'Not Started' | 'Started' | 'InProgress' | 'Canceled' | 'Onhold' | 'Completed';
@@ -30,11 +31,9 @@ export interface CreateProjectInput {
     end_date: Date;
     budget: number;
     client: string;
-    site: string;
     site_id?: string;
     status: 'Not Started' | 'Started' | 'InProgress' | 'Canceled' | 'Onhold' | 'Completed';
     members?: string[];
-    tagIds?: string[];
 }
 
 export interface UpdateProjectInput {
@@ -46,12 +45,10 @@ export interface UpdateProjectInput {
     end_date?: Date;
     budget?: number;
     client?: string;
-    site?: string;
     site_id?: string;
     progress?: number;
     isFavourite?: boolean;
     status?: 'Not Started' | 'Started' | 'InProgress' | 'Canceled' | 'Onhold' | 'Completed';
     members?: string[];
-    tagIds?: string[];
     tasks?: Task[];
 }

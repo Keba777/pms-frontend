@@ -66,7 +66,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
             className="p-2 lg:hidden"
             onClick={toggleSidebar}
           >
-            <MenuIcon className="w-6 h-6 text-gray-600" />
+            <MenuIcon className="w-8 h-8 text-gray-600" />
           </Button>
           <span className="text-lg font-semibold text-gray-800 hidden sm:block">
             Dashboard
@@ -100,7 +100,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
           >
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="p-2 relative">
-                <Bell className="w-5 h-5 text-gray-600" />
+                <Bell className="w-8 h-8 text-gray-600" />
                 {unreadCount > 0 && (
                   <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
                     {unreadCount}
