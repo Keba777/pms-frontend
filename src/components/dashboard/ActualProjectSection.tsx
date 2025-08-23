@@ -14,7 +14,6 @@ import ManageProjectForm from "../forms/ManageProjectForm";
 import { Project, UpdateProjectInput } from "@/types/project";
 import { toast } from "react-toastify";
 import { useUsers } from "@/hooks/useUsers";
-import { useTags } from "@/hooks/useTags";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import SearchInput from "../common/ui/SearchInput";
 import ProfileAvatar from "../common/ProfileAvatar";
@@ -23,7 +22,6 @@ const ActualProjectSection: React.FC = () => {
   const router = useRouter();
   const { data: projects, isLoading, isError } = useProjects();
   const { data: users } = useUsers();
-  const { data: tags } = useTags();
 
   const { mutate: deleteProject } = useDeleteProject();
   const { mutate: updateProject } = useUpdateProject();
@@ -363,7 +361,6 @@ const ActualProjectSection: React.FC = () => {
               onSubmit={handleEditSubmit}
               onClose={() => setShowEditForm(false)}
               users={users}
-              tags={tags}
             />
           </div>
         </div>

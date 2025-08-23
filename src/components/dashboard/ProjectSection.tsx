@@ -16,7 +16,6 @@ import ManageProjectForm from "../forms/ManageProjectForm";
 import { Project, UpdateProjectInput } from "@/types/project";
 import { toast } from "react-toastify";
 import { useUsers } from "@/hooks/useUsers";
-import { useTags } from "@/hooks/useTags";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -66,7 +65,6 @@ const ProjectSection: React.FC = () => {
   const router = useRouter();
   const { data: projects, isLoading, isError } = useProjects();
   const { data: users } = useUsers();
-  const { data: tags } = useTags();
 
   const { mutate: deleteProject } = useDeleteProject();
   const { mutate: updateProject } = useUpdateProject();
@@ -394,7 +392,7 @@ const ProjectSection: React.FC = () => {
               onSubmit={handleEditSubmit}
               onClose={() => setShowEditForm(false)}
               users={users}
-              tags={tags}
+
             />
           </div>
         </div>

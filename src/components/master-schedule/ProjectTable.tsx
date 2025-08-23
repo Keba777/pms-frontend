@@ -17,7 +17,6 @@ import ManageProjectForm from "../forms/ManageProjectForm";
 
 import { useDeleteProject, useUpdateProject } from "@/hooks/useProjects";
 import { useUsers } from "@/hooks/useUsers";
-import { useTags } from "@/hooks/useTags";
 import { Task } from "@/types/task";
 import SearchInput from "../common/ui/SearchInput";
 
@@ -62,7 +61,6 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
   const router = useRouter();
 
   const { data: users } = useUsers();
-  const { data: tags } = useTags();
   const { mutate: deleteProject } = useDeleteProject();
   const { mutate: updateProject } = useUpdateProject();
 
@@ -435,7 +433,6 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
               onSubmit={handleEditSubmit}
               project={projectToEdit}
               users={users}
-              tags={tags}
             />
           </div>
         </div>

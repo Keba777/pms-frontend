@@ -8,14 +8,15 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { UpdateProjectInput } from "@/types/project";
 import { User } from "@/types/user";
-import { Tag } from "@/types/tag";
+import { useSites } from "@/hooks/useSites";
+
 
 interface EditProjectFormProps {
   onSubmit: (data: UpdateProjectInput) => void;
   onClose: () => void;
   project: UpdateProjectInput;
   users: User[] | undefined;
-  tags: Tag[] | undefined;
+
 }
 
 const EditProjectForm: React.FC<EditProjectFormProps> = ({
@@ -23,7 +24,7 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
   onClose,
   project,
   users,
-  tags,
+
 }) => {
   const {
     register,
@@ -33,6 +34,7 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
   } = useForm<UpdateProjectInput>({
     defaultValues: project,
   });
+  const { data: sites, isLoading: sitesLoading, error: sitesError } = useSites();
 
   const statusOptions = [
     { value: "Not Started", label: "Not Started" },
@@ -56,11 +58,13 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
       label: `${user.first_name} ${user.last_name}`,
     })) || [];
 
-  const tagOptions =
-    tags?.map((tag) => ({
-      value: tag.id!,
-      label: tag.name,
+  
+   const siteOptions =
+    sites?.map((site) => ({
+      value: site.id!,
+      label: site.name,
     })) || [];
+
 
   return (
     <form
@@ -267,16 +271,31 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Site
+              Site <span className="text-red-500">*</span>
               <Info className="inline ml-1 text-bs-primary h-4 w-4" />
             </label>
-            <input
-              type="text"
-              {...register("site", { required: "Site is required" })}
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+            <Controller
+              name="site_id"
+              control={control}
+              rules={{ required: "Site is required" }}
+              render={({ field }) => (
+                <Select
+                  {...field}
+                  options={siteOptions}
+                  isLoading={sitesLoading}
+                  className="w-full text-sm"
+                  onChange={(selected) => field.onChange(selected?.value)}
+                  value={siteOptions.find(
+                    (option) => option.value === field.value
+                  )}
+                />
+              )}
             />
-            {errors.site && (
-              <p className="text-red-500 text-sm mt-1">{errors.site.message}</p>
+            {errors.site_id && (
+              <p className="text-red-500 text-sm mt-1">{errors.site_id.message}</p>
+            )}
+            {sitesError && (
+              <p className="text-red-500 text-sm mt-1">Error loading sites</p>
             )}
           </div>
         </div>
@@ -306,30 +325,7 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
           />
         </div>
 
-        {/* Tags Section */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Select Tags
-          </label>
-          <Controller
-            name="tagIds"
-            control={control}
-            render={({ field }) => (
-              <Select
-                isMulti
-                options={tagOptions}
-                className="basic-multi-select"
-                classNamePrefix="select"
-                onChange={(selectedOptions) =>
-                  field.onChange(selectedOptions.map((option) => option.value))
-                }
-                value={tagOptions.filter((option) =>
-                  field.value?.includes(option.value)
-                )}
-              />
-            )}
-          />
-        </div>
+       
 
         {/* Description */}
         <div>
