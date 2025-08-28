@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { CreateKpiInput } from "@/types/kpi";
 
@@ -35,6 +35,12 @@ const KpiForm: React.FC<KpiFormProps> = ({
       // Optional fields will be added on submit
     },
   });
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files ? Array.from(event.target.files) : [];
+    setSelectedFiles(files);
+  };
 
   // Prepare data with optional field from props on submit
   const handleFormSubmit = (data: CreateKpiInput) => {
@@ -162,6 +168,44 @@ const KpiForm: React.FC<KpiFormProps> = ({
             <p className="text-red-500 text-sm mt-1">{errors.target.message}</p>
           )}
         </div>
+      </div>
+
+      <div className="mt-4">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Attach Files
+        </label>
+
+        <div className="w-full border-2 border-dashed border-gray-300 rounded-md p-4 bg-gray-50 hover:border-bs-primary transition-colors duration-300">
+          <input
+            type="file"
+            multiple
+            onChange={handleFileChange}
+            className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 
+                     file:rounded-md file:border-0 
+                     file:text-sm file:font-semibold 
+                     file:bg-bs-primary file:text-white 
+                     hover:file:bg-bs-primary/90"
+          />
+          <p className="mt-2 text-sm text-gray-500">
+            You can select multiple files.
+          </p>
+        </div>
+
+        {/* File list */}
+        {selectedFiles.length > 0 && (
+          <div className="mt-4">
+            <h4 className="text-sm font-semibold text-gray-700 mb-2">
+              Files Selected:
+            </h4>
+            <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+              {selectedFiles.map((file, index) => (
+                <li key={index}>
+                  {file.name} ({(file.size / 1024).toFixed(2)} KB)
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
 
       {/* Footer Buttons */}

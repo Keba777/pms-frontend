@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { CreateMaterialInput } from "@/types/material";
 import { useCreateMaterial } from "@/hooks/useMaterials";
@@ -22,6 +22,12 @@ const MaterialForm: React.FC<MaterialFormProps> = ({
   } = useForm<CreateMaterialInput>();
 
   const { mutate: createMaterial, isPending } = useCreateMaterial();
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files ? Array.from(event.target.files) : [];
+    setSelectedFiles(files);
+  };
 
   const onSubmit = (data: CreateMaterialInput) => {
     createMaterial(
@@ -188,6 +194,44 @@ const MaterialForm: React.FC<MaterialFormProps> = ({
               </select>
             )}
           />
+        </div>
+
+        <div className="mt-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Attach Files
+          </label>
+
+          <div className="w-full border-2 border-dashed border-gray-300 rounded-md p-4 bg-gray-50 hover:border-bs-primary transition-colors duration-300">
+            <input
+              type="file"
+              multiple
+              onChange={handleFileChange}
+              className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 
+                     file:rounded-md file:border-0 
+                     file:text-sm file:font-semibold 
+                     file:bg-bs-primary file:text-white 
+                     hover:file:bg-bs-primary/90"
+            />
+            <p className="mt-2 text-sm text-gray-500">
+              You can select multiple files.
+            </p>
+          </div>
+
+          {/* File list */}
+          {selectedFiles.length > 0 && (
+            <div className="mt-4">
+              <h4 className="text-sm font-semibold text-gray-700 mb-2">
+                Files Selected:
+              </h4>
+              <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+                {selectedFiles.map((file, index) => (
+                  <li key={index}>
+                    {file.name} ({(file.size / 1024).toFixed(2)} KB)
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
 
         {/* Footer Buttons */}
