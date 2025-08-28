@@ -50,12 +50,9 @@ export interface UpdateTodoInput {
     task?: string;
     type?: string;
     priority?: "Urgent" | "High" | "Medium" | "Low";
-    assignedById?: string;
     assignedUsers?: string[];
-    givenDate?: Date;
     dueDate?: Date;
     target?: Date;
-    kpiId?: string;
     departmentId?: string;
     status?: "Not Started" | "In progress" | "Pending" | "Completed";
     progress?: number;
@@ -73,15 +70,15 @@ export interface TodoProgress {
     progress: number;
     remark?: string;
     attachment?: string[];
-    createdAt?: Date;
-    updatedAt?: Date;
+    createdAt: Date;
+    updatedAt: Date;
 }
 
 export interface CreateTodoProgressInput {
     todoId: string;
     progress: number;
     remark?: string;
-    attachment?: string[];
+    attachment?: File[];
 }
 
 export interface UpdateTodoProgressInput {

@@ -48,9 +48,25 @@ const deleteTodo = async (id: string): Promise<{ message: string }> => {
 
 // ----- Progress API -----
 const createTodoProgress = async (data: CreateTodoProgressInput): Promise<TodoProgress> => {
-    const response = await apiClient.post<ApiResponse<TodoProgress>>("/todos/progress", data);
+    const formData = new FormData();
+    formData.append("progress", String(data.progress));
+    if (data.remark) formData.append("remark", data.remark);
+    if (data.attachment?.length) {
+        data.attachment.forEach((file) => {
+            formData.append("attachments", file); 
+        });
+    }
+
+    const response = await apiClient.post<ApiResponse<TodoProgress>>(
+        `/todos/${data.todoId}/progress`,
+        formData,
+        {
+            headers: { "Content-Type": "multipart/form-data" },
+        }
+    );
     return response.data.data;
 };
+
 
 // ----------------------------
 // React Query hooks

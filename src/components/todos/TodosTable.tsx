@@ -1,11 +1,17 @@
 // TodosTable.tsx
-import React from "react";
+import React, { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import ProfileAvatar from "@/components/common/ProfileAvatar";
 import Link from "next/link";
-import { Todo } from "@/types/todo";
-import { Department } from "@/types/department"; // Assuming you have a Department type; adjust if needed
+import { Todo, UpdateTodoInput } from "@/types/todo";
+import { Department } from "@/types/department";
+import { useRouter } from "next/navigation";
+import { useDeleteTodo, useUpdateTodo } from "@/hooks/useTodos";
+import EditTodoForm from "../forms/EditTodoForm";
+import { useUsers } from "@/hooks/useUsers";
+import CreateTodoProgressForm from "../forms/TodoProgressForm";
+import ConfirmModal from "../common/ui/ConfirmModal";
 
 const priorityBadgeClasses: Record<Todo["priority"], string> = {
   Urgent: "bg-red-100 text-red-800",
@@ -24,7 +30,7 @@ const statusBadgeClasses: Record<Todo["status"], string> = {
 interface TodosTableProps {
   filteredTodos: Todo[];
   selectedColumns: string[];
-  departments: Department[]; // Adjust type if departments is typed differently
+  departments: Department[];
 }
 
 const TodosTable: React.FC<TodosTableProps> = ({
@@ -32,6 +38,38 @@ const TodosTable: React.FC<TodosTableProps> = ({
   selectedColumns,
   departments,
 }) => {
+  const router = useRouter();
+  const { data: users } = useUsers();
+  const { mutate: deleteTodo } = useDeleteTodo();
+  const { mutate: updateTodo } = useUpdateTodo();
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedTodoId, setSelectedTodoId] = useState<string | null>(null);
+
+  // Edit modal
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [todoToEdit, setTodoToEdit] = useState<UpdateTodoInput | null>(null);
+
+  // Manage modal
+  const [showManageForm, setShowManageForm] = useState(false);
+
+  const handleDeleteClick = (todoId: string) => {
+    setSelectedTodoId(todoId);
+    setIsDeleteModalOpen(true);
+  };
+  const handleDeleteConfirm = () => {
+    if (selectedTodoId) deleteTodo(selectedTodoId);
+    setIsDeleteModalOpen(false);
+  };
+
+  const handleView = (id: string) => {
+    router.push(`/todos/${id}`);
+  };
+
+  const handleEditSubmit = (data: UpdateTodoInput) => {
+    updateTodo(data);
+    setShowEditForm(false);
+  };
+
   return (
     <div className="overflow-x-auto w-full">
       <table className="min-w-[1400px] divide-y divide-gray-200 border border-gray-200 table-auto">
@@ -193,18 +231,19 @@ const TodosTable: React.FC<TodosTableProps> = ({
                 </td>
               )}
               {selectedColumns.includes("action") && (
-                <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
+                <td className="px-4 py-2 border border-gray-200">
                   <Menu as="div" className="relative inline-block text-left">
-                    <MenuButton className="flex items-center gap-1 px-3 py-1 text-sm bg-cyan-700 text-white rounded hover:bg-cyan-800">
+                    <MenuButton className="flex items-center gap-1 px-3 py-1 text-sm bg-cyan-700 text-white rounded hover:bg-cyan-800 w-full">
                       Action <ChevronDown className="w-4 h-4" />
                     </MenuButton>
-                    <MenuItems className="absolute left-0 mt-2 w-full origin-top-left bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow-lg focus:outline-none z-50">
+                    <MenuItems className="absolute left-0 mt-2 w-40 bg-white border divide-y divide-gray-100 rounded-md shadow-lg z-50">
                       <MenuItem>
                         {({ active }) => (
                           <button
-                            className={`${
+                            onClick={() => handleView(todo.id)}
+                            className={`w-full text-left px-3 py-2 text-sm ${
                               active ? "bg-gray-100" : ""
-                            } w-full text-left px-3 py-2 text-sm text-gray-700`}
+                            }`}
                           >
                             View
                           </button>
@@ -213,9 +252,18 @@ const TodosTable: React.FC<TodosTableProps> = ({
                       <MenuItem>
                         {({ active }) => (
                           <button
-                            className={`${
+                            onClick={() => {
+                              setTodoToEdit({
+                                ...todo,
+                                assignedUsers: todo.assignedUsers?.map(
+                                  (u) => u.id
+                                ),
+                              });
+                              setShowEditForm(true);
+                            }}
+                            className={`w-full text-left px-3 py-2 text-sm ${
                               active ? "bg-gray-100" : ""
-                            } w-full text-left px-3 py-2 text-sm text-gray-700`}
+                            }`}
                           >
                             Edit
                           </button>
@@ -224,22 +272,74 @@ const TodosTable: React.FC<TodosTableProps> = ({
                       <MenuItem>
                         {({ active }) => (
                           <button
-                            className={`${
+                            onClick={() => handleDeleteClick(todo.id)}
+                            className={`w-full text-left px-3 py-2 text-sm text-red-600 ${
                               active ? "bg-gray-100" : ""
-                            } w-full text-left px-3 py-2 text-sm text-red-600`}
+                            }`}
                           >
                             Delete
                           </button>
                         )}
                       </MenuItem>
+                      <MenuItem>
+                        {({ active }) => (
+                          <button
+                            onClick={() => {
+                              setShowManageForm(true);
+                            }}
+                            className={`w-full text-left px-3 py-2 text-sm ${
+                              active ? "bg-gray-100" : ""
+                            }`}
+                          >
+                            Manage
+                          </button>
+                        )}
+                      </MenuItem>
                     </MenuItems>
                   </Menu>
+                  {showManageForm && (
+                    <div className="modal-overlay">
+                      <div className="modal-content">
+                        <CreateTodoProgressForm
+                          onClose={() => setShowManageForm(false)}
+                          todoId={todo.id}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </td>
               )}
             </tr>
           ))}
         </tbody>
       </table>
+
+      {isDeleteModalOpen && (
+        <ConfirmModal
+          isVisible={isDeleteModalOpen}
+          title="Confirm Deletion"
+          message="Are you sure you want to delete this project?"
+          showInput={false}
+          confirmText="DELETE"
+          confirmButtonText="Delete"
+          onClose={() => setIsDeleteModalOpen(false)}
+          onConfirm={handleDeleteConfirm}
+        />
+      )}
+
+      {/* Edit Todo Modal */}
+      {showEditForm && todoToEdit && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <EditTodoForm
+              onClose={() => setShowEditForm(false)}
+              onSubmit={handleEditSubmit}
+              todo={todoToEdit}
+              users={users}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

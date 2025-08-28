@@ -1,10 +1,19 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Paperclip } from "lucide-react";
 import { useTodoStore } from "@/store/todoStore";
-import { Todo } from "@/types/todo";
+import { Todo, TodoProgress } from "@/types/todo";
+import CreateTodoProgressForm from "@/components/forms/TodoProgressForm";
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { Separator } from "@/components/ui/separator";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface ClientTodoDetailProps {
   todoId: string;
@@ -15,194 +24,250 @@ export default function ClientTodoDetails({ todoId }: ClientTodoDetailProps) {
   const todos = useTodoStore((state) => state.todos);
   const todo = todos.find((t: Todo) => t.id === todoId);
 
+  const progressUpdates = useMemo<TodoProgress[]>(() => {
+    const list = todo?.progressUpdates ?? [];
+    // ensure chronological
+    return list.slice().sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+  }, [todo]);
+
   if (!todo) {
-    return (
-      <div className="text-center text-red-500 mt-10">Todo not found.</div>
-    );
+    return <div className="text-center text-red-500 mt-10">Todo not found.</div>;
   }
 
+  const latestProgress = progressUpdates.length ? progressUpdates[progressUpdates.length - 1].progress : todo.progress;
+
   return (
-    <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 bg-gray-100 shadow-xl rounded-xl mt-6 lg:mt-8">
-      <div className="flex items-center space-x-4">
-        <button
-          className="text-gray-600 hover:text-cyan-700 flex items-center p-2 bg-white border-2 border-gray-200 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105 hover:bg-cyan-50 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-opacity-50"
-          onClick={() => router.push("/todos")} // Assuming route is /todos
-        >
-          <ArrowLeft className="w-5 h-5 mr-2 transition-transform duration-200 transform hover:translate-x-2" />
-          <span className="text-lg font-semibold transition-all duration-300">
-            Back to Todos
-          </span>
-        </button>
+    <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+      {/* Back */}
+      <div className="mb-4">
+        <Button variant="outline" onClick={() => router.push("/todos")} className="gap-2">
+          <ArrowLeft className="h-4 w-4" />
+          Back to Todos
+        </Button>
       </div>
 
-      <h1 className="text-4xl sm:text-5xl font-bold text-cyan-700 mt-4">
-        {todo.task}
-      </h1>
-      {todo.remark && <p className="text-gray-600 mt-2">{todo.remark}</p>}
-      {todo.remainder && (
-        <p className="text-gray-500 italic mt-1">{todo.remainder}</p>
-      )}
+      {/* Top Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left: Main info */}
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle className="text-2xl">{todo.task}</CardTitle>
+            <div className="flex flex-wrap gap-2 pt-2">
+              <Badge variant="default">{todo.status}</Badge>
+              <Badge variant="secondary">Priority: {todo.priority}</Badge>
+              {todo.type && <Badge variant="outline">Type: {todo.type}</Badge>}
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {todo.remark && <p className="text-sm text-muted-foreground">{todo.remark}</p>}
 
-      <div className="mt-4">
-        <span className="inline-block bg-cyan-100 text-cyan-700 px-3 py-1 rounded-full text-sm font-semibold">
-          {todo.status}
-        </span>
-      </div>
-
-      <div className="mt-6 flex justify-center">
-        <div className="w-full bg-white p-6 sm:p-8 rounded-lg shadow-md">
-          <h2 className="text-2xl sm:text-3xl font-semibold text-cyan-700 mb-4 text-center">
-            Todo Details
-          </h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-            {/* Priority */}
-            <div className="flex items-center justify-center sm:justify-start">
-              <span className="bg-yellow-100 text-yellow-800 px-4 py-2 rounded-full text-sm font-semibold shadow-sm">
-                Priority: {todo.priority}
-              </span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              <InfoChip label="Given Date" value={new Date(todo.givenDate).toLocaleDateString()} />
+              <InfoChip label="Due Date" value={new Date(todo.dueDate).toLocaleDateString()} />
+              <InfoChip label="Target" value={new Date(todo.target).toLocaleDateString()} />
+              <InfoChip label="Department" value={todo.department?.name ?? "N/A"} />
+              <InfoChip label="KPI" value={todo.kpi?.score?.toString() ?? "N/A"} />
+              {todo.createdAt && <InfoChip label="Created" value={new Date(todo.createdAt).toLocaleDateString()} />}
+              {todo.updatedAt && <InfoChip label="Updated" value={new Date(todo.updatedAt).toLocaleDateString()} />}
             </div>
 
-            {/* Type */}
-            <div className="flex items-center justify-center sm:justify-start">
-              <span className="bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-semibold shadow-sm">
-                Type: {todo.type}
-              </span>
-            </div>
-
-            {/* Assigned By */}
-            <div className="flex items-center justify-center sm:justify-start">
-              <span className="bg-purple-100 text-purple-800 px-4 py-2 rounded-full text-sm font-semibold shadow-sm">
-                Assigned By:{" "}
-                {todo.assignedBy ? todo.assignedBy.first_name : "N/A"}{" "}
-                {/* Assuming User has first_name */}
-              </span>
-            </div>
-
-            {/* Assigned To */}
-            <div className="flex items-center justify-center sm:justify-start">
-              <span className="bg-indigo-100 text-indigo-800 px-4 py-2 rounded-full text-sm font-semibold shadow-sm">
-                Assigned To:{" "}
-                {(todo.assignedUsers ?? []).length > 0
-                  ? todo.assignedUsers
-                      ?.map((user) => user.first_name)
-                      .join(", ")
-                  : "N/A"}
-              </span>
-            </div>
-
-            {/* Given Date */}
-            <div className="flex items-center justify-center sm:justify-start">
-              <span className="bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-semibold shadow-sm">
-                Given Date: {new Date(todo.givenDate).toLocaleDateString()}
-              </span>
-            </div>
-
-            {/* Due Date */}
-            <div className="flex items-center justify-center sm:justify-start">
-              <span className="bg-red-100 text-red-800 px-4 py-2 rounded-full text-sm font-semibold shadow-sm">
-                Due Date: {new Date(todo.dueDate).toLocaleDateString()}
-              </span>
-            </div>
-
-            {/* Target */}
-            <div className="flex items-center justify-center sm:justify-start">
-              <span className="bg-orange-100 text-orange-800 px-4 py-2 rounded-full text-sm font-semibold shadow-sm">
-                Target: {new Date(todo.target).toLocaleDateString()}
-              </span>
-            </div>
-
-            {/* Department */}
-            <div className="flex items-center justify-center sm:justify-start">
-              <span className="bg-teal-100 text-teal-800 px-4 py-2 rounded-full text-sm font-semibold shadow-sm">
-                Department: {todo.department ? todo.department.name : "N/A"}{" "}
-                {/* Assuming Department has name */}
-              </span>
-            </div>
-
-            {/* KPI */}
-            <div className="flex items-center justify-center sm:justify-start">
-              <span className="bg-pink-100 text-pink-800 px-4 py-2 rounded-full text-sm font-semibold shadow-sm">
-                KPI: {todo.kpi ? todo.kpi.score : "N/A"}{" "}
-                {/* Assuming Kpi has name */}
-              </span>
-            </div>
-
-            {/* Progress */}
-            <div className="flex items-center justify-center sm:justify-start">
-              <span className="bg-cyan-100 text-cyan-800 px-4 py-2 rounded-full text-sm font-semibold shadow-sm">
-                Progress: {todo.progress}%
-              </span>
-            </div>
-
-            {/* Created At */}
-            {todo.createdAt && (
-              <div className="flex items-center justify-center sm:justify-start">
-                <span className="bg-gray-100 text-gray-800 px-4 py-2 rounded-full text-sm font-semibold shadow-sm">
-                  Created At: {new Date(todo.createdAt).toLocaleDateString()}
-                </span>
+            {/* Overall progress */}
+            <div className="pt-2">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium">Overall Progress</span>
+                <span className="text-sm text-muted-foreground">{latestProgress}%</span>
               </div>
-            )}
+              <Progress value={Number(latestProgress || 0)} />
+            </div>
 
-            {/* Updated At */}
-            {todo.updatedAt && (
-              <div className="flex items-center justify-center sm:justify-start">
-                <span className="bg-gray-200 text-gray-800 px-4 py-2 rounded-full text-sm font-semibold shadow-sm">
-                  Updated At: {new Date(todo.updatedAt).toLocaleDateString()}
-                </span>
-              </div>
-            )}
-          </div>
-
-          {/* Attachments */}
-          {todo.attachment && todo.attachment.length > 0 && (
-            <div className="mt-8">
-              <h3 className="text-xl font-semibold text-cyan-700 mb-2">
-                Attachments
-              </h3>
-              <ul className="list-disc pl-5 space-y-1">
-                {todo.attachment.map((attach, index) => (
-                  <li key={index}>
+            {/* Attachments on todo */}
+            {todo.attachment && todo.attachment.length > 0 && (
+              <div className="pt-4">
+                <h4 className="text-sm font-semibold mb-2">Todo Attachments</h4>
+                <div className="flex flex-wrap gap-2">
+                  {todo.attachment.map((url, i) => (
                     <a
-                      href={attach}
+                      key={i}
+                      href={url}
                       target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-cyan-600 hover:underline"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md border hover:bg-accent text-sm"
                     >
-                      {attach.split("/").pop()}
+                      <Paperclip className="h-4 w-4" />
+                      {url.split("/").pop()}
                     </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+                  ))}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-          {/* Progress Updates - Simple list for now */}
-          {todo.progressUpdates && todo.progressUpdates.length > 0 && (
-            <div className="mt-8">
-              <h3 className="text-xl font-semibold text-cyan-700 mb-2">
-                Progress Updates
-              </h3>
-              <ul className="space-y-2">
-                {todo.progressUpdates.map((update, index) => (
-                  <li
-                    key={index}
-                    className="bg-gray-50 p-3 rounded-md shadow-sm"
-                  >
-                    {/* Assuming TodoProgress has fields like date, progress, note */}
-                    <p className="text-gray-700">
-                      {update.createdAt
-                        ? new Date(update.createdAt).toLocaleDateString()
-                        : ""}{" "}
-                      - {update.progress}%: {update.remark}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+        {/* Right: Add progress form */}
+        <div className="space-y-4">
+          <CreateTodoProgressForm todoId={todoId} onClose={() => { /* keep open after save if you want */ }} />
+
+          {/* Assigned people */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">People</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div>
+                <div className="text-xs text-muted-foreground mb-1">Assigned By</div>
+                <PersonRow
+                  name={todo.assignedBy ? `${todo.assignedBy.first_name} ${todo.assignedBy.last_name ?? ""}` : "N/A"}
+                  avatar={todo.assignedBy?.profile_picture}
+                />
+              </div>
+              <Separator />
+              <div>
+                <div className="text-xs text-muted-foreground mb-1">Assigned To</div>
+                <div className="flex flex-wrap gap-2">
+                  {(todo.assignedUsers ?? []).length ? (
+                    todo.assignedUsers!.map((u) => (
+                      <PersonRow key={u.id} name={`${u.first_name} ${u.last_name ?? ""}`} avatar={u.profile_picture} compact />
+                    ))
+                  ) : (
+                    <span className="text-sm text-muted-foreground">N/A</span>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
+
+      {/* Timeline */}
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle className="text-xl">Progress Updates</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {progressUpdates.length === 0 ? (
+            <div className="text-sm text-muted-foreground">No progress updates yet.</div>
+          ) : (
+            <ScrollArea className="max-h-[60vh] pr-4">
+              <ul className="relative pl-4">
+                {/* vertical line */}
+                <div className="absolute left-1 top-0 bottom-0 w-[2px] bg-border" />
+                {progressUpdates.map((p, idx) => (
+                  <TimelineItem
+                    key={p.id ?? idx}
+                    index={idx + 1}
+                    progress={p.progress}
+                    remark={p.remark}
+                    createdAt={p.createdAt}
+                    attachments={p.attachment}
+                    
+                    isLast={idx === progressUpdates.length - 1}
+                  />
+                ))}
+              </ul>
+            </ScrollArea>
+          )}
+        </CardContent>
+      </Card>
     </div>
+  );
+}
+
+/* ---------- Small UI helpers ---------- */
+
+function InfoChip({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-md border p-3">
+      <div className="text-xs text-muted-foreground">{label}</div>
+      <div className="text-sm font-medium">{value}</div>
+    </div>
+  );
+}
+
+function PersonRow({
+  name,
+  avatar,
+  compact,
+}: {
+  name: string;
+  avatar?: string;
+  compact?: boolean;
+}) {
+  return (
+    <div className={`inline-flex items-center gap-2 ${compact ? "border px-2 py-1 rounded-md" : ""}`}>
+      <Avatar className="h-8 w-8">
+        <AvatarImage src={avatar} />
+        <AvatarFallback>{name?.slice(0, 2).toUpperCase()}</AvatarFallback>
+      </Avatar>
+      <span className="text-sm">{name}</span>
+    </div>
+  );
+}
+
+function TimelineItem({
+  index,
+  progress,
+  remark,
+  createdAt,
+  attachments,
+  author,
+  isLast,
+}: {
+  index: number;
+  progress: number;
+  remark?: string;
+  createdAt: string | Date;
+  attachments?: string[];
+  author?: { id: string; first_name: string; last_name?: string; avatar?: string };
+  isLast: boolean;
+}) {
+  const dateStr = new Date(createdAt).toLocaleString();
+  return (
+    <li className="relative pl-6 pb-6">
+      {/* dot */}
+      <div className="absolute -left-[7px] mt-1 h-3.5 w-3.5 rounded-full bg-primary ring-4 ring-background" />
+      {/* connector extension (optional) */}
+      {!isLast && <div className="absolute left-[2px] top-6 bottom-0 w-[2px] bg-border" />}
+
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div className="flex items-center gap-3">
+          <Badge variant="default">Step {index}</Badge>
+          <span className="text-sm text-muted-foreground">{dateStr}</span>
+        </div>
+        <div className="text-sm font-medium">Progress: {progress}%</div>
+      </div>
+
+      {remark && <p className="mt-2 text-sm">{remark}</p>}
+
+      {/* per-update attachments */}
+      {attachments && attachments.length > 0 && (
+        <div className="mt-2 flex flex-wrap gap-2">
+          {attachments.map((url, i) => (
+            <a
+              key={i}
+              href={url}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1 px-2 py-1 border rounded-md text-sm hover:bg-accent"
+            >
+              <Paperclip className="h-4 w-4" />
+              {url.split("/").pop()}
+            </a>
+          ))}
+        </div>
+      )}
+
+      {/* author row */}
+      {author && (
+        <div className="mt-3 flex items-center gap-2">
+          <Avatar className="h-6 w-6">
+            <AvatarImage src={author.avatar} />
+            <AvatarFallback>{`${author.first_name?.[0] ?? ""}${author.last_name?.[0] ?? ""}`.toUpperCase()}</AvatarFallback>
+          </Avatar>
+          <span className="text-xs text-muted-foreground">
+            by {author.first_name} {author.last_name ?? ""}
+          </span>
+        </div>
+      )}
+    </li>
   );
 }
