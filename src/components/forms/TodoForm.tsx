@@ -451,7 +451,7 @@ const TodoForm: React.FC<TodoFormProps> = ({ onClose }) => {
         </div>
 
         {/* Attachment - Simple file input, but handling upload is not implemented here */}
-        <div>
+        {/* <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Attachments
           </label>
@@ -465,7 +465,7 @@ const TodoForm: React.FC<TodoFormProps> = ({ onClose }) => {
             Upload files (handling upload to get URLs would require additional
             logic)
           </p>
-        </div>
+        </div> */}
 
         <div className="mt-4">
           <label className="block text-sm font-medium text-gray-700 mb-2">

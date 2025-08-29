@@ -2,12 +2,13 @@
 
 import React from "react";
 import { useForm } from "react-hook-form";
-import { CreateTodoProgressInput } from "@/types/todo";
+import { CreateTodoProgressInput, TodoProgress } from "@/types/todo";
 import { useCreateTodoProgress } from "@/hooks/useTodos";
 
 interface CreateTodoProgressFormProps {
   todoId: string;
   onClose: () => void;
+  onAdded?: (created?: TodoProgress) => void;
 }
 
 const CreateTodoProgressForm: React.FC<CreateTodoProgressFormProps> = ({
