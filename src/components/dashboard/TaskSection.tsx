@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState} from "react";
+import React, { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { FaEdit, FaTrash, FaEye, FaTasks } from "react-icons/fa";
 import { useTasks, useDeleteTask, useUpdateTask } from "@/hooks/useTasks";
@@ -185,8 +185,8 @@ const TaskSection: React.FC = () => {
 
       {/* Edit modal */}
       {showEditForm && taskToEdit && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div className="modal-overlay">
+          <div className="modal-content">
             <EditTaskForm
               task={taskToEdit}
               onSubmit={(data) => {
@@ -201,8 +201,8 @@ const TaskSection: React.FC = () => {
 
       {/* Manage modal */}
       {showManageForm && taskToManage && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-lg">
+        <div className="modal-overlay">
+          <div className="modal-content">
             <ManageTaskForm
               onSubmit={handleManageSubmit}
               onClose={() => setShowManageForm(false)}

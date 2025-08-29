@@ -300,9 +300,7 @@ const ActualTaskTable: React.FC = () => {
                       </td>
                     )}
                     {selectedColumns.includes("start_date") && (
-                      <td className="px-4 py-2">
-                        {"-"}
-                      </td>
+                      <td className="px-4 py-2">{"-"}</td>
                     )}
                     {selectedColumns.includes("end_date") && (
                       <td className="px-4 py-2">{"-"}</td>
@@ -320,8 +318,8 @@ const ActualTaskTable: React.FC = () => {
                       <td className="px-4 py-2">
                         <div className="relative h-5 bg-gray-200 rounded">
                           <div
-                            className="absolute h-full rounded bg-blue-600"
-                            style={{ width: `${task.progress ?? 0}%` }}
+                            // className="absolute h-full rounded bg-blue-600"
+                            // style={{ width: `${task.progress ?? 0}%` }}
                           >
                             <span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-white">
                               {"-"}%
@@ -453,8 +451,8 @@ const ActualTaskTable: React.FC = () => {
       </div>
 
       {showEditForm && taskToEdit && (
-        <div className="modal-overlay fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="modal-content bg-white rounded-lg shadow-xl p-6">
+        <div className="modal-overlay">
+          <div className="modal-content">
             <EditTaskForm
               onClose={() => setShowEditForm(false)}
               onSubmit={handleEditSubmit}
@@ -466,8 +464,8 @@ const ActualTaskTable: React.FC = () => {
 
       {/* Manage modal */}
       {showManageForm && taskToManage && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md m-4">
+        <div className="modal-overlay">
+          <div className="modal-content">
             <ManageTaskForm
               onSubmit={handleManageSubmit}
               onClose={() => setShowManageForm(false)}

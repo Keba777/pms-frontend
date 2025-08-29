@@ -385,8 +385,8 @@ const ProjectSection: React.FC = () => {
       )}
 
       {showEditForm && projectToEdit && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div className="modal-overlay">
+          <div className="modal-content">
             <EditProjectForm
               project={projectToEdit}
               onSubmit={handleEditSubmit}
@@ -399,8 +399,8 @@ const ProjectSection: React.FC = () => {
       )}
 
       {showManageForm && projectToManage && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-lg">
+        <div className="modal-overlay">
+          <div className="modal-content">
             <ManageProjectForm
               onSubmit={handleManageSubmit}
               onClose={() => setShowManageForm(false)}

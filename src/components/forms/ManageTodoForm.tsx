@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
-import { UpdateTaskInput } from "@/types/task";
+import { UpdateTodoInput } from "@/types/todo"; // Assuming this type exists or is created similarly
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,17 +16,17 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-const ManageTaskForm: React.FC<{
-  onSubmit: (data: UpdateTaskInput) => void;
+const ManageTodoForm: React.FC<{
+  onSubmit: (data: UpdateTodoInput) => void;
   onClose: () => void;
-  task: UpdateTaskInput;
-}> = ({ onSubmit, onClose, task }) => {
+  todo: UpdateTodoInput;
+}> = ({ onSubmit, onClose, todo }) => {
   const {
     handleSubmit,
     control,
     formState: { errors },
-  } = useForm<UpdateTaskInput>({
-    defaultValues: task,
+  } = useForm<UpdateTodoInput>({
+    defaultValues: todo,
   });
 
   const [checkedBy, setCheckedBy] = useState("");
@@ -91,7 +91,7 @@ const ManageTaskForm: React.FC<{
         <Button
           type="button"
           variant="ghost"
-          className="text-2xl text-red-500 hover:text-red-600 p-0"
+          className="text-3xl text-red-500 hover:text-red-600 p-0"
           onClick={onClose}
         >
           ×
@@ -336,7 +336,7 @@ const ManageTaskForm: React.FC<{
         </div>
       </div>
 
-      <div className="flex justify-end">
+      <div className="flex justify-end mt-6">
         <Button
           type="submit"
           className="bg-cyan-700 text-white hover:bg-cyan-800"
@@ -348,4 +348,4 @@ const ManageTaskForm: React.FC<{
   );
 };
 
-export default ManageTaskForm;
+export default ManageTodoForm;

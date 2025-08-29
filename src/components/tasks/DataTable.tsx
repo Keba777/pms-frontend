@@ -20,11 +20,13 @@ import {
   GenericFilter,
   Option,
 } from "@/components/common/GenericFilter";
+import { useUserStore } from "@/store/userStore";
 
 const DataTable: React.FC = () => {
   const tasks = useTaskStore((state) => state.tasks) as Task[];
   const isLoading = !tasks;
   const error = !tasks ? "Error fetching tasks." : null;
+  const users = useUserStore((state) => state.users)
 
   // badge class mappings
   const priorityBadgeClasses: Record<Task["priority"], string> = {
@@ -462,12 +464,13 @@ const DataTable: React.FC = () => {
       </div>
 
       {showEditForm && taskToEdit && (
-        <div className="modal-overlay fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="modal-content bg-white rounded-lg shadow-xl p-6">
+        <div className="modal-overlay">
+          <div className="modal-content">
             <EditTaskForm
               onClose={() => setShowEditForm(false)}
               onSubmit={handleEditSubmit}
               task={taskToEdit}
+              users={users}
             />
           </div>
         </div>
@@ -475,8 +478,8 @@ const DataTable: React.FC = () => {
 
       {/* Manage modal */}
       {showManageForm && taskToManage && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md m-4">
+        <div className="modal-overlay">
+          <div className="modal-content">
             <ManageTaskForm
               onSubmit={handleManageSubmit}
               onClose={() => setShowManageForm(false)}

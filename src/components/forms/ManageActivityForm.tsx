@@ -1,8 +1,20 @@
 "use client";
 
 import { UpdateActivityInput } from "@/types/activity";
-import React from "react";
+import React, { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 const ManageActivityForm: React.FC<{
   onSubmit: (data: UpdateActivityInput) => void;
@@ -17,11 +29,56 @@ const ManageActivityForm: React.FC<{
     defaultValues: activity,
   });
 
+  const [checkedBy, setCheckedBy] = useState("");
+  const [checkedDate, setCheckedDate] = useState("");
+  const [approvedBy, setApprovedBy] = useState("");
+  const [comment, setComment] = useState("");
+  const [approvedDate, setApprovedDate] = useState("");
+  const [summaryReport, setSummaryReport] = useState("");
+
+  interface Row {
+    id: number;
+    dateTime: string;
+    progress: number;
+    remark: string;
+    status: string;
+    checkedBy: string;
+    approvedBy: string;
+    action?: string;
+  }
+
+  const [rows, setRows] = useState<Row[]>([]);
+  const [nextId, setNextId] = useState(1);
+
   const getProgressColor = (value: number) => {
     if (value <= 25) return "#EF4444"; // red-500
     if (value <= 50) return "#F97316"; // orange-500
     if (value <= 75) return "#EAB308"; // yellow-500
     return "#22C55E"; // green-500
+  };
+
+  const addRow = () => {
+    const newRow: Row = {
+      id: nextId,
+      dateTime: new Date().toISOString(),
+      progress: 0,
+      remark: "",
+      status: "",
+      checkedBy: checkedBy,
+      approvedBy: approvedBy,
+    };
+    setRows([...rows, newRow]);
+    setNextId(nextId + 1);
+  };
+
+  const updateRow = (id: number, field: keyof Row, value: string | number) => {
+    setRows(
+      rows.map((row) => (row.id === id ? { ...row, [field]: value } : row))
+    );
+  };
+
+  const deleteRow = (id: number) => {
+    setRows(rows.filter((row) => row.id !== id));
   };
 
   return (
@@ -31,19 +88,20 @@ const ManageActivityForm: React.FC<{
     >
       <div className="flex justify-between items-center border-b pb-2 mb-4">
         <h3 className="text-lg font-semibold text-gray-800">Manage Progress</h3>
-        <button
+        <Button
           type="button"
-          className="text-3xl text-red-500 hover:text-red-600"
+          variant="ghost"
+          className="text-3xl text-red-500 hover:text-red-600 p-0"
           onClick={onClose}
         >
           ×
-        </button>
+        </Button>
       </div>
 
       <div className="flex items-center space-x-4 my-10">
-        <label className="w-32 text-sm font-medium text-gray-700">
+        <Label className="w-32 text-sm font-medium text-gray-700">
           Progress (%):
-        </label>
+        </Label>
         <Controller
           name="progress"
           control={control}
@@ -51,7 +109,6 @@ const ManageActivityForm: React.FC<{
             const color = getProgressColor(field.value ?? 0);
             return (
               <div className="flex-1 flex flex-col space-y-2">
-                {/* Progress Bar with Percentage Display */}
                 <div className="relative flex items-center">
                   <input
                     type="range"
@@ -65,9 +122,10 @@ const ManageActivityForm: React.FC<{
                         field.value ?? 0
                       }%, #E5E7EB ${field.value ?? 0}%)`,
                     }}
-                    onChange={(e) => field.onChange(parseInt(e.target.value, 10))}
+                    onChange={(e) =>
+                      field.onChange(parseInt(e.target.value, 10))
+                    }
                   />
-                  {/* Current Progress Percentage Above Bar */}
                   <span
                     className="absolute text-sm font-bold text-black"
                     style={{
@@ -79,8 +137,6 @@ const ManageActivityForm: React.FC<{
                     {field.value}%
                   </span>
                 </div>
-
-                {/* Percentage Markers Below Bar */}
                 <div className="relative flex justify-between -mt-2">
                   {[0, 25, 50, 75, 100].map((mark) => (
                     <span
@@ -96,8 +152,6 @@ const ManageActivityForm: React.FC<{
                     </span>
                   ))}
                 </div>
-
-                {/* 0% and 100% Labels Above Bar Ends */}
                 <div className="flex justify-between text-sm font-bold text-gray-800 mt-1">
                   <span>0%</span>
                   <span>100%</span>
@@ -111,65 +165,190 @@ const ManageActivityForm: React.FC<{
         <p className="text-red-500 text-sm ml-32">{errors.progress.message}</p>
       )}
 
-      <div>
-        <label htmlFor="checkedBy" className="mr-2">
-          Checked by:-
-        </label>
-        <input
+      <div className="flex items-center space-x-4">
+        <Label
+          htmlFor="checkedBy"
+          className="text-sm font-medium text-gray-700"
+        >
+          Checked by:
+        </Label>
+        <Input
           type="text"
           id="checkedBy"
-          className="ml-4 px-3 border focus:outline-none focus:ring-2 focus:ring-bs-primary"
+          value={checkedBy}
+          onChange={(e) => setCheckedBy(e.target.value)}
+          className="border-gray-300 focus:ring-cyan-700"
         />
-        <input
+        <Input
           type="date"
           id="checkedDate"
-          className="ml-4 px-3 border focus:outline-none focus:ring-2 focus:ring-bs-primary"
+          value={checkedDate}
+          onChange={(e) => setCheckedDate(e.target.value)}
+          className="border-gray-300 focus:ring-cyan-700"
         />
       </div>
 
-      <table className="min-w-max divide-y divide-gray-200">
-        <thead className="bg-cyan-700">
-          <tr>
-            <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+      <Table>
+        <TableHeader>
+          <TableRow className="bg-cyan-700">
+            <TableHead className="text-gray-50 px-4 py-3 text-left text-sm font-medium">
               #
-            </th>
-            <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+            </TableHead>
+            <TableHead className="text-gray-50 px-4 py-3 text-left text-sm font-medium">
               Date & Time
-            </th>
-            <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+            </TableHead>
+            <TableHead className="text-gray-50 px-4 py-3 text-left text-sm font-medium">
               Progress%
-            </th>
-            <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+            </TableHead>
+            <TableHead className="text-gray-50 px-4 py-3 text-left text-sm font-medium">
               Remark
-            </th>
-            <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+            </TableHead>
+            <TableHead className="text-gray-50 px-4 py-3 text-left text-sm font-medium">
               Status
-            </th>
-            <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+            </TableHead>
+            <TableHead className="text-gray-50 px-4 py-3 text-left text-sm font-medium">
               Checked By
-            </th>
-            <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+            </TableHead>
+            <TableHead className="text-gray-50 px-4 py-3 text-left text-sm font-medium">
+              Approved By
+            </TableHead>
+            <TableHead className="text-gray-50 px-4 py-3 text-left text-sm font-medium">
               Action
-            </th>
-          </tr>
-        </thead>
-      </table>
+            </TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {rows.map((row) => (
+            <TableRow key={row.id} className="bg-white even:bg-gray-100">
+              <TableCell>{row.id}</TableCell>
+              <TableCell>
+                <Input
+                  value={row.dateTime}
+                  onChange={(e) =>
+                    updateRow(row.id, "dateTime", e.target.value)
+                  }
+                  className="border-gray-300 focus:ring-cyan-700"
+                />
+              </TableCell>
+              <TableCell>
+                <Input
+                  type="number"
+                  value={row.progress}
+                  onChange={(e) =>
+                    updateRow(row.id, "progress", parseInt(e.target.value))
+                  }
+                  className="border-gray-300 focus:ring-cyan-700"
+                />
+              </TableCell>
+              <TableCell>
+                <Input
+                  value={row.remark}
+                  onChange={(e) => updateRow(row.id, "remark", e.target.value)}
+                  className="border-gray-300 focus:ring-cyan-700"
+                />
+              </TableCell>
+              <TableCell>
+                <Input
+                  value={row.status}
+                  onChange={(e) => updateRow(row.id, "status", e.target.value)}
+                  className="border-gray-300 focus:ring-cyan-700"
+                />
+              </TableCell>
+              <TableCell>
+                <Input
+                  value={row.checkedBy}
+                  onChange={(e) =>
+                    updateRow(row.id, "checkedBy", e.target.value)
+                  }
+                  className="border-gray-300 focus:ring-cyan-700"
+                />
+              </TableCell>
+              <TableCell>
+                <Input
+                  value={row.approvedBy}
+                  onChange={(e) =>
+                    updateRow(row.id, "approvedBy", e.target.value)
+                  }
+                  className="border-gray-300 focus:ring-cyan-700"
+                />
+              </TableCell>
+              <TableCell>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={() => deleteRow(row.id)}
+                >
+                  Delete
+                </Button>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      <Button
+        type="button"
+        onClick={addRow}
+        className="bg-cyan-700 text-white hover:bg-cyan-800"
+      >
+        Add Row
+      </Button>
 
-      <h1 className="underline font-semibold">Summary Report</h1>
-      <textarea className="w-full border p-2 focus:outline-none focus:ring-2 focus:ring-bs-primary" />
+      <h1 className="underline font-semibold text-gray-800">Summary Report</h1>
+      <Textarea
+        value={summaryReport}
+        onChange={(e) => setSummaryReport(e.target.value)}
+        className="border-gray-300 focus:ring-cyan-700"
+      />
 
-      <p>Checked BY</p>
-      <p>Approved By</p>
-      <p>Comment</p>
-      <p>Approved Date</p>
+      <div className="space-y-2">
+        <div className="flex items-center space-x-2">
+          <Label className="text-sm font-medium text-gray-700">
+            Checked By:
+          </Label>
+          <Input
+            value={checkedBy}
+            onChange={(e) => setCheckedBy(e.target.value)}
+            className="border-gray-300 focus:ring-cyan-700"
+          />
+        </div>
+        <div className="flex items-center space-x-2">
+          <Label className="text-sm font-medium text-gray-700">
+            Approved By:
+          </Label>
+          <Input
+            value={approvedBy}
+            onChange={(e) => setApprovedBy(e.target.value)}
+            className="border-gray-300 focus:ring-cyan-700"
+          />
+        </div>
+        <div className="flex items-center space-x-2">
+          <Label className="text-sm font-medium text-gray-700">Comment:</Label>
+          <Input
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            className="border-gray-300 focus:ring-cyan-700"
+          />
+        </div>
+        <div className="flex items-center space-x-2">
+          <Label className="text-sm font-medium text-gray-700">
+            Approved Date:
+          </Label>
+          <Input
+            type="date"
+            value={approvedDate}
+            onChange={(e) => setApprovedDate(e.target.value)}
+            className="border-gray-300 focus:ring-cyan-700"
+          />
+        </div>
+      </div>
 
       <div className="flex justify-end space-x-4 mt-4">
-        <button
+        <Button
           type="submit"
-          className="px-4 py-2 bg-bs-primary text-white rounded-md hover:bg-bs-primary"
+          className="bg-cyan-700 text-white hover:bg-cyan-800"
         >
           Update Progress
-        </button>
+        </Button>
       </div>
     </form>
   );

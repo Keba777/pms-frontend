@@ -152,7 +152,6 @@ const DataTableActivities: React.FC = () => {
     if (filterValues.status) {
       matches = matches && act.status === filterValues.status;
     }
-    
 
     return matches;
   });
@@ -220,8 +219,8 @@ const DataTableActivities: React.FC = () => {
 
       {/* Modals */}
       {showEditForm && activityToEdit && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white rounded-lg shadow-xl p-6">
+        <div className="modal-overlay">
+          <div className="modal-content">
             <EditActivityForm
               onClose={() => setShowEditForm(false)}
               onSubmit={handleEditSubmit}
@@ -232,8 +231,8 @@ const DataTableActivities: React.FC = () => {
       )}
 
       {showManageForm && activityToManage && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white rounded-lg shadow-xl p-6">
+        <div className="modal-overlay">
+          <div className="modal-content">
             <ManageActivityForm
               onClose={() => setShowManageForm(false)}
               onSubmit={handleManageSubmit}

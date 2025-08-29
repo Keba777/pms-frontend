@@ -1,4 +1,3 @@
-// TodosTable.tsx
 import React, { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
@@ -10,8 +9,8 @@ import { useRouter } from "next/navigation";
 import { useDeleteTodo, useUpdateTodo } from "@/hooks/useTodos";
 import EditTodoForm from "../forms/EditTodoForm";
 import { useUsers } from "@/hooks/useUsers";
-import CreateTodoProgressForm from "../forms/TodoProgressForm";
 import ConfirmModal from "../common/ui/ConfirmModal";
+import ManageTodoForm from "../forms/ManageTodoForm";
 
 const priorityBadgeClasses: Record<Todo["priority"], string> = {
   Urgent: "bg-red-100 text-red-800",
@@ -51,6 +50,9 @@ const TodosTable: React.FC<TodosTableProps> = ({
 
   // Manage modal
   const [showManageForm, setShowManageForm] = useState(false);
+  const [todoToManage, setTodoToManage] = useState<UpdateTodoInput | null>(
+    null
+  );
 
   const handleDeleteClick = (todoId: string) => {
     setSelectedTodoId(todoId);
@@ -68,6 +70,18 @@ const TodosTable: React.FC<TodosTableProps> = ({
   const handleEditSubmit = (data: UpdateTodoInput) => {
     updateTodo(data);
     setShowEditForm(false);
+  };
+
+  const handleManageClick = (t: Todo) => {
+    setTodoToManage({
+      ...t,
+      assignedUsers: t.assignedUsers?.map((u) => u.id),
+    });
+    setShowManageForm(true);
+  };
+  const handleManageSubmit = (data: UpdateTodoInput) => {
+    updateTodo(data);
+    setShowManageForm(false);
   };
 
   return (
@@ -285,7 +299,7 @@ const TodosTable: React.FC<TodosTableProps> = ({
                         {({ active }) => (
                           <button
                             onClick={() => {
-                              setShowManageForm(true);
+                              handleManageClick(todo);
                             }}
                             className={`w-full text-left px-3 py-2 text-sm ${
                               active ? "bg-gray-100" : ""
@@ -297,16 +311,6 @@ const TodosTable: React.FC<TodosTableProps> = ({
                       </MenuItem>
                     </MenuItems>
                   </Menu>
-                  {showManageForm && (
-                    <div className="modal-overlay">
-                      <div className="modal-content">
-                        <CreateTodoProgressForm
-                          onClose={() => setShowManageForm(false)}
-                          todoId={todo.id}
-                        />
-                      </div>
-                    </div>
-                  )}
                 </td>
               )}
             </tr>
@@ -336,6 +340,18 @@ const TodosTable: React.FC<TodosTableProps> = ({
               onSubmit={handleEditSubmit}
               todo={todoToEdit}
               users={users}
+            />
+          </div>
+        </div>
+      )}
+
+      {showManageForm && todoToManage && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <ManageTodoForm
+              onClose={() => setShowManageForm(false)}
+              onSubmit={handleManageSubmit}
+              todo={todoToManage}
             />
           </div>
         </div>
