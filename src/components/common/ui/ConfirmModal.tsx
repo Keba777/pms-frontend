@@ -1,4 +1,4 @@
-// components/ConfirmModal.tsx
+"use client";
 
 import { useState } from "react";
 import { X, Trash2 } from "lucide-react";

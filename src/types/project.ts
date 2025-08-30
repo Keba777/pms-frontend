@@ -30,6 +30,7 @@ export interface CreateProjectInput {
     start_date: Date;
     end_date: Date;
     budget: number;
+    progress?: number;
     client: string;
     site_id?: string;
     status: 'Not Started' | 'Started' | 'InProgress' | 'Canceled' | 'Onhold' | 'Completed';

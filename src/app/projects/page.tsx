@@ -4,8 +4,8 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { List, PlusIcon, Grid } from "lucide-react";
 import ProjectCard from "@/components/projects/ProjectCard";
-import { useProjects } from "@/hooks/useProjects";
-import { Project } from "@/types/project";
+import { useProjects, useCreateProject } from "@/hooks/useProjects";
+import { Project, CreateProjectInput } from "@/types/project";
 import ProjectForm from "@/components/forms/ProjectForm";
 import ProjectSection from "@/components/dashboard/ProjectSection";
 import ActualProjectSection from "@/components/dashboard/ActualProjectSection";
@@ -18,6 +18,8 @@ import {
   GenericFilter,
   Option,
 } from "@/components/common/GenericFilter";
+import GenericImport, { ImportColumn } from "@/components/common/GenericImport";
+import { toast } from "react-toastify";
 
 const ProjectPage: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
@@ -27,6 +29,7 @@ const ProjectPage: React.FC = () => {
   const { projects: storeProjects } = useProjectStore();
   const hasPermission = useAuthStore((state) => state.hasPermission);
   const [filterValues, setFilterValues] = useState<FilterValues>({});
+  const { mutateAsync: createProjectAsync } = useCreateProject(() => {}); // Suppress per-project toast
 
   const canCreate = hasPermission("projects", "create");
   const canManage = hasPermission("projects", "manage");
@@ -42,10 +45,26 @@ const ProjectPage: React.FC = () => {
     { header: "Status", accessor: "status" },
   ];
 
-  // const importColumns = columns.map((c) => ({
-  //   header: c.header,
-  //   accessor: c.accessor as string,
-  // }));
+  const importColumns: ImportColumn<CreateProjectInput>[] = [
+    { header: "Project Name", accessor: "title", type: "string" },
+    { header: "Priority", accessor: "priority", type: "string" },
+    { header: "Client", accessor: "client", type: "string" },
+    { header: "Progress", accessor: "progress", type: "number" },
+    { header: "Budget", accessor: "budget", type: "number" },
+    { header: "Start Date", accessor: "start_date", type: "date" },
+    { header: "End Date", accessor: "end_date", type: "date" },
+    { header: "Status", accessor: "status", type: "string" },
+  ];
+
+  const requiredAccessors: (keyof CreateProjectInput)[] = [
+    "title",
+    "priority",
+    "client",
+    "budget",
+    "start_date",
+    "end_date",
+    "status",
+  ];
 
   const priorityOptions: Option<string>[] = [
     { label: "Low", value: "Low" },
@@ -94,25 +113,52 @@ const ProjectPage: React.FC = () => {
     return matches;
   });
 
-  // const handleImport = async (data: Project[]) => {
-  //   try {
-  //     // Cast data to CreateProjectInput[] - adjust types as needed
-  //     const projectsToCreate = data as CreateProjectInput[];
-  //     await Promise.all(
-  //       projectsToCreate.map((project) => createProject(project))
-  //     );
-  //     refetch();
-  //     toast.success("Projects imported and created successfully!");
-  //   } catch (error) {
-  //     toast.error("Error importing and creating projects");
-  //     console.error("Import error:", error);
-  //   }
-  // };
+  const handleImport = async (data: CreateProjectInput[]) => {
+    try {
+      // Validate priority and status values
+      const validPriorities = ["Critical", "High", "Medium", "Low"];
+      const validStatuses = [
+        "Not Started",
+        "Started",
+        "InProgress",
+        "Canceled",
+        "Onhold",
+        "Completed",
+      ];
 
-  // const handleError = (error: string) => {
-  //   console.error(error);
-  //   alert(error);
-  // };
+      for (let i = 0; i < data.length; i++) {
+        const project = data[i];
+        if (!validPriorities.includes(project.priority)) {
+          toast.error(
+            `Invalid priority in row ${
+              i + 2
+            }. Must be one of: ${validPriorities.join(", ")}`
+          );
+          return;
+        }
+        if (!validStatuses.includes(project.status)) {
+          toast.error(
+            `Invalid status in row ${
+              i + 2
+            }. Must be one of: ${validStatuses.join(", ")}`
+          );
+          return;
+        }
+        // Provide default for description since–System: it's not in headers
+        project.description = project.description || "Imported project";
+      }
+
+      await Promise.all(data.map((project) => createProjectAsync(project)));
+      toast.success("Projects imported and created successfully!");
+    } catch (error) {
+      toast.error("Error importing and creating projects");
+      console.error("Import error:", error);
+    }
+  };
+
+  const handleError = (error: string) => {
+    toast.error(error);
+  };
 
   return (
     <div className="p-4">
@@ -154,15 +200,18 @@ const ProjectPage: React.FC = () => {
               columns={columns}
             />
           )}
-          {/* {canManage && (
-            <GenericImport<Project>
-              expectedColumns={importColumns}
-              onImport={handleImport}
-              title="Projects"
-              onError={handleError}
-            />
-          )} */}
         </div>
+      </div>
+      <div className="flex justify-end mb-4">
+        {canManage && (
+          <GenericImport<CreateProjectInput>
+            expectedColumns={importColumns}
+            requiredAccessors={requiredAccessors}
+            onImport={handleImport}
+            title="Projects"
+            onError={handleError}
+          />
+        )}
       </div>
 
       {showForm && canCreate && (

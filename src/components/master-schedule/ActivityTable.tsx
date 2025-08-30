@@ -3,13 +3,21 @@
 import React, { useState, useEffect, useRef } from "react";
 import { ChevronDown } from "lucide-react";
 import { useTask } from "@/hooks/useTasks";
-import { Activity, UpdateActivityInput } from "@/types/activity";
+import {
+  Activity,
+  UpdateActivityInput,
+  CreateActivityInput,
+} from "@/types/activity";
 import ActivityForm from "../forms/ActivityForm";
 import EditActivityForm from "../forms/EditActivityForm";
 import ManageActivityForm from "../forms/ManageActivityForm";
 import ConfirmModal from "../common/ui/ConfirmModal";
 import { useRouter } from "next/navigation";
-import { useDeleteActivity, useUpdateActivity } from "@/hooks/useActivities";
+import {
+  useDeleteActivity,
+  useUpdateActivity,
+  useCreateActivity,
+} from "@/hooks/useActivities";
 import Link from "next/link";
 import { formatDate, getDateDuration } from "@/utils/helper";
 import GenericDownloads, { Column } from "../common/GenericDownloads";
@@ -19,6 +27,8 @@ import {
   GenericFilter,
   Option,
 } from "../common/GenericFilter";
+import GenericImport, { ImportColumn } from "@/components/common/GenericImport";
+import { toast } from "react-toastify";
 
 interface ActivityTableProps {
   taskId: string;
@@ -44,6 +54,7 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
   // Hooks for API mutations/queries
   const { mutate: deleteActivity } = useDeleteActivity();
   const { mutate: updateActivity } = useUpdateActivity();
+  const { mutateAsync: createActivityAsync } = useCreateActivity(() => {});
   const { data: taskDetail, isLoading: taskLoading } = useTask(taskId);
   const router = useRouter();
 
@@ -223,6 +234,75 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
     setShowManageForm(false);
   };
 
+  // Activity import configuration
+  const importColumns: ImportColumn<CreateActivityInput>[] = [
+    { header: "Activity", accessor: "activity_name", type: "string" },
+    { header: "Priority", accessor: "priority", type: "string" },
+    { header: "Unit", accessor: "unit", type: "string" },
+    { header: "Quantity", accessor: "quantity", type: "number" },
+    { header: "Start Date", accessor: "start_date", type: "date" },
+    { header: "End Date", accessor: "end_date", type: "date" },
+    { header: "Status", accessor: "status", type: "string" },
+  ];
+
+  const requiredAccessors: (keyof CreateActivityInput)[] = [
+    "activity_name",
+    "priority",
+    "unit",
+    "quantity",
+    "start_date",
+    "end_date",
+    "status",
+  ];
+
+  const handleActivityImport = async (data: CreateActivityInput[]) => {
+    try {
+      // Validate priority and status values
+      const validPriorities = ["Critical", "High", "Medium", "Low"];
+      const validStatuses = [
+        "Not Started",
+        "Started",
+        "InProgress",
+        "Canceled",
+        "Onhold",
+        "Completed",
+      ];
+
+      for (let i = 0; i < data.length; i++) {
+        const activity = data[i];
+        if (!validPriorities.includes(activity.priority)) {
+          toast.error(
+            `Invalid priority in row ${
+              i + 2
+            }. Must be one of: ${validPriorities.join(", ")}`
+          );
+          return;
+        }
+        if (!validStatuses.includes(activity.status)) {
+          toast.error(
+            `Invalid status in row ${
+              i + 2
+            }. Must be one of: ${validStatuses.join(", ")}`
+          );
+          return;
+        }
+        // Provide default for description and set task_id
+        activity.task_id = taskId;
+        activity.description = activity.description || "Imported activity";
+      }
+
+      await Promise.all(data.map((activity) => createActivityAsync(activity)));
+      toast.success("Activities imported and created successfully!");
+    } catch (error) {
+      toast.error("Error importing and creating activities");
+      console.error("Import error:", error);
+    }
+  };
+
+  const handleError = (error: string) => {
+    toast.error(error);
+  };
+
   return (
     <div className="p-4 bg-gray-50 border border-gray-200 rounded space-y-4">
       <style>
@@ -235,6 +315,15 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
         `}
       </style>
       {/* Downloads & Search */}
+      <div className="flex justify-end mb-4">
+        <GenericImport<CreateActivityInput>
+          expectedColumns={importColumns}
+          requiredAccessors={requiredAccessors}
+          onImport={handleActivityImport}
+          title="Activities"
+          onError={handleError}
+        />
+      </div>
       <GenericDownloads
         data={filteredActivities}
         title="Activities"

@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { ChevronDown } from "lucide-react";
-import { Task, UpdateTaskInput } from "@/types/task";
+import { Task, UpdateTaskInput, CreateTaskInput } from "@/types/task";
 import TaskForm from "../forms/TaskForm";
 import EditTaskForm from "../forms/EditTaskForm";
 import ManageTaskForm from "../forms/ManageTaskForm";
@@ -16,6 +16,8 @@ import { useUsers } from "@/hooks/useUsers";
 import Link from "next/link";
 import { formatDate, getDateDuration } from "@/utils/helper";
 import { FilterField, GenericFilter } from "../common/GenericFilter";
+import GenericImport, { ImportColumn } from "@/components/common/GenericImport";
+import { useCreateTask } from "@/hooks/useTasks";
 
 interface TaskTableProps {
   tasks: Task[];
@@ -51,6 +53,7 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
   const { mutate: deleteTask } = useDeleteTask();
   const { mutate: updateTask } = useUpdateTask();
   const { data: users } = useUsers();
+  const { mutateAsync: createTaskAsync } = useCreateTask(() => {});
 
   // Modals & forms
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -235,6 +238,92 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
     { header: "Status", accessor: "status" },
   ];
 
+  // Task import configuration
+  const importColumns: ImportColumn<CreateTaskInput>[] = [
+    { header: "Task", accessor: "task_name", type: "string" },
+    { header: "Priority", accessor: "priority", type: "string" },
+    { header: "Start Date", accessor: "start_date", type: "date" },
+    { header: "End Date", accessor: "end_date", type: "date" },
+    { header: "Progress", accessor: "progress", type: "number" },
+    { header: "Status", accessor: "status", type: "string" },
+    // { header: "Project ID", accessor: "project_id", type: "string" },
+  ];
+
+  const requiredAccessors: (keyof CreateTaskInput)[] = [
+    "task_name",
+    "priority",
+    "start_date",
+    "end_date",
+    "status",
+    // "approvalStatus",
+    // "project_id",
+  ];
+
+  const handleTaskImport = async (data: CreateTaskInput[]) => {
+    try {
+      // Validate priority, status, and approvalStatus values
+      const validPriorities = ["Critical", "High", "Medium", "Low"];
+      const validStatuses = [
+        "Not Started",
+        "Started",
+        "InProgress",
+        "Canceled",
+        "Onhold",
+        "Completed",
+      ];
+      // const validApprovalStatuses = ["Approved", "Not Approved", "Pending"];
+
+      for (let i = 0; i < data.length; i++) {
+        const task = data[i];
+        if (!validPriorities.includes(task.priority)) {
+          toast.error(
+            `Invalid priority in row ${
+              i + 2
+            }. Must be one of: ${validPriorities.join(", ")}`
+          );
+          return;
+        }
+        if (!validStatuses.includes(task.status)) {
+          toast.error(
+            `Invalid status in row ${
+              i + 2
+            }. Must be one of: ${validStatuses.join(", ")}`
+          );
+          return;
+        }
+        // if (!validApprovalStatuses.includes(task.approvalStatus)) {
+        //   toast.error(
+        //     `Invalid approval status in row ${
+        //       i + 2
+        //     }. Must be one of: ${validApprovalStatuses.join(", ")}`
+        //   );
+        //   return;
+        // }
+        // if (task.project_id !== projectId) {
+        //   toast.error(
+        //     `Invalid project ID in row ${
+        //       i + 2
+        //     }. Must match current project ID: ${projectId}`
+        //   );
+        //   return;
+        // }
+        // Provide default for description
+        task.project_id = projectId!;
+        task.description = task.description || "Imported task";
+      }
+
+      await Promise.all(data.map((task) => createTaskAsync(task)));
+      toast.success("Tasks imported and created successfully!");
+    } catch (error) {
+      toast.error("Error importing and creating tasks");
+      console.error("Import error:", error);
+    }
+  };
+
+  const handleError = (error: string) => {
+    toast.error(error);
+  };
+
   return (
     <div className="ml-3 space-y-4">
       <style>
@@ -246,11 +335,22 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
           }
         `}
       </style>
-      <GenericDownloads
-        data={filteredTasks}
-        title="Tasks"
-        columns={downloadColumns}
-      />
+      <div>
+        <div className="flex justify-end mb-4">
+          <GenericImport<CreateTaskInput>
+            expectedColumns={importColumns}
+            requiredAccessors={requiredAccessors}
+            onImport={handleTaskImport}
+            title="Tasks"
+            onError={handleError}
+          />
+        </div>
+        <GenericDownloads
+          data={filteredTasks}
+          title="Tasks"
+          columns={downloadColumns}
+        />
+      </div>
 
       <div className="flex items-center justify-between">
         <div ref={menuRef} className="relative">

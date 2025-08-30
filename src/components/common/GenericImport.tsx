@@ -1,9 +1,11 @@
 import React, { ChangeEvent, useState } from "react";
 import * as XLSX from "xlsx";
+import { toast } from "react-toastify";
 
 export interface ImportColumn<T> {
   header: string;
-  accessor: keyof T & string; // Ensures accessor is a key of T
+  accessor: keyof T & string;
+  type?: "string" | "number" | "date" | "boolean";
 }
 
 interface GenericImportProps<T extends object> {
@@ -11,6 +13,7 @@ interface GenericImportProps<T extends object> {
   onImport: (data: T[]) => void | Promise<void>;
   title: string;
   onError?: (error: string) => void;
+  requiredAccessors?: (keyof T)[];
 }
 
 const GenericImport = <T extends object>({
@@ -18,6 +21,7 @@ const GenericImport = <T extends object>({
   onImport,
   title,
   onError,
+  requiredAccessors,
 }: GenericImportProps<T>) => {
   const [loading, setLoading] = useState(false);
 
@@ -62,7 +66,7 @@ const GenericImport = <T extends object>({
           if (onError) {
             onError(msg);
           } else {
-            alert(msg);
+            toast.error(msg);
           }
           setLoading(false);
           return;
@@ -71,7 +75,7 @@ const GenericImport = <T extends object>({
         type Key = keyof T & string;
 
         // Parse rows into objects of type T
-        const parsedData: T[] = rawData.slice(1).map((row) => {
+        const parsedData: T[] = rawData.slice(1).map((row, rowIndex) => {
           const obj: Partial<Record<Key, unknown>> = {};
           headers.forEach((header, index) => {
             const trimmedHeader = header.trim().toLowerCase();
@@ -79,16 +83,97 @@ const GenericImport = <T extends object>({
               (col) => col.header.trim().toLowerCase() === trimmedHeader
             );
             if (column) {
-              obj[column.accessor as Key] = row[index];
+              const value = row[index];
+              let parsedValue: unknown = value;
+
+              // Type validation based on column.type
+              if (column.type === "number") {
+                if (value == null || value === "") {
+                  parsedValue = undefined;
+                } else {
+                  const num = Number(value);
+                  if (isNaN(num)) {
+                    throw new Error(
+                      `Invalid number in column "${column.header}" at row ${
+                        rowIndex + 2
+                      }.`
+                    );
+                  }
+                  parsedValue = num;
+                }
+              } else if (column.type === "date") {
+                if (value == null || value === "") {
+                  parsedValue = undefined;
+                } else {
+                  const date = new Date(value as string);
+                  if (isNaN(date.getTime())) {
+                    throw new Error(
+                      `Invalid date in column "${column.header}" at row ${
+                        rowIndex + 2
+                      }.`
+                    );
+                  }
+                  parsedValue = date;
+                }
+              } else if (column.type === "boolean") {
+                if (typeof value === "string") {
+                  const lower = value.toLowerCase();
+                  if (lower === "true") parsedValue = true;
+                  else if (lower === "false") parsedValue = false;
+                  else
+                    throw new Error(
+                      `Invalid boolean in column "${column.header}" at row ${
+                        rowIndex + 2
+                      }.`
+                    );
+                } else {
+                  parsedValue = !!value;
+                }
+              } else {
+                // Default to string
+                parsedValue = value != null ? String(value) : undefined;
+              }
+              obj[column.accessor as Key] = parsedValue;
             }
           });
           return obj as T;
         });
 
+        // Validate required fields
+        for (let i = 0; i < parsedData.length; i++) {
+          const row = parsedData[i];
+          for (const req of requiredAccessors ?? []) {
+            const val = row[req];
+            if (val == null || (typeof val === "string" && val.trim() === "")) {
+              const msg = `Missing or empty required field "${String(
+                req
+              )}" in row ${i + 2}.`;
+              if (onError) {
+                onError(msg);
+              } else {
+                toast.error(msg);
+              }
+              setLoading(false);
+              return;
+            }
+          }
+        }
+
         // Filter out empty rows
         const filteredData = parsedData.filter((row) =>
           Object.values(row).some((val) => val !== undefined && val !== "")
         );
+
+        if (filteredData.length === 0) {
+          const msg = "No valid data found in the file.";
+          if (onError) {
+            onError(msg);
+          } else {
+            toast.error(msg);
+          }
+          setLoading(false);
+          return;
+        }
 
         await onImport(filteredData);
       } catch (error) {
@@ -96,7 +181,7 @@ const GenericImport = <T extends object>({
         if (onError) {
           onError(msg);
         } else {
-          alert(msg);
+          toast.error(msg);
         }
       } finally {
         setLoading(false);
@@ -108,7 +193,7 @@ const GenericImport = <T extends object>({
       if (onError) {
         onError(msg);
       } else {
-        alert(msg);
+        toast.error(msg);
       }
       setLoading(false);
     };
