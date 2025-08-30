@@ -11,34 +11,26 @@ import {
   updateEquipmentTimesheetInput,
   EquipmentTimesheet,
 } from "@/types/timesheet";
-
-const TableWrapper: React.FC<React.PropsWithChildren> = ({ children }) => (
-  <div className="overflow-x-auto">
-    <table className="min-w-full bg-gray-100 border border-gray-300">
-      {children}
-    </table>
-  </div>
-);
-
-interface TableHeaderProps {
-  columns: string[];
-}
-
-const TableHeader: React.FC<TableHeaderProps> = ({ columns }) => (
-  <thead className="bg-cyan-700 text-white">
-    <tr>
-      {columns.map((col) => (
-        <th key={col} className="px-4 py-2 border">
-          {col}
-        </th>
-      ))}
-      <th className="px-4 py-2 border">Action</th>
-    </tr>
-  </thead>
-);
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 
 export const EquipmentSheet: React.FC = () => {
-  // Fetch existing equipment timesheets
   const {
     data: equipmentTimesheets,
     isLoading: isLoadingTimes,
@@ -46,7 +38,6 @@ export const EquipmentSheet: React.FC = () => {
     error: timesError,
   } = useEquipmentTimesheets();
 
-  // Fetch all equipment for the "Equipment" select
   const {
     data: equipment,
     isLoading: isLoadingEquipment,
@@ -54,14 +45,11 @@ export const EquipmentSheet: React.FC = () => {
     error: equipmentError,
   } = useEquipments();
 
-  // Mutation hooks
   const createMutation = useCreateEquipmentTimesheet();
   const updateMutation = useUpdateEquipmentTimesheet();
 
-  // State to toggle “Add New” row
   const [isAdding, setIsAdding] = useState(false);
 
-  // Local state for new-row inputs (including dt)
   const [newRow, setNewRow] = useState<{
     equipmentId: string;
     date: string;
@@ -73,6 +61,11 @@ export const EquipmentSheet: React.FC = () => {
     dt: string;
     rate: string;
     status: TimeSheetStatus;
+    utilization_factor: string;
+    totalTime: string;
+    startingDate: string;
+    dueDate: string;
+    shiftingDate: string;
   }>({
     equipmentId: "",
     date: "",
@@ -84,9 +77,13 @@ export const EquipmentSheet: React.FC = () => {
     dt: "",
     rate: "",
     status: TimeSheetStatus.Pending,
+    utilization_factor: "",
+    totalTime: "",
+    startingDate: "",
+    dueDate: "",
+    shiftingDate: "",
   });
 
-  // State for editing existing rows (including dt)
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingData, setEditingData] = useState<Partial<EquipmentTimesheet>>(
     {}
@@ -104,13 +101,12 @@ export const EquipmentSheet: React.FC = () => {
     "Afternoon Out",
     "Afternoon Hrs",
     "OT",
-    "DT",
+    // "DT",
     "Rate",
     "Total Cost",
     "Status",
   ];
 
-  // Helper function to calculate hours from time strings
   const calculateHours = (inTime: string, outTime: string): number => {
     if (!inTime || !outTime) return 0;
     const [inHour, inMinute] = inTime.split(":").map(Number);
@@ -122,13 +118,11 @@ export const EquipmentSheet: React.FC = () => {
     return diffHours > 0 ? diffHours : 0;
   };
 
-  // Calculate break time between morningOut and afternoonIn
   const calculateBreak = (morningOut: string, afternoonIn: string): number => {
     if (!morningOut || !afternoonIn) return 0;
     return calculateHours(morningOut, afternoonIn);
   };
 
-  // Handler for input/select changes in the “Add New” row
   const handleChange = (
     e: ChangeEvent<HTMLInputElement> | ChangeEvent<HTMLSelectElement>
   ) => {
@@ -136,7 +130,6 @@ export const EquipmentSheet: React.FC = () => {
     setNewRow((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Handler for input/select changes in the editing row
   const handleEditChange = (
     e: ChangeEvent<HTMLInputElement> | ChangeEvent<HTMLSelectElement>
   ) => {
@@ -144,9 +137,8 @@ export const EquipmentSheet: React.FC = () => {
     setEditingData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Compute and submit new row data
   const handleSubmit = () => {
-    if (!newRow.equipmentId || !newRow.date) return; // minimal validation
+    if (!newRow.equipmentId || !newRow.date) return;
 
     const mornHrs = calculateHours(newRow.morningIn, newRow.morningOut);
     const aftHrs = calculateHours(newRow.afternoonIn, newRow.afternoonOut);
@@ -154,7 +146,7 @@ export const EquipmentSheet: React.FC = () => {
     const ot = Number(newRow.ot) || 0;
     const dt = Number(newRow.dt) || 0;
     const rate = Number(newRow.rate) || 0;
-    const totalCost = (mornHrs + aftHrs + dt) * rate + ot;
+    const totalCost = (mornHrs + aftHrs ) * rate + ot;
 
     const input: createEquipmentTimesheetInput = {
       equipmentId: newRow.equipmentId,
@@ -187,18 +179,21 @@ export const EquipmentSheet: React.FC = () => {
           dt: "",
           rate: "",
           status: TimeSheetStatus.Pending,
+          utilization_factor: "",
+          totalTime: "",
+          startingDate: "",
+          dueDate: "",
+          shiftingDate: "",
         });
       },
     });
   };
 
-  // Start editing a row
   const handleEdit = (row: EquipmentTimesheet) => {
     setEditingId(row.id);
     setEditingData(row);
   };
 
-  // Save edited row data
   const handleSave = () => {
     if (!editingId || !editingData) return;
 
@@ -239,7 +234,6 @@ export const EquipmentSheet: React.FC = () => {
     });
   };
 
-  // Cancel editing
   const handleCancelEdit = () => {
     setEditingId(null);
     setEditingData({});
@@ -267,485 +261,519 @@ export const EquipmentSheet: React.FC = () => {
 
   return (
     <div>
-      <button
+      <Button
         onClick={() => setIsAdding(true)}
-        className="mb-2 px-4 py-2 bg-green-600 text-white rounded"
+        className="mb-2 bg-cyan-700 text-white"
         disabled={isAdding}
       >
         Add New
-      </button>
+      </Button>
 
-      <TableWrapper>
-        <TableHeader columns={columns} />
-        <tbody>
-          {/* Existing rows */}
-          {equipmentTimesheets?.map((row, idx) => {
-            const isEditing = editingId === row.id;
-            const equipmentName = Array.isArray(equipment)
-              ? equipment.find((e) => e.id === row.equipmentId)?.item ||
-                row.equipmentId
-              : row.equipmentId;
+      <div className="overflow-x-auto">
+        <Table className="min-w-full bg-gray-100">
+          <TableHeader>
+            <TableRow className="bg-cyan-700 hover:bg-cyan-700 text-white">
+              {columns.map((col) => (
+                <TableHead key={col} className="text-white">
+                  {col}{" "}
+                </TableHead>
+              ))}
+              <TableHead className="text-white">Action</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {equipmentTimesheets?.map((row, idx) => {
+              const isEditing = editingId === row.id;
+              const equipmentName = Array.isArray(equipment)
+                ? equipment.find((e) => e.id === row.equipmentId)?.item ||
+                  row.equipmentId
+                : row.equipmentId;
 
-            return (
-              <tr key={row.id} className="bg-white even:bg-gray-100">
-                <td className="px-4 py-2 border">{idx + 1}</td>
-                <td className="px-4 py-2 border">
-                  {isEditing ? (
-                    <select
-                      name="equipmentId"
-                      value={editingData.equipmentId || ""}
-                      onChange={handleEditChange}
-                      className="w-full border px-2 py-1"
-                    >
-                      <option value="">Select equipment</option>
+              return (
+                <TableRow key={row.id} className="even:bg-gray-100">
+                  <TableCell>{idx + 1}</TableCell>
+                  <TableCell>
+                    {isEditing ? (
+                      <Select
+                        name="equipmentId"
+                        value={editingData.equipmentId || ""}
+                        onValueChange={(value) =>
+                          handleEditChange({
+                            target: { name: "equipmentId", value },
+                          } as ChangeEvent<HTMLSelectElement>)
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select equipment" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {(Array.isArray(equipment) ? equipment : []).map(
+                            (e) => (
+                              <SelectItem key={e.id} value={e.id}>
+                                {e.item}
+                              </SelectItem>
+                            )
+                          )}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      equipmentName
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {isEditing ? (
+                      <Input
+                        type="date"
+                        name="date"
+                        value={
+                          editingData.date
+                            ? new Date(editingData.date)
+                                .toISOString()
+                                .slice(0, 10)
+                            : ""
+                        }
+                        onChange={handleEditChange}
+                      />
+                    ) : (
+                      new Date(row.date).toLocaleDateString()
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {isEditing ? (
+                      <Input
+                        type="time"
+                        name="morningIn"
+                        value={editingData.morningIn || ""}
+                        onChange={handleEditChange}
+                      />
+                    ) : (
+                      row.morningIn
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {isEditing ? (
+                      <Input
+                        type="time"
+                        name="morningOut"
+                        value={editingData.morningOut || ""}
+                        onChange={handleEditChange}
+                      />
+                    ) : (
+                      row.morningOut
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {isEditing
+                      ? editingData.morningIn && editingData.morningOut
+                        ? calculateHours(
+                            editingData.morningIn!,
+                            editingData.morningOut!
+                          ).toFixed(2)
+                        : "0.00"
+                      : row.mornHrs.toFixed(2)}
+                  </TableCell>
+                  <TableCell>
+                    {isEditing
+                      ? editingData.morningOut && editingData.afternoonIn
+                        ? calculateBreak(
+                            editingData.morningOut!,
+                            editingData.afternoonIn!
+                          ).toFixed(2)
+                        : "0.00"
+                      : row.bt.toFixed(2)}
+                  </TableCell>
+                  <TableCell>
+                    {isEditing ? (
+                      <Input
+                        type="time"
+                        name="afternoonIn"
+                        value={editingData.afternoonIn || ""}
+                        onChange={handleEditChange}
+                      />
+                    ) : (
+                      row.afternoonIn
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {isEditing ? (
+                      <Input
+                        type="time"
+                        name="afternoonOut"
+                        value={editingData.afternoonOut || ""}
+                        onChange={handleEditChange}
+                      />
+                    ) : (
+                      row.afternoonOut
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {isEditing
+                      ? editingData.afternoonIn && editingData.afternoonOut
+                        ? calculateHours(
+                            editingData.afternoonIn!,
+                            editingData.afternoonOut!
+                          ).toFixed(2)
+                        : "0.00"
+                      : row.aftHrs.toFixed(2)}
+                  </TableCell>
+                  <TableCell>
+                    {isEditing ? (
+                      <Input
+                        type="number"
+                        name="ot"
+                        step="0.01"
+                        value={editingData.ot || ""}
+                        onChange={handleEditChange}
+                        className="appearance-none  [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      />
+                    ) : (
+                      row.ot.toFixed(2)
+                    )}
+                  </TableCell>
+                  {/* <TableCell>
+                    {isEditing ? (
+                      <Input
+                        type="number"
+                        name="dt"
+                        step="0.01"
+                        value={editingData.dt || ""}
+                        onChange={handleEditChange}
+                        className="appearance-none  [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      />
+                    ) : (
+                      row.dt.toFixed(2)
+                    )}
+                  </TableCell> */}
+                  <TableCell>
+                    {isEditing ? (
+                      <Input
+                        type="number"
+                        name="rate"
+                        step="0.01"
+                        value={editingData.rate || ""}
+                        onChange={handleEditChange}
+                        className="appearance-none  [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      />
+                    ) : (
+                      row.rate.toFixed(2)
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {isEditing
+                      ? (() => {
+                          const mIn = editingData.morningIn || "";
+                          const mOut = editingData.morningOut || "";
+                          const aIn = editingData.afternoonIn || "";
+                          const aOut = editingData.afternoonOut || "";
+                          const mornH =
+                            mIn && mOut ? calculateHours(mIn, mOut) : 0;
+                          const aftH =
+                            aIn && aOut ? calculateHours(aIn, aOut) : 0;
+                          const ovrTime = Number(editingData.ot) || 0;
+                          const downTime = Number(editingData.dt) || 0;
+                          const rt = Number(editingData.rate) || 0;
+                          return (
+                            (mornH + aftH + downTime) * rt +
+                            ovrTime
+                          ).toFixed(2);
+                        })()
+                      : row.totalPay.toFixed(2)}
+                  </TableCell>
+                  <TableCell>
+                    {isEditing ? (
+                      <Select
+                        name="status"
+                        value={editingData.status || ""}
+                        onValueChange={(value) =>
+                          handleEditChange({
+                            target: { name: "status", value },
+                          } as ChangeEvent<HTMLSelectElement>)
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.values(TimeSheetStatus).map((st) => (
+                            <SelectItem key={st} value={st}>
+                              {st}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      row.status
+                    )}
+                  </TableCell>
+                  <TableCell className="space-x-2">
+                    {isEditing ? (
+                      <>
+                        <Button
+                          onClick={handleSave}
+                          className="bg-cyan-700 text-white"
+                          disabled={updateMutation.isPending}
+                        >
+                          {updateMutation.isPending ? "Saving..." : "Save"}
+                        </Button>
+                        <Button
+                          onClick={handleCancelEdit}
+                          className="bg-gray-400 text-white"
+                          disabled={updateMutation.isPending}
+                        >
+                          Cancel
+                        </Button>
+                      </>
+                    ) : (
+                      <Button
+                        onClick={() => handleEdit(row)}
+                        className="bg-cyan-700 text-white"
+                      >
+                        Edit
+                      </Button>
+                    )}
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+
+            {isAdding && (
+              <TableRow className="bg-gray-100">
+                <TableCell>
+                  {equipmentTimesheets ? equipmentTimesheets.length + 1 : 1}
+                </TableCell>
+                <TableCell>
+                  <Select
+                    name="equipmentId"
+                    value={newRow.equipmentId}
+                    onValueChange={(value) =>
+                      handleChange({
+                        target: { name: "equipmentId", value },
+                      } as ChangeEvent<HTMLSelectElement>)
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select equipment" />
+                    </SelectTrigger>
+                    <SelectContent>
                       {(Array.isArray(equipment) ? equipment : []).map((e) => (
-                        <option key={e.id} value={e.id}>
+                        <SelectItem key={e.id} value={e.id}>
                           {e.item}
-                        </option>
+                        </SelectItem>
                       ))}
-                    </select>
-                  ) : (
-                    equipmentName
-                  )}
-                </td>
-                <td className="px-4 py-2 border">
-                  {isEditing ? (
-                    <input
-                      type="date"
-                      name="date"
-                      value={
-                        editingData.date
-                          ? new Date(editingData.date)
-                              .toISOString()
-                              .slice(0, 10)
-                          : ""
-                      }
-                      onChange={handleEditChange}
-                      className="w-full border px-2 py-1"
-                    />
-                  ) : (
-                    new Date(row.date).toLocaleDateString()
-                  )}
-                </td>
-
-                {/* Morning In */}
-                <td className="px-4 py-2 border">
-                  {isEditing ? (
-                    <input
-                      type="time"
-                      name="morningIn"
-                      value={editingData.morningIn || ""}
-                      onChange={handleEditChange}
-                      className="w-full border px-2 py-1"
-                    />
-                  ) : (
-                    row.morningIn
-                  )}
-                </td>
-
-                {/* Morning Out */}
-                <td className="px-4 py-2 border">
-                  {isEditing ? (
-                    <input
-                      type="time"
-                      name="morningOut"
-                      value={editingData.morningOut || ""}
-                      onChange={handleEditChange}
-                      className="w-full border px-2 py-1"
-                    />
-                  ) : (
-                    row.morningOut
-                  )}
-                </td>
-
-                {/* Morning Hrs (calculated) */}
-                <td className="px-4 py-2 border">
-                  {isEditing
-                    ? editingData.morningIn && editingData.morningOut
-                      ? calculateHours(
-                          editingData.morningIn!,
-                          editingData.morningOut!
-                        ).toFixed(2)
-                      : "0.00"
-                    : row.mornHrs.toFixed(2)}
-                </td>
-
-                {/* Break Time (calculated) */}
-                <td className="px-4 py-2 border">
-                  {isEditing
-                    ? editingData.morningOut && editingData.afternoonIn
-                      ? calculateBreak(
-                          editingData.morningOut!,
-                          editingData.afternoonIn!
-                        ).toFixed(2)
-                      : "0.00"
-                    : row.bt.toFixed(2)}
-                </td>
-
-                {/* Afternoon In */}
-                <td className="px-4 py-2 border">
-                  {isEditing ? (
-                    <input
-                      type="time"
-                      name="afternoonIn"
-                      value={editingData.afternoonIn || ""}
-                      onChange={handleEditChange}
-                      className="w-full border px-2 py-1"
-                    />
-                  ) : (
-                    row.afternoonIn
-                  )}
-                </td>
-
-                {/* Afternoon Out */}
-                <td className="px-4 py-2 border">
-                  {isEditing ? (
-                    <input
-                      type="time"
-                      name="afternoonOut"
-                      value={editingData.afternoonOut || ""}
-                      onChange={handleEditChange}
-                      className="w-full border px-2 py-1"
-                    />
-                  ) : (
-                    row.afternoonOut
-                  )}
-                </td>
-
-                {/* Afternoon Hrs (calculated) */}
-                <td className="px-4 py-2 border">
-                  {isEditing
-                    ? editingData.afternoonIn && editingData.afternoonOut
-                      ? calculateHours(
-                          editingData.afternoonIn!,
-                          editingData.afternoonOut!
-                        ).toFixed(2)
-                      : "0.00"
-                    : row.aftHrs.toFixed(2)}
-                </td>
-
-                {/* OT */}
-                <td className="px-4 py-2 border">
-                  {isEditing ? (
-                    <input
-                      type="number"
-                      name="ot"
-                      step="0.01"
-                      value={editingData.ot || ""}
-                      onChange={handleEditChange}
-                      className="w-full border px-2 py-1"
-                    />
-                  ) : (
-                    row.ot.toFixed(2)
-                  )}
-                </td>
-
-                {/* DT */}
-                <td className="px-4 py-2 border">
-                  {isEditing ? (
-                    <input
-                      type="number"
-                      name="dt"
-                      step="0.01"
-                      value={editingData.dt || ""}
-                      onChange={handleEditChange}
-                      className="w-full border px-2 py-1"
-                    />
-                  ) : (
-                    row.dt.toFixed(2)
-                  )}
-                </td>
-
-                {/* Rate */}
-                <td className="px-4 py-2 border">
-                  {isEditing ? (
-                    <input
-                      type="number"
-                      name="rate"
-                      step="0.01"
-                      value={editingData.rate || ""}
-                      onChange={handleEditChange}
-                      className="w-full border px-2 py-1"
-                    />
-                  ) : (
-                    row.rate.toFixed(2)
-                  )}
-                </td>
-
-                {/* Total Cost (calculated) */}
-                <td className="px-4 py-2 border">
-                  {isEditing
-                    ? (() => {
-                        const mIn = editingData.morningIn || "";
-                        const mOut = editingData.morningOut || "";
-                        const aIn = editingData.afternoonIn || "";
-                        const aOut = editingData.afternoonOut || "";
-                        const mornH =
-                          mIn && mOut ? calculateHours(mIn, mOut) : 0;
-                        const aftH =
-                          aIn && aOut ? calculateHours(aIn, aOut) : 0;
-                        const ovrTime = Number(editingData.ot) || 0;
-                        const downTime = Number(editingData.dt) || 0;
-                        const rt = Number(editingData.rate) || 0;
-                        return (
-                          (mornH + aftH + downTime) * rt +
-                          ovrTime
-                        ).toFixed(2);
-                      })()
-                    : row.totalPay.toFixed(2)}
-                </td>
-
-                {/* Status */}
-                <td className="px-4 py-2 border">
-                  {isEditing ? (
-                    <select
-                      name="status"
-                      value={editingData.status || ""}
-                      onChange={handleEditChange}
-                      className="w-full border px-2 py-1"
-                    >
+                    </SelectContent>
+                  </Select>
+                </TableCell>
+                <TableCell>
+                  <Input
+                    type="date"
+                    name="date"
+                    value={newRow.date}
+                    onChange={handleChange}
+                  />
+                </TableCell>
+                <TableCell>
+                  <Input
+                    type="time"
+                    name="morningIn"
+                    value={newRow.morningIn}
+                    onChange={handleChange}
+                  />
+                </TableCell>
+                <TableCell>
+                  <Input
+                    type="time"
+                    name="morningOut"
+                    value={newRow.morningOut}
+                    onChange={handleChange}
+                  />
+                </TableCell>
+                <TableCell>
+                  {newRow.morningIn && newRow.morningOut
+                    ? calculateHours(
+                        newRow.morningIn,
+                        newRow.morningOut
+                      ).toFixed(2)
+                    : "0.00"}
+                </TableCell>
+                <TableCell>
+                  {newRow.morningOut && newRow.afternoonIn
+                    ? calculateBreak(
+                        newRow.morningOut,
+                        newRow.afternoonIn
+                      ).toFixed(2)
+                    : "0.00"}
+                </TableCell>
+                <TableCell>
+                  <Input
+                    type="time"
+                    name="afternoonIn"
+                    value={newRow.afternoonIn}
+                    onChange={handleChange}
+                  />
+                </TableCell>
+                <TableCell>
+                  <Input
+                    type="time"
+                    name="afternoonOut"
+                    value={newRow.afternoonOut}
+                    onChange={handleChange}
+                  />
+                </TableCell>
+                <TableCell>
+                  {newRow.afternoonIn && newRow.afternoonOut
+                    ? calculateHours(
+                        newRow.afternoonIn,
+                        newRow.afternoonOut
+                      ).toFixed(2)
+                    : "0.00"}
+                </TableCell>
+                <TableCell>
+                  <Input
+                    type="number"
+                    name="ot"
+                    step="0.01"
+                    value={newRow.ot}
+                    onChange={handleChange}
+                    className="appearance-none  [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  />
+                </TableCell>
+                {/* <TableCell>
+                  <Input
+                    type="number"
+                    name="dt"
+                    step="0.01"
+                    value={newRow.dt}
+                    onChange={handleChange}
+                    className="appearance-none  [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  />
+                </TableCell> */}
+                <TableCell>
+                  <Input
+                    type="number"
+                    name="rate"
+                    step="0.01"
+                    value={newRow.rate}
+                    onChange={handleChange}
+                    className="appearance-none  [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  />
+                </TableCell>
+                <TableCell>
+                  {(() => {
+                    const mornHrs =
+                      newRow.morningIn && newRow.morningOut
+                        ? calculateHours(newRow.morningIn, newRow.morningOut)
+                        : 0;
+                    const aftHrs =
+                      newRow.afternoonIn && newRow.afternoonOut
+                        ? calculateHours(
+                            newRow.afternoonIn,
+                            newRow.afternoonOut
+                          )
+                        : 0;
+                    const ot = Number(newRow.ot) || 0;
+                    const dt = Number(newRow.dt) || 0;
+                    const rate = Number(newRow.rate) || 0;
+                    return ((mornHrs + aftHrs + dt) * rate + ot).toFixed(2);
+                  })()}
+                </TableCell>
+                <TableCell>
+                  <Select
+                    name="status"
+                    value={newRow.status}
+                    onValueChange={(value) =>
+                      handleChange({
+                        target: { name: "status", value },
+                      } as ChangeEvent<HTMLSelectElement>)
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
                       {Object.values(TimeSheetStatus).map((st) => (
-                        <option key={st} value={st}>
+                        <SelectItem key={st} value={st}>
                           {st}
-                        </option>
+                        </SelectItem>
                       ))}
-                    </select>
-                  ) : (
-                    row.status
-                  )}
-                </td>
+                    </SelectContent>
+                  </Select>
+                </TableCell>
+                <TableCell className="space-x-2">
+                  <Button
+                    onClick={handleSubmit}
+                    className="bg-cyan-700 text-white"
+                    disabled={createMutation.isPending}
+                  >
+                    {createMutation.isPending ? "Saving..." : "Submit"}
+                  </Button>
+                  <Button
+                    onClick={() => setIsAdding(false)}
+                    className="bg-gray-400 text-white"
+                    disabled={createMutation.isPending}
+                  >
+                    Cancel
+                  </Button>
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
 
-                {/* Action */}
-                <td className="px-4 py-2 border space-x-2">
-                  {isEditing ? (
-                    <>
-                      <button
-                        onClick={handleSave}
-                        className="px-2 py-1 bg-blue-600 text-white rounded"
-                        disabled={updateMutation.isPending}
-                      >
-                        {updateMutation.isPending ? "Saving..." : "Save"}
-                      </button>
-                      <button
-                        onClick={handleCancelEdit}
-                        className="px-2 py-1 bg-gray-400 text-white rounded"
-                        disabled={updateMutation.isPending}
-                      >
-                        Cancel
-                      </button>
-                    </>
-                  ) : (
-                    <button
-                      onClick={() => handleEdit(row)}
-                      className="px-2 py-1 bg-cyan-700 text-white rounded"
-                    >
-                      Edit
-                    </button>
-                  )}
-                </td>
-              </tr>
-            );
-          })}
-
-          {/* “Add New” input row */}
-          {isAdding && (
-            <tr className="bg-yellow-50">
-              <td className="px-4 py-2 border">
-                {equipmentTimesheets ? equipmentTimesheets.length + 1 : 1}
-              </td>
-
-              {/* Equipment select */}
-              <td className="px-4 py-2 border">
-                <select
-                  name="equipmentId"
-                  value={newRow.equipmentId}
-                  onChange={handleChange}
-                  className="w-full border px-2 py-1"
-                >
-                  <option value="">Select equipment</option>
-                  {(Array.isArray(equipment) ? equipment : []).map((e) => (
-                    <option key={e.id} value={e.id}>
-                      {e.item}
-                    </option>
-                  ))}
-                </select>
-              </td>
-
-              {/* Date */}
-              <td className="px-4 py-2 border">
-                <input
-                  type="date"
-                  name="date"
-                  value={newRow.date}
-                  onChange={handleChange}
-                  className="w-full border px-2 py-1"
-                />
-              </td>
-
-              {/* Morning In */}
-              <td className="px-4 py-2 border">
-                <input
-                  type="time"
-                  name="morningIn"
-                  value={newRow.morningIn}
-                  onChange={handleChange}
-                  className="w-full border px-2 py-1"
-                />
-              </td>
-
-              {/* Morning Out */}
-              <td className="px-4 py-2 border">
-                <input
-                  type="time"
-                  name="morningOut"
-                  value={newRow.morningOut}
-                  onChange={handleChange}
-                  className="w-full border px-2 py-1"
-                />
-              </td>
-
-              {/* Morning Hrs (calculated) */}
-              <td className="px-4 py-2 border">
-                {newRow.morningIn && newRow.morningOut
-                  ? calculateHours(newRow.morningIn, newRow.morningOut).toFixed(
-                      2
-                    )
-                  : "0.00"}
-              </td>
-
-              {/* Break Time (calculated) */}
-              <td className="px-4 py-2 border">
-                {newRow.morningOut && newRow.afternoonIn
-                  ? calculateBreak(
-                      newRow.morningOut,
-                      newRow.afternoonIn
-                    ).toFixed(2)
-                  : "0.00"}
-              </td>
-
-              {/* Afternoon In */}
-              <td className="px-4 py-2 border">
-                <input
-                  type="time"
-                  name="afternoonIn"
-                  value={newRow.afternoonIn}
-                  onChange={handleChange}
-                  className="w-full border px-2 py-1"
-                />
-              </td>
-
-              {/* Afternoon Out */}
-              <td className="px-4 py-2 border">
-                <input
-                  type="time"
-                  name="afternoonOut"
-                  value={newRow.afternoonOut}
-                  onChange={handleChange}
-                  className="w-full border px-2 py-1"
-                />
-              </td>
-
-              {/* Afternoon Hrs (calculated) */}
-              <td className="px-4 py-2 border">
-                {newRow.afternoonIn && newRow.afternoonOut
-                  ? calculateHours(
-                      newRow.afternoonIn,
-                      newRow.afternoonOut
-                    ).toFixed(2)
-                  : "0.00"}
-              </td>
-
-              {/* OT */}
-              <td className="px-4 py-2 border">
-                <input
-                  type="number"
-                  name="ot"
-                  step="0.01"
-                  value={newRow.ot}
-                  onChange={handleChange}
-                  className="w-full border px-2 py-1"
-                />
-              </td>
-
-              {/* DT */}
-              <td className="px-4 py-2 border">
-                <input
-                  type="number"
-                  name="dt"
-                  step="0.01"
-                  value={newRow.dt}
-                  onChange={handleChange}
-                  className="w-full border px-2 py-1"
-                />
-              </td>
-
-              {/* Rate */}
-              <td className="px-4 py-2 border">
-                <input
-                  type="number"
-                  name="rate"
-                  step="0.01"
-                  value={newRow.rate}
-                  onChange={handleChange}
-                  className="w-full border px-2 py-1"
-                />
-              </td>
-
-              {/* Total Cost (calculated) */}
-              <td className="px-4 py-2 border">
-                {(() => {
-                  const mornHrs =
-                    newRow.morningIn && newRow.morningOut
-                      ? calculateHours(newRow.morningIn, newRow.morningOut)
-                      : 0;
-                  const aftHrs =
-                    newRow.afternoonIn && newRow.afternoonOut
-                      ? calculateHours(newRow.afternoonIn, newRow.afternoonOut)
-                      : 0;
-                  const ot = Number(newRow.ot) || 0;
-                  const dt = Number(newRow.dt) || 0;
-                  const rate = Number(newRow.rate) || 0;
-                  return ((mornHrs + aftHrs + dt) * rate + ot).toFixed(2);
-                })()}
-              </td>
-
-              {/* Status */}
-              <td className="px-4 py-2 border">
-                <select
-                  name="status"
-                  value={newRow.status}
-                  onChange={handleChange}
-                  className="w-full border px-2 py-1"
-                >
-                  {Object.values(TimeSheetStatus).map((st) => (
-                    <option key={st} value={st}>
-                      {st}
-                    </option>
-                  ))}
-                </select>
-              </td>
-
-              {/* Submit / Cancel buttons */}
-              <td className="px-4 py-2 border space-x-2">
-                <button
-                  onClick={handleSubmit}
-                  className="px-2 py-1 bg-blue-600 text-white rounded"
-                  disabled={createMutation.isPending}
-                >
-                  {createMutation.isPending ? "Saving..." : "Submit"}
-                </button>
-                <button
-                  onClick={() => setIsAdding(false)}
-                  className="px-2 py-1 bg-gray-400 text-white rounded"
-                  disabled={createMutation.isPending}
-                >
-                  Cancel
-                </button>
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </TableWrapper>
+      {isAdding && (
+        <div className="mt-4 grid grid-cols-3 gap-4">
+          <div>
+            <Label htmlFor="utilization_factor">Utilization Factor</Label>
+            <Input
+              id="utilization_factor"
+              type="number"
+              name="utilization_factor"
+              value={newRow.utilization_factor}
+              onChange={handleChange}
+            />
+          </div>
+          <div>
+            <Label htmlFor="totalTime">Total Time</Label>
+            <Input
+              id="totalTime"
+              type="number"
+              name="totalTime"
+              value={newRow.totalTime}
+              onChange={handleChange}
+            />
+          </div>
+          <div>
+            <Label htmlFor="startingDate">Starting Date</Label>
+            <Input
+              id="startingDate"
+              type="date"
+              name="startingDate"
+              value={newRow.startingDate}
+              onChange={handleChange}
+            />
+          </div>
+          <div>
+            <Label htmlFor="dueDate">Due Date</Label>
+            <Input
+              id="dueDate"
+              type="date"
+              name="dueDate"
+              value={newRow.dueDate}
+              onChange={handleChange}
+            />
+          </div>
+          <div>
+            <Label htmlFor="shiftingDate">Shifting Date</Label>
+            <Input
+              id="shiftingDate"
+              type="date"
+              name="shiftingDate"
+              value={newRow.shiftingDate}
+              onChange={handleChange}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

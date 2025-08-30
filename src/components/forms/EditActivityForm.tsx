@@ -6,12 +6,14 @@ import Select from "react-select";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { UpdateActivityInput } from "@/types/activity";
+import { User } from "@/types/user";
 
 const EditActivityForm: React.FC<{
   onSubmit: (data: UpdateActivityInput) => void;
   onClose: () => void;
   activity: UpdateActivityInput;
-}> = ({ onSubmit, onClose, activity }) => {
+  users?: User[];
+}> = ({ onSubmit, onClose, activity, users }) => {
   const {
     register,
     handleSubmit,
@@ -42,6 +44,12 @@ const EditActivityForm: React.FC<{
     { value: "Not Approved", label: "Not Approved" },
     { value: "Pending", label: "Pending" },
   ];
+
+  const userOptions =
+    users?.map((user) => ({
+      value: user.id,
+      label: `${user.first_name} ${user.last_name} (${user.role?.name})`,
+    })) || [];
 
   return (
     <form
@@ -135,6 +143,31 @@ const EditActivityForm: React.FC<{
       {errors.quantity && (
         <p className="text-red-500 text-sm ml-32">{errors.quantity.message}</p>
       )}
+
+      {/* AssignedUsers */}
+      <div className="flex items-center space-x-4">
+        <label className="w-32 text-sm font-medium text-gray-700">
+          Assigned Users
+        </label>
+        <Controller
+          name="assignedUsers"
+          control={control}
+          render={({ field }) => (
+            <Select
+              {...field}
+              options={userOptions}
+              isMulti
+              className="flex-1"
+              onChange={(selectedOptions) =>
+                field.onChange(selectedOptions.map((option) => option.value))
+              }
+              value={userOptions.filter((option) =>
+                field.value?.includes(option.value)
+              )}
+            />
+          )}
+        />
+      </div>
 
       {/* Start Date */}
       <div className="flex items-center space-x-4">

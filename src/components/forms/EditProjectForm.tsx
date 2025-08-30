@@ -55,7 +55,7 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
   const memberOptions =
     users?.map((user) => ({
       value: user.id!,
-      label: `${user.first_name} ${user.last_name}`,
+      label: `${user.first_name} ${user.last_name} (${user.role?.name})`,
     })) || [];
 
   

@@ -11,35 +11,26 @@ import {
   updateMaterialBalanceSheetInput,
   MaterialBalanceSheet,
 } from "@/types/timesheet";
-
-// Reusable table wrapper and header (local copy)
-const TableWrapper: React.FC<React.PropsWithChildren> = ({ children }) => (
-  <div className="overflow-x-auto">
-    <table className="min-w-full bg-gray-100 border border-gray-300">
-      {children}
-    </table>
-  </div>
-);
-
-interface TableHeaderProps {
-  columns: string[];
-}
-
-const TableHeader: React.FC<TableHeaderProps> = ({ columns }) => (
-  <thead className="bg-cyan-700 text-white">
-    <tr>
-      {columns.map((col) => (
-        <th key={col} className="px-4 py-2 border">
-          {col}
-        </th>
-      ))}
-      <th className="px-4 py-2 border">Action</th>
-    </tr>
-  </thead>
-);
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 
 export const MaterialSheet: React.FC = () => {
-  // Fetch existing material sheets
   const {
     data: materialSheets,
     isLoading: sheetsLoading,
@@ -47,7 +38,6 @@ export const MaterialSheet: React.FC = () => {
     error: sheetsErrorObj,
   } = useMaterialSheets();
 
-  // Fetch master list of materials
   const {
     data: materials,
     isLoading: materialsLoading,
@@ -55,14 +45,11 @@ export const MaterialSheet: React.FC = () => {
     error: materialsErrorObj,
   } = useMaterials();
 
-  // Mutation hooks
   const createMutation = useCreateMaterialSheet();
   const updateMutation = useUpdateMaterialSheet();
 
-  // State to toggle “Add New” row
   const [isAdding, setIsAdding] = useState(false);
 
-  // Local state for new-row inputs
   const [newRow, setNewRow] = useState<{
     materialId: string;
     date: string;
@@ -71,6 +58,11 @@ export const MaterialSheet: React.FC = () => {
     assignedTo: string;
     remark: string;
     status: string;
+    utilization_factor: string;
+    totalTime: string;
+    startingDate: string;
+    dueDate: string;
+    shiftingDate: string;
   }>({
     materialId: "",
     date: "",
@@ -79,13 +71,17 @@ export const MaterialSheet: React.FC = () => {
     assignedTo: "",
     remark: "",
     status: "",
+    utilization_factor: "",
+    totalTime: "",
+    startingDate: "",
+    dueDate: "",
+    shiftingDate: "",
   });
 
-  // State for editing existing rows
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editingData, setEditingData] = useState<
-    Partial<MaterialBalanceSheet>
-  >({});
+  const [editingData, setEditingData] = useState<Partial<MaterialBalanceSheet>>(
+    {}
+  );
 
   const columns = [
     "#",
@@ -99,14 +95,12 @@ export const MaterialSheet: React.FC = () => {
     "Status",
   ];
 
-  // Helper to calculate balance = receivedQty - utilizedQty
   const calculateBalance = (received: string, utilized: string): number => {
     const r = Number(received) || 0;
     const u = Number(utilized) || 0;
     return r - u;
   };
 
-  // Generic change handler
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -114,7 +108,6 @@ export const MaterialSheet: React.FC = () => {
     setNewRow((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Change handler for edit mode
   const handleEditChange = (
     e: ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -122,7 +115,6 @@ export const MaterialSheet: React.FC = () => {
     setEditingData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Submit new row
   const handleSubmit = () => {
     if (!newRow.materialId || !newRow.date) return;
 
@@ -152,18 +144,21 @@ export const MaterialSheet: React.FC = () => {
           assignedTo: "",
           remark: "",
           status: "",
+          utilization_factor: "",
+          totalTime: "",
+          startingDate: "",
+          dueDate: "",
+          shiftingDate: "",
         });
       },
     });
   };
 
-  // Start editing
   const handleEdit = (row: MaterialBalanceSheet) => {
     setEditingId(row.id);
     setEditingData(row);
   };
 
-  // Save edits
   const handleSave = () => {
     if (!editingId) return;
 
@@ -216,310 +211,342 @@ export const MaterialSheet: React.FC = () => {
 
   return (
     <div>
-      <button
+      <Button
         onClick={() => setIsAdding(true)}
-        className="mb-2 px-4 py-2 bg-green-600 text-white rounded"
+        className="mb-2 bg-cyan-700 hover:bg-cyan-800 text-white"
         disabled={isAdding}
       >
         Add New
-      </button>
+      </Button>
 
-      <TableWrapper>
-        <TableHeader columns={columns} />
-        <tbody>
-          {/* Existing rows */}
-          {materialSheets?.map((row, idx) => {
-            const isEditing = editingId === row.id;
-            // find material name
-            const mat = materials?.find((m) => m.id === row.materialId);
+      <div className="overflow-x-auto">
+        <Table className="min-w-full bg-gray-100">
+          <TableHeader>
+            <TableRow className="bg-cyan-700 hover:bg-cyan-700 text-white">
+              {columns.map((col) => (
+                <TableHead className="text-white" key={col}>
+                  {col}
+                </TableHead>
+              ))}
+              <TableHead className="text-white">Action</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {materialSheets?.map((row, idx) => {
+              const isEditing = editingId === row.id;
+              const mat = materials?.find((m) => m.id === row.materialId);
 
-            return (
-              <tr key={row.id} className="bg-white even:bg-gray-100">
-                <td className="px-4 py-2 border">{idx + 1}</td>
+              return (
+                <TableRow key={row.id} className="even:bg-gray-100">
+                  <TableCell>{idx + 1}</TableCell>
+                  <TableCell>
+                    {isEditing ? (
+                      <Select
+                        name="materialId"
+                        value={editingData.materialId}
+                        onValueChange={(value) =>
+                          handleEditChange({
+                            target: { name: "materialId", value },
+                          } as ChangeEvent<HTMLSelectElement>)
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {(materials ?? []).map((m) => (
+                            <SelectItem key={m.id} value={m.id}>
+                              {m.item}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      mat?.item || row.materialId
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {isEditing ? (
+                      <Input
+                        type="date"
+                        name="date"
+                        value={
+                          editingData.date
+                            ? new Date(editingData.date as unknown as string)
+                                .toISOString()
+                                .slice(0, 10)
+                            : ""
+                        }
+                        onChange={handleEditChange}
+                      />
+                    ) : (
+                      new Date(row.date).toLocaleDateString()
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {isEditing ? (
+                      <Input
+                        type="number"
+                        name="receivedQty"
+                        step="1"
+                        value={editingData.receivedQty?.toString() || ""}
+                        onChange={handleEditChange}
+                        className="appearance-none [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      />
+                    ) : (
+                      row.receivedQty
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {isEditing ? (
+                      <Input
+                        type="number"
+                        name="utilizedQty"
+                        step="1"
+                        value={editingData.utilizedQty?.toString() || ""}
+                        onChange={handleEditChange}
+                        className="appearance-none [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      />
+                    ) : (
+                      row.utilizedQty
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {isEditing
+                      ? calculateBalance(
+                          editingData.receivedQty?.toString() || "0",
+                          editingData.utilizedQty?.toString() || "0"
+                        ).toFixed(0)
+                      : row.balance}
+                  </TableCell>
+                  <TableCell>
+                    {isEditing ? (
+                      <Input
+                        type="text"
+                        name="assignedTo"
+                        value={editingData.assignedTo || ""}
+                        onChange={handleEditChange}
+                      />
+                    ) : (
+                      row.assignedTo
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {isEditing ? (
+                      <Input
+                        type="text"
+                        name="remark"
+                        value={editingData.remark || ""}
+                        onChange={handleEditChange}
+                      />
+                    ) : (
+                      row.remark || "–"
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {isEditing ? (
+                      <Input
+                        type="text"
+                        name="status"
+                        value={editingData.status || ""}
+                        onChange={handleEditChange}
+                      />
+                    ) : (
+                      row.status
+                    )}
+                  </TableCell>
+                  <TableCell className="space-x-2">
+                    {isEditing ? (
+                      <>
+                        <Button
+                          onClick={handleSave}
+                          className="bg-cyan-700 text-white"
+                          disabled={updateMutation.isPending}
+                        >
+                          {updateMutation.isPending ? "Saving..." : "Save"}
+                        </Button>
+                        <Button
+                          onClick={handleCancelEdit}
+                          className="bg-gray-400 text-white"
+                          disabled={updateMutation.isPending}
+                        >
+                          Cancel
+                        </Button>
+                      </>
+                    ) : (
+                      <Button
+                        onClick={() => handleEdit(row)}
+                        className="bg-cyan-700 text-white"
+                      >
+                        Edit
+                      </Button>
+                    )}
+                  </TableCell>
+                </TableRow>
+              );
+            })}
 
-                {/* Material */}
-                <td className="px-4 py-2 border">
-                  {isEditing ? (
-                    <select
-                      name="materialId"
-                      value={editingData.materialId}
-                      onChange={handleEditChange}
-                      className="w-full border px-2 py-1"
-                    >
-                      <option value="">Select...</option>
+            {isAdding && (
+              <TableRow className="bg-gray-100">
+                <TableCell>
+                  {materialSheets ? materialSheets.length + 1 : 1}
+                </TableCell>
+                <TableCell>
+                  <Select
+                    name="materialId"
+                    value={newRow.materialId}
+                    onValueChange={(value) =>
+                      handleChange({
+                        target: { name: "materialId", value },
+                      } as ChangeEvent<HTMLSelectElement>)
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select..." />
+                    </SelectTrigger>
+                    <SelectContent>
                       {(materials ?? []).map((m) => (
-                        <option key={m.id} value={m.id}>
+                        <SelectItem key={m.id} value={m.id}>
                           {m.item}
-                        </option>
+                        </SelectItem>
                       ))}
-                    </select>
-                  ) : (
-                    mat?.item || row.materialId
-                  )}
-                </td>
+                    </SelectContent>
+                  </Select>
+                </TableCell>
+                <TableCell>
+                  <Input
+                    type="date"
+                    name="date"
+                    value={newRow.date}
+                    onChange={handleChange}
+                  />
+                </TableCell>
+                <TableCell>
+                  <Input
+                    type="number"
+                    name="receivedQty"
+                    step="1"
+                    value={newRow.receivedQty}
+                    onChange={handleChange}
+                    className="appearance-none  [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  />
+                </TableCell>
+                <TableCell>
+                  <Input
+                    type="number"
+                    name="utilizedQty"
+                    step="1"
+                    value={newRow.utilizedQty}
+                    onChange={handleChange}
+                    className="appearance-none  [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  />
+                </TableCell>
+                <TableCell>
+                  {calculateBalance(
+                    newRow.receivedQty,
+                    newRow.utilizedQty
+                  ).toFixed(0)}
+                </TableCell>
+                <TableCell>
+                  <Input
+                    type="text"
+                    name="assignedTo"
+                    value={newRow.assignedTo}
+                    onChange={handleChange}
+                  />
+                </TableCell>
+                <TableCell>
+                  <Input
+                    type="text"
+                    name="remark"
+                    value={newRow.remark}
+                    onChange={handleChange}
+                  />
+                </TableCell>
+                <TableCell>
+                  <Input
+                    type="text"
+                    name="status"
+                    value={newRow.status}
+                    onChange={handleChange}
+                  />
+                </TableCell>
+                <TableCell className="space-x-2">
+                  <Button
+                    onClick={handleSubmit}
+                    className="bg-cyan-700 hover:bg-cyan-800 text-white"
+                    disabled={createMutation.isPending}
+                  >
+                    {createMutation.isPending ? "Saving..." : "Submit"}
+                  </Button>
+                  <Button
+                    onClick={() => setIsAdding(false)}
+                    className="bg-gray-400 text-white"
+                    disabled={createMutation.isPending}
+                  >
+                    Cancel
+                  </Button>
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
 
-                {/* Date */}
-                <td className="px-4 py-2 border">
-                  {isEditing ? (
-                    <input
-                      type="date"
-                      name="date"
-                      value={
-                        editingData.date
-                          ? new Date(
-                              editingData.date as unknown as string
-                            )
-                              .toISOString()
-                              .slice(0, 10)
-                          : ""
-                      }
-                      onChange={handleEditChange}
-                      className="w-full border px-2 py-1"
-                    />
-                  ) : (
-                    new Date(row.date).toLocaleDateString()
-                  )}
-                </td>
-
-                {/* Received Qty */}
-                <td className="px-4 py-2 border">
-                  {isEditing ? (
-                    <input
-                      type="number"
-                      name="receivedQty"
-                      step="1"
-                      value={editingData.receivedQty?.toString() || ""}
-                      onChange={handleEditChange}
-                      className="w-full border px-2 py-1"
-                    />
-                  ) : (
-                    row.receivedQty
-                  )}
-                </td>
-
-                {/* Utilized Qty */}
-                <td className="px-4 py-2 border">
-                  {isEditing ? (
-                    <input
-                      type="number"
-                      name="utilizedQty"
-                      step="1"
-                      value={editingData.utilizedQty?.toString() || ""}
-                      onChange={handleEditChange}
-                      className="w-full border px-2 py-1"
-                    />
-                  ) : (
-                    row.utilizedQty
-                  )}
-                </td>
-
-                {/* Balance */}
-                <td className="px-4 py-2 border">
-                  {isEditing
-                    ? calculateBalance(
-                        editingData.receivedQty?.toString() || "0",
-                        editingData.utilizedQty?.toString() || "0"
-                      ).toFixed(0)
-                    : row.balance}
-                </td>
-
-                {/* Assigned To */}
-                <td className="px-4 py-2 border">
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      name="assignedTo"
-                      value={editingData.assignedTo || ""}
-                      onChange={handleEditChange}
-                      className="w-full border px-2 py-1"
-                    />
-                  ) : (
-                    row.assignedTo
-                  )}
-                </td>
-
-                {/* Remark */}
-                <td className="px-4 py-2 border">
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      name="remark"
-                      value={editingData.remark || ""}
-                      onChange={handleEditChange}
-                      className="w-full border px-2 py-1"
-                    />
-                  ) : (
-                    row.remark || "–"
-                  )}
-                </td>
-
-                {/* Status */}
-                <td className="px-4 py-2 border">
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      name="status"
-                      value={editingData.status || ""}
-                      onChange={handleEditChange}
-                      className="w-full border px-2 py-1"
-                    />
-                  ) : (
-                    row.status
-                  )}
-                </td>
-
-                {/* Actions */}
-                <td className="px-4 py-2 border space-x-2">
-                  {isEditing ? (
-                    <>
-                      <button
-                        onClick={handleSave}
-                        className="px-2 py-1 bg-blue-600 text-white rounded"
-                        disabled={updateMutation.isPending}
-                      >
-                        {updateMutation.isPending ? "Saving..." : "Save"}
-                      </button>
-                      <button
-                        onClick={handleCancelEdit}
-                        className="px-2 py-1 bg-gray-400 text-white rounded"
-                        disabled={updateMutation.isPending}
-                      >
-                        Cancel
-                      </button>
-                    </>
-                  ) : (
-                    <button
-                      onClick={() => handleEdit(row)}
-                      className="px-2 py-1 bg-cyan-700 text-white rounded"
-                    >
-                      Edit
-                    </button>
-                  )}
-                </td>
-              </tr>
-            );
-          })}
-
-          {/* “Add New” row */}
-          {isAdding && (
-            <tr className="bg-yellow-50">
-              <td className="px-4 py-2 border">
-                {materialSheets ? materialSheets.length + 1 : 1}
-              </td>
-
-              {/* Material selector */}
-              <td className="px-4 py-2 border">
-                <select
-                  name="materialId"
-                  value={newRow.materialId}
-                  onChange={handleChange}
-                  className="w-full border px-2 py-1"
-                >
-                  <option value="">Select...</option>
-                  {(materials ?? []).map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.item}
-                    </option>
-                  ))}
-                </select>
-              </td>
-
-              {/* Date */}
-              <td className="px-4 py-2 border">
-                <input
-                  type="date"
-                  name="date"
-                  value={newRow.date}
-                  onChange={handleChange}
-                  className="w-full border px-2 py-1"
-                />
-              </td>
-
-              {/* Received Qty */}
-              <td className="px-4 py-2 border">
-                <input
-                  type="number"
-                  name="receivedQty"
-                  step="1"
-                  value={newRow.receivedQty}
-                  onChange={handleChange}
-                  className="w-full border px-2 py-1"
-                />
-              </td>
-
-              {/* Utilized Qty */}
-              <td className="px-4 py-2 border">
-                <input
-                  type="number"
-                  name="utilizedQty"
-                  step="1"
-                  value={newRow.utilizedQty}
-                  onChange={handleChange}
-                  className="w-full border px-2 py-1"
-                />
-              </td>
-
-              {/* Balance */}
-              <td className="px-4 py-2 border">
-                {calculateBalance(newRow.receivedQty, newRow.utilizedQty).toFixed(
-                  0
-                )}
-              </td>
-
-              {/* Assigned To */}
-              <td className="px-4 py-2 border">
-                <input
-                  type="text"
-                  name="assignedTo"
-                  value={newRow.assignedTo}
-                  onChange={handleChange}
-                  className="w-full border px-2 py-1"
-                />
-              </td>
-
-              {/* Remark */}
-              <td className="px-4 py-2 border">
-                <input
-                  type="text"
-                  name="remark"
-                  value={newRow.remark}
-                  onChange={handleChange}
-                  className="w-full border px-2 py-1"
-                />
-              </td>
-
-              {/* Status */}
-              <td className="px-4 py-2 border">
-                <input
-                  type="text"
-                  name="status"
-                  value={newRow.status}
-                  onChange={handleChange}
-                  className="w-full border px-2 py-1"
-                />
-              </td>
-
-              {/* Submit / Cancel */}
-              <td className="px-4 py-2 border space-x-2">
-                <button
-                  onClick={handleSubmit}
-                  className="px-2 py-1 bg-blue-600 text-white rounded"
-                  disabled={createMutation.isPending}
-                >
-                  {createMutation.isPending ? "Saving..." : "Submit"}
-                </button>
-                <button
-                  onClick={() => setIsAdding(false)}
-                  className="px-2 py-1 bg-gray-400 text-white rounded"
-                  disabled={createMutation.isPending}
-                >
-                  Cancel
-                </button>
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </TableWrapper>
+      {isAdding && (
+        <div className="mt-4 grid grid-cols-3 gap-4">
+          <div>
+            <Label htmlFor="utilization_factor">Utilization Factor</Label>
+            <Input
+              id="utilization_factor"
+              type="number"
+              name="utilization_factor"
+              value={newRow.utilization_factor}
+              onChange={handleChange}
+            />
+          </div>
+          <div>
+            <Label htmlFor="totalTime">Total Time</Label>
+            <Input
+              id="totalTime"
+              type="number"
+              name="totalTime"
+              value={newRow.totalTime}
+              onChange={handleChange}
+            />
+          </div>
+          <div>
+            <Label htmlFor="startingDate">Starting Date</Label>
+            <Input
+              id="startingDate"
+              type="date"
+              name="startingDate"
+              value={newRow.startingDate}
+              onChange={handleChange}
+            />
+          </div>
+          <div>
+            <Label htmlFor="dueDate">Due Date</Label>
+            <Input
+              id="dueDate"
+              type="date"
+              name="dueDate"
+              value={newRow.dueDate}
+              onChange={handleChange}
+            />
+          </div>
+          <div>
+            <Label htmlFor="shiftingDate">Shifting Date</Label>
+            <Input
+              id="shiftingDate"
+              type="date"
+              name="shiftingDate"
+              value={newRow.shiftingDate}
+              onChange={handleChange}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

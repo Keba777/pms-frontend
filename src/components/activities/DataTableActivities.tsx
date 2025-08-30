@@ -23,6 +23,7 @@ import {
   Option,
 } from "../common/GenericFilter";
 import ProfileAvatar from "../common/ProfileAvatar";
+import { useUsers } from "@/hooks/useUsers";
 
 const priorityBadgeClasses: Record<Activity["priority"], string> = {
   Critical: "bg-red-100 text-red-800",
@@ -63,6 +64,7 @@ const DataTableActivities: React.FC = () => {
   const { data: activities = [], isLoading, error } = useActivities();
   const { mutate: deleteActivity } = useDeleteActivity();
   const { mutate: updateActivity } = useUpdateActivity();
+  const { data: users } = useUsers();
   const router = useRouter();
 
   // Filter state
@@ -225,6 +227,7 @@ const DataTableActivities: React.FC = () => {
               onClose={() => setShowEditForm(false)}
               onSubmit={handleEditSubmit}
               activity={activityToEdit}
+              users={users}
             />
           </div>
         </div>
@@ -412,7 +415,7 @@ const DataTableActivities: React.FC = () => {
                   {selectedColumns.includes("assignedUsers") && (
                     <td className="px-4 py-2">
                       {activity.assignedUsers?.length ? (
-                        <ul className="list-none space-y-1">
+                        <ul className="flex space-x-2">
                           {activity.assignedUsers.map((u) => (
                             <ProfileAvatar key={u.id} user={u} />
                           ))}

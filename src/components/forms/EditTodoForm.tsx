@@ -47,7 +47,7 @@ const EditTodoForm: React.FC<EditTodoFormProps> = ({
   const userOptions =
     users?.map((user) => ({
       value: user.id,
-      label: `${user.first_name} ${user.last_name}`,
+      label: `${user.first_name} ${user.last_name} (${user.role?.name})`,
     })) || [];
 
   return (

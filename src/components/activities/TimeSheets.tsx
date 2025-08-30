@@ -4,7 +4,11 @@ import { LaborSheet } from "./LaborSheet";
 import { EquipmentSheet } from "./EquipmentSheet";
 import { MaterialSheet } from "./MaterialSheet";
 
-export default function Timesheet() {
+// interface TimesheetProps {
+//   users?: User[]
+// }
+
+const Timesheet:React.FC = () => {
   const tabs = [
     "Labor Timesheet",
     "Equipment Timesheet",
@@ -46,3 +50,5 @@ export default function Timesheet() {
     </div>
   );
 }
+
+export default Timesheet
