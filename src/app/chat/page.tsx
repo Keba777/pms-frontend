@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/authStore";
 import { useUsers } from "@/hooks/useUsers";
-import { Search, MessageSquare, Send } from "lucide-react";
+import { Search, MessageSquare, Send, Paperclip } from "lucide-react";
 
 interface Message {
   message_id: string;
@@ -15,6 +15,7 @@ interface Message {
   timestamp: string;
   is_read: boolean;
   sender_name: string;
+  attachment_path: string | null;
 }
 
 interface ConversationMeta {
@@ -36,6 +37,7 @@ interface SupaMessageRow {
   message_text: string;
   timestamp: string;
   is_read: boolean;
+  attachment_path: string | null;
   sender?: {
     first_name: string;
     last_name: string;
@@ -56,6 +58,8 @@ export default function ProfessionalMessages() {
   const [newMessage, setNewMessage] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // 1) Load conversation metadata
   const loadConversationsMeta = useCallback(async () => {
@@ -63,7 +67,7 @@ export default function ProfessionalMessages() {
 
     const { data, error } = await supabase
       .from("messages")
-      .select("sender_id, receiver_id, message_text, timestamp, is_read")
+      .select("sender_id, receiver_id, message_text, timestamp, is_read, attachment_path")
       .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
       .order("timestamp", { ascending: false });
 
@@ -80,7 +84,7 @@ export default function ProfessionalMessages() {
       if (!metaMap[partnerId]) {
         metaMap[partnerId] = {
           user_id: partnerId,
-          last_message: msg.message_text,
+          last_message: msg.message_text || (msg.attachment_path ? "Attachment" : ""),
           last_message_time: msg.timestamp,
           unread_count: msg.receiver_id === user.id && !msg.is_read ? 1 : 0,
         };
@@ -131,6 +135,7 @@ export default function ProfessionalMessages() {
             sender_name: row.sender
               ? `${row.sender.first_name} ${row.sender.last_name}`
               : "Unknown",
+            attachment_path: row.attachment_path,
           })) || [];
 
         setMessages(formatted);
@@ -160,46 +165,74 @@ export default function ProfessionalMessages() {
   // 3) Send message with robust conversation upsert/select
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !selectedConversation || !newMessage.trim()) return;
-
-    const [user_min, user_max] = [user.id, selectedConversation].sort();
+    if (!user || !selectedConversation || (!newMessage.trim() && !selectedFile)) return;
 
     let conversation_id: string;
-    const { data: upserted, error: upsertErr } = await supabase
-      .from("conversations")
-      .upsert(
-        { user_a: user.id, user_b: selectedConversation },
-        { onConflict: "user_min,user_max" }
-      )
-      .select("conversation_id")
-      .single();
 
-    if (upsertErr) {
-      const { data: existing, error: selErr } = await supabase
+    // First, try to find existing conversation
+    const { data: existing, error: selErr } = await supabase
+      .from("conversations")
+      .select("conversation_id")
+      .or(
+        `and(user_a.eq.${user.id},user_b.eq.${selectedConversation}),and(user_a.eq.${selectedConversation},user_b.eq.${user.id})`
+      );
+
+    if (selErr) {
+      console.error("Error selecting conversation:", selErr);
+      return;
+    }
+
+    if (existing && existing.length > 0) {
+      conversation_id = existing[0].conversation_id;
+    } else {
+      // Insert new conversation with authenticated user as user_a
+      const { data: inserted, error: insErr } = await supabase
         .from("conversations")
+        .insert({
+          user_a: user.id,
+          user_b: selectedConversation,
+        })
         .select("conversation_id")
-        .eq("user_min", user_min)
-        .eq("user_max", user_max)
         .single();
 
-      if (selErr || !existing)
-        throw selErr || new Error("Could not find conversation");
+      if (insErr) {
+        console.error("Error inserting conversation:", insErr);
+        return;
+      }
 
-      conversation_id = existing.conversation_id;
-    } else {
-      conversation_id = upserted.conversation_id;
+      conversation_id = inserted.conversation_id;
+    }
+
+    let attachment_path: string | null = null;
+    if (selectedFile) {
+      const ext = selectedFile.name.split('.').pop() || '';
+      const fileName = `${crypto.randomUUID()}.${ext}`;
+      const { data: uploadData, error: uploadErr } = await supabase.storage
+        .from('chat-attachments')
+        .upload(fileName, selectedFile);
+
+      if (uploadErr) {
+        console.error("Error uploading file:", uploadErr);
+        return;
+      }
+      attachment_path = uploadData.path;
     }
 
     const { error: msgErr } = await supabase.from("messages").insert({
       conversation_id,
       sender_id: user.id,
       receiver_id: selectedConversation,
-      message_text: newMessage.trim(),
+      message_text: newMessage.trim() || '', // Ensure message_text is not null
       is_read: false,
+      attachment_path,
     });
-    if (msgErr) throw msgErr;
+    if (msgErr) {
+      console.error("Error sending message:", msgErr);
+      return;
+    }
 
     setNewMessage("");
+    setSelectedFile(null);
     await loadMessages(selectedConversation);
 
     setTimeout(() => {
@@ -304,6 +337,10 @@ export default function ProfessionalMessages() {
               )}
               {messages.map((m) => {
                 const isMine = m.sender_id === user?.id;
+                const attachmentUrl = m.attachment_path
+                  ? supabase.storage.from('chat-attachments').getPublicUrl(m.attachment_path).data.publicUrl
+                  : null;
+                const isImage = attachmentUrl && /\.(jpg|jpeg|png|gif|webp)$/i.test(m.attachment_path ?? "");
                 return (
                   <div
                     key={m.message_id}
@@ -318,7 +355,26 @@ export default function ProfessionalMessages() {
                         {m.sender_name}
                       </p>
                     )}
-                    <p>{m.message_text}</p>
+                    {m.message_text && <p>{m.message_text}</p>}
+                    {attachmentUrl && (
+                      <>
+                        {isImage ? (
+                          <img
+                            src={attachmentUrl}
+                            alt="Attachment"
+                            className="max-w-full rounded mt-2"
+                          />
+                        ) : (
+                          <a
+                            href={attachmentUrl}
+                            download
+                            className="text-blue-300 underline mt-2 block"
+                          >
+                            Download attachment: {m.attachment_path? m.attachment_path.split('/').pop(): ""}
+                          </a>
+                        )}
+                      </>
+                    )}
                     <span className="block text-xs opacity-80 mt-1 text-right">
                       {new Date(m.timestamp).toLocaleTimeString([], {
                         hour: "2-digit",
@@ -334,6 +390,19 @@ export default function ProfessionalMessages() {
               onSubmit={sendMessage}
               className="p-4 bg-white border-t flex items-center"
             >
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="mr-2 p-2 rounded-full bg-gray-200 text-gray-600 hover:bg-gray-300"
+              >
+                <Paperclip size={18} />
+              </button>
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                className="hidden"
+              />
               <textarea
                 rows={1}
                 className="flex-1 px-3 py-2 border rounded-lg focus:outline-none resize-none"
@@ -344,9 +413,9 @@ export default function ProfessionalMessages() {
               />
               <button
                 type="submit"
-                disabled={!newMessage.trim()}
+                disabled={!newMessage.trim() && !selectedFile}
                 className={`ml-3 p-2 rounded-full ${
-                  newMessage.trim()
+                  newMessage.trim() || selectedFile
                     ? "bg-blue-500 text-white hover:bg-blue-600"
                     : "bg-gray-300 text-gray-500 cursor-not-allowed"
                 }`}

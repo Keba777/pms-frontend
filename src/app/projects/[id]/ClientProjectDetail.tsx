@@ -39,7 +39,11 @@ export default function ClientProjectDetail({
       label: "Issue",
       component: <IssueTab projectId={projectId} />,
     },
-    { key: "files", label: "Files", component: <FilesTab /> },
+    {
+      key: "files",
+      label: "Files",
+      component: <FilesTab type="project" referenceId={projectId} />,
+    },
     {
       key: "notification",
       label: "Notification",
