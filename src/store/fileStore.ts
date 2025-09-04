@@ -1,15 +1,15 @@
 import { create } from "zustand";
 import { persist, PersistStorage, StorageValue } from "zustand/middleware";
-import { File } from "@/types/file";
+import { AppFile } from "@/types/file";
 
 // =======================
 // File Store
 // =======================
 interface FileStore {
-    files: File[];
-    setFiles: (files: File[]) => void;
-    addFile: (file: File) => void;
-    updateFile: (updatedFile: File) => void;
+    files: AppFile[];
+    setFiles: (files: AppFile[]) => void;
+    addFile: (file: AppFile) => void;
+    updateFile: (updatedFile: AppFile) => void;
     deleteFile: (fileId: string) => void;
 }
 

@@ -12,6 +12,7 @@ import {
 import { useFiles } from "@/hooks/useFiles";
 import { toast } from "react-toastify";
 import FileForm from "../forms/FileForm";
+import { AppFile } from "@/types/file";
 
 interface FileTableProps {
   type: "project" | "task" | "activity" | "todo";
@@ -21,11 +22,20 @@ interface FileTableProps {
 export default function FileTable({ type, referenceId }: FileTableProps) {
   const { data: files, isLoading, error } = useFiles();
   const [showForm, setShowForm] = useState(false);
-  const [dropdownFileId, setDropdownFileId] = useState<number | null>(null);
+  const [dropdownFileId, setDropdownFileId] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   if (isLoading) return <div>Loading files...</div>;
   if (error) return <div>Error loading files</div>;
+
+  const formatDate = (date: string | Date) => {
+    try {
+      const d = new Date(date);
+      return d.toLocaleDateString();
+    } catch {
+      return String(date);
+    }
+  };
 
   const handleDownload = (fileUrl: string) => {
     window.open(fileUrl, "_blank");
@@ -35,12 +45,12 @@ export default function FileTable({ type, referenceId }: FileTableProps) {
     window.open(fileUrl, "_blank");
   };
 
-  const handleEdit = (fileId: number) => {
+  const handleEdit = (fileId: string) => {
     toast.info(`Edit file ${fileId} clicked`);
     setDropdownFileId(null);
   };
 
-  const handleDelete = (fileId: number) => {
+  const handleDelete = (fileId: string) => {
     toast.error(`Delete file ${fileId} clicked`);
     setDropdownFileId(null);
   };
@@ -84,24 +94,21 @@ export default function FileTable({ type, referenceId }: FileTableProps) {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {files && files.length > 0 ? (
-              files.map((file, idx) => (
+              files.map((file: AppFile, idx: number) => (
                 <tr
                   key={file.id}
                   className="hover:bg-gray-50 relative"
                   onClick={() => setDropdownFileId(null)}
                 >
                   <td className="border px-3 py-2 text-center">{idx + 1}</td>
-                  <td className="border px-3 py-2">
-                    {file.date instanceof Date
-                      ? file.date.toLocaleDateString()
-                      : file.date}
-                  </td>
+                  <td className="border px-3 py-2">{formatDate(file.date)}</td>
                   <td className="border px-3 py-2 font-medium">{file.title}</td>
                   <td className="border px-3 py-2">
-                    {file.uploadedByUser?.first_name}
+                    {file.uploadedByUser?.first_name}{" "}
+                    {file.uploadedByUser?.last_name}
                   </td>
                   <td className="border px-3 py-2">
-                    {file.sendToUser?.first_name}
+                    {file.sendToUser?.first_name} {file.sendToUser?.last_name}
                   </td>
                   <td className="border px-3 py-2">
                     <a
@@ -119,9 +126,7 @@ export default function FileTable({ type, referenceId }: FileTableProps) {
                         onClick={(e) => {
                           e.stopPropagation();
                           setDropdownFileId(
-                            dropdownFileId === Number(file.id)
-                              ? null
-                              : Number(file.id)
+                            dropdownFileId === file.id ? null : file.id
                           );
                         }}
                         className="flex items-center justify-between gap-1 px-3 py-1 bg-cyan-700 text-white rounded w-full hover:bg-cyan-800"
@@ -129,7 +134,7 @@ export default function FileTable({ type, referenceId }: FileTableProps) {
                         Actions
                         <ChevronDown className="w-4 h-4" />
                       </button>
-                      {dropdownFileId === Number(file.id) && (
+                      {dropdownFileId === file.id && (
                         <div
                           ref={dropdownRef}
                           className="absolute left-0 top-full mt-1 w-44 bg-white border rounded shadow-lg z-50"
@@ -147,13 +152,13 @@ export default function FileTable({ type, referenceId }: FileTableProps) {
                             <Eye className="w-4 h-4" /> Preview
                           </button>
                           <button
-                            onClick={() => handleEdit(Number(file.id))}
+                            onClick={() => handleEdit(file.id)}
                             className="w-full text-left px-3 py-2 hover:bg-gray-100 flex items-center gap-2"
                           >
                             <Edit className="w-4 h-4" /> Edit
                           </button>
                           <button
-                            onClick={() => handleDelete(Number(file.id))}
+                            onClick={() => handleDelete(file.id)}
                             className="w-full text-left px-3 py-2 hover:bg-gray-100 text-red-600 flex items-center gap-2"
                           >
                             <Trash2 className="w-4 h-4" /> Delete

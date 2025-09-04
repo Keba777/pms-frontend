@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useCreateFile } from "@/hooks/useFiles";
+import { useUsers } from "@/hooks/useUsers";
 
 interface FileFormProps {
   onClose: () => void;
@@ -14,6 +15,7 @@ const FileForm: React.FC<FileFormProps> = ({ onClose, type, referenceId }) => {
   const { register, handleSubmit, reset } = useForm();
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const createFile = useCreateFile();
+  const { data: users } = useUsers();
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files ? Array.from(event.target.files) : [];
@@ -38,6 +40,12 @@ const FileForm: React.FC<FileFormProps> = ({ onClose, type, referenceId }) => {
     setSelectedFiles([]);
     onClose();
   });
+
+  const allUsers = users?.map((user) => (
+    <option key={user.id} value={user.id}>
+      {user.first_name} {user.last_name}
+    </option>
+  ));
 
   return (
     <form
@@ -78,9 +86,7 @@ const FileForm: React.FC<FileFormProps> = ({ onClose, type, referenceId }) => {
           {...register("sendTo", { required: true })}
           className="w-full border rounded-md p-2 text-sm focus:ring-cyan-600 focus:border-cyan-600"
         >
-          <option value="">Select User</option>
-          <option value="user1">John Doe</option>
-          <option value="user2">Jane Smith</option>
+          {allUsers}
         </select>
       </div>
 
@@ -94,8 +100,8 @@ const FileForm: React.FC<FileFormProps> = ({ onClose, type, referenceId }) => {
             type="file"
             multiple
             onChange={handleFileChange}
-            className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 
-                       file:rounded-md file:border-0 file:text-sm file:font-semibold 
+            className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4
+                       file:rounded-md file:border-0 file:text-sm file:font-semibold
                        file:bg-cyan-700 file:text-white hover:file:bg-cyan-800 cursor-pointer"
           />
           <p className="mt-2 text-sm text-gray-500">
@@ -103,7 +109,6 @@ const FileForm: React.FC<FileFormProps> = ({ onClose, type, referenceId }) => {
           </p>
         </div>
 
-        {/* File List */}
         {selectedFiles.length > 0 && (
           <div className="mt-4">
             <h4 className="text-sm font-semibold text-gray-700 mb-2">
