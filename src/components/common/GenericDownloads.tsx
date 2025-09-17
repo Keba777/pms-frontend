@@ -169,30 +169,31 @@ const GenericDownloads = <T,>({
     // optionally: printWindow.close();
   };
 
-  return (
+    return (
     <div className="space-y-4">
-      <div className="flex justify-end gap-4">
+      <div className="flex flex-col sm:flex-row sm:justify-end gap-2 sm:gap-4">
         <button
           onClick={exportToPDF}
-          className="btn-pdf flex items-center gap-2 text-white bg-red-600 px-4 py-2 rounded hover:bg-red-700"
+          className="btn-pdf flex items-center justify-center gap-2 text-white bg-red-600 px-4 py-2 rounded hover:bg-red-700 w-full sm:w-auto"
         >
           <FileText size={18} /> PDF
         </button>
         <button
           onClick={exportToExcel}
-          className="btn-excel flex items-center gap-2 text-white bg-green-600 px-4 py-2 rounded hover:bg-green-700"
+          className="btn-excel flex items-center justify-center gap-2 text-white bg-green-600 px-4 py-2 rounded hover:bg-green-700 w-full sm:w-auto"
         >
           <Sheet size={18} /> Excel
         </button>
         <button
           onClick={printTable}
-          className="btn-print flex items-center gap-2 text-white bg-blue-600 px-4 py-2 rounded hover:bg-blue-700"
+          className="btn-print flex items-center justify-center gap-2 text-white bg-blue-600 px-4 py-2 rounded hover:bg-blue-700 w-full sm:w-auto"
         >
           <Printer size={18} /> Print
         </button>
       </div>
     </div>
   );
+
 };
 
 export default GenericDownloads;
