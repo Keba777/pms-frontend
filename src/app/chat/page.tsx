@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/authStore";
 import { useUsers } from "@/hooks/useUsers";
 import { Search, MessageSquare, Send, Paperclip } from "lucide-react";
+import Image from "next/image";
 
 interface Message {
   message_id: string;
@@ -359,7 +360,7 @@ export default function ProfessionalMessages() {
                     {attachmentUrl && (
                       <>
                         {isImage ? (
-                          <img
+                          <Image
                             src={attachmentUrl}
                             alt="Attachment"
                             className="max-w-full rounded mt-2"

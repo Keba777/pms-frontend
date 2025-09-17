@@ -23,6 +23,10 @@ import {
   CalendarRange,
   Store,
   ListTodo,
+  DollarSign,
+  Wallet,
+  CreditCard,
+  Receipt,
 } from "lucide-react";
 
 const menuItems = [
@@ -229,6 +233,38 @@ const menuItems = [
     link: "/activity-log",
     icon: LineChart,
     iconColor: "text-amber-600",
+  },
+
+  {
+    title: "Finance Management",
+    icon: DollarSign,
+    iconColor: "text-green-500",
+    submenu: [
+      {
+    title: "Invoices",
+    link: "/finance/invoices",
+    icon: Receipt,
+    iconColor: "text-emerald-600",
+  },
+  {
+    title: "Payments",
+    link: "/finance/payments",
+    icon: CreditCard,
+    iconColor: "text-indigo-600",
+  },
+  {
+    title: "Budgets",
+    link: "/finance/budgets",
+    icon: Wallet,
+    iconColor: "text-purple-600",
+  },
+  {
+    title: "Payrolls",
+    link: "/finance/payrolls",
+    icon: DollarSign,
+    iconColor: "text-orange-600",
+  },
+    ]
   },
   {
     title: "Settings",
