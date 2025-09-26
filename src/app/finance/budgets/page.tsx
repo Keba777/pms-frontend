@@ -26,7 +26,7 @@ const columnOptions: Record<string, string> = {
 const BudgetsPage = () => {
   const { data: budgets, isLoading: budgetLoading, error: budgetError } = useBudgets();
 
-  const [filterValues, setFilterValues] = useState<FilterValues>({});
+  const [, setFilterValues] = useState<FilterValues>({});
   const [selectedColumns, setSelectedColumns] = useState<string[]>(
     Object.keys(columnOptions)
   );
@@ -57,7 +57,7 @@ const BudgetsPage = () => {
       // No text or select filters since all fields are numbers
       return matches;
     });
-  }, [filterValues, budgets]);
+  }, [ budgets]);
 
   // Combine loading and error states
   const isLoading = budgetLoading;

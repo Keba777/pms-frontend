@@ -1,54 +1,61 @@
 // File: pages/Timesheet.tsx
-import React, { useState } from "react";
+"use client";
+
+import React from "react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Card, CardContent } from "@/components/ui/card";
 import { LaborSheet } from "./LaborSheet";
 import { EquipmentSheet } from "./EquipmentSheet";
 import { MaterialSheet } from "./MaterialSheet";
 
-// interface TimesheetProps {
-//   users?: User[]
-// }
-
-const Timesheet:React.FC = () => {
-  const tabs = [
-    "Labor Timesheet",
-    "Equipment Timesheet",
-    "Material Balance Sheet",
-  ];
-  const [active, setActive] = useState<string>(tabs[0]);
-
-  const renderSheet = () => {
-    switch (active) {
-      case tabs[0]:
-        return <LaborSheet />;
-      case tabs[1]:
-        return <EquipmentSheet />;
-      case tabs[2]:
-        return <MaterialSheet />;
-      default:
-        return null;
-    }
-  };
-
+const Timesheet: React.FC = () => {
   return (
-    <div className="p-4">
-      <nav className="flex border-b border-gray-300 mb-4">
-        {tabs.map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActive(tab)}
-            className={`px-4 py-2 -mb-px font-semibold ${
-              active === tab
-                ? "border-b-2 border-cyan-700 text-cyan-700"
-                : "text-gray-700"
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
-      </nav>
-      <div>{renderSheet()}</div>
+    <div className="w-full px-2 sm:px-4 py-3 sm:py-6">
+      <Card className="shadow-lg rounded-2xl w-full">
+        <CardContent className="px-2 py-3 sm:px-6 sm:py-6">
+          <Tabs defaultValue="labor" className="w-full">
+            {/* Tabs header */}
+            <TabsList className="flex w-full overflow-x-auto sm:overflow-visible gap-1 sm:gap-4 border-b border-gray-200 pb-1 sm:pb-2 no-scrollbar">
+              <TabsTrigger
+                value="labor"
+                className="flex-shrink-0 text-xs sm:text-base px-2 sm:px-4 py-1.5 sm:py-2"
+              >
+                <span className="sm:hidden">Labor</span>
+                <span className="hidden sm:inline">Labor Timesheet</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="equipment"
+                className="flex-shrink-0 text-xs sm:text-base px-2 sm:px-4 py-1.5 sm:py-2"
+              >
+                <span className="sm:hidden">Equip.</span>
+                <span className="hidden sm:inline">Equipment Timesheet</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="material"
+                className="flex-shrink-0 text-xs sm:text-base px-2 sm:px-4 py-1.5 sm:py-2"
+              >
+                <span className="sm:hidden">Material</span>
+                <span className="hidden sm:inline">Material Balance Sheet</span>
+              </TabsTrigger>
+            </TabsList>
+
+            {/* Tabs content */}
+            <div className="mt-3 sm:mt-6">
+              <TabsContent value="labor">
+                <LaborSheet />
+              </TabsContent>
+              <TabsContent value="equipment">
+                <EquipmentSheet />
+              </TabsContent>
+              <TabsContent value="material">
+                <MaterialSheet />
+              </TabsContent>
+            </div>
+          </Tabs>
+        </CardContent>
+      </Card>
     </div>
   );
-}
+};
 
-export default Timesheet
+export default Timesheet;
