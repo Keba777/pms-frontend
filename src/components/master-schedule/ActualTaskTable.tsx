@@ -365,14 +365,14 @@ export default function ActualTaskTable({ tasks }: ActualTaskTableProps) {
           <tbody className="bg-white divide-y divide-gray-200">
             {filteredTasks.length > 0 ? (
               filteredTasks.map((task, idx) => {
-                const duration = getDateDuration(
-                  task.start_date,
-                  task.end_date
-                );
-                const remaining = getDateDuration(
-                  new Date().toISOString(),
-                  task.end_date
-                );
+                // const duration = getDateDuration(
+                //   task.start_date,
+                //   task.end_date
+                // );
+                // const remaining = getDateDuration(
+                //   new Date().toISOString(),
+                //   task.end_date
+                // );
                 return (
                   <tr key={task.id} className="hover:bg-gray-50 relative">
                     {selectedColumns.includes("no") && (
@@ -387,25 +387,25 @@ export default function ActualTaskTable({ tasks }: ActualTaskTableProps) {
                     )}
                     {selectedColumns.includes("start_date") && (
                       <td className="border px-4 py-2">
-                        {formatDate(task.start_date)}
+                        {}
                       </td>
                     )}
                     {selectedColumns.includes("end_date") && (
                       <td className="border px-4 py-2">
-                        {formatDate(task.end_date)}
+                        {}
                       </td>
                     )}
                     {selectedColumns.includes("duration") && (
-                      <td className="border px-4 py-2">{duration}</td>
+                      <td className="border px-4 py-2">{}</td>
                     )}
                     {selectedColumns.includes("remaining") && (
-                      <td className="border px-4 py-2">{remaining}</td>
+                      <td className="border px-4 py-2">{}</td>
                     )}
                     {selectedColumns.includes("budget") && (
-                      <td className="border px-4 py-2">0</td>
+                      <td className="border px-4 py-2">{}</td>
                     )}
                     {selectedColumns.includes("progress") && (
-                      <td className="border px-4 py-2">{task.progress}%</td>
+                      <td className="border px-4 py-2">{}</td>
                     )}
                     {selectedColumns.includes("status") && (
                       <td className="border px-4 py-2">
@@ -414,7 +414,7 @@ export default function ActualTaskTable({ tasks }: ActualTaskTableProps) {
                             statusBadgeClasses[task.status]
                           }`}
                         >
-                          {task.status}
+                          {}
                         </span>
                       </td>
                     )}

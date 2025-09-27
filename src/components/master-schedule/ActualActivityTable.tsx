@@ -10,7 +10,7 @@ import {
   useUpdateActivity,
 } from "@/hooks/useActivities";
 import { UpdateActivityInput, Activity } from "@/types/activity";
-import { formatDate, getDuration } from "@/utils/helper";
+// import { formatDate, getDuration } from "@/utils/helper";
 import EditActivityForm from "../forms/EditActivityForm";
 import ConfirmModal from "../common/ui/ConfirmModal";
 
@@ -346,30 +346,30 @@ const ActualActivityTable: React.FC<ActualActivityTableProps> = ({
               {selectedColumns.includes("labor") && (
                 <>
                   <th className="border border-gray-300 px-4 py-3 text-sm font-medium text-center whitespace-nowrap">
-                    +
+                    Cost
                   </th>
                   <th className="border border-gray-300 px-4 py-3 text-sm font-medium text-center whitespace-nowrap">
-                    -
+                    +/-
                   </th>
                 </>
               )}
               {selectedColumns.includes("material") && (
                 <>
                   <th className="border border-gray-300 px-4 py-3 text-sm font-medium text-center whitespace-nowrap">
-                    +
+                    Cost
                   </th>
                   <th className="border border-gray-300 px-4 py-3 text-sm font-medium text-center whitespace-nowrap">
-                    -
+                    +/-
                   </th>
                 </>
               )}
               {selectedColumns.includes("equipment") && (
                 <>
                   <th className="border border-gray-300 px-4 py-3 text-sm font-medium text-center whitespace-nowrap">
-                    +
+                    Cost
                   </th>
                   <th className="border border-gray-300 px-4 py-3 text-sm font-medium text-center whitespace-nowrap">
-                    -
+                    +/-
                   </th>
                 </>
               )}
@@ -387,13 +387,13 @@ const ActualActivityTable: React.FC<ActualActivityTableProps> = ({
                           key={`${item.id}-labor-ot`}
                           className="border border-gray-300 px-4 py-2 text-sm text-center whitespace-nowrap"
                         >
-                          {item.resourceCosts.labor.ot}
+                          {}
                         </td>,
                         <td
                           key={`${item.id}-labor-dt`}
                           className="border border-gray-300 px-4 py-2 text-sm text-center whitespace-nowrap"
                         >
-                          {item.resourceCosts.labor.dt}
+                          {}
                         </td>,
                       ];
                     } else if (col === "material") {
@@ -402,13 +402,13 @@ const ActualActivityTable: React.FC<ActualActivityTableProps> = ({
                           key={`${item.id}-material-ot`}
                           className="border border-gray-300 px-4 py-2 text-sm text-center whitespace-nowrap"
                         >
-                          {item.resourceCosts.material.ot}
+                          {}
                         </td>,
                         <td
                           key={`${item.id}-material-dt`}
                           className="border border-gray-300 px-4 py-2 text-sm text-center whitespace-nowrap"
                         >
-                          {item.resourceCosts.material.dt}
+                          {}
                         </td>,
                       ];
                     } else if (col === "equipment") {
@@ -417,13 +417,13 @@ const ActualActivityTable: React.FC<ActualActivityTableProps> = ({
                           key={`${item.id}-equipment-ot`}
                           className="border border-gray-300 px-4 py-2 text-sm text-center whitespace-nowrap"
                         >
-                          {item.resourceCosts.equipment.ot}
+                          {}
                         </td>,
                         <td
                           key={`${item.id}-equipment-dt`}
                           className="border border-gray-300 px-4 py-2 text-sm text-center whitespace-nowrap"
                         >
-                          {item.resourceCosts.equipment.dt}
+                          {}
                         </td>,
                       ];
                     } else {
@@ -442,12 +442,11 @@ const ActualActivityTable: React.FC<ActualActivityTableProps> = ({
                               {item.activity_name}
                             </Link>
                           )}
-                          {col === "unit" && item.unit}
-                          {col === "quantity" && (item.quantity ?? "–")}
-                          {col === "start_date" && formatDate(item.start_date)}
-                          {col === "end_date" && formatDate(item.end_date)}
-                          {col === "duration" &&
-                            getDuration(item.start_date, item.end_date)}
+                          {col === "unit" && ""}
+                          {col === "quantity" && ""}
+                          {col === "start_date" && ""}
+                          {col === "end_date" && ""}
+                          {col === "duration" && ""}
                           {col === "progress" && (
                             <div className="relative h-5 bg-gray-200 rounded">
                               <div
@@ -455,14 +454,14 @@ const ActualActivityTable: React.FC<ActualActivityTableProps> = ({
                                 style={{ width: `${item.progress}%` }}
                               >
                                 <span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-white">
-                                  {item.progress}%
+                                  {}
                                 </span>
                               </div>
                             </div>
                           )}
-                          {col === "status" && item.status}
-                          {col === "total" && item.resourceCosts.total}
-                          {col === "overUnder" && item.overUnder}
+                          {col === "status" && ""}
+                          {col === "total" && ""}
+                          {col === "overUnder" && ""}
                           {col === "actions" && (
                             <Menu
                               as="div"

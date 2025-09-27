@@ -365,13 +365,13 @@ const ActualActivityTable: React.FC = () => {
                           key="labor_ot"
                           className="border border-gray-300 px-4 py-2 text-sm text-center whitespace-nowrap"
                         >
-                          {item.resourceCosts.labor.ot}
+                          {""}
                         </td>,
                         <td
                           key="labor_dt"
                           className="border border-gray-300 px-4 py-2 text-sm text-center whitespace-nowrap"
                         >
-                          {item.resourceCosts.labor.dt}
+                          {""}
                         </td>,
                       ];
                     } else if (col === "material") {
@@ -380,13 +380,13 @@ const ActualActivityTable: React.FC = () => {
                           key="material_ot"
                           className="border border-gray-300 px-4 py-2 text-sm text-center whitespace-nowrap"
                         >
-                          {item.resourceCosts.material.ot}
+                          {""}
                         </td>,
                         <td
                           key="material_dt"
                           className="border border-gray-300 px-4 py-2 text-sm text-center whitespace-nowrap"
                         >
-                          {item.resourceCosts.material.dt}
+                          {""}
                         </td>,
                       ];
                     } else if (col === "equipment") {
@@ -395,13 +395,13 @@ const ActualActivityTable: React.FC = () => {
                           key="equipment_ot"
                           className="border border-gray-300 px-4 py-2 text-sm text-center whitespace-nowrap"
                         >
-                          {item.resourceCosts.equipment.ot}
+                          {""}
                         </td>,
                         <td
                           key="equipment_dt"
                           className="border border-gray-300 px-4 py-2 text-sm text-center whitespace-nowrap"
                         >
-                          {item.resourceCosts.equipment.dt}
+                          {""}
                         </td>,
                       ];
                     } else {
@@ -420,13 +420,13 @@ const ActualActivityTable: React.FC = () => {
                               {item.activity_name}
                             </Link>
                           )}
-                          {col === "unit" && "-"}
-                          {col === "quantity" && ("0")}
-                          {col === "start_date" && "-"}
-                          {col === "end_date" && "-"}
+                          {col === "unit" && ""}
+                          {col === "quantity" && ("")}
+                          {col === "start_date" && ""}
+                          {col === "end_date" && ""}
                           {col === "duration" &&
                             // getDuration(item.start_date, item.end_date)
-                            "0"
+                            ""
                             }
                           {col === "progress" && (
                             <div className="relative h-5 bg-gray-200 rounded">
@@ -436,14 +436,14 @@ const ActualActivityTable: React.FC = () => {
                               >
                                 <span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-white">
                                   {/* {item.progress}% */}
-                                  0%
+                                  {""}
                                 </span>
                               </div>
                             </div>
                           )}
-                          {col === "status" && "-"}
-                          {col === "total" && item.resourceCosts.total}
-                          {col === "overUnder" && item.overUnder}
+                          {col === "status" && ""}
+                          {col === "total" && ""}
+                          {col === "overUnder" && ""}
                           {col === "actions" && (
                             <Menu
                               as="div"
