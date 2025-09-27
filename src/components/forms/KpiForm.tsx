@@ -3,25 +3,33 @@
 import React, { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { CreateKpiInput } from "@/types/kpi";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useUsers } from "@/hooks/useUsers";
+import { useLaborInformations } from "@/hooks/useLaborInformations";
+import { useEquipments } from "@/hooks/useEquipments";
+import { Label } from "@/components/ui/label";
 
 interface KpiFormProps {
-  userLaborId?: string;
-  laborInfoId?: string;
-  equipmentId?: string;
-
   onClose: () => void;
   onSubmit: (data: CreateKpiInput) => void;
   isPending?: boolean;
+  tableType: "users" | "labors" | "equipment";
 }
 
 const KpiForm: React.FC<KpiFormProps> = ({
-  userLaborId,
-  laborInfoId,
-  equipmentId,
   onClose,
   onSubmit,
   isPending = false,
+  tableType,
 }) => {
+  const kpiType = tableType === "equipment" ? "Machinery" : "Labor";
+
   const {
     register,
     handleSubmit,
@@ -29,12 +37,16 @@ const KpiForm: React.FC<KpiFormProps> = ({
     formState: { errors },
   } = useForm<CreateKpiInput>({
     defaultValues: {
-      type: "Labor",
+      type: kpiType,
       score: 0,
       status: "Good",
-      // Optional fields will be added on submit
     },
   });
+
+  const { data: users } = useUsers();
+  const { data: laborInformations } = useLaborInformations();
+  const { data: equipments } = useEquipments();
+
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -42,12 +54,7 @@ const KpiForm: React.FC<KpiFormProps> = ({
     setSelectedFiles(files);
   };
 
-  // Prepare data with optional field from props on submit
   const handleFormSubmit = (data: CreateKpiInput) => {
-    if (userLaborId) data.userLaborId = userLaborId;
-    else if (laborInfoId) data.laborInfoId = laborInfoId;
-    else if (equipmentId) data.equipmentId = equipmentId;
-
     onSubmit(data);
   };
 
@@ -56,6 +63,8 @@ const KpiForm: React.FC<KpiFormProps> = ({
       onSubmit={handleSubmit(handleFormSubmit)}
       className="bg-white rounded-lg shadow-xl p-6 space-y-6"
     >
+      <input type="hidden" {...register("type")} />
+
       {/* Header */}
       <div className="flex justify-between items-center pb-4 border-b">
         <h3 className="text-lg font-semibold text-gray-800">Create KPI</h3>
@@ -69,29 +78,103 @@ const KpiForm: React.FC<KpiFormProps> = ({
       </div>
 
       <div className="space-y-4">
-        {/* Type */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Type <span className="text-red-500">*</span>
-          </label>
-          <Controller
-            name="type"
-            control={control}
-            rules={{ required: "Type is required" }}
-            render={({ field }) => (
-              <select
-                {...field}
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
-              >
-                <option value="Labor">Labor</option>
-                <option value="Machinery">Machinery</option>
-              </select>
+        {/* Select based on tableType */}
+        {tableType === "users" && (
+          <div>
+            <Label className="block text-sm font-medium text-gray-700 mb-1">
+              Select User <span className="text-red-500">*</span>
+            </Label>
+            <Controller
+              name="userLaborId"
+              control={control}
+              rules={{ required: "User is required" }}
+              render={({ field }) => (
+                <Select
+                  onValueChange={field.onChange}
+                  value={field.value}
+                >
+                  <SelectTrigger className="w-full text-gray-900 bg-white border border-gray-300 focus:border-cyan-700 focus:ring-cyan-700">
+                    <SelectValue placeholder="Select user" className="text-gray-900 placeholder:text-gray-500" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {users?.map((u) => (
+                      <SelectItem key={u.id} value={u.id}>
+                        {u.first_name} {u.last_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+            {errors.userLaborId && (
+              <p className="text-red-500 text-sm mt-1">{errors.userLaborId.message}</p>
             )}
-          />
-          {errors.type && (
-            <p className="text-red-500 text-sm mt-1">{errors.type.message}</p>
-          )}
-        </div>
+          </div>
+        )}
+        {tableType === "labors" && (
+          <div>
+            <Label className="block text-sm font-medium text-gray-700 mb-1">
+              Select Labor Information <span className="text-red-500">*</span>
+            </Label>
+            <Controller
+              name="laborInfoId"
+              control={control}
+              rules={{ required: "Labor Information is required" }}
+              render={({ field }) => (
+                <Select
+                  onValueChange={field.onChange}
+                  value={field.value}
+                >
+                  <SelectTrigger className="w-full text-gray-900 bg-white border border-gray-300 focus:border-cyan-700 focus:ring-cyan-700">
+                    <SelectValue placeholder="Select labor information" className="text-gray-900 placeholder:text-gray-500" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {laborInformations?.map((l) => (
+                      <SelectItem key={l.id} value={l.id}>
+                        {l.firstName} {l.lastName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+            {errors.laborInfoId && (
+              <p className="text-red-500 text-sm mt-1">{errors.laborInfoId.message}</p>
+            )}
+          </div>
+        )}
+        {tableType === "equipment" && (
+          <div>
+            <Label className="block text-sm font-medium text-gray-700 mb-1">
+              Select Equipment <span className="text-red-500">*</span>
+            </Label>
+            <Controller
+              name="equipmentId"
+              control={control}
+              rules={{ required: "Equipment is required" }}
+              render={({ field }) => (
+                <Select
+                  onValueChange={field.onChange}
+                  value={field.value}
+                >
+                  <SelectTrigger className="w-full text-gray-900 bg-white border border-gray-300 focus:border-cyan-700 focus:ring-cyan-700">
+                    <SelectValue placeholder="Select equipment" className="text-gray-900 placeholder:text-gray-500" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {equipments?.map((e) => (
+                      <SelectItem key={e.id} value={e.id}>
+                        {e.item}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+            {errors.equipmentId && (
+              <p className="text-red-500 text-sm mt-1">{errors.equipmentId.message}</p>
+            )}
+          </div>
+        )}
 
         {/* Score */}
         <div>
