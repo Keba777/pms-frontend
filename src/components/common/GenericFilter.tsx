@@ -71,7 +71,7 @@ export const GenericFilter: React.FC<GenericFilterProps> = ({
   return (
     <div className="flex flex-wrap gap-3 mb-3">
       {fields.map((field) => (
-        <div key={field.name} className="w-full sm:w-1/2 md:w-1/3">
+        <div key={field.name} className="w-full sm:w-1/2 md:w-2/5">
           {field.type === "text" || field.type === "number" ? (
             <input
               type={field.type}

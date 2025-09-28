@@ -21,12 +21,14 @@ import {
   Option,
 } from "@/components/common/GenericFilter";
 import { useUserStore } from "@/store/userStore";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 const DataTable: React.FC = () => {
   const tasks = useTaskStore((state) => state.tasks) as Task[];
   const isLoading = !tasks;
   const error = !tasks ? "Error fetching tasks." : null;
-  const users = useUserStore((state) => state.users)
+  const users = useUserStore((state) => state.users);
 
   // badge class mappings
   const priorityBadgeClasses: Record<Task["priority"], string> = {
@@ -89,6 +91,8 @@ const DataTable: React.FC = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [filterValues, setFilterValues] = useState<FilterValues>({});
+  const [fromDate, setFromDate] = useState<Date | null>(null);
+  const [toDate, setToDate] = useState<Date | null>(null);
 
   const router = useRouter();
   const { mutate: deleteTask } = useDeleteTask();
@@ -162,18 +166,22 @@ const DataTable: React.FC = () => {
   ];
 
   const filteredTasks = tasks.filter((task) => {
-    return Object.entries(filterValues).every(([key, value]) => {
-      if (!value) return true; // skip if no filter value
-      if (key === "status" || key === "priority") {
-        return task[key] === value;
-      }
-      if (key === "task_name") {
-        return task.task_name
-          ?.toLowerCase()
-          .includes((value as string).toLowerCase());
-      }
-      return true;
-    });
+    return (
+      Object.entries(filterValues).every(([key, value]) => {
+        if (!value) return true; // skip if no filter value
+        if (key === "status" || key === "priority") {
+          return task[key] === value;
+        }
+        if (key === "task_name") {
+          return task.task_name
+            ?.toLowerCase()
+            .includes((value as string).toLowerCase());
+        }
+        return true;
+      }) &&
+      (fromDate ? new Date(task.start_date) >= fromDate : true) &&
+      (toDate ? new Date(task.end_date) <= toDate : true)
+    );
   });
 
   if (isLoading) return <div>Loading tasks...</div>;
@@ -181,7 +189,7 @@ const DataTable: React.FC = () => {
 
   return (
     <div>
-      <div className="mt-2 mb-6">
+      <div className="mt-2 mb-6 ">
         <GenericDownloads<Task>
           data={filteredTasks}
           title="Task Report"
@@ -193,11 +201,11 @@ const DataTable: React.FC = () => {
             }))}
         />
       </div>
-      <div className="mb-5 flex items-center justify-between">
+      <div className="mb-5 flex space-x-4 justify-between">
         <div ref={menuRef} className="relative">
           <button
             onClick={() => setShowColumnMenu((prev) => !prev)}
-            className="flex items-center gap-1 px-4 py-2 text-sm bg-emerald-600 text-white rounded hover:bg-emerald-700"
+            className="flex items-center gap-1 px-4 py-2 text-sm bg-emerald-600 text-white rounded hover:bg-emerald-700 whitespace-nowrap"
           >
             Customize Columns <ChevronDown className="w-4 h-4" />
           </button>
@@ -220,7 +228,26 @@ const DataTable: React.FC = () => {
             </div>
           )}
         </div>
-        <GenericFilter fields={filterFields} onFilterChange={setFilterValues} />
+        <div className="flex flex-col sm:flex-row gap-2 ">
+          <GenericFilter
+            fields={filterFields}
+            onFilterChange={setFilterValues}
+          />
+          <DatePicker
+            selected={fromDate}
+            onChange={setFromDate}
+            placeholderText="From Date"
+            className="rounded border border-gray-300 p-2 focus:outline-none focus:border-blue-500 w-full sm:w-auto"
+            dateFormat="yyyy-MM-dd"
+          />
+          <DatePicker
+            selected={toDate}
+            onChange={setToDate}
+            placeholderText="To Date"
+            className="rounded border border-gray-300 p-2 focus:outline-none focus:border-blue-500 w-full sm:w-auto"
+            dateFormat="yyyy-MM-dd"
+          />
+        </div>
       </div>
 
       <div className="overflow-x-auto">
