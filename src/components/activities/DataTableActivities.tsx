@@ -56,7 +56,7 @@ const columnOptions: Record<string, string> = {
   materials: "Materials",
   equipments: "Equipments",
   labors: "Labors",
-  request: "Request",
+  request: "Request Resource",
   status: "Status",
   approvalStatus: "Approval",
   actions: "Actions",
@@ -364,7 +364,7 @@ const DataTableActivities: React.FC = () => {
                   colSpan={3}
                   className="px-4 py-3 text-center border-b border-b-gray-400 text-sm font-medium text-gray-50"
                 >
-                  Resources
+                  Resource Cost
                 </th>
               )}
               {selectedColumns.includes("request") && (
@@ -372,7 +372,7 @@ const DataTableActivities: React.FC = () => {
                   rowSpan={2}
                   className="px-4 py-3 text-left text-sm font-medium text-gray-50"
                 >
-                  Request
+                  Request Resource
                 </th>
               )}
               {selectedColumns.includes("status") && (

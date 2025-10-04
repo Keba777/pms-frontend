@@ -444,7 +444,7 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Unit
+              Unit <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -456,7 +456,7 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
           {/* Quantity Field */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Quantity
+              Quantity <span className="text-red-500">*</span>
             </label>
             <input
               // type="number"
