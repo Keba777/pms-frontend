@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, PlusIcon } from "lucide-react";
 import { Menu, MenuButton, MenuItems, MenuItem } from "@headlessui/react";
 import GenericDownload from "@/components/common/GenericDownloads";
 import {
@@ -14,6 +14,7 @@ import {
 import ConfirmModal from "@/components/common/ui/ConfirmModal";
 import { useDispatches, useDeleteDispatch } from "@/hooks/useDispatches";
 import DispatchTableSkeleton from "@/components/skeletons/DispatchTableSkeleton";
+import DispatchForm from "@/components/forms/resource/DispatchForm";
 
 const columnOptions: Record<string, string> = {
   refNumber: "Ref No.",
@@ -36,6 +37,7 @@ const DispatchesPage: React.FC = () => {
   const { mutate: deleteDispatch } = useDeleteDispatch();
   const router = useRouter();
 
+  const [showForm, setShowForm] = useState(false);
   const [selectedColumns, setSelectedColumns] = useState<string[]>(
     Object.keys(columnOptions)
   );
@@ -119,7 +121,16 @@ const DispatchesPage: React.FC = () => {
 
   return (
     <div className="mt-8">
-      <GenericDownload data={downloadData} title="" columns={[]} />
+      <div className="flex space-x-6">
+        <button
+          className="bg-cyan-700 hover:bg-cyan-800 text-white font-bold py-2 px-3 rounded text-sm"
+          onClick={() => setShowForm(true)}
+        >
+          <PlusIcon width={15} height={12} />
+        </button>
+        <GenericDownload data={downloadData} title="" columns={[]} />
+      </div>
+
       <div className="flex items-center justify-between my-5">
         <div ref={menuRef}>
           <button
@@ -149,6 +160,14 @@ const DispatchesPage: React.FC = () => {
         </div>
         <GenericFilter fields={filterFields} onFilterChange={setFilterValues} />
       </div>
+
+      {showForm && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <DispatchForm onClose={() => setShowForm(false)} />
+          </div>
+        </div>
+      )}
 
       {isDeleteModalOpen && (
         <ConfirmModal

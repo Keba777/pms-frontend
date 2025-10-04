@@ -1,9 +1,11 @@
 import { Department } from "./department";
+import { Request } from "./request";
 import { User } from "./user";
 
 export interface Approval {
     id: string;
     requestId: string;
+    request: Request
     departmentId: string;
     department?: Department;
     stepOrder: number;
