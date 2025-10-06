@@ -6,14 +6,15 @@ import {
   Briefcase,
   ListChecks,
   Users,
-  UserCheck,
   Activity as ActivityIcon,
+  ListTodo,
 } from "lucide-react";
 import { useProjects } from "@/hooks/useProjects";
 import { useTasks } from "@/hooks/useTasks";
 import { useUsers } from "@/hooks/useUsers";
 import { useActivities } from "@/hooks/useActivities";
 import { JSX } from "react";
+import { useTodos } from "@/hooks/useTodos";
 
 // Define types for your items
 type Status =
@@ -41,6 +42,7 @@ export default function DashboardStats() {
   const { data: tasks, isLoading: isLoadingTasks } = useTasks();
   const { data: users, isLoading: isLoadingUsers } = useUsers();
   const { data: activities } = useActivities();
+  const { data: todos, isLoading: isLoadingTodos } = useTodos();
 
   // Helper function to count items by status
   const getCountByStatus = (
@@ -150,10 +152,10 @@ export default function DashboardStats() {
           color="yellow-500"
         />
         <Card
-          title="Total Clients"
-          count={1}
-          link="/clients"
-          Icon={UserCheck}
+          title="Total Todos"
+          count={isLoadingTodos ? 0 : todos?.length || 0}
+          link="/todos"
+          Icon={ListTodo}
           color="cyan-500"
         />
       </div>

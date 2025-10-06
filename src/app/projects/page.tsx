@@ -20,6 +20,8 @@ import {
 } from "@/components/common/GenericFilter";
 import GenericImport, { ImportColumn } from "@/components/common/GenericImport";
 import { toast } from "react-toastify";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 const ProjectPage: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
@@ -27,9 +29,13 @@ const ProjectPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"planned" | "actual">("planned");
   const { data: projects } = useProjects();
   const { projects: storeProjects } = useProjectStore();
+
   const hasPermission = useAuthStore((state) => state.hasPermission);
   const [filterValues, setFilterValues] = useState<FilterValues>({});
-  const { mutateAsync: createProjectAsync } = useCreateProject(() => {}); // Suppress per-project toast
+  const [fromDate, setFromDate] = useState<Date | null>(null);
+  const [toDate, setToDate] = useState<Date | null>(null);
+
+  const { mutateAsync: createProjectAsync } = useCreateProject(() => {});
 
   const canCreate = hasPermission("projects", "create");
   const canManage = hasPermission("projects", "manage");
@@ -87,35 +93,39 @@ const ProjectPage: React.FC = () => {
     },
     {
       name: "priority",
-      label: "Priority",
+      label: "All Priorities",
       type: "select",
       options: priorityOptions,
     },
-    { name: "status", label: "Status", type: "select", options: statusOptions },
+    {
+      name: "status",
+      label: "All Statuses",
+      type: "select",
+      options: statusOptions,
+    },
   ];
 
   const filteredProjects = projects?.filter((project) => {
-    let matches = true;
-    if (filterValues.title) {
-      matches =
-        matches &&
-        project.title
-          .toLowerCase()
-          .includes((filterValues.title as string).toLowerCase());
-    }
-    if (filterValues.priority) {
-      matches = matches && project.priority === filterValues.priority;
-    }
-    if (filterValues.status) {
-      matches = matches && project.status === filterValues.status;
-    }
-
-    return matches;
+    return (
+      Object.entries(filterValues).every(([key, value]) => {
+        if (!value) return true;
+        if (key === "status" || key === "priority") {
+          return project[key] === value;
+        }
+        if (key === "title") {
+          return project.title
+            ?.toLowerCase()
+            .includes((value as string).toLowerCase());
+        }
+        return true;
+      }) &&
+      (fromDate ? new Date(project.start_date) >= fromDate : true) &&
+      (toDate ? new Date(project.end_date) <= toDate : true)
+    );
   });
 
   const handleImport = async (data: CreateProjectInput[]) => {
     try {
-      // Validate priority and status values
       const validPriorities = ["Critical", "High", "Medium", "Low"];
       const validStatuses = [
         "Not Started",
@@ -144,7 +154,6 @@ const ProjectPage: React.FC = () => {
           );
           return;
         }
-        // Provide default for description since–System: it's not in headers
         project.description = project.description || "Imported project";
       }
 
@@ -162,9 +171,9 @@ const ProjectPage: React.FC = () => {
 
   return (
     <div className="p-4">
-      <div className="flex flex-wrap justify-between mb-2 mt-4">
-        <nav aria-label="breadcrumb">
-          <ol className="flex space-x-2">
+      <div className="flex flex-wrap justify-between items-center mb-4 mt-4 gap-2">
+        <nav className="hidden md:block" aria-label="breadcrumb">
+          <ol className="flex space-x-2 text-sm sm:text-base">
             <li>
               <Link href="/" className="text-blue-600 hover:underline">
                 Home
@@ -174,34 +183,43 @@ const ProjectPage: React.FC = () => {
             <li className="text-gray-900 font-semibold">Projects</li>
           </ol>
         </nav>
-        <div className="flex space-x-4 mb-8">
+
+        {/* Button group */}
+        <div className="flex flex-wrap gap-2 items-center w-full md:w-auto">
           {canCreate && (
             <button
-              className="bg-cyan-700 hover:bg-cyan-800 text-white font-bold py-2 px-3 rounded text-sm"
+              className="bg-cyan-700 hover:bg-cyan-800 text-white font-bold rounded text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2 flex items-center gap-1"
               onClick={() => setShowForm(true)}
             >
-              <PlusIcon width={15} height={12} />
+              <span className="md:hidden">Add New</span>
+              <PlusIcon width={14} height={14} className="hidden md:inline" />
             </button>
           )}
           <button
-            className="bg-cyan-700 hover:bg-cyan-800 text-white font-bold py-2 px-3 rounded text-sm"
+            className="bg-cyan-700 hover:bg-cyan-800 text-white font-bold rounded text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
             onClick={() => setIsListView((prev) => !prev)}
           >
             {isListView ? (
-              <Grid width={15} height={12} />
+              <Grid width={14} height={14} />
             ) : (
-              <List width={15} height={12} />
+              <List width={14} height={14} />
             )}
           </button>
+
+          {/* GenericDownloads: full width on small, inline on md+ */}
           {canManage && (
-            <GenericDownloads
-              data={storeProjects}
-              title="Projects Export"
-              columns={columns}
-            />
+            <div className="w-full md:w-auto mt-2 md:mt-0">
+              <GenericDownloads
+                data={storeProjects}
+                title="Projects Export"
+                columns={columns}
+              />
+            </div>
           )}
         </div>
       </div>
+
+      {/* Import */}
       <div className="flex justify-end mb-4">
         {canManage && (
           <GenericImport<CreateProjectInput>
@@ -222,7 +240,23 @@ const ProjectPage: React.FC = () => {
         </div>
       )}
 
-      <GenericFilter fields={filterFields} onFilterChange={setFilterValues} />
+      <div className="flex flex-col sm:flex-row gap-2">
+        <GenericFilter fields={filterFields} onFilterChange={setFilterValues} />
+        <DatePicker
+          selected={fromDate}
+          onChange={setFromDate}
+          placeholderText="From Date"
+          className="rounded border border-gray-300 p-2 focus:outline-none focus:border-blue-500 w-full sm:w-auto"
+          dateFormat="yyyy-MM-dd"
+        />
+        <DatePicker
+          selected={toDate}
+          onChange={setToDate}
+          placeholderText="To Date"
+          className="rounded border border-gray-300 p-2 focus:outline-none focus:border-blue-500 w-full sm:w-auto"
+          dateFormat="yyyy-MM-dd"
+        />
+      </div>
 
       {/* Tabs */}
       <div className="mt-4">
