@@ -3,35 +3,19 @@
 import React, { useState, useEffect, useRef } from "react";
 import { ChevronDown } from "lucide-react";
 import { useTask } from "@/hooks/useTasks";
-import {
-  Activity,
-  UpdateActivityInput,
-  CreateActivityInput,
-} from "@/types/activity";
+import { Activity, UpdateActivityInput } from "@/types/activity";
 import ActivityForm from "../forms/ActivityForm";
 import EditActivityForm from "../forms/EditActivityForm";
 import ManageActivityForm from "../forms/ManageActivityForm";
 import ConfirmModal from "../common/ui/ConfirmModal";
 import { useRouter } from "next/navigation";
-import {
-  useDeleteActivity,
-  useUpdateActivity,
-  useCreateActivity,
-} from "@/hooks/useActivities";
+import { useDeleteActivity, useUpdateActivity } from "@/hooks/useActivities";
 import Link from "next/link";
 import { formatDate, getDateDuration } from "@/utils/helper";
-import GenericDownloads, { Column } from "../common/GenericDownloads";
-import {
-  FilterField,
-  FilterValues,
-  GenericFilter,
-  Option,
-} from "../common/GenericFilter";
-import GenericImport, { ImportColumn } from "@/components/common/GenericImport";
-import { toast } from "react-toastify";
 
 interface ActivityTableProps {
   taskId: string;
+  filteredActivities: Activity[];
 }
 
 const statusBadgeClasses: Record<Activity["status"], string> = {
@@ -50,11 +34,14 @@ const priorityBadgeClasses: Record<Activity["priority"], string> = {
   Low: "bg-green-100 text-green-800",
 };
 
-const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
+const ActivityTable: React.FC<ActivityTableProps> = ({
+  taskId,
+  filteredActivities,
+}) => {
   // Hooks for API mutations/queries
   const { mutate: deleteActivity } = useDeleteActivity();
   const { mutate: updateActivity } = useUpdateActivity();
-  const { mutateAsync: createActivityAsync } = useCreateActivity(() => {});
+
   const { data: taskDetail, isLoading: taskLoading } = useTask(taskId);
   const router = useRouter();
 
@@ -71,7 +58,6 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
   const [selectedActivityId, setSelectedActivityId] = useState<string | null>(
     null
   );
-  const [filterValues, setFilterValues] = useState<FilterValues>({});
 
   // Columns shown by default (now including "remaining")
   const [selectedColumns, setSelectedColumns] = useState<string[]>([
@@ -84,7 +70,10 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
     "end_date",
     "duration",
     "remaining",
-    "resource",
+    "materials",
+    "equipments",
+    "labors",
+    "request",
     "status",
     "actions",
   ]);
@@ -111,25 +100,6 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
     return () => document.removeEventListener("mousedown", handleOutside);
   }, []);
 
-  // Download columns setup, including "Remaining"
-  const downloadColumns: Column<Activity>[] = [
-    { header: "Activity", accessor: "activity_name" },
-    { header: "Unit", accessor: "unit" },
-    { header: "Quantity", accessor: (row) => row.quantity },
-    { header: "Start Date", accessor: (row) => formatDate(row.start_date) },
-    { header: "End Date", accessor: (row) => formatDate(row.end_date) },
-    {
-      header: "Duration",
-      accessor: (row) => getDateDuration(row.start_date, row.end_date),
-    },
-    {
-      header: "Remaining",
-      accessor: (row) =>
-        getDateDuration(new Date().toISOString(), row.end_date),
-    },
-    { header: "Resource", accessor: (row) => row.resource?.toString() ?? "" },
-  ];
-
   // Label mapping for column customization
   const columnOptions: Record<string, string> = {
     no: "No",
@@ -141,7 +111,10 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
     end_date: "End Date",
     duration: "Duration",
     remaining: "Remaining",
-    resource: "Resource",
+    materials: "Materials",
+    equipments: "Equipments",
+    labors: "Labors",
+    request: "Request Resource",
     status: "Status",
     actions: "Actions",
   };
@@ -149,61 +122,6 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
   // Early returns
   if (taskLoading) return <div className="p-4">Loading...</div>;
   if (!taskDetail) return <div className="p-4">Task not found</div>;
-
-  // Filter activities by search term
-  const activities = taskDetail.activities as Activity[];
-
-  const priorityOptions: Option<string>[] = [
-    { label: "Low", value: "Low" },
-    { label: "Medium", value: "Medium" },
-    { label: "High", value: "High" },
-    { label: "Critical", value: "Critical" },
-  ];
-  const statusOptions: Option<string>[] = [
-    { label: "Not Started", value: "Not Started" },
-    { label: "In Progress", value: "In Progress" },
-    { label: "Completed", value: "Completed" },
-  ];
-
-  // Filter fields
-  const filterFields: FilterField<string>[] = [
-    {
-      name: "activity_name",
-      label: "Activity Name",
-      type: "text",
-      placeholder: "Search by name…",
-    },
-    {
-      name: "priority",
-      label: "Priority",
-      type: "select",
-      options: priorityOptions,
-    },
-    { name: "status", label: "Status", type: "select", options: statusOptions },
-  ];
-
-  // Filtered list
-  const filteredActivities = activities.filter((act) => {
-    let matches = true;
-    if (filterValues.activity_name) {
-      matches =
-        matches &&
-        act.activity_name
-          .toLowerCase()
-          .includes((filterValues.activity_name as string).toLowerCase());
-    }
-    if (filterValues.priority) {
-      matches = matches && act.priority === filterValues.priority;
-    }
-    if (filterValues.status) {
-      matches = matches && act.status === filterValues.status;
-    }
-
-    return matches;
-  });
-
-  const taskName = taskDetail.task_name || "Unknown Task";
-  const totalActivities = filteredActivities.length;
 
   // Handlers
   const toggleColumn = (col: string) => {
@@ -234,74 +152,13 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
     setShowManageForm(false);
   };
 
-  // Activity import configuration
-  const importColumns: ImportColumn<CreateActivityInput>[] = [
-    { header: "Activity", accessor: "activity_name", type: "string" },
-    { header: "Priority", accessor: "priority", type: "string" },
-    { header: "Unit", accessor: "unit", type: "string" },
-    { header: "Quantity", accessor: "quantity", type: "number" },
-    { header: "Start Date", accessor: "start_date", type: "date" },
-    { header: "End Date", accessor: "end_date", type: "date" },
-    { header: "Status", accessor: "status", type: "string" },
-  ];
+  const totalActivities = filteredActivities?.length;
 
-  const requiredAccessors: (keyof CreateActivityInput)[] = [
-    "activity_name",
-    "priority",
-    "unit",
-    "quantity",
-    "start_date",
-    "end_date",
-    "status",
-  ];
-
-  const handleActivityImport = async (data: CreateActivityInput[]) => {
-    try {
-      // Validate priority and status values
-      const validPriorities = ["Critical", "High", "Medium", "Low"];
-      const validStatuses = [
-        "Not Started",
-        "Started",
-        "InProgress",
-        "Canceled",
-        "Onhold",
-        "Completed",
-      ];
-
-      for (let i = 0; i < data.length; i++) {
-        const activity = data[i];
-        if (!validPriorities.includes(activity.priority)) {
-          toast.error(
-            `Invalid priority in row ${
-              i + 2
-            }. Must be one of: ${validPriorities.join(", ")}`
-          );
-          return;
-        }
-        if (!validStatuses.includes(activity.status)) {
-          toast.error(
-            `Invalid status in row ${
-              i + 2
-            }. Must be one of: ${validStatuses.join(", ")}`
-          );
-          return;
-        }
-        // Provide default for description and set task_id
-        activity.task_id = taskId;
-        activity.description = activity.description || "Imported activity";
-      }
-
-      await Promise.all(data.map((activity) => createActivityAsync(activity)));
-      toast.success("Activities imported and created successfully!");
-    } catch (error) {
-      toast.error("Error importing and creating activities");
-      console.error("Import error:", error);
-    }
-  };
-
-  const handleError = (error: string) => {
-    toast.error(error);
-  };
+  const resourceColSpan = ["materials", "equipments", "labors"].reduce(
+    (count, col) => count + (selectedColumns.includes(col) ? 1 : 0),
+    0
+  );
+  const showResourceCost = resourceColSpan > 0;
 
   return (
     <div className="p-4 bg-gray-50 border border-gray-200 rounded space-y-4">
@@ -315,7 +172,7 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
         `}
       </style>
       {/* Downloads & Search */}
-      <div className="flex justify-end mb-4">
+      {/* <div className="flex justify-end mb-4">
         <GenericImport<CreateActivityInput>
           expectedColumns={importColumns}
           requiredAccessors={requiredAccessors}
@@ -330,10 +187,15 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
         columns={downloadColumns}
       />
       <div className="flex items-center justify-between">
+        <GenericFilter fields={filterFields} onFilterChange={setFilterValues} />
+      </div> */}
+
+      {/* Header */}
+      <div className="flex items-center justify-between">
         <div ref={menuRef} className="relative">
           <button
             onClick={() => setShowColumnMenu((v) => !v)}
-            className="flex items-center gap-1 px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 text-sm"
+            className="flex items-center gap-1 px-4 py-2 bg-emerald-700 text-white rounded hover:bg-emerald-800 text-sm"
           >
             Customize Columns <ChevronDown className="w-4 h-4" />
           </button>
@@ -355,14 +217,6 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
               ))}
             </div>
           )}
-        </div>
-        <GenericFilter fields={filterFields} onFilterChange={setFilterValues} />
-      </div>
-
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="font-semibold">
-          Task: <span className="font-normal ml-1">{taskName}</span>
         </div>
         <div className="font-semibold">
           Total Activities:{" "}
@@ -416,66 +270,129 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
           <thead className="bg-emerald-700 text-gray-200">
             <tr>
               {selectedColumns.includes("no") && (
-                <th className="border px-4 py-2 text-left text-sm font-medium w-16 truncate-ellipsis">
+                <th
+                  rowSpan={2}
+                  className="border border-emerald-600 px-4 py-2 text-left text-sm font-medium w-16 truncate-ellipsis"
+                >
                   No
                 </th>
               )}
               {selectedColumns.includes("activity_name") && (
-                <th className="border px-4 py-2 text-left text-sm font-medium min-w-[200px]">
+                <th
+                  rowSpan={2}
+                  className="border border-emerald-600 px-4 py-2 text-left text-sm font-medium min-w-[200px]"
+                >
                   Activity
                 </th>
               )}
               {selectedColumns.includes("priority") && (
-                <th className="border px-4 py-2 text-left text-sm font-medium w-24 truncate-ellipsis">
+                <th
+                  rowSpan={2}
+                  className="border border-emerald-600 px-4 py-2 text-left text-sm font-medium w-24 truncate-ellipsis"
+                >
                   Priority
                 </th>
               )}
               {selectedColumns.includes("unit") && (
-                <th className="border px-4 py-2 text-left text-sm font-medium w-20 truncate-ellipsis">
+                <th
+                  rowSpan={2}
+                  className="border border-emerald-600 px-4 py-2 text-left text-sm font-medium w-20 truncate-ellipsis"
+                >
                   Unit
                 </th>
               )}
               {selectedColumns.includes("quantity") && (
-                <th className="border px-4 py-2 text-left text-sm font-medium w-20 truncate-ellipsis">
+                <th
+                  rowSpan={2}
+                  className="border border-emerald-600 px-4 py-2 text-left text-sm font-medium w-20 truncate-ellipsis"
+                >
                   QTY
                 </th>
               )}
               {selectedColumns.includes("start_date") && (
-                <th className="border px-4 py-2 text-left text-sm font-medium w-28 truncate-ellipsis">
+                <th
+                  rowSpan={2}
+                  className="border border-emerald-600 px-4 py-2 text-left text-sm font-medium w-28 truncate-ellipsis"
+                >
                   Start Date
                 </th>
               )}
               {selectedColumns.includes("end_date") && (
-                <th className="border px-4 py-2 text-left text-sm font-medium w-28 truncate-ellipsis">
+                <th
+                  rowSpan={2}
+                  className="border border-emerald-600 px-4 py-2 text-left text-sm font-medium w-28 truncate-ellipsis"
+                >
                   End Date
                 </th>
               )}
               {selectedColumns.includes("duration") && (
-                <th className="border px-4 py-2 text-left text-sm font-medium w-24 truncate-ellipsis">
+                <th
+                  rowSpan={2}
+                  className="border border-emerald-600 px-4 py-2 text-left text-sm font-medium w-24 truncate-ellipsis"
+                >
                   Duration
                 </th>
               )}
               {selectedColumns.includes("remaining") && (
-                <th className="border px-4 py-2 text-left text-sm font-medium w-24 truncate-ellipsis">
+                <th
+                  rowSpan={2}
+                  className="border border-emerald-600 px-4 py-2 text-left text-sm font-medium w-24 truncate-ellipsis"
+                >
                   Remaining
                 </th>
               )}
-              {selectedColumns.includes("resource") && (
-                <th className="border px-4 py-2 text-left text-sm font-medium w-24 truncate-ellipsis">
-                  Resource
+              {showResourceCost && (
+                <th
+                  colSpan={resourceColSpan}
+                  className="border border-emerald-600 px-4 py-2 text-center text-sm font-medium"
+                >
+                  Resource Cost
+                </th>
+              )}
+              {selectedColumns.includes("request") && (
+                <th
+                  rowSpan={2}
+                  className="border border-emerald-600 px-4 py-2 text-left text-sm font-medium w-24 truncate-ellipsis"
+                >
+                  Request Resource
                 </th>
               )}
               {selectedColumns.includes("status") && (
-                <th className="border px-4 py-2 text-left text-sm font-medium w-28 truncate-ellipsis">
+                <th
+                  rowSpan={2}
+                  className="border border-emerald-600 px-4 py-2 text-left text-sm font-medium w-28 truncate-ellipsis"
+                >
                   Status
                 </th>
               )}
               {selectedColumns.includes("actions") && (
-                <th className="border px-4 py-2 text-left text-sm font-medium w-32 truncate-ellipsis">
+                <th
+                  rowSpan={2}
+                  className="border border-emerald-600 px-4 py-2 text-left text-sm font-medium w-32 truncate-ellipsis"
+                >
                   Actions
                 </th>
               )}
             </tr>
+            {showResourceCost && (
+              <tr>
+                {selectedColumns.includes("materials") && (
+                  <th className="border border-emerald-600 px-4 py-2 text-left text-sm font-medium w-24 truncate-ellipsis">
+                    Materials
+                  </th>
+                )}
+                {selectedColumns.includes("equipments") && (
+                  <th className="border border-emerald-600 px-4 py-2 text-left text-sm font-medium w-24 truncate-ellipsis">
+                    Equipments
+                  </th>
+                )}
+                {selectedColumns.includes("labors") && (
+                  <th className="border border-emerald-600 px-4 py-2 text-left text-sm font-medium w-24 truncate-ellipsis">
+                    Labors
+                  </th>
+                )}
+              </tr>
+            )}
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {filteredActivities.length > 0 ? (
@@ -543,7 +460,31 @@ const ActivityTable: React.FC<ActivityTableProps> = ({ taskId }) => {
                         {remainingDays}
                       </td>
                     )}
-                    {selectedColumns.includes("resource") && (
+                    {selectedColumns.includes("materials") && (
+                      <td className="border px-4 py-2 w-24 truncate-ellipsis">
+                        {activity.requests?.reduce(
+                          (sum, req) => sum + (req.materialCount || 0),
+                          0
+                        ) || 0}
+                      </td>
+                    )}
+                    {selectedColumns.includes("equipments") && (
+                      <td className="border px-4 py-2 w-24 truncate-ellipsis">
+                        {activity.requests?.reduce(
+                          (sum, req) => sum + (req.equipmentCount || 0),
+                          0
+                        ) || 0}
+                      </td>
+                    )}
+                    {selectedColumns.includes("labors") && (
+                      <td className="border px-4 py-2 w-24 truncate-ellipsis">
+                        {activity.requests?.reduce(
+                          (sum, req) => sum + (req.laborCount || 0),
+                          0
+                        ) || 0}
+                      </td>
+                    )}
+                    {selectedColumns.includes("request") && (
                       <td className="border px-4 py-2 w-24 truncate-ellipsis">
                         <Link
                           href={`/resources/${activity.id}`}
