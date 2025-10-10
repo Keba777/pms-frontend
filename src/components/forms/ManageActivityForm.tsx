@@ -30,7 +30,6 @@ const ManageActivityForm: React.FC<{
   });
 
   const [checkedBy, setCheckedBy] = useState("");
-  const [checkedDate, setCheckedDate] = useState("");
   const [approvedBy, setApprovedBy] = useState("");
   const [comment, setComment] = useState("");
   const [approvedDate, setApprovedDate] = useState("");
@@ -164,29 +163,6 @@ const ManageActivityForm: React.FC<{
       {errors.progress && (
         <p className="text-red-500 text-sm ml-32">{errors.progress.message}</p>
       )}
-
-      <div className="flex items-center space-x-4">
-        <Label
-          htmlFor="checkedBy"
-          className="text-sm font-medium text-gray-700"
-        >
-          Checked by:
-        </Label>
-        <Input
-          type="text"
-          id="checkedBy"
-          value={checkedBy}
-          onChange={(e) => setCheckedBy(e.target.value)}
-          className="border-gray-300 focus:ring-cyan-700"
-        />
-        <Input
-          type="date"
-          id="checkedDate"
-          value={checkedDate}
-          onChange={(e) => setCheckedDate(e.target.value)}
-          className="border-gray-300 focus:ring-cyan-700"
-        />
-      </div>
 
       <Table>
         <TableHeader>
