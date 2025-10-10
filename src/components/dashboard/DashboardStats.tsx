@@ -15,6 +15,7 @@ import { useUsers } from "@/hooks/useUsers";
 import { useActivities } from "@/hooks/useActivities";
 import { JSX } from "react";
 import { useTodos } from "@/hooks/useTodos";
+import TodosStats from "./TodosStats";
 
 // Define types for your items
 type Status =
@@ -182,6 +183,9 @@ export default function DashboardStats() {
           items={activitiesStats}
           total={totalActivities}
         />
+      </div>
+      <div>
+        <TodosStats />
       </div>
     </div>
   );
