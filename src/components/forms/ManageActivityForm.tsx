@@ -16,6 +16,23 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+
+import { createPortal } from "react-dom";
+
+/**
+ * popper container matching the expected signature:
+ * React.ComponentType<{ children?: React.ReactNode }>
+ */
+const PopperContainer: React.ComponentType<{ children?: React.ReactNode }> = ({
+  children,
+}) => {
+  if (typeof document === "undefined") return null;
+  if (!children) return null;
+  return createPortal(children, document.body);
+};
+
 const ManageActivityForm: React.FC<{
   onSubmit: (data: UpdateActivityInput) => void;
   onClose: () => void;
@@ -29,11 +46,11 @@ const ManageActivityForm: React.FC<{
     defaultValues: activity,
   });
 
-  const [checkedBy, setCheckedBy] = useState("");
-  const [approvedBy, setApprovedBy] = useState("");
-  const [comment, setComment] = useState("");
-  const [approvedDate, setApprovedDate] = useState("");
-  const [summaryReport, setSummaryReport] = useState("");
+  const [checkedBy, setCheckedBy] = useState<string>("");
+  const [approvedBy, setApprovedBy] = useState<string>("");
+  const [comment, setComment] = useState<string>("");
+  const [approvedDate, setApprovedDate] = useState<string>("");
+  const [summaryReport, setSummaryReport] = useState<string>("");
 
   interface Row {
     id: number;
@@ -47,16 +64,16 @@ const ManageActivityForm: React.FC<{
   }
 
   const [rows, setRows] = useState<Row[]>([]);
-  const [nextId, setNextId] = useState(1);
+  const [nextId, setNextId] = useState<number>(1);
 
-  const getProgressColor = (value: number) => {
+  const getProgressColor = (value: number): string => {
     if (value <= 25) return "#EF4444"; // red-500
     if (value <= 50) return "#F97316"; // orange-500
     if (value <= 75) return "#EAB308"; // yellow-500
     return "#22C55E"; // green-500
   };
 
-  const addRow = () => {
+  const addRow = (): void => {
     const newRow: Row = {
       id: nextId,
       dateTime: new Date().toISOString(),
@@ -66,18 +83,22 @@ const ManageActivityForm: React.FC<{
       checkedBy: checkedBy,
       approvedBy: approvedBy,
     };
-    setRows([...rows, newRow]);
-    setNextId(nextId + 1);
+    setRows((prev) => [...prev, newRow]);
+    setNextId((prev) => prev + 1);
   };
 
-  const updateRow = (id: number, field: keyof Row, value: string | number) => {
-    setRows(
-      rows.map((row) => (row.id === id ? { ...row, [field]: value } : row))
+  const updateRow = (
+    id: number,
+    field: keyof Row,
+    value: string | number
+  ): void => {
+    setRows((prev) =>
+      prev.map((row) => (row.id === id ? { ...row, [field]: value } : row))
     );
   };
 
-  const deleteRow = (id: number) => {
-    setRows(rows.filter((row) => row.id !== id));
+  const deleteRow = (id: number): void => {
+    setRows((prev) => prev.filter((row) => row.id !== id));
   };
 
   return (
@@ -85,6 +106,16 @@ const ManageActivityForm: React.FC<{
       onSubmit={handleSubmit(onSubmit)}
       className="bg-white rounded-lg shadow-xl p-6 space-y-4"
     >
+      {/* Ensure the datepicker popper appears above all */}
+      <style>{`
+        .react-datepicker-popper {
+          z-index: 9999 !important;
+        }
+        .react-datepicker {
+          z-index: 9999 !important;
+        }
+      `}</style>
+
       <div className="flex justify-between items-center border-b pb-2 mb-4">
         <h3 className="text-lg font-semibold text-gray-800">Manage Progress</h3>
         <Button
@@ -198,13 +229,26 @@ const ManageActivityForm: React.FC<{
             <TableRow key={row.id} className="bg-white even:bg-gray-100">
               <TableCell>{row.id}</TableCell>
               <TableCell>
-                <Input
-                  value={row.dateTime}
-                  onChange={(e) =>
-                    updateRow(row.id, "dateTime", e.target.value)
-                  }
-                  className="border-gray-300 focus:ring-cyan-700"
-                />
+                <div>
+                  <DatePicker
+                    selected={row.dateTime ? new Date(row.dateTime) : null}
+                    onChange={(date: Date | null) =>
+                      updateRow(
+                        row.id,
+                        "dateTime",
+                        date ? date.toISOString() : ""
+                      )
+                    }
+                    showTimeSelect
+                    timeIntervals={15}
+                    timeFormat="h:mm aa"
+                    dateFormat="MM/dd/yyyy h:mm aa"
+                    className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
+                    placeholderText="Select date & time"
+                    popperContainer={PopperContainer}
+                    popperPlacement="bottom-start"
+                  />
+                </div>
               </TableCell>
               <TableCell>
                 <Input
@@ -261,6 +305,7 @@ const ManageActivityForm: React.FC<{
           ))}
         </TableBody>
       </Table>
+
       <Button
         type="button"
         onClick={addRow}
@@ -287,6 +332,7 @@ const ManageActivityForm: React.FC<{
             className="border-gray-300 focus:ring-cyan-700"
           />
         </div>
+
         <div className="flex items-center space-x-2">
           <Label className="text-sm font-medium text-gray-700">
             Approved By:
@@ -297,6 +343,7 @@ const ManageActivityForm: React.FC<{
             className="border-gray-300 focus:ring-cyan-700"
           />
         </div>
+
         <div className="flex items-center space-x-2">
           <Label className="text-sm font-medium text-gray-700">Comment:</Label>
           <Input
@@ -305,16 +352,27 @@ const ManageActivityForm: React.FC<{
             className="border-gray-300 focus:ring-cyan-700"
           />
         </div>
+
         <div className="flex items-center space-x-2">
           <Label className="text-sm font-medium text-gray-700">
             Approved Date:
           </Label>
-          <Input
-            type="date"
-            value={approvedDate}
-            onChange={(e) => setApprovedDate(e.target.value)}
-            className="border-gray-300 focus:ring-cyan-700"
-          />
+          <div className="flex-1">
+            <DatePicker
+              selected={approvedDate ? new Date(approvedDate) : null}
+              onChange={(date: Date | null) =>
+                setApprovedDate(date ? date.toISOString() : "")
+              }
+              showTimeSelect
+              timeIntervals={15}
+              timeFormat="h:mm aa"
+              dateFormat="MM/dd/yyyy h:mm aa"
+              className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
+              placeholderText="Select approved date & time"
+              popperContainer={PopperContainer}
+              popperPlacement="bottom-start"
+            />
+          </div>
         </div>
       </div>
 

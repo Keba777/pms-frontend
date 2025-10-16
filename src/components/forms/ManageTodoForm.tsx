@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
-import { UpdateTodoInput } from "@/types/todo"; 
+import { UpdateTodoInput } from "@/types/todo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,6 +15,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { createPortal } from "react-dom";
+
+const PopperContainer: React.ComponentType<{ children?: React.ReactNode }> = ({
+  children,
+}) => {
+  if (typeof document === "undefined") return null;
+  if (!children) return null;
+  return createPortal(children, document.body);
+};
 
 const ManageTodoForm: React.FC<{
   onSubmit: (data: UpdateTodoInput) => void;
@@ -29,11 +41,11 @@ const ManageTodoForm: React.FC<{
     defaultValues: todo,
   });
 
-  const [checkedBy, setCheckedBy] = useState("");
-  const [approvedBy, setApprovedBy] = useState("");
-  const [comment, setComment] = useState("");
-  const [approvedDate, setApprovedDate] = useState("");
-  const [summaryReport, setSummaryReport] = useState("");
+  const [checkedBy, setCheckedBy] = useState<string>("");
+  const [approvedBy, setApprovedBy] = useState<string>("");
+  const [comment, setComment] = useState<string>("");
+  const [approvedDate, setApprovedDate] = useState<string>("");
+  const [summaryReport, setSummaryReport] = useState<string>("");
 
   interface Row {
     id: number;
@@ -47,13 +59,13 @@ const ManageTodoForm: React.FC<{
   }
 
   const [rows, setRows] = useState<Row[]>([]);
-  const [nextId, setNextId] = useState(1);
+  const [nextId, setNextId] = useState<number>(1);
 
   const getProgressColor = (value: number) => {
-    if (value <= 25) return "#EF4444"; // red-500
-    if (value <= 50) return "#F97316"; // orange-500
-    if (value <= 75) return "#EAB308"; // yellow-500
-    return "#22C55E"; // green-500
+    if (value <= 25) return "#EF4444";
+    if (value <= 50) return "#F97316";
+    if (value <= 75) return "#EAB308";
+    return "#22C55E";
   };
 
   const addRow = () => {
@@ -66,18 +78,18 @@ const ManageTodoForm: React.FC<{
       checkedBy: checkedBy,
       approvedBy: approvedBy,
     };
-    setRows([...rows, newRow]);
-    setNextId(nextId + 1);
+    setRows((prev) => [...prev, newRow]);
+    setNextId((prev) => prev + 1);
   };
 
   const updateRow = (id: number, field: keyof Row, value: string | number) => {
-    setRows(
-      rows.map((row) => (row.id === id ? { ...row, [field]: value } : row))
+    setRows((prev) =>
+      prev.map((row) => (row.id === id ? { ...row, [field]: value } : row))
     );
   };
 
   const deleteRow = (id: number) => {
-    setRows(rows.filter((row) => row.id !== id));
+    setRows((prev) => prev.filter((row) => row.id !== id));
   };
 
   return (
@@ -85,6 +97,11 @@ const ManageTodoForm: React.FC<{
       onSubmit={handleSubmit(onSubmit)}
       className="bg-gray-100 rounded-lg shadow-xl p-6 space-y-6"
     >
+      <style>{`
+        .react-datepicker-popper { z-index: 9999 !important; }
+        .react-datepicker { z-index: 9999 !important; }
+      `}</style>
+
       <div className="flex justify-between items-center border-b pb-2 mb-4">
         <h3 className="text-lg font-semibold text-gray-800">Manage Progress</h3>
         <Button
@@ -192,12 +209,23 @@ const ManageTodoForm: React.FC<{
             <TableRow key={row.id} className="bg-white even:bg-gray-100">
               <TableCell>{row.id}</TableCell>
               <TableCell>
-                <Input
-                  value={row.dateTime}
-                  onChange={(e) =>
-                    updateRow(row.id, "dateTime", e.target.value)
+                <DatePicker
+                  selected={row.dateTime ? new Date(row.dateTime) : null}
+                  onChange={(date: Date | null) =>
+                    updateRow(
+                      row.id,
+                      "dateTime",
+                      date ? date.toISOString() : ""
+                    )
                   }
-                  className="border-gray-300 focus:ring-cyan-700"
+                  showTimeSelect
+                  timeIntervals={15}
+                  timeFormat="h:mm aa"
+                  dateFormat="MM/dd/yyyy h:mm aa"
+                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
+                  placeholderText="Select date & time"
+                  popperContainer={PopperContainer}
+                  popperPlacement="bottom-start"
                 />
               </TableCell>
               <TableCell>
@@ -255,6 +283,7 @@ const ManageTodoForm: React.FC<{
           ))}
         </TableBody>
       </Table>
+
       <Button
         type="button"
         onClick={addRow}
@@ -303,16 +332,26 @@ const ManageTodoForm: React.FC<{
           <Label className="text-sm font-medium text-gray-700">
             Approved Date:
           </Label>
-          <Input
-            type="date"
-            value={approvedDate}
-            onChange={(e) => setApprovedDate(e.target.value)}
-            className="border-gray-300 focus:ring-cyan-700"
-          />
+          <div className="flex-1">
+            <DatePicker
+              selected={approvedDate ? new Date(approvedDate) : null}
+              onChange={(date: Date | null) =>
+                setApprovedDate(date ? date.toISOString() : "")
+              }
+              showTimeSelect
+              timeIntervals={15}
+              timeFormat="h:mm aa"
+              dateFormat="MM/dd/yyyy h:mm aa"
+              className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
+              placeholderText="Select approved date & time"
+              popperContainer={PopperContainer}
+              popperPlacement="bottom-start"
+            />
+          </div>
         </div>
       </div>
 
-      <div className="flex justify-end mt-6">
+      <div className="flex justify-end">
         <Button
           type="submit"
           className="bg-cyan-700 text-white hover:bg-cyan-800"
