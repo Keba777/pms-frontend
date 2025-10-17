@@ -3,23 +3,37 @@
 import React, { useState, useMemo } from "react";
 import { ChevronDown, Plus } from "lucide-react";
 import { useMaterials } from "@/hooks/useMaterials";
+import { useCreateMaterial } from "@/hooks/useMaterials";
 import { useWarehouses } from "@/hooks/useWarehouses";
 import { useSites } from "@/hooks/useSites";
 import Link from "next/link";
-import { Material } from "@/types/material";
+import {
+  Material,
+  CreateMaterialInput,
+  LooseMaterialInput,
+} from "@/types/material";
 import { Warehouse } from "@/types/warehouse";
 import { Site } from "@/types/site";
 import MaterialForm from "@/components/forms/MaterialForm";
 import { useAuthStore } from "@/store/authStore";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import GenericDownloads, { Column } from "@/components/common/GenericDownloads";
-import SearchInput from "@/components/common/ui/SearchInput";
+import {
+  FilterField,
+  FilterValues,
+  GenericFilter,
+  Option,
+} from "@/components/common/GenericFilter";
+import GenericImport, { ImportColumn } from "@/components/common/GenericImport";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "react-toastify";
 
 const MaterialsPage = () => {
   const { user } = useAuthStore();
+  const hasPermission = useAuthStore((state) => state.hasPermission);
   const siteId = user?.siteId;
   const [showForm, setShowForm] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [filterValues, setFilterValues] = useState<FilterValues>({});
 
   const {
     data: materials,
@@ -32,6 +46,11 @@ const MaterialsPage = () => {
     error: whError,
   } = useWarehouses();
   const { data: sites, isLoading: siteLoading, error: siteError } = useSites();
+
+  const { mutateAsync: createMaterialAsync } = useCreateMaterial(() => {});
+
+  const canCreate = hasPermission("materials", "create");
+  const canManage = hasPermission("materials", "manage");
 
   // Find current site
   const site: Site | undefined = sites?.find((s) => s.id === siteId);
@@ -54,13 +73,24 @@ const MaterialsPage = () => {
     [materials, siteWarehouseIds]
   );
 
-  // Filter by search query
+  // Filtered list based on filters
   const filteredMaterials = useMemo(
     () =>
       siteMaterials.filter((m) =>
-        m.item.toLowerCase().includes(searchQuery.toLowerCase())
+        Object.entries(filterValues).every(([key, value]) => {
+          if (!value) return true;
+          if (key === "type") {
+            return m.type === value;
+          }
+          if (key === "item") {
+            return m.item
+              .toLowerCase()
+              .includes((value as string).toLowerCase());
+          }
+          return true;
+        })
       ),
-    [searchQuery, siteMaterials]
+    [filterValues, siteMaterials]
   );
 
   if (matLoading || whLoading || siteLoading) return <div>Loading...</div>;
@@ -83,11 +113,11 @@ const MaterialsPage = () => {
     { header: "Item Name", accessor: "item" },
     { header: "Type", accessor: "type" },
     { header: "Unit", accessor: "unit" },
-    { header: "Qty", accessor: (row) => row.quantity ?? "-" },
-    { header: "Min-Qty", accessor: (row) => row.minQuantity ?? "-" },
-    { header: "Unit Price", accessor: (row) => row.rate ?? "-" },
-    { header: "Total Price", accessor: (row) => row.totalPrice ?? "-" },
-    { header: "Re-Qty", accessor: (row) => row.reorderQuantity ?? "-" },
+    { header: "Qty", accessor: (row) => row.quantity ?? 0 },
+    { header: "Min-Qty", accessor: (row) => row.minQuantity ?? 0 },
+    { header: "Unit Price", accessor: (row) => row.rate ?? 0 },
+    { header: "Total Price", accessor: (row) => row.totalPrice ?? 0 },
+    { header: "Re-Qty", accessor: (row) => row.reorderQuantity ?? 0 },
     { header: "Shelf No", accessor: (row) => row.shelfNo ?? "-" },
     {
       header: "Status",
@@ -102,30 +132,148 @@ const MaterialsPage = () => {
     },
   ];
 
+  const importColumns: ImportColumn<LooseMaterialInput>[] = [
+    { header: "Item Name", accessor: "item", type: "string" },
+    { header: "Type", accessor: "type", type: "string" },
+    { header: "Unit", accessor: "unit", type: "string" },
+    { header: "Qty", accessor: "quantity", type: "string" },
+    { header: "Min-Qty", accessor: "minQuantity", type: "string" },
+    { header: "Unit Price", accessor: "rate", type: "string" },
+    { header: "Re-Qty", accessor: "reorderQuantity", type: "string" },
+    { header: "Shelf No", accessor: "shelfNo", type: "string" },
+  ];
+
+  const requiredAccessors: (keyof LooseMaterialInput)[] = [
+    "item",
+    "type",
+    "unit",
+  ];
+
+  const typeOptions: Option<string>[] = [
+    { label: "Raw", value: "Raw" },
+    { label: "Semi-Finished", value: "Semi-Finished" },
+    { label: "Finished", value: "Finished" },
+  ];
+
+  const filterFields: FilterField<string>[] = [
+    {
+      name: "item",
+      label: "Item Name",
+      type: "text",
+      placeholder: "Search by item…",
+    },
+    {
+      name: "type",
+      label: "All Types",
+      type: "select",
+      options: typeOptions,
+    },
+  ];
+
+  const processMaterialData = (
+    data: LooseMaterialInput[]
+  ): CreateMaterialInput[] => {
+    return data.map((materialRow) => {
+      const processed: Record<string, unknown> = { ...materialRow };
+
+      const numberFields: (keyof CreateMaterialInput)[] = [
+        "quantity",
+        "minQuantity",
+        "rate",
+        "reorderQuantity",
+      ];
+      numberFields.forEach((field) => {
+        const val = processed[field];
+        if (val === "-" || val === "" || val == null) {
+          processed[field] = undefined;
+        } else {
+          const num = Number(val);
+          processed[field] = isNaN(num) ? undefined : num;
+        }
+      });
+
+      if (processed.minQuantity === undefined) {
+        processed.minQuantity = 1;
+      }
+
+      return processed as unknown as CreateMaterialInput;
+    });
+  };
+
+  const handleImport = async (data: LooseMaterialInput[]) => {
+    try {
+      const processedData = processMaterialData(data);
+
+      await Promise.all(
+        processedData.map((material) =>
+          createMaterialAsync({ ...material, warehouseId: siteWarehouseIds[0] })
+        )
+      );
+      toast.success("Materials imported and created successfully!");
+    } catch (error) {
+      toast.error("Error importing and creating materials");
+      console.error("Import error:", error);
+    }
+  };
+
+  const handleError = (error: string) => {
+    toast.error(error);
+  };
+
   return (
     <div className="max-w-6xl mx-auto p-6 bg-white shadow-lg rounded-lg mt-6">
-      {/* Top Actions */}
-      <div className="flex justify-between items-center mb-4">
-        <SearchInput value={searchQuery} onChange={setSearchQuery} />
-        <div className="flex gap-4">
-          <GenericDownloads
-            data={filteredMaterials}
-            title={`Materials_${site.name}`}
-            columns={columns}
-          />
-          <button
-            type="button"
-            className="px-3 py-3 text-white bg-cyan-700 rounded hover:bg-cyan-800"
-            onClick={() => setShowForm(true)}
-            title="Create Material"
-          >
-            <Plus className="w-4 h-4" />
-          </button>
+      <div className="flex flex-wrap justify-between items-center mb-4 gap-2">
+        <nav className="hidden md:block" aria-label="breadcrumb">
+          <ol className="flex space-x-2 text-sm sm:text-base">
+            <li>
+              <Link href="/" className="text-blue-600 hover:underline">
+                Home
+              </Link>
+            </li>
+            <li className="text-gray-500">/</li>
+            <li className="text-gray-900 font-semibold">Materials</li>
+          </ol>
+        </nav>
+
+        <div className="flex flex-wrap gap-2 items-center w-full md:w-auto">
+          {canCreate && (
+            <button
+              type="button"
+              className="bg-cyan-700 hover:bg-cyan-800 text-white font-bold rounded text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2 flex items-center gap-1"
+              onClick={() => setShowForm(true)}
+              title="Create Material"
+            >
+              <span className="md:hidden">Add New</span>
+              <Plus className="w-4 h-4 hidden md:inline" />
+            </button>
+          )}
+          {canManage && (
+            <div className="w-full md:w-auto mt-2 md:mt-0">
+              <GenericDownloads
+                data={filteredMaterials}
+                title={`Materials_${site.name}`}
+                columns={columns}
+              />
+            </div>
+          )}
         </div>
       </div>
 
+      {/* Import */}
+      <div className="flex justify-end mb-4">
+        {canManage && (
+          <GenericImport<LooseMaterialInput>
+            expectedColumns={importColumns}
+            requiredAccessors={requiredAccessors}
+            onImport={handleImport}
+            title="Materials"
+            onError={handleError}
+          />
+        )}
+      </div>
+
       {/* Form Modal */}
-      {showForm && (
+      {showForm && canCreate && (
         <div className="modal-overlay fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="modal-content bg-white rounded-lg shadow-xl p-6">
             <MaterialForm
@@ -136,8 +284,12 @@ const MaterialsPage = () => {
         </div>
       )}
 
+      <div className="flex flex-col sm:flex-row gap-2 mb-4">
+        <GenericFilter fields={filterFields} onFilterChange={setFilterValues} />
+      </div>
+
       <h1 className="text-4xl font-bold text-cyan-800 mb-4">
-        Materials at “{site.name}”
+        Materials at &quot;{site.name}&quot;
       </h1>
 
       {/* Status Summary */}
@@ -209,118 +361,131 @@ const MaterialsPage = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredMaterials.map((mat, idx) => (
-                <tr key={mat.id}>
-                  <td className="px-4 py-2 border border-gray-200">
-                    {idx + 1}
-                  </td>
-                  <td className="px-4 py-2 border border-gray-200">
-                    {"RC00"}
-                    {idx + 1}
-                  </td>
-                  <td className="px-4 py-2 border border-gray-200">
-                    <Link
-                      href={`/resources/materials/${mat.id}`}
-                      className="text-blue-600 hover:underline"
-                    >
-                      {mat.item}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-2 border border-gray-200">
-                    {mat.type}
-                  </td>
-                  <td className="px-4 py-2 border border-gray-200">
-                    {mat.unit}
-                  </td>
-                  <td className="px-4 py-2 border border-gray-200">
-                    {mat.quantity ?? "-"}
-                  </td>
-                  <td className="px-4 py-2 border border-gray-200">
-                    {mat.minQuantity ?? "-"}
-                  </td>
-                  <td className="px-4 py-2 border border-gray-200">
-                    {mat.rate ?? "-"}
-                  </td>
-                  <td className="px-4 py-2 border border-gray-200">
-                    {mat.totalPrice ?? "-"}
-                  </td>
-                  <td className="px-4 py-2 border border-gray-200">
-                    {mat.reorderQuantity ?? "-"}
-                  </td>
-                  <td className="px-4 py-2 border border-gray-200">
-                    {mat.shelfNo ?? "-"}
-                  </td>
-                  <td
-                    className={`${
-                      mat.quantity !== undefined && mat.quantity >= 1
-                        ? "bg-green-500"
-                        : "bg-red-500"
-                    } border px-5 text-gray-100`}
-                  >
-                    {mat.quantity !== undefined
-                      ? mat.quantity >= 1
-                        ? "Available"
-                        : mat.quantity === 0
-                        ? "Not-Avail"
-                        : "-"
-                      : "-"}
-                  </td>
-                  <td className="px-4 py-2 border border-gray-200">
-                    <Menu as="div" className="relative inline-block text-left">
-                      <MenuButton className="flex items-center gap-1 px-3 py-1 text-sm bg-cyan-700 text-white rounded hover:bg-cyan-800">
-                        Action <ChevronDown className="w-4 h-4" />
-                      </MenuButton>
-                      <MenuItems className="absolute left-0 mt-2 w-full origin-top-left bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow-lg focus:outline-none z-50">
-                        <MenuItem>
-                          {({ active }) => (
-                            <button
-                              className={`${
-                                active ? "bg-gray-100" : ""
-                              } w-full text-left px-3 py-2 text-sm text-gray-700`}
-                            >
-                              View
-                            </button>
-                          )}
-                        </MenuItem>
-                        <MenuItem>
-                          {({ active }) => (
-                            <button
-                              className={`${
-                                active ? "bg-gray-100" : ""
-                              } w-full text-left px-3 py-2 text-sm text-gray-700`}
-                            >
-                              Edit
-                            </button>
-                          )}
-                        </MenuItem>
-                        <MenuItem>
-                          {({ active }) => (
-                            <button
-                              className={`${
-                                active ? "bg-gray-100" : ""
-                              } w-full text-left px-3 py-2 text-sm text-red-600`}
-                            >
-                              Delete
-                            </button>
-                          )}
-                        </MenuItem>
-                        <MenuItem>
-                          {({ active }) => (
-                            <button
-                              onClick={() => console.log("Manage clicked")}
-                              className={`${
-                                active ? "bg-gray-100" : ""
-                              } w-full text-left px-3 py-2 text-sm text-gray-700`}
-                            >
-                              Manage
-                            </button>
-                          )}
-                        </MenuItem>
-                      </MenuItems>
-                    </Menu>
-                  </td>
-                </tr>
-              ))}
+              {filteredMaterials.map((mat, idx) => {
+                const statusText =
+                  mat.quantity !== undefined
+                    ? mat.quantity >= 1
+                      ? "Available"
+                      : "Not-Avail"
+                    : "-";
+                const isAvailable = statusText === "Available";
+                const showDash = statusText === "-";
+                return (
+                  <tr key={mat.id}>
+                    <td className="px-4 py-2 border border-gray-200">
+                      {idx + 1}
+                    </td>
+                    <td className="px-4 py-2 border border-gray-200">
+                      {"RC00"}
+                      {idx + 1}
+                    </td>
+                    <td className="px-4 py-2 border border-gray-200">
+                      <Link
+                        href={`/resources/materials/${mat.id}`}
+                        className="text-blue-600 hover:underline"
+                      >
+                        {mat.item}
+                      </Link>
+                    </td>
+                    <td className="px-4 py-2 border border-gray-200">
+                      {mat.type}
+                    </td>
+                    <td className="px-4 py-2 border border-gray-200">
+                      {mat.unit}
+                    </td>
+                    <td className="px-4 py-2 border border-gray-200">
+                      {mat.quantity ?? 0}
+                    </td>
+                    <td className="px-4 py-2 border border-gray-200">
+                      {mat.minQuantity ?? 0}
+                    </td>
+                    <td className="px-4 py-2 border border-gray-200">
+                      {mat.rate ?? 0}
+                    </td>
+                    <td className="px-4 py-2 border border-gray-200">
+                      {mat.totalPrice ?? 0}
+                    </td>
+                    <td className="px-4 py-2 border border-gray-200">
+                      {mat.reorderQuantity ?? 0}
+                    </td>
+                    <td className="px-4 py-2 border border-gray-200">
+                      {mat.shelfNo ?? "-"}
+                    </td>
+                    <td className="px-4 py-2 border border-gray-200">
+                      {showDash ? (
+                        "-"
+                      ) : (
+                        <Badge
+                          className={`${
+                            isAvailable
+                              ? "bg-green-500 hover:bg-green-600"
+                              : "bg-red-500 hover:bg-red-600"
+                          } text-white`}
+                        >
+                          {statusText}
+                        </Badge>
+                      )}
+                    </td>
+                    <td className="px-4 py-2 border border-gray-200">
+                      <Menu
+                        as="div"
+                        className="relative inline-block text-left"
+                      >
+                        <MenuButton className="flex items-center gap-1 px-3 py-1 text-sm bg-cyan-700 text-white rounded hover:bg-cyan-800">
+                          Action <ChevronDown className="w-4 h-4" />
+                        </MenuButton>
+                        <MenuItems className="absolute left-0 mt-2 w-full origin-top-left bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow-lg focus:outline-none z-50">
+                          <MenuItem>
+                            {({ active }) => (
+                              <button
+                                className={`${
+                                  active ? "bg-gray-100" : ""
+                                } w-full text-left px-3 py-2 text-sm text-gray-700`}
+                              >
+                                View
+                              </button>
+                            )}
+                          </MenuItem>
+                          <MenuItem>
+                            {({ active }) => (
+                              <button
+                                className={`${
+                                  active ? "bg-gray-100" : ""
+                                } w-full text-left px-3 py-2 text-sm text-gray-700`}
+                              >
+                                Edit
+                              </button>
+                            )}
+                          </MenuItem>
+                          <MenuItem>
+                            {({ active }) => (
+                              <button
+                                className={`${
+                                  active ? "bg-gray-100" : ""
+                                } w-full text-left px-3 py-2 text-sm text-red-600`}
+                              >
+                                Delete
+                              </button>
+                            )}
+                          </MenuItem>
+                          <MenuItem>
+                            {({ active }) => (
+                              <button
+                                onClick={() => console.log("Manage clicked")}
+                                className={`${
+                                  active ? "bg-gray-100" : ""
+                                } w-full text-left px-3 py-2 text-sm text-gray-700`}
+                              >
+                                Manage
+                              </button>
+                            )}
+                          </MenuItem>
+                        </MenuItems>
+                      </Menu>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

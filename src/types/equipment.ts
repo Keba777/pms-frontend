@@ -55,6 +55,23 @@ export interface CreateEquipmentInput {
     shiftingDate?: Date;
 }
 
+export interface LooseEquipmentInput {
+    item?: string;
+    type?: string;
+    unit?: string;
+    manufacturer?: string;
+    model?: string;
+    year?: string;
+    quantity?: string;
+    estimatedHours?: string;
+    rate?: string;
+    totalAmount?: string;
+    overTime?: string;
+    condition?: string;
+    owner?: string;
+    status?: string;
+}
+
 export interface UpdateEquipmentInput {
     id: string;
     item?: string;

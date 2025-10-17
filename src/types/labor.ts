@@ -49,6 +49,20 @@ export interface CreateLaborInput {
     shiftingDate?: Date;
 }
 
+export interface LooseLaborInput {
+  role?: string;
+  unit?: string;
+  quantity?: string;
+  minQuantity?: string;
+  estimatedHours?: string;
+  rate?: string;
+  overtimeRate?: string;
+  totalAmount?: string;
+  startingDate?: string;
+  dueDate?: string;
+  allocationStatus?: string;
+}
+
 export interface UpdateLaborInput {
     id: string;
     role?: string;

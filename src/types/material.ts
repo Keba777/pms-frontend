@@ -26,6 +26,18 @@ export interface CreateMaterialInput {
     shelfNo?: string;
     status?: "Available" | "Unavailable";
 }
+
+export interface LooseMaterialInput {
+    item?: string;
+    type?: string;
+    unit?: string;
+    quantity?: string;
+    minQuantity?: string;
+    rate?: string;
+    reorderQuantity?: string;
+    shelfNo?: string;
+}
+
 export interface UpdateMaterialInput {
     id?: string;
     warehouseId?: string;
