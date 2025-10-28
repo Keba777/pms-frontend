@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import apiClient from "@/services/api-client";
-import { Activity, CreateActivityInput, UpdateActivityInput } from "@/types/activity";
+import { Activity, Actuals, CreateActivityInput, UpdateActivityInput } from "@/types/activity";
 import { useActivityStore } from "@/store/activityStore";
 import { toast } from "react-toastify";
 import { useEffect } from "react";
@@ -43,6 +43,11 @@ const createActivity = async (data: CreateActivityInput): Promise<Activity> => {
 
 const updateActivity = async (data: UpdateActivityInput): Promise<Activity> => {
   const response = await apiClient.put<ApiResponse<Activity>>(`/activities/${data.id}`, data);
+  return response.data.data;
+};
+
+const updateActivityActuals = async (data: { id: string; actuals: Actuals }): Promise<Activity> => {
+  const response = await apiClient.patch<ApiResponse<Activity>>(`/activities/${data.id}/actuals`, { actuals: data.actuals });
   return response.data.data;
 };
 
@@ -121,6 +126,23 @@ export const useUpdateActivity = () => {
     },
     onError: () => {
       toast.error("Failed to update activity");
+    },
+  });
+};
+
+// Hook to update an Activity's actuals and update the store
+export const useUpdateActivityActuals = () => {
+  const queryClient = useQueryClient();
+  const updateActivityInStore = useActivityStore((state) => state.updateActivity);
+  return useMutation({
+    mutationFn: updateActivityActuals,
+    onSuccess: (updatedActivity) => {
+      toast.success("Activity actuals updated successfully!");
+      queryClient.invalidateQueries({ queryKey: ["activities"] });
+      updateActivityInStore(updatedActivity);
+    },
+    onError: () => {
+      toast.error("Failed to update activity actuals");
     },
   });
 };

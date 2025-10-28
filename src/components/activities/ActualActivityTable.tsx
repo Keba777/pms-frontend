@@ -8,12 +8,16 @@ import {
   useActivities,
   useDeleteActivity,
   useUpdateActivity,
+  useUpdateActivityActuals,
 } from "@/hooks/useActivities";
-import { UpdateActivityInput, Activity } from "@/types/activity";
+import { UpdateActivityInput, Activity, Actuals } from "@/types/activity";
 import EditActivityForm from "../forms/EditActivityForm";
 import ConfirmModal from "../common/ui/ConfirmModal";
 import ActivityTableSkeleton from "./ActivityTableSkeleton";
 import Link from "next/link";
+import { AgGridReact } from "ag-grid-react"; 
+import "ag-grid-community/styles/ag-grid.css"; 
+import "ag-grid-community/styles/ag-theme-alpine.css"; 
 
 interface ResourceCosts {
   labor: { ot: number; dt: number };
@@ -28,7 +32,6 @@ interface ExtendedActivity extends Activity {
 }
 
 const ActualActivityTable: React.FC = () => {
-  // Data-fetching & router
   const {
     data: activities,
     isLoading: loadingAct,
@@ -36,9 +39,11 @@ const ActualActivityTable: React.FC = () => {
   } = useActivities();
   const { mutate: deleteActivity } = useDeleteActivity();
   const { mutate: updateActivity } = useUpdateActivity();
+  const { mutate: updateActivityActuals } = useUpdateActivityActuals(); 
   const router = useRouter();
+  const gridRef = useRef<AgGridReact>(null);
 
-  // Column-customization state
+  // Column-customization state (kept for custom menu; AG Grid has built-in too)
   const columnOptions: Record<string, string> = {
     id: "ID",
     activity_name: "Activities",
@@ -82,33 +87,52 @@ const ActualActivityTable: React.FC = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Derived extendedActivities with OT and DT
+  const defaultActuals: Actuals = {
+    quantity: null,
+    unit: null,
+    start_date: null,
+    end_date: null,
+    progress: null,
+    status: null,
+    labor_cost: null,
+    material_cost: null,
+    equipment_cost: null,
+    total_cost: null,
+    work_force: null,
+    machinery_list: null,
+    materials_list: null,
+  };
+
+  // Derived extendedActivities with actuals handling
   const extendedActivities: ExtendedActivity[] = useMemo(() => {
     if (!activities) return [];
     return activities.map((act) => {
-      // Using quantity as a proxy for "count" from backend; replace with actual fields when available
-      const count = act.quantity ?? 0;
-      const laborOt = count;
-      const laborDt = 0;
-      const materialOt = count;
-      const materialDt = 0;
-      const equipmentOt = count;
-      const equipmentDt = 0;
-      const total = laborOt + materialOt + equipmentOt; // Adjust as per actual requirements
+      const actuals = { ...defaultActuals, ...(act.actuals || {}) }; // Ensure full Actuals with defaults
+      const laborCost = actuals.labor_cost ?? 0;
+      const materialCost = actuals.material_cost ?? 0;
+      const equipmentCost = actuals.equipment_cost ?? 0;
+      const total = laborCost + materialCost + equipmentCost;
+      const laborDiff = (actuals.labor_cost ?? 0) - (act.labor_cost ?? 0);
+      const materialDiff =
+        (actuals.material_cost ?? 0) - (act.material_cost ?? 0);
+      const equipmentDiff =
+        (actuals.equipment_cost ?? 0) - (act.equipment_cost ?? 0);
+      const totalDiff = laborDiff + materialDiff + equipmentDiff;
       return {
         ...act,
+        actuals, // Full Actuals object
         resourceCosts: {
-          labor: { ot: laborOt, dt: laborDt },
-          material: { ot: materialOt, dt: materialDt },
-          equipment: { ot: equipmentOt, dt: equipmentDt },
+          labor: { ot: laborCost, dt: laborDiff },
+          material: { ot: materialCost, dt: materialDiff },
+          equipment: { ot: equipmentCost, dt: equipmentDiff },
           total,
         },
-        overUnder: "$0",
+        overUnder: `$${totalDiff.toFixed(2)}`, // Formatted difference
       };
     });
   }, [activities]);
 
-  // Column toggle
+  // Column toggle (updates visibility in AG Grid)
   const toggleColumn = (col: string) =>
     setSelectedColumns((prev) =>
       prev.includes(col) ? prev.filter((c) => c !== col) : [...prev, col]
@@ -135,15 +159,370 @@ const ActualActivityTable: React.FC = () => {
     setShowEditForm(false);
   };
 
-  // Calculate total columns for colSpan
-  const resourceCols = ["labor", "material", "equipment"];
-  const totalColumns = selectedColumns.reduce((acc, col) => {
-    if (resourceCols.includes(col)) {
-      return acc + 2; // Each resource column has 2 subcolumns (OT and DT)
-    } else {
-      return acc + 1;
+  // Custom cell renderer for progress bar
+  const ProgressRenderer = (params: any) => {
+    return (
+      <div className="relative h-full bg-gray-200 rounded">
+        <div
+          className="absolute h-full bg-blue-600 rounded"
+          style={{ width: `${params.value}%` }}
+        >
+          <span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-white">
+            {params.value}%
+          </span>
+        </div>
+      </div>
+    );
+  };
+
+  // Custom cell renderer for actions menu
+  const ActionsRenderer = (params: any) => {
+    return (
+      <Menu as="div" className="relative inline-block text-left">
+        <MenuButton className="flex items-center gap-1 px-3 py-1 text-sm bg-cyan-700 text-white rounded hover:bg-cyan-800">
+          Action <ChevronDown className="w-4 h-4" />
+        </MenuButton>
+        <MenuItems className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-10">
+          <MenuItem>
+            {({ active }) => (
+              <button
+                className={`block w-full px-4 py-2 text-left ${
+                  active ? "bg-blue-100" : ""
+                }`}
+                onClick={() => router.push(`/activities/${params.data.id}`)}
+              >
+                Quick View
+              </button>
+            )}
+          </MenuItem>
+          <MenuItem>
+            {({ active }) => (
+              <button
+                className={`block w-full px-4 py-2 text-left ${
+                  active ? "bg-blue-100" : ""
+                }`}
+                onClick={() => handleEditClick(params.data)}
+              >
+                Update
+              </button>
+            )}
+          </MenuItem>
+          <MenuItem>
+            {({ active }) => (
+              <button
+                className={`block w-full px-4 py-2 text-left ${
+                  active ? "bg-blue-100" : ""
+                }`}
+                onClick={() => handleDeleteClick(params.data.id)}
+              >
+                Delete
+              </button>
+            )}
+          </MenuItem>
+        </MenuItems>
+      </Menu>
+    );
+  };
+
+  // Custom cell renderer for activity name link
+  const NameRenderer = (params: any) => {
+    return (
+      <Link href={`/activities/${params.data.id}`} className="hover:underline">
+        {params.value}
+      </Link>
+    );
+  };
+
+  // Helper: sanitize actuals before sending to API
+  const sanitizeActualsForApi = (raw: any): Actuals => {
+    // Accept raw fields possibly Date objects, strings, numbers or nulls.
+    const safe = { ...(raw || {}) } as any;
+
+    // Dates -> ISO or null
+    const toIso = (v: any) => {
+      if (!v && v !== 0) return null;
+      try {
+        const d = new Date(v);
+        if (isNaN(d.getTime())) return null;
+        return d.toISOString();
+      } catch {
+        return null;
+      }
+    };
+    safe.start_date = toIso(safe.start_date);
+    safe.end_date = toIso(safe.end_date);
+
+    // Numeric fields -> numbers or null
+    const toNumberOrNull = (v: any) => {
+      if (v === null || v === undefined || v === "") return null;
+      const n = Number(v);
+      return isNaN(n) ? null : n;
+    };
+    safe.labor_cost = toNumberOrNull(safe.labor_cost);
+    safe.material_cost = toNumberOrNull(safe.material_cost);
+    safe.equipment_cost = toNumberOrNull(safe.equipment_cost);
+    safe.total_cost = toNumberOrNull(safe.total_cost);
+    safe.quantity = toNumberOrNull(safe.quantity);
+    safe.progress = toNumberOrNull(safe.progress);
+
+    // strings or nulls
+    safe.unit = safe.unit ?? null;
+    safe.status = safe.status ?? null;
+    safe.work_force = safe.work_force ?? null;
+    safe.machinery_list = safe.machinery_list ?? null;
+    safe.materials_list = safe.materials_list ?? null;
+
+    return safe as Actuals;
+  };
+
+  // Handle cell edit: Update actuals and save via API (sanitized)
+  const handleCellValueChanged = (params: any) => {
+    const { data, colDef, newValue } = params;
+    const fieldParts = (colDef.field || "").split("."); // e.g., ['actuals','labor_cost']
+    if (fieldParts[0] === "actuals") {
+      // Ensure data.actuals exists
+      data.actuals = { ...(data.actuals || {}), ...(data.actuals || {}) };
+
+      // If valueSetters already changed the data, just sanitize and send
+      const sanitized = sanitizeActualsForApi(data.actuals);
+
+      // update local data to sanitized (so UI uses consistent shapes)
+      data.actuals = sanitized;
+
+      // Call mutate, log errors for debugging
+      updateActivityActuals(
+        { id: data.id, actuals: sanitized },
+        {
+          onError: (err: any) => {
+            console.error("Failed to update actuals:", err);
+            // let hooks show toast as well; we console log the raw error
+          },
+        }
+      );
     }
-  }, 0);
+
+    // Refresh row to update calculated fields (e.g., diffs)
+    params.api.refreshCells({ rowNodes: [params.node], force: true });
+  };
+
+  // Dynamic columnDefs based on selectedColumns
+  const columnDefs = useMemo(() => {
+    const allDefs: any[] = [
+      {
+        headerName: "ID",
+        valueGetter: (params: any) =>
+          `RC${String(params.node.rowIndex + 1).padStart(3, "0")}`,
+        hide: !selectedColumns.includes("id"),
+      },
+      {
+        headerName: "Activities",
+        field: "activity_name",
+        cellRenderer: NameRenderer,
+        hide: !selectedColumns.includes("activity_name"),
+      },
+      {
+        headerName: "Unit",
+        field: "actuals.unit",
+        valueGetter: (params: any) => params.data.actuals?.unit ?? "",
+        valueSetter: (params: any) => {
+          params.data.actuals.unit = params.newValue || null;
+          return true;
+        },
+        editable: true,
+        hide: !selectedColumns.includes("unit"),
+      },
+      {
+        headerName: "Qty",
+        field: "actuals.quantity",
+        valueGetter: (params: any) => params.data.actuals?.quantity ?? "",
+        valueSetter: (params: any) => {
+          const v = params.newValue;
+          params.data.actuals.quantity = v === "" ? null : parseFloat(v);
+          return true;
+        },
+        editable: true,
+        hide: !selectedColumns.includes("quantity"),
+      },
+      {
+        headerName: "Start Date",
+        field: "actuals.start_date",
+        valueGetter: (params: any) => {
+          const date = params.data.actuals?.start_date;
+          if (!date) return "";
+          // date might be ISO already
+          const d = new Date(date);
+          return isNaN(d.getTime()) ? "" : d.toLocaleDateString();
+        },
+        valueSetter: (params: any) => {
+          // store raw value (will be sanitized when sending)
+          params.data.actuals.start_date = params.newValue || null;
+          return true;
+        },
+        editable: true,
+        cellEditor: "agDateCellEditor",
+        hide: !selectedColumns.includes("start_date"),
+      },
+      {
+        headerName: "End Date",
+        field: "actuals.end_date",
+        valueGetter: (params: any) => {
+          const date = params.data.actuals?.end_date;
+          if (!date) return "";
+          const d = new Date(date);
+          return isNaN(d.getTime()) ? "" : d.toLocaleDateString();
+        },
+        valueSetter: (params: any) => {
+          params.data.actuals.end_date = params.newValue || null;
+          return true;
+        },
+        editable: true,
+        cellEditor: "agDateCellEditor",
+        hide: !selectedColumns.includes("end_date"),
+      },
+      {
+        headerName: "Duration",
+        valueGetter: (params: any) => {
+          const start = params.data.actuals?.start_date;
+          const end = params.data.actuals?.end_date;
+          if (!start || !end) return "";
+          const diff = Math.ceil(
+            (new Date(end).getTime() - new Date(start).getTime()) /
+              (1000 * 3600 * 24)
+          );
+          return isNaN(diff) ? "" : diff;
+        },
+        hide: !selectedColumns.includes("duration"),
+      },
+      {
+        headerName: "Progress",
+        field: "actuals.progress",
+        valueGetter: (params: any) => params.data.actuals?.progress ?? 0,
+        valueSetter: (params: any) => {
+          const v = params.newValue;
+          params.data.actuals.progress = v === "" ? null : parseInt(v);
+          return true;
+        },
+        editable: true,
+        cellRenderer: ProgressRenderer,
+        hide: !selectedColumns.includes("progress"),
+      },
+      {
+        headerName: "Status",
+        field: "actuals.status",
+        valueGetter: (params: any) => params.data.actuals?.status ?? "",
+        valueSetter: (params: any) => {
+          params.data.actuals.status = params.newValue || null;
+          return true;
+        },
+        editable: true,
+        cellEditor: "agSelectCellEditor",
+        cellEditorParams: {
+          values: [
+            "Not Started",
+            "Started",
+            "InProgress",
+            "Canceled",
+            "Onhold",
+            "Completed",
+            null,
+          ],
+        },
+        hide: !selectedColumns.includes("status"),
+      },
+      {
+        headerName: "Labor",
+        hide: !selectedColumns.includes("labor"),
+        children: [
+          {
+            headerName: "cost",
+            field: "actuals.labor_cost",
+            valueGetter: (params: any) => params.data.actuals?.labor_cost ?? "",
+            valueSetter: (params: any) => {
+              const v = params.newValue;
+              params.data.actuals.labor_cost = v === "" ? null : parseFloat(v);
+              return true;
+            },
+            editable: true,
+          },
+          {
+            headerName: "+/-",
+            valueGetter: (params: any) =>
+              (params.data.actuals?.labor_cost || 0) -
+              (params.data.labor_cost || 0),
+          },
+        ],
+      },
+      {
+        headerName: "Material",
+        hide: !selectedColumns.includes("material"),
+        children: [
+          {
+            headerName: "cost",
+            field: "actuals.material_cost",
+            valueGetter: (params: any) =>
+              params.data.actuals?.material_cost ?? "",
+            valueSetter: (params: any) => {
+              const v = params.newValue;
+              params.data.actuals.material_cost =
+                v === "" ? null : parseFloat(v);
+              return true;
+            },
+            editable: true,
+          },
+          {
+            headerName: "+/-",
+            valueGetter: (params: any) =>
+              (params.data.actuals?.material_cost || 0) -
+              (params.data.material_cost || 0),
+          },
+        ],
+      },
+      {
+        headerName: "Equipment",
+        hide: !selectedColumns.includes("equipment"),
+        children: [
+          {
+            headerName: "cost",
+            field: "actuals.equipment_cost",
+            valueGetter: (params: any) =>
+              params.data.actuals?.equipment_cost ?? "",
+            valueSetter: (params: any) => {
+              const v = params.newValue;
+              params.data.actuals.equipment_cost =
+                v === "" ? null : parseFloat(v);
+              return true;
+            },
+            editable: true,
+          },
+          {
+            headerName: "+/-",
+            valueGetter: (params: any) =>
+              (params.data.actuals?.equipment_cost || 0) -
+              (params.data.equipment_cost || 0),
+          },
+        ],
+      },
+      {
+        headerName: "Total",
+        valueGetter: (params: any) =>
+          (params.data.actuals?.labor_cost || 0) +
+          (params.data.actuals?.material_cost || 0) +
+          (params.data.actuals?.equipment_cost || 0),
+        hide: !selectedColumns.includes("total"),
+      },
+      {
+        headerName: "Over/Under",
+        field: "overUnder",
+        hide: !selectedColumns.includes("overUnder"),
+      },
+      {
+        headerName: "Actions",
+        cellRenderer: ActionsRenderer,
+        hide: !selectedColumns.includes("actions"),
+      },
+    ];
+    return allDefs;
+  }, [selectedColumns, router]); // Dependencies
 
   // Render
   return loadingAct ? (
@@ -195,323 +574,27 @@ const ActualActivityTable: React.FC = () => {
         </div>
       </div>
 
-      {/* Activity Table */}
-      <div className="overflow-x-auto">
-        <table className="min-w-max border-collapse border border-gray-300">
-          <thead className="bg-cyan-700 text-gray-50">
-            <tr>
-              {selectedColumns.includes("id") && (
-                <th
-                  rowSpan={2}
-                  className="border border-gray-300 px-4 py-3 text-sm font-medium text-left whitespace-nowrap"
-                >
-                  ID
-                </th>
-              )}
-              {selectedColumns.includes("activity_name") && (
-                <th
-                  rowSpan={2}
-                  className="border border-gray-300 px-4 py-3 text-sm font-medium text-left whitespace-nowrap"
-                >
-                  Activities
-                </th>
-              )}
-              {selectedColumns.includes("unit") && (
-                <th
-                  rowSpan={2}
-                  className="border border-gray-300 px-4 py-3 text-sm font-medium text-left whitespace-nowrap"
-                >
-                  Unit
-                </th>
-              )}
-              {selectedColumns.includes("quantity") && (
-                <th
-                  rowSpan={2}
-                  className="border border-gray-300 px-4 py-3 text-sm font-medium text-left whitespace-nowrap"
-                >
-                  Qty
-                </th>
-              )}
-              {selectedColumns.includes("start_date") && (
-                <th
-                  rowSpan={2}
-                  className="border border-gray-300 px-4 py-3 text-sm font-medium text-left whitespace-nowrap"
-                >
-                  Start Date
-                </th>
-              )}
-              {selectedColumns.includes("end_date") && (
-                <th
-                  rowSpan={2}
-                  className="border border-gray-300 px-4 py-3 text-sm font-medium text-left whitespace-nowrap"
-                >
-                  End Date
-                </th>
-              )}
-              {selectedColumns.includes("duration") && (
-                <th
-                  rowSpan={2}
-                  className="border border-gray-300 px-4 py-3 text-sm font-medium text-left whitespace-nowrap"
-                >
-                  Duration
-                </th>
-              )}
-              {selectedColumns.includes("progress") && (
-                <th
-                  rowSpan={2}
-                  className="border border-gray-300 px-4 py-3 text-sm font-medium text-left whitespace-nowrap"
-                >
-                  Progress
-                </th>
-              )}
-              {selectedColumns.includes("status") && (
-                <th
-                  rowSpan={2}
-                  className="border border-gray-300 px-4 py-3 text-sm font-medium text-left whitespace-nowrap"
-                >
-                  Status
-                </th>
-              )}
-              {selectedColumns.includes("labor") && (
-                <th
-                  colSpan={2}
-                  className="border border-gray-300 px-4 py-3 text-sm font-medium text-center whitespace-nowrap"
-                >
-                  Labor
-                </th>
-              )}
-              {selectedColumns.includes("material") && (
-                <th
-                  colSpan={2}
-                  className="border border-gray-300 px-4 py-3 text-sm font-medium text-center whitespace-nowrap"
-                >
-                  Material
-                </th>
-              )}
-              {selectedColumns.includes("equipment") && (
-                <th
-                  colSpan={2}
-                  className="border border-gray-300 px-4 py-3 text-sm font-medium text-center whitespace-nowrap"
-                >
-                  Equipment
-                </th>
-              )}
-              {selectedColumns.includes("total") && (
-                <th
-                  rowSpan={2}
-                  className="border border-gray-300 px-4 py-3 text-sm font-medium text-center whitespace-nowrap"
-                >
-                  Total
-                </th>
-              )}
-              {selectedColumns.includes("overUnder") && (
-                <th
-                  rowSpan={2}
-                  className="border border-gray-300 px-4 py-3 text-sm font-medium text-left whitespace-nowrap"
-                >
-                  Over/Under
-                </th>
-              )}
-              {selectedColumns.includes("actions") && (
-                <th
-                  rowSpan={2}
-                  className="border border-gray-300 px-4 py-3 text-sm font-medium text-left whitespace-nowrap"
-                >
-                  Actions
-                </th>
-              )}
-            </tr>
-            <tr>
-              {selectedColumns.includes("labor") && (
-                <>
-                  <th className="border border-gray-300 px-4 py-3 text-sm font-medium text-center whitespace-nowrap">
-                    cost
-                  </th>
-                  <th className="border border-gray-300 px-4 py-3 text-sm font-medium text-center whitespace-nowrap">
-                    +/-
-                  </th>
-                </>
-              )}
-              {selectedColumns.includes("material") && (
-                <>
-                  <th className="border border-gray-300 px-4 py-3 text-sm font-medium text-center whitespace-nowrap">
-                    cost
-                  </th>
-                  <th className="border border-gray-300 px-4 py-3 text-sm font-medium text-center whitespace-nowrap">
-                    +/-
-                  </th>
-                </>
-              )}
-              {selectedColumns.includes("equipment") && (
-                <>
-                  <th className="border border-gray-300 px-4 py-3 text-sm font-medium text-center whitespace-nowrap">
-                    cost
-                  </th>
-                  <th className="border border-gray-300 px-4 py-3 text-sm font-medium text-center whitespace-nowrap">
-                    +/-
-                  </th>
-                </>
-              )}
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {extendedActivities.length > 0 ? (
-              extendedActivities.map((item, idx) => (
-                <tr key={item.id} className="hover:bg-gray-50">
-                  {selectedColumns.flatMap((col) => {
-                    if (col === "labor") {
-                      return [
-                        <td
-                          key="labor_ot"
-                          className="border border-gray-300 px-4 py-2 text-sm text-center whitespace-nowrap"
-                        >
-                          {""}
-                        </td>,
-                        <td
-                          key="labor_dt"
-                          className="border border-gray-300 px-4 py-2 text-sm text-center whitespace-nowrap"
-                        >
-                          {""}
-                        </td>,
-                      ];
-                    } else if (col === "material") {
-                      return [
-                        <td
-                          key="material_ot"
-                          className="border border-gray-300 px-4 py-2 text-sm text-center whitespace-nowrap"
-                        >
-                          {""}
-                        </td>,
-                        <td
-                          key="material_dt"
-                          className="border border-gray-300 px-4 py-2 text-sm text-center whitespace-nowrap"
-                        >
-                          {""}
-                        </td>,
-                      ];
-                    } else if (col === "equipment") {
-                      return [
-                        <td
-                          key="equipment_ot"
-                          className="border border-gray-300 px-4 py-2 text-sm text-center whitespace-nowrap"
-                        >
-                          {""}
-                        </td>,
-                        <td
-                          key="equipment_dt"
-                          className="border border-gray-300 px-4 py-2 text-sm text-center whitespace-nowrap"
-                        >
-                          {""}
-                        </td>,
-                      ];
-                    } else {
-                      return [
-                        <td
-                          key={col}
-                          className="border border-gray-300 px-4 py-2 text-sm whitespace-nowrap"
-                        >
-                          {col === "id" &&
-                            `RC${String(idx + 1).padStart(3, "0")}`}
-                          {col === "activity_name" && (
-                            <Link
-                              href={`/activities/${item.id}`}
-                              className="hover:underline"
-                            >
-                              {item.activity_name}
-                            </Link>
-                          )}
-                          {col === "unit" && ""}
-                          {col === "quantity" && ("")}
-                          {col === "start_date" && ""}
-                          {col === "end_date" && ""}
-                          {col === "duration" &&
-                            // getDuration(item.start_date, item.end_date)
-                            ""
-                            }
-                          {col === "progress" && (
-                            <div className="relative h-5 bg-gray-200 rounded">
-                              <div
-                                // className="absolute h-full bg-blue-600 rounded"
-                                // style={{ width: `${item.progress}%` }}
-                              >
-                                <span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-white">
-                                  {/* {item.progress}% */}
-                                  {""}
-                                </span>
-                              </div>
-                            </div>
-                          )}
-                          {col === "status" && ""}
-                          {col === "total" && ""}
-                          {col === "overUnder" && ""}
-                          {col === "actions" && (
-                            <Menu
-                              as="div"
-                              className="relative inline-block text-left"
-                            >
-                              <MenuButton className="flex items-center gap-1 px-3 py-1 text-sm bg-cyan-700 text-white rounded hover:bg-cyan-800">
-                                Action <ChevronDown className="w-4 h-4" />
-                              </MenuButton>
-                              <MenuItems className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-10">
-                                <MenuItem>
-                                  {({ active }) => (
-                                    <button
-                                      className={`block w-full px-4 py-2 text-left ${
-                                        active ? "bg-blue-100" : ""
-                                      }`}
-                                      onClick={() =>
-                                        router.push(`/activities/${item.id}`)
-                                      }
-                                    >
-                                      Quick View
-                                    </button>
-                                  )}
-                                </MenuItem>
-                                <MenuItem>
-                                  {({ active }) => (
-                                    <button
-                                      className={`block w-full px-4 py-2 text-left ${
-                                        active ? "bg-blue-100" : ""
-                                      }`}
-                                      onClick={() => handleEditClick(item)}
-                                    >
-                                      Update
-                                    </button>
-                                  )}
-                                </MenuItem>
-                                <MenuItem>
-                                  {({ active }) => (
-                                    <button
-                                      className={`block w-full px-4 py-2 text-left ${
-                                        active ? "bg-blue-100" : ""
-                                      }`}
-                                      onClick={() => handleDeleteClick(item.id)}
-                                    >
-                                      Delete
-                                    </button>
-                                  )}
-                                </MenuItem>
-                              </MenuItems>
-                            </Menu>
-                          )}
-                        </td>,
-                      ];
-                    }
-                  })}
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td
-                  colSpan={totalColumns}
-                  className="border border-gray-300 px-4 py-2 text-center text-sm"
-                >
-                  No activities found.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+      {/* AG Grid Table */}
+      <div
+        className="ag-theme-alpine custom-grid"
+        style={{ height: 400, width: "100%" }}
+      >
+        <AgGridReact
+          ref={gridRef}
+          rowData={extendedActivities}
+          columnDefs={columnDefs}
+          onCellValueChanged={handleCellValueChanged}
+          domLayout="autoHeight"
+          theme="legacy"
+          defaultColDef={{
+            sortable: true,
+            filter: true,
+            resizable: true,
+            flex: 1,
+            minWidth: 100,
+            cellStyle: { border: "1px solid #d1d5db" },
+          }}
+        />
       </div>
 
       {/* Delete Modal */}
@@ -534,6 +617,41 @@ const ActualActivityTable: React.FC = () => {
           Showing {extendedActivities.length} rows
         </span>
       </div>
+      <style jsx global>{`
+        .custom-grid .ag-header-cell {
+          background-color: #0e7490 !important; /* cyan-700 */
+          color: #f3f4f6 !important; /* gray-100 */
+          border: 1px solid #d1d5db !important; /* gray-300 */
+        }
+        .custom-grid .ag-header-cell:hover {
+          background-color: #155e75 !important; /* cyan-800 */
+        }
+
+        /* group headers (Labor / Material / Equipment) */
+        .custom-grid .ag-header-group-cell {
+          background-color: #0e7490 !important; /* cyan-700 */
+          color: #f3f4f6 !important; /* gray-100 */
+          border: 1px solid #d1d5db !important;
+        }
+        .custom-grid .ag-header-group-cell:hover {
+          background-color: #155e75 !important; /* cyan-800 */
+        }
+
+        /* Filter icon color - target svg, font icons and path fill/stroke */
+        .custom-grid .ag-header-cell .ag-icon,
+        .custom-grid .ag-header-cell .ag-icon-filter,
+        .custom-grid .ag-header-cell .ag-filter-button svg,
+        .custom-grid .ag-header-cell .ag-filter-button path {
+          color: #f3f4f6 !important;
+          fill: #f3f4f6 !important;
+          stroke: #f3f4f6 !important;
+        }
+
+        /* ensure header text for group looks same */
+        .custom-grid .ag-header-group-cell .ag-header-group-cell-label {
+          color: #f3f4f6 !important;
+        }
+      `}</style>
     </div>
   );
 };

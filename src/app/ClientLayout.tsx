@@ -8,6 +8,8 @@ import Footer from "@/components/layout/Footer";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useAuthStore } from "@/store/authStore";
 import { useEffect, useState, useRef } from "react";
+import { ModuleRegistry } from 'ag-grid-community';
+import { AllCommunityModule } from 'ag-grid-community';
 
 const queryClient = new QueryClient();
 
@@ -22,6 +24,11 @@ export default function ClientLayout({
   const [isLoading, setIsLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const logoutTimer = useRef<number | null>(null);
+
+  // Register AG Grid modules globally
+  useEffect(() => {
+    ModuleRegistry.registerModules([AllCommunityModule]);
+  }, []);
 
   useEffect(() => {
     if (!_hasHydrated) return;
