@@ -16,6 +16,7 @@ import ConfirmModal from "../common/ui/ConfirmModal";
 import ActivityTableSkeleton from "./ActivityTableSkeleton";
 import Link from "next/link";
 import { AgGridReact } from "ag-grid-react"; 
+import "ag-grid-community/styles/ag-grid.css"; 
 import "ag-grid-community/styles/ag-theme-alpine.css"; 
 
 interface ResourceCosts {
