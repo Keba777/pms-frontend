@@ -1,49 +1,58 @@
 // components/ActualTaskTable.tsx
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useMemo, useRef, useState, useEffect } from "react";
+import { Menu, MenuButton, MenuItems, MenuItem } from "@headlessui/react";
 import { ChevronDown } from "lucide-react";
-import { Task, UpdateTaskInput } from "@/types/task";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { AgGridReact } from "ag-grid-react";
+import "ag-grid-community/styles/ag-theme-alpine.css";
+
+import { Task, UpdateTaskInput, TaskActuals } from "@/types/task";
+import {
+  useDeleteTask,
+  useUpdateTask,
+  useUpdateTaskActuals,
+  useTasks,
+} from "@/hooks/useTasks";
 import EditTaskForm from "../forms/EditTaskForm";
 import ManageTaskForm from "../forms/ManageTaskForm";
 import ConfirmModal from "../common/ui/ConfirmModal";
 import GenericDownloads, { Column } from "../common/GenericDownloads";
+import SearchInput from "../common/ui/SearchInput";
+import ProfileAvatar from "../common/ProfileAvatar";
 import { toast } from "react-toastify";
-import { useRouter } from "next/navigation";
-import { useDeleteTask, useUpdateTask } from "@/hooks/useTasks";
-import { useUsers } from "@/hooks/useUsers";
-import Link from "next/link";
-import { formatDate, getDateDuration } from "@/utils/helper";
-import { FilterField, GenericFilter } from "../common/GenericFilter";
 
 interface ActualTaskTableProps {
   tasks: Task[];
   projectId?: string;
 }
 
-// Add type definition for filters
-interface TaskFilters {
-  taskName?: string;
-  status?: string;
-  progress?: string;
-}
+const HEADER_BG = "#0e7490"; // same as activity table (cyan-700)
+const ACTION_BG = "bg-cyan-700"; // tailwind class used for action buttons
 
-const statusBadgeClasses: Record<Task["status"], string> = {
-  "Not Started": "bg-gray-100 text-gray-800",
-  Started: "bg-blue-100 text-blue-800",
-  InProgress: "bg-yellow-100 text-yellow-800",
-  Onhold: "bg-amber-100 text-amber-800",
-  Canceled: "bg-red-100 text-red-800",
-  Completed: "bg-green-100 text-green-800",
+const defaultActuals: TaskActuals = {
+  start_date: null,
+  end_date: null,
+  progress: null,
+  status: null,
+  budget: null,
 };
 
-export default function ActualTaskTable({ tasks }: ActualTaskTableProps) {
+export default function ActualTaskTable({
+  tasks,
+  projectId,
+}: ActualTaskTableProps) {
   const router = useRouter();
+  const gridRef = useRef<AgGridReact | null>(null);
+
+  // hooks (delete/update)
   const { mutate: deleteTask } = useDeleteTask();
   const { mutate: updateTask } = useUpdateTask();
-  const { data: users } = useUsers();
+  const { mutate: updateTaskActuals } = useUpdateTaskActuals();
 
-  // Edit & Manage modals state
+  // local UI state
   const [showEditForm, setShowEditForm] = useState(false);
   const [taskToEdit, setTaskToEdit] = useState<UpdateTaskInput | null>(null);
   const [showManageForm, setShowManageForm] = useState(false);
@@ -53,119 +62,120 @@ export default function ActualTaskTable({ tasks }: ActualTaskTableProps) {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
 
-  // Per‑row dropdown
-  const [dropdownTaskId, setDropdownTaskId] = useState<string | null>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Column customization
-  const columnOptions: Record<string, string> = {
-    no: "No",
-    task_name: "Task",
-    start_date: "Start Date",
-    end_date: "End Date",
-    duration: "Duration",
-    remaining: "Remaining",
-    budget: "Budget",
-    progress: "Progress",
-    status: "Status",
-    actions: "Actions",
-  };
-  const [selectedColumns, setSelectedColumns] = useState<string[]>(
-    Object.keys(columnOptions)
-  );
+  const [search, setSearch] = useState("");
   const [showColumnMenu, setShowColumnMenu] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
+  const [selectedColumns, setSelectedColumns] = useState<string[]>([
+    "no",
+    "task_name",
+    "start_date",
+    "end_date",
+    "duration",
+    "remaining",
+    "budget",
+    "progress",
+    "status",
+    "actions",
+  ]);
 
-  // Filter state - use TaskFilters interface instead of any
-  const [filters, setFilters] = useState<TaskFilters>({});
-  const [filteredTasks, setFilteredTasks] = useState<Task[]>(tasks);
-
-  // Filter configuration
-  const filterFields: FilterField[] = [
-    {
-      name: "taskName",
-      label: "Task Name",
-      type: "text",
-      placeholder: "Search by task name...",
-    },
-    {
-      name: "status",
-      label: "Status",
-      type: "select",
-      options: Object.keys(statusBadgeClasses).map((status) => ({
-        label: status,
-        value: status,
-      })),
-      placeholder: "Select status...",
-    },
-    {
-      name: "progress",
-      label: "Progress",
-      type: "select",
-      options: [
-        { label: "0-25%", value: "0-25" },
-        { label: "26-50%", value: "26-50" },
-        { label: "51-75%", value: "51-75" },
-        { label: "76-100%", value: "76-100" },
-      ],
-      placeholder: "Select progress range...",
-    },
-  ];
-
-  // Apply filters whenever filters or tasks change
-  useEffect(() => {
-    let result = [...tasks];
-
-    if (filters.taskName) {
-      result = result.filter((t) =>
-        t.task_name
-          .toLowerCase()
-          .includes((filters?.taskName ?? "").toLowerCase())
-      );
-    }
-
-    if (filters.status) {
-      result = result.filter((t) => t.status === filters.status);
-    }
-
-    if (filters.progress) {
-      const [min, max] = filters.progress.split("-").map(Number);
-      result = result.filter(
-        (t) => (t.progress ?? 0) >= min && (t.progress ?? 0) <= max
-      );
-    }
-
-    setFilteredTasks(result);
-  }, [filters, tasks]);
-
-  // Handle clicks outside menus
-  useEffect(() => {
-    function onClick(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setShowColumnMenu(false);
+  // compute extendedTasks with actuals defaults + duration/remaining
+  const extendedTasks = useMemo(() => {
+    if (!tasks) return [];
+    return tasks.map((t) => {
+      const actuals: TaskActuals = { ...defaultActuals, ...(t.actuals || {}) };
+      let duration: number | "" = "";
+      if (actuals.start_date && actuals.end_date) {
+        const d = Math.ceil(
+          (new Date(actuals.end_date).getTime() -
+            new Date(actuals.start_date).getTime()) /
+            (1000 * 3600 * 24)
+        );
+        duration = isNaN(d) ? "" : d;
       }
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(e.target as Node)
-      ) {
-        setDropdownTaskId(null);
+      let remaining: number | "" = "";
+      if (actuals.end_date) {
+        const r = Math.ceil(
+          (new Date(actuals.end_date).getTime() - Date.now()) /
+            (1000 * 3600 * 24)
+        );
+        remaining = isNaN(r) ? "" : r;
       }
-    }
-    document.addEventListener("mousedown", onClick);
-    return () => document.removeEventListener("mousedown", onClick);
-  }, []);
+      return { ...t, actuals, duration, remaining };
+    });
+  }, [tasks]);
 
-  // Handlers
-  const toggleColumn = (col: string) =>
-    setSelectedColumns((prev) =>
-      prev.includes(col) ? prev.filter((c) => c !== col) : [...prev, col]
-    );
+  const filtered = extendedTasks.filter((t) =>
+    t.task_name.toLowerCase().includes(search.toLowerCase())
+  );
 
+  // --- helpers ---
+  const sanitizeActualsForApi = (raw: any): TaskActuals => {
+    const safe: any = { ...(raw || {}) };
+
+    const toIso = (v: any) => {
+      if (!v && v !== 0) return null;
+      try {
+        const d = new Date(v);
+        if (isNaN(d.getTime())) return null;
+        return d.toISOString();
+      } catch {
+        return null;
+      }
+    };
+    safe.start_date = toIso(safe.start_date);
+    safe.end_date = toIso(safe.end_date);
+
+    const toNumberOrNull = (v: any) => {
+      if (v === null || v === undefined || v === "") return null;
+      const n = Number(v);
+      return isNaN(n) ? null : n;
+    };
+    safe.progress = toNumberOrNull(safe.progress);
+    // budget can be number or string; store number or null
+    safe.budget =
+      safe.budget === "" || safe.budget === null
+        ? null
+        : toNumberOrNull(safe.budget);
+
+    safe.status = safe.status ?? null;
+
+    return safe as TaskActuals;
+  };
+
+  // actions
+  const handleView = (id: string) => router.push(`/tasks/${id}`);
+  const handleEditClick = (t: Task) => {
+    setTaskToEdit({
+      ...t,
+      assignedUsers: t.assignedUsers?.map((u) => u.id),
+    });
+    setShowEditForm(true);
+  };
+  const handleEditSubmit = (data: UpdateTaskInput) => {
+    updateTask(data, {
+      onSuccess: () => toast.success("Task updated"),
+      onError: () => toast.error("Failed to update task"),
+    });
+    setShowEditForm(false);
+  };
+  const handleManageClick = (t: Task) => {
+    setTaskToManage({
+      ...t,
+      assignedUsers: t.assignedUsers?.map((u) => u.id),
+    });
+    setShowManageForm(true);
+  };
+  const handleManageSubmit = (data: UpdateTaskInput) => {
+    updateTask(data, {
+      onSuccess: () => toast.success("Task updated"),
+      onError: () => toast.error("Failed to update task"),
+    });
+    setShowManageForm(false);
+  };
   const handleDeleteClick = (taskId: string) => {
-    const task = tasks.find((t) => t.id === taskId);
-    if (task?.activities?.length) {
+    const t = tasks.find((x) => x.id === taskId);
+    if (t?.activities?.length) {
       toast.error(
-        "Cannot delete task with activities. Please delete all activities first."
+        "Cannot delete task with activities. Delete activities first."
       );
       return;
     }
@@ -176,82 +186,354 @@ export default function ActualTaskTable({ tasks }: ActualTaskTableProps) {
     if (selectedTaskId) {
       deleteTask(selectedTaskId, {
         onSuccess: () => toast.success("Task deleted"),
-        onError: () => toast.error("Failed to delete"),
+        onError: () => toast.error("Failed to delete task"),
       });
     }
     setIsDeleteModalOpen(false);
   };
 
-  const handleView = (id: string) => router.push(`/tasks/${id}`);
-
-  const handleEditClick = (t: Task) => {
-    setTaskToEdit({
-      ...t,
-      assignedUsers: t.assignedUsers?.map((u) => u.id),
-    });
-    setShowEditForm(true);
-  };
-  const handleEditSubmit = (data: UpdateTaskInput) => {
-    updateTask(data);
-    setShowEditForm(false);
-  };
-
-  const handleManageClick = (t: Task) => {
-    setTaskToManage({
-      ...t,
-      assignedUsers: t.assignedUsers?.map((u) => u.id),
-    });
-    setShowManageForm(true);
-  };
-  const handleManageSubmit = (data: UpdateTaskInput) => {
-    updateTask(data);
-    setShowManageForm(false);
+  // Cell renderers
+  const ProgressRenderer = (params: any) => {
+    const value = params.value ?? 0;
+    return (
+      <div className="relative h-full bg-gray-200 rounded">
+        <div
+          className="absolute h-full bg-blue-600 rounded"
+          style={{ width: `${Math.max(0, Math.min(100, value))}%` }}
+        >
+          <span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-white">
+            {value ?? 0}%
+          </span>
+        </div>
+      </div>
+    );
   };
 
-  // Columns for downloads (budget always "0")
+  const ActionsRenderer = (params: any) => {
+    const d: Task = params.data;
+    return (
+      <Menu as="div" className="relative inline-block text-left w-full">
+        <MenuButton
+          className={`flex items-center justify-between gap-1 px-3 py-1 text-sm ${ACTION_BG} text-white rounded`}
+        >
+          Actions <ChevronDown className="w-4 h-4" />
+        </MenuButton>
+        <MenuItems className="absolute right-0 mt-2 w-44 bg-white border rounded shadow-lg z-10">
+          <MenuItem>
+            {({ active }) => (
+              <button
+                className={`block w-full px-3 py-2 text-left ${
+                  active ? "bg-blue-50" : ""
+                }`}
+                onClick={() => handleView(d.id)}
+              >
+                View
+              </button>
+            )}
+          </MenuItem>
+          <MenuItem>
+            {({ active }) => (
+              <button
+                className={`block w-full px-3 py-2 text-left ${
+                  active ? "bg-blue-50" : ""
+                }`}
+                onClick={() => handleEditClick(d)}
+              >
+                Edit
+              </button>
+            )}
+          </MenuItem>
+          <MenuItem>
+            {({ active }) => (
+              <button
+                className={`block w-full px-3 py-2 text-left text-red-600 ${
+                  active ? "bg-red-50" : ""
+                }`}
+                onClick={() => handleDeleteClick(d.id)}
+              >
+                Delete
+              </button>
+            )}
+          </MenuItem>
+          <MenuItem>
+            {({ active }) => (
+              <button
+                className={`block w-full px-3 py-2 text-left ${
+                  active ? "bg-blue-50" : ""
+                }`}
+                onClick={() => handleManageClick(d)}
+              >
+                Manage
+              </button>
+            )}
+          </MenuItem>
+        </MenuItems>
+      </Menu>
+    );
+  };
+
+  const NameRenderer = (params: any) => (
+    <Link href={`/tasks/${params.data.id}`} className="hover:underline">
+      {params.value}
+    </Link>
+  );
+
+  // called when a cell is edited
+  const handleCellValueChanged = (params: any) => {
+    const { colDef, data } = params;
+    const fieldParts = (colDef.field || "").split(".");
+    if (fieldParts[0] === "actuals") {
+      data.actuals = { ...(data.actuals || {}) };
+      const sanitized = sanitizeActualsForApi(data.actuals);
+      data.actuals = sanitized;
+      updateTaskActuals(
+        { id: data.id, actuals: sanitized },
+        {
+          onSuccess: () => {
+            toast.success("Task actuals saved");
+          },
+          onError: (err: any) => {
+            console.error("Failed to update task actuals", err);
+            toast.error("Failed to save actuals");
+          },
+        }
+      );
+    }
+    // refresh row to update calculated columns
+    params.api.refreshCells({ rowNodes: [params.node], force: true });
+  };
+
+  // column definitions for AG Grid (only fields requested)
+  const columnDefs = useMemo(() => {
+    return [
+      {
+        headerName: "No",
+        valueGetter: (params: any) => String(params.node.rowIndex + 1),
+        hide: !selectedColumns.includes("no"),
+        maxWidth: 90,
+      },
+      {
+        headerName: "Task",
+        field: "task_name",
+        cellRenderer: NameRenderer,
+        hide: !selectedColumns.includes("task_name"),
+        minWidth: 240,
+      },
+      {
+        headerName: "Start Date",
+        field: "actuals.start_date",
+        valueGetter: (params: any) => {
+          const d = params.data.actuals?.start_date;
+          if (!d) return "";
+          const dt = new Date(d);
+          return isNaN(dt.getTime()) ? "" : dt.toLocaleDateString();
+        },
+        valueSetter: (params: any) => {
+          params.data.actuals = params.data.actuals || {};
+          params.data.actuals.start_date = params.newValue || null;
+          return true;
+        },
+        editable: true,
+        cellEditor: "agDateCellEditor",
+        hide: !selectedColumns.includes("start_date"),
+        minWidth: 130,
+      },
+      {
+        headerName: "End Date",
+        field: "actuals.end_date",
+        valueGetter: (params: any) => {
+          const d = params.data.actuals?.end_date;
+          if (!d) return "";
+          const dt = new Date(d);
+          return isNaN(dt.getTime()) ? "" : dt.toLocaleDateString();
+        },
+        valueSetter: (params: any) => {
+          params.data.actuals = params.data.actuals || {};
+          params.data.actuals.end_date = params.newValue || null;
+          return true;
+        },
+        editable: true,
+        cellEditor: "agDateCellEditor",
+        hide: !selectedColumns.includes("end_date"),
+        minWidth: 130,
+      },
+      {
+        headerName: "Duration",
+        valueGetter: (params: any) => {
+          const start = params.data.actuals?.start_date;
+          const end = params.data.actuals?.end_date;
+          if (!start || !end) return "";
+          const diff = Math.ceil(
+            (new Date(end).getTime() - new Date(start).getTime()) /
+              (1000 * 3600 * 24)
+          );
+          return isNaN(diff) ? "" : diff;
+        },
+        hide: !selectedColumns.includes("duration"),
+        minWidth: 110,
+      },
+      {
+        headerName: "Remaining",
+        valueGetter: (params: any) => {
+          const end = params.data.actuals?.end_date;
+          if (!end) return "";
+          const diff = Math.ceil(
+            (new Date(end).getTime() - Date.now()) / (1000 * 3600 * 24)
+          );
+          return isNaN(diff) ? "" : diff;
+        },
+        hide: !selectedColumns.includes("remaining"),
+        minWidth: 110,
+      },
+      {
+        headerName: "Budget",
+        field: "actuals.budget",
+        valueGetter: (params: any) => {
+          const b = params.data.actuals?.budget ?? params.data.budget ?? null;
+          return b === null || b === undefined ? "" : String(b);
+        },
+        valueSetter: (params: any) => {
+          params.data.actuals = params.data.actuals || {};
+          const v = params.newValue;
+          params.data.actuals.budget = v === "" ? null : parseFloat(v);
+          return true;
+        },
+        editable: true,
+        hide: !selectedColumns.includes("budget"),
+        minWidth: 120,
+      },
+      {
+        headerName: "Progress",
+        field: "actuals.progress",
+        valueGetter: (params: any) => params.data.actuals?.progress ?? 0,
+        valueSetter: (params: any) => {
+          params.data.actuals = params.data.actuals || {};
+          const v = params.newValue;
+          params.data.actuals.progress = v === "" ? null : parseInt(v);
+          return true;
+        },
+        editable: true,
+        cellRenderer: ProgressRenderer,
+        hide: !selectedColumns.includes("progress"),
+        maxWidth: 160,
+      },
+      {
+        headerName: "Status",
+        field: "actuals.status",
+        valueGetter: (params: any) => params.data.actuals?.status ?? "",
+        valueSetter: (params: any) => {
+          params.data.actuals = params.data.actuals || {};
+          params.data.actuals.status = params.newValue || null;
+          return true;
+        },
+        editable: true,
+        cellEditor: "agSelectCellEditor",
+        cellEditorParams: {
+          values: [
+            "Not Started",
+            "Started",
+            "InProgress",
+            "Onhold",
+            "Canceled",
+            "Completed",
+            null,
+          ],
+        },
+        hide: !selectedColumns.includes("status"),
+        maxWidth: 160,
+      },
+      {
+        headerName: "Actions",
+        cellRenderer: ActionsRenderer,
+        hide: !selectedColumns.includes("actions"),
+        maxWidth: 160,
+      },
+    ];
+  }, [selectedColumns]);
+
+  // download columns for GenericDownloads (keeps your existing behaviour)
   const downloadColumns: Column<Task>[] = [
     { header: "Task", accessor: "task_name" },
     {
       header: "Start Date",
-      accessor: (row) => formatDate(row.start_date),
+      accessor: (r) =>
+        r.actuals?.start_date
+          ? new Date(r.actuals.start_date).toLocaleDateString()
+          : "",
     },
     {
       header: "End Date",
-      accessor: (row) => formatDate(row.end_date),
+      accessor: (r) =>
+        r.actuals?.end_date
+          ? new Date(r.actuals.end_date).toLocaleDateString()
+          : "",
     },
     {
       header: "Duration",
-      accessor: (row) => getDateDuration(row.start_date, row.end_date),
+      accessor: (r) => {
+        const s = r.actuals?.start_date,
+          e = r.actuals?.end_date;
+        if (!s || !e) return "";
+        const diff = Math.ceil(
+          (new Date(e).getTime() - new Date(s).getTime()) / (1000 * 3600 * 24)
+        );
+        return isNaN(diff) ? "" : String(diff);
+      },
     },
     {
       header: "Remaining",
-      accessor: (row) =>
-        getDateDuration(new Date().toISOString(), row.end_date),
+      accessor: (r) => {
+        const e = r.actuals?.end_date;
+        if (!e) return "";
+        const diff = Math.ceil(
+          (new Date(e).getTime() - Date.now()) / (1000 * 3600 * 24)
+        );
+        return isNaN(diff) ? "" : String(diff);
+      },
     },
-    { header: "Budget", accessor: () => "0" },
-    { header: "Progress", accessor: (row) => `${row.progress}%` },
-    { header: "Status", accessor: "status" },
+    { header: "Budget", accessor: (r) => r.actuals?.budget ?? r.budget ?? 0 },
+    {
+      header: "Progress",
+      accessor: (r) => `${r.actuals?.progress ?? r.progress ?? 0}%`,
+    },
+    { header: "Status", accessor: (r) => r.actuals?.status ?? r.status },
   ];
 
-  return (
-    <div className="ml-3 space-y-4">
-      <GenericDownloads
-        data={filteredTasks}
-        title="Actual Tasks"
-        columns={downloadColumns}
-      />
+  // header & default cell styling tuned to match Activity table
+  if (!tasks) return <div>Loading tasks...</div>;
 
-      <div className="flex items-center justify-between">
-        <div ref={menuRef} className="relative">
+  return (
+    <div>
+      <div className="mb-3">
+        <GenericDownloads
+          data={filtered}
+          title="Actual Tasks"
+          columns={downloadColumns}
+        />
+      </div>
+
+      <div className="mb-4 flex items-center justify-between">
+        <div className="relative">
           <button
             onClick={() => setShowColumnMenu((v) => !v)}
-            className="flex items-center gap-1 px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 text-sm"
+            className="flex items-center gap-1 px-3 py-2 text-sm bg-emerald-600 text-white rounded hover:bg-emerald-700"
           >
             Customize Columns <ChevronDown className="w-4 h-4" />
           </button>
           {showColumnMenu && (
             <div className="absolute right-0 mt-1 w-48 bg-white border rounded shadow z-10">
-              {Object.entries(columnOptions).map(([key, label]) => (
+              {[
+                ["no", "No"],
+                ["task_name", "Task"],
+                ["start_date", "Start Date"],
+                ["end_date", "End Date"],
+                ["duration", "Duration"],
+                ["remaining", "Remaining"],
+                ["budget", "Budget"],
+                ["progress", "Progress"],
+                ["status", "Status"],
+                ["actions", "Actions"],
+              ].map(([key, label]) => (
                 <label
                   key={key}
                   className="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer"
@@ -259,7 +541,13 @@ export default function ActualTaskTable({ tasks }: ActualTaskTableProps) {
                   <input
                     type="checkbox"
                     checked={selectedColumns.includes(key)}
-                    onChange={() => toggleColumn(key)}
+                    onChange={() =>
+                      setSelectedColumns((prev) =>
+                        prev.includes(key)
+                          ? prev.filter((c) => c !== key)
+                          : [...prev, key]
+                      )
+                    }
                     className="mr-2"
                   />
                   {label}
@@ -268,235 +556,39 @@ export default function ActualTaskTable({ tasks }: ActualTaskTableProps) {
             </div>
           )}
         </div>
-      </div>
 
-      {/* Filter Section */}
-      <div className="mb-4">
-        <GenericFilter
-          fields={filterFields}
-          onFilterChange={(values) => setFilters(values as TaskFilters)}
+        <SearchInput
+          placeholder="Search tasks..."
+          value={search}
+          onChange={setSearch}
         />
       </div>
 
-      {/* Edit Task Modal */}
-      {showEditForm && taskToEdit && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <EditTaskForm
-              onClose={() => setShowEditForm(false)}
-              onSubmit={handleEditSubmit}
-              task={taskToEdit}
-              users={users}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Manage Task Modal */}
-      {showManageForm && taskToManage && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <ManageTaskForm
-              onClose={() => setShowManageForm(false)}
-              onSubmit={handleManageSubmit}
-              task={taskToManage}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Table */}
-      <div className="overflow-x-auto">
-        <table className="min-w-full border border-gray-200 divide-y divide-gray-200">
-          <thead className="bg-teal-700">
-            <tr>
-              {selectedColumns.includes("no") && (
-                <th className="border px-4 py-3 text-left text-sm font-medium text-gray-50 w-16">
-                  No
-                </th>
-              )}
-              {selectedColumns.includes("task_name") && (
-                <th className="border px-4 py-3 text-left text-sm font-medium text-gray-50">
-                  Task
-                </th>
-              )}
-              {selectedColumns.includes("start_date") && (
-                <th className="border px-4 py-3 text-left text-sm font-medium text-gray-50">
-                  Start Date
-                </th>
-              )}
-              {selectedColumns.includes("end_date") && (
-                <th className="border px-4 py-3 text-left text-sm font-medium text-gray-50">
-                  End Date
-                </th>
-              )}
-              {selectedColumns.includes("duration") && (
-                <th className="border px-4 py-3 text-left text-sm font-medium text-gray-50">
-                  Duration
-                </th>
-              )}
-              {selectedColumns.includes("remaining") && (
-                <th className="border px-4 py-3 text-left text-sm font-medium text-gray-50">
-                  Remaining
-                </th>
-              )}
-              {selectedColumns.includes("budget") && (
-                <th className="border px-4 py-3 text-left text-sm font-medium text-gray-50">
-                  Budget
-                </th>
-              )}
-              {selectedColumns.includes("progress") && (
-                <th className="border px-4 py-3 text-left text-sm font-medium text-gray-50">
-                  Progress
-                </th>
-              )}
-              {selectedColumns.includes("status") && (
-                <th className="border px-4 py-3 text-left text-sm font-medium text-gray-50">
-                  Status
-                </th>
-              )}
-              {selectedColumns.includes("actions") && (
-                <th className="border px-4 py-3 text-left text-sm font-medium text-gray-50 w-32">
-                  Actions
-                </th>
-              )}
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {filteredTasks.length > 0 ? (
-              filteredTasks.map((task, idx) => {
-                // const duration = getDateDuration(
-                //   task.start_date,
-                //   task.end_date
-                // );
-                // const remaining = getDateDuration(
-                //   new Date().toISOString(),
-                //   task.end_date
-                // );
-                return (
-                  <tr key={task.id} className="hover:bg-gray-50 relative">
-                    {selectedColumns.includes("no") && (
-                      <td className="border px-4 py-2">{idx + 1}</td>
-                    )}
-                    {selectedColumns.includes("task_name") && (
-                      <td className="border border-gray-200 px-4 py-2 font-medium">
-                        <Link href={`/master-schedule/task/${task.id}`}>
-                          {task.task_name}
-                        </Link>
-                      </td>
-                    )}
-                    {selectedColumns.includes("start_date") && (
-                      <td className="border px-4 py-2">
-                        {}
-                      </td>
-                    )}
-                    {selectedColumns.includes("end_date") && (
-                      <td className="border px-4 py-2">
-                        {}
-                      </td>
-                    )}
-                    {selectedColumns.includes("duration") && (
-                      <td className="border px-4 py-2">{}</td>
-                    )}
-                    {selectedColumns.includes("remaining") && (
-                      <td className="border px-4 py-2">{}</td>
-                    )}
-                    {selectedColumns.includes("budget") && (
-                      <td className="border px-4 py-2">{}</td>
-                    )}
-                    {selectedColumns.includes("progress") && (
-                      <td className="border px-4 py-2">{}</td>
-                    )}
-                    {selectedColumns.includes("status") && (
-                      <td className="border px-4 py-2">
-                        <span
-                          className={`px-2 py-1 rounded-full text-sm font-medium ${
-                            statusBadgeClasses[task.status]
-                          }`}
-                        >
-                          {}
-                        </span>
-                      </td>
-                    )}
-                    {selectedColumns.includes("actions") && (
-                      <td className="border px-4 py-2">
-                        <div className="relative">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setDropdownTaskId(
-                                dropdownTaskId === task.id ? null : task.id
-                              );
-                            }}
-                            className="flex items-center justify-between gap-1 px-3 py-1 bg-teal-700 text-white rounded w-full"
-                          >
-                            Actions
-                            <ChevronDown className="w-4 h-4" />
-                          </button>
-                          {dropdownTaskId === task.id && (
-                            <div
-                              ref={dropdownRef}
-                              className="absolute left-0 top-full mt-1 w-full bg-white border rounded shadow-lg z-50"
-                            >
-                              <button
-                                onClick={() => {
-                                  setDropdownTaskId(null);
-                                  handleView(task.id);
-                                }}
-                                className="w-full text-left px-3 py-2 hover:bg-gray-100"
-                              >
-                                View
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setDropdownTaskId(null);
-                                  handleEditClick(task);
-                                }}
-                                className="w-full text-left px-3 py-2 hover:bg-gray-100"
-                              >
-                                Edit
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setDropdownTaskId(null);
-                                  handleDeleteClick(task.id);
-                                }}
-                                className="w-full text-left px-3 py-2 text-red-600 hover:bg-gray-100"
-                              >
-                                Delete
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setDropdownTaskId(null);
-                                  handleManageClick(task);
-                                }}
-                                className="w-full text-left px-3 py-2 hover:bg-gray-100"
-                              >
-                                Manage
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </td>
-                    )}
-                  </tr>
-                );
-              })
-            ) : (
-              <tr>
-                <td
-                  colSpan={selectedColumns.length}
-                  className="border px-4 py-2 text-center text-gray-500"
-                >
-                  No tasks found
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+      {/* AG Grid */}
+      <div className="ag-theme-alpine custom-grid" style={{ width: "100%" }}>
+        <AgGridReact
+          ref={gridRef}
+          rowData={filtered}
+          columnDefs={columnDefs}
+          onCellValueChanged={handleCellValueChanged}
+          domLayout="autoHeight"
+          headerHeight={56}
+          rowHeight={52}
+          defaultColDef={{
+            sortable: true,
+            filter: true,
+            resizable: true,
+            flex: 1,
+            minWidth: 100,
+            cellStyle: {
+              border: "0.3px solid rgba(209,213,219,0.7)",
+              padding: "6px 8px",
+            },
+          }}
+        />
       </div>
 
-      {/* Delete confirm */}
+      {/* Modals */}
       {isDeleteModalOpen && (
         <ConfirmModal
           isVisible={isDeleteModalOpen}
@@ -509,6 +601,87 @@ export default function ActualTaskTable({ tasks }: ActualTaskTableProps) {
           onConfirm={handleDeleteConfirm}
         />
       )}
+
+      {showEditForm && taskToEdit && (
+        <div className="modal-overlay fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="modal-content bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl">
+            <EditTaskForm
+              task={taskToEdit}
+              onSubmit={handleEditSubmit}
+              onClose={() => setShowEditForm(false)}
+            />
+          </div>
+        </div>
+      )}
+
+      {showManageForm && taskToManage && (
+        <div className="modal-overlay fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="modal-content bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl">
+            <ManageTaskForm
+              task={taskToManage}
+              onSubmit={handleManageSubmit}
+              onClose={() => setShowManageForm(false)}
+            />
+          </div>
+        </div>
+      )}
+
+      <div className="flex items-center justify-between p-4">
+        <span className="text-sm text-[#697a8d]">
+          Showing {filtered.length} rows
+        </span>
+        <div className="flex gap-2">
+          <button className="px-3 py-1 rounded border hover:bg-gray-50">
+            &lsaquo;
+          </button>
+          <button className="px-3 py-1 rounded border bg-gray-100">1</button>
+          <button className="px-3 py-1 rounded border hover:bg-gray-50">
+            &rsaquo;
+          </button>
+        </div>
+      </div>
+
+      {/* Styles */}
+      <style jsx global>{`
+        .custom-grid .ag-header-cell {
+          background-color: ${HEADER_BG} !important;
+          color: #f3f4f6 !important;
+          border: 0.3px solid rgba(209, 213, 219, 0.7) !important;
+          box-sizing: border-box;
+        }
+        .custom-grid .ag-header-cell:hover {
+          background-color: #155e75 !important;
+        }
+        .custom-grid .ag-header-cell,
+        .custom-grid .ag-header-cell .ag-header-cell-label {
+          padding: 8px 10px !important;
+          height: 56px !important;
+          display: flex;
+          align-items: center;
+          justify-content: flex-start;
+          gap: 8px;
+        }
+        .custom-grid .ag-header-cell .ag-icon,
+        .custom-grid .ag-header-cell .ag-icon-filter,
+        .custom-grid .ag-header-cell .ag-filter-button svg,
+        .custom-grid .ag-header-cell .ag-filter-button path {
+          color: #f3f4f6 !important;
+          fill: #f3f4f6 !important;
+          stroke: #f3f4f6 !important;
+        }
+        .custom-grid .ag-cell {
+          padding: 6px 8px !important;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          white-space: normal;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          color: #697a8d !important;
+          border-bottom: 0.3px solid rgba(209, 213, 219, 0.7) !important;
+          box-sizing: border-box;
+        }
+      `}</style>
     </div>
   );
 }

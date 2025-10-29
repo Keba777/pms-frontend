@@ -2,6 +2,16 @@ import { Activity } from "./activity";
 import { Project } from "./project";
 import { User } from "./user";
 
+export type TaskStatus = 'Not Started' | 'Started' | 'InProgress' | 'Canceled' | 'Onhold' | 'Completed';
+
+export interface TaskActuals {
+    start_date?: Date | null;
+    end_date?: Date | null;
+    progress?: number | null;
+    status?: TaskStatus | null;
+    budget?: number | string | null;
+}
+
 export interface Task {
     id: string;
     task_name: string;
@@ -12,10 +22,12 @@ export interface Task {
     start_date: Date;
     end_date: Date;
     progress?: number;
-    status: 'Not Started' | 'Started' | 'InProgress' | 'Canceled' | 'Onhold' | 'Completed';
+    status: TaskStatus;
     approvalStatus: 'Approved' | 'Not Approved' | 'Pending';
     assignedUsers?: User[];
     activities?: Activity[];
+    budget?: number | string;
+    actuals?: TaskActuals | null;
     createdAt?: Date;
     updatedAt?: Date;
 }
@@ -29,9 +41,11 @@ export interface CreateTaskInput {
     start_date: Date;
     end_date: Date;
     progress?: number;
-    status: 'Not Started' | 'Started' | 'InProgress' | 'Canceled' | 'Onhold' | 'Completed';
+    status: TaskStatus;
     approvalStatus: 'Approved' | 'Not Approved' | 'Pending';
     assignedUsers?: string[];
+    budget?: number | string;
+    actuals?: TaskActuals | null;
 }
 
 export interface UpdateTaskInput {
@@ -44,7 +58,9 @@ export interface UpdateTaskInput {
     start_date?: Date;
     end_date?: Date;
     progress?: number;
-    status?: 'Not Started' | 'Started' | 'InProgress' | 'Canceled' | 'Onhold' | 'Completed';
+    status?: TaskStatus;
     approvalStatus?: 'Approved' | 'Not Approved' | 'Pending';
     assignedUsers?: string[];
+    budget?: number | string | null;
+    actuals?: TaskActuals | null;
 }
