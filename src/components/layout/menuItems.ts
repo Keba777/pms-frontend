@@ -27,6 +27,8 @@ import {
   Wallet,
   CreditCard,
   Receipt,
+  Star,
+  Inbox,
 } from "lucide-react";
 
 const menuItems = [
@@ -37,9 +39,9 @@ const menuItems = [
     icon: Briefcase,
     iconColor: "text-emerald-600",
     submenu: [
-      { title: "Manage Projects", link: "/projects", active: true },
-      { title: "Favorite Projects", link: "/projects/favorite" },
-      { title: "Project Phase", link: "/projects/phase" },
+      { title: "Manage Projects", link: "/projects", active: true, icon: Grid, iconColor: "text-sky-600" },
+      { title: "Favorite Projects", link: "/projects/favorite", icon: Star, iconColor: "text-yellow-500" },
+      { title: "Project Phase", link: "/projects/phase", icon: CalendarRange, iconColor: "text-indigo-500" },
     ],
   },
 
@@ -100,10 +102,10 @@ const menuItems = [
     icon: ListCheck,
     iconColor: "text-blue-600",
     submenu: [
-      { title: "Incoming Requests", link: "/requests-incoming" },
-      { title: "Request Materials", link: "/requests/materials" },
-      { title: "Request Equipment", link: "/requests/equipments" },
-      { title: "Request Labor", link: "/requests/labors" },
+      { title: "Incoming Requests", link: "/requests-incoming", icon: Inbox, iconColor: "text-indigo-500" },
+      { title: "Request Materials", link: "/requests/materials", icon: BoxIcon, iconColor: "text-cyan-600" },
+      { title: "Request Equipment", link: "/requests/equipments", icon: PenTool, iconColor: "text-zinc-600" },
+      { title: "Request Labor", link: "/requests/labors", icon: Users, iconColor: "text-gray-600" },
     ],
   },
 
@@ -112,9 +114,9 @@ const menuItems = [
     icon: CheckSquare,
     iconColor: "text-lime-600",
     submenu: [
-      { title: "Request Allocation", link: "/allocation" },
-      { title: "Approvals", link: "/request-approval" },
-      { title: "Delivery Report", link: "/deliveries" },
+      { title: "Request Allocation", link: "/allocation", icon: ArrowRight, iconColor: "text-purple-600" },
+      { title: "Approvals", link: "/request-approval", icon: ClipboardList, iconColor: "text-amber-600" },
+      { title: "Delivery Report", link: "/deliveries", icon: FileText, iconColor: "text-rose-600" },
     ],
   },
   {
@@ -142,7 +144,7 @@ const menuItems = [
     title: "Todos",
     link: "/todos",
     icon: ListTodo,
-    iconColor: "text-cyan-600"
+    iconColor: "text-cyan-600",
   },
 
   {
@@ -241,30 +243,30 @@ const menuItems = [
     iconColor: "text-green-500",
     submenu: [
       {
-    title: "Invoices",
-    link: "/finance/invoices",
-    icon: Receipt,
-    iconColor: "text-emerald-600",
-  },
-  {
-    title: "Payments",
-    link: "/finance/payments",
-    icon: CreditCard,
-    iconColor: "text-indigo-600",
-  },
-  {
-    title: "Budgets",
-    link: "/finance/budgets",
-    icon: Wallet,
-    iconColor: "text-purple-600",
-  },
-  {
-    title: "Payrolls",
-    link: "/finance/payrolls",
-    icon: DollarSign,
-    iconColor: "text-orange-600",
-  },
-    ]
+        title: "Invoices",
+        link: "/finance/invoices",
+        icon: Receipt,
+        iconColor: "text-emerald-600",
+      },
+      {
+        title: "Payments",
+        link: "/finance/payments",
+        icon: CreditCard,
+        iconColor: "text-indigo-600",
+      },
+      {
+        title: "Budgets",
+        link: "/finance/budgets",
+        icon: Wallet,
+        iconColor: "text-purple-600",
+      },
+      {
+        title: "Payrolls",
+        link: "/finance/payrolls",
+        icon: DollarSign,
+        iconColor: "text-orange-600",
+      },
+    ],
   },
   {
     title: "Settings",
@@ -325,7 +327,7 @@ const menuItems = [
         icon: Languages,
         iconColor: "text-cyan-600",
       },
-    ]
+    ],
   },
 
   {
@@ -333,137 +335,7 @@ const menuItems = [
   },
   {
     title: "",
-  }
-  // {
-  //   title: "Contracts",
-  //   icon: FileText,
-  //   iconColor: "text-green-500",
-  //   submenu: [
-  //     { title: "Manage Contracts", link: "/contracts" },
-  //     { title: "Contract Types", link: "/contracts/contract-types" },
-  //   ],
-  // },
-  // {
-  //   title: "Budget",
-  //   link: "/budget/allocate",
-  //   icon: DollarSign,
-  //   iconColor: "text-yellow-500",
-  // },
-  // {
-  //   title: "Budget Overview",
-  //   link: "/budgets/overview",
-  //   icon: DollarSign,
-  //   iconColor: "text-yellow-500",
-  // },
-
-  // {
-  //   title: "Inventories",
-  //   icon: BoxIcon,
-  //   iconColor: "text-green-500",
-  //   submenu: [
-  //     {
-  //       title: "Manage Warehouses",
-  //       link: "/warehouses",
-  //       icon: Building,
-  //       iconColor: "text-blue-500",
-  //     },
-
-  //     {
-  //       title: "Transfers",
-  //       link: "/transfer",
-  //       icon: ArrowRightLeft, // replaced Transfer with ArrowsRightLeft
-  //       iconColor: "text-gray-500",
-  //     },
-  //     {
-  //       title: "Incoming Transfer",
-  //       link: "/incoming/transfer",
-  //       badge: 3,
-  //     },
-  //     {
-  //       title: "Dispatch",
-  //       link: "/dispatch",
-  //       icon: ArrowRightLeft,
-  //       iconColor: "text-gray-500",
-  //     },
-  //     { title: "Delivery (GRN)", link: "/delivery" },
-  //     { title: "Purchase Requisition", link: "/transfer" },
-  //     {
-  //       title: "Damages & Return",
-  //       link: "/damages",
-  //       icon: ListCheck,
-  //       iconColor: "text-gray-800",
-  //     },
-  //     {
-  //       title: "Inventory History",
-  //       link: "/inventory-history",
-  //       icon: History,
-  //       iconColor: "text-gray-800",
-  //     },
-  //     {
-  //       title: "Report",
-  //       link: "/inventory-report",
-  //       icon: FileText,
-  //       iconColor: "text-gray-400",
-  //     },
-  //   ],
-  // },
-  // {
-  //   title: "Hr Dashboard",
-  //   link: "/hrm",
-  //   icon: Users,
-  //   iconColor: "text-yellow-500",
-  // },
-  // {
-  //   title: "Job Position",
-  //   link: "/employee_possition",
-  //   icon: Users,
-  //   iconColor: "text-yellow-500",
-  // },
-  // {
-  //   title: "Labor",
-  //   link: "/labors",
-  //   icon: Users,
-  //   iconColor: "text-yellow-500",
-  // },
-  // {
-  //   title: "Payslips",
-  //   icon: BoxIcon,
-  //   iconColor: "text-yellow-500",
-  //   submenu: [
-  //     { title: "Manage Payslips", link: "/payslips" },
-  //     { title: "Allowances", link: "/allowances" },
-  //     { title: "Deductions", link: "/deductions" },
-  //   ],
-  // },
-  // {
-  //   title: "Finance",
-  //   icon: CreditCard,
-  //   iconColor: "text-green-500",
-  //   submenu: [
-  //     { title: "Expenses", link: "/expenses" },
-  //     { title: "Estimates/Invoices", link: "/estimates-invoices" },
-  //     { title: "Payments", link: "/payments" },
-  //     { title: "Payment Methods", link: "/payment-methods" },
-  //     { title: "Taxes", link: "/taxes" },
-  //     { title: "Units", link: "/units" },
-  //     { title: "Items", link: "/items" },
-  //   ],
-  // },
-  // {
-  //   title: "Notes",
-  //   link: "/notes",
-  //   icon: BookOpen, // replaced Note with BookOpen
-  //   iconColor: "text-blue-500",
-  // },
-  // {
-  //   title: "Report",
-  //   icon: FileText,
-  //   iconColor: "text-green-500",
-  //   submenu: [
-  //     { title: "Project", link: "/project/report" },
-  //     { title: "Tasks", link: "/task/report" },
-  //   ],
-  // },
+  },
 ];
 
 export default menuItems;
