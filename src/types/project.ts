@@ -2,6 +2,16 @@ import { Site } from "./site";
 import { Task } from "./task";
 import { User } from "./user";
 
+export type ProjectStatus = 'Not Started' | 'Started' | 'InProgress' | 'Canceled' | 'Onhold' | 'Completed';
+
+export interface ProjectActuals {
+    start_date?: Date | null;
+    end_date?: Date | null;
+    progress?: number | null;
+    status?: ProjectStatus | null;
+    budget?: number | string | null;
+}
+
 export interface Project {
     id: string;
     title: string;
@@ -15,10 +25,11 @@ export interface Project {
     site?: Site
     progress?: number;
     isFavourite?: boolean;
-    status: 'Not Started' | 'Started' | 'InProgress' | 'Canceled' | 'Onhold' | 'Completed';
+    status: ProjectStatus;
     members?: User[];
     tagIds?: string[];
     tasks?: Task[];
+    actuals?: ProjectActuals | null;
     createdAt?: Date;
     updatedAt?: Date;
 }
@@ -33,8 +44,9 @@ export interface CreateProjectInput {
     progress?: number;
     client: string;
     site_id?: string;
-    status: 'Not Started' | 'Started' | 'InProgress' | 'Canceled' | 'Onhold' | 'Completed';
+    status: ProjectStatus;
     members?: string[];
+    actuals?: ProjectActuals | null;
 }
 
 export interface UpdateProjectInput {
@@ -49,7 +61,7 @@ export interface UpdateProjectInput {
     site_id?: string;
     progress?: number;
     isFavourite?: boolean;
-    status?: 'Not Started' | 'Started' | 'InProgress' | 'Canceled' | 'Onhold' | 'Completed';
+    status?: ProjectStatus;
     members?: string[];
-    tasks?: Task[];
+    actuals?: ProjectActuals | null;
 }

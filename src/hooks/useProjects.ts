@@ -56,6 +56,11 @@ const deleteProject = async (id: string): Promise<{ message: string }> => {
   return response.data.data;
 };
 
+const updateProjectActuals = async (payload: { id: string; actuals: any }): Promise<Project> => {
+  const response = await apiClient.patch<ApiResponse<Project>>(`/projects/${payload.id}/actuals`, { actuals: payload.actuals });
+  return response.data.data;
+};
+
 // ----------------------------
 // Updated React Query hooks
 // ----------------------------
@@ -141,6 +146,23 @@ export const useDeleteProject = () => {
     },
     onError: () => {
       toast.error("Failed to delete project");
+    },
+  });
+};
+
+// new hook: update project actuals
+export const useUpdateProjectActuals = () => {
+  const queryClient = useQueryClient();
+  const updateProjectInStore = useProjectStore((state) => state.updateProject);
+  return useMutation({
+    mutationFn: updateProjectActuals,
+    onSuccess: (updatedProject) => {
+      toast.success("Project actuals updated successfully!");
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      updateProjectInStore(updatedProject);
+    },
+    onError: () => {
+      toast.error("Failed to update project actuals");
     },
   });
 };
