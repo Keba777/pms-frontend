@@ -18,7 +18,7 @@ const getClientToken = () => {
 };
 
 const apiClient = axios.create({
-  baseURL: "https://pms-backend-t25g.onrender.com/api/v1/",
+  baseURL: "https://api.nilepms.com/api/v1/",
   withCredentials: true,
 });
 
