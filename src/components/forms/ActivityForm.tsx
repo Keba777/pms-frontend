@@ -36,8 +36,17 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
       task_id: defaultTaskId || undefined,
       priority: "Medium",
       status: "Not Started",
-      approvalStatus: "Pending",
-      progress: 0,
+      approvalStatus: "Approved", 
+      progress: 0, 
+      labor_index_factor: null,
+      labor_utilization_factor: null,
+      labor_working_hours_per_day: null,
+      machinery_index_factor: null,
+      machinery_utilization_factor: null,
+      machinery_working_hours_per_day: null,
+      labor_cost: null,
+      material_cost: null,
+      equipment_cost: null,
       work_force: [],
       machinery_list: [],
       materials_list: [],
@@ -440,30 +449,68 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
           </div>
         </div>
 
-        {/* Unit and Progress */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Unit, Quantity and Progress */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Unit <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
-              {...register("unit")}
+              {...register("unit", { required: "Unit is required" })}
               placeholder="Enter unit (e.g., kg, pieces)"
               className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
             />
+            {errors.unit && (
+              <p className="text-red-500 text-sm mt-1">{errors.unit.message}</p>
+            )}
           </div>
+
           {/* Quantity Field */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Quantity <span className="text-red-500">*</span>
             </label>
             <input
-              // type="number"
-              {...register("quantity")}
+              type="number"
+              {...register("quantity", {
+                valueAsNumber: true,
+                required: "Quantity is required",
+              })}
               placeholder="Enter quantity"
               className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
             />
+            {errors.quantity && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.quantity.message}
+              </p>
+            )}
+          </div>
+
+          {/* Progress Field */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Progress (%) <span className="text-gray-500">(0 - 100)</span>
+            </label>
+            <input
+              type="number"
+              step={1}
+              min={0}
+              max={100}
+              {...register("progress", {
+                valueAsNumber: true,
+                min: { value: 0, message: "Progress cannot be less than 0" },
+                max: { value: 100, message: "Progress cannot exceed 100" },
+              })}
+              defaultValue={0}
+              placeholder="0"
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+            />
+            {errors.progress && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.progress.message}
+              </p>
+            )}
           </div>
         </div>
 

@@ -12,6 +12,8 @@ import { useRouter } from "next/navigation";
 import { useDeleteActivity, useUpdateActivity } from "@/hooks/useActivities";
 import Link from "next/link";
 import { formatDate, getDateDuration } from "@/utils/helper";
+import { User } from "@/types/user";
+import { useUsers } from "@/hooks/useUsers";
 
 interface ActivityTableProps {
   taskId: string;
@@ -43,6 +45,7 @@ const ActivityTable: React.FC<ActivityTableProps> = ({
   const { mutate: updateActivity } = useUpdateActivity();
 
   const { data: taskDetail, isLoading: taskLoading } = useTask(taskId);
+  const { data: users } = useUsers();
   const router = useRouter();
 
   // Local state
@@ -248,6 +251,7 @@ const ActivityTable: React.FC<ActivityTableProps> = ({
               onClose={() => setShowEditForm(false)}
               onSubmit={handleEditSubmit}
               activity={activityToEdit}
+              users={users}
             />
           </div>
         </div>

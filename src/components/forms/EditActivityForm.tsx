@@ -6,7 +6,8 @@ import Select from "react-select";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { UpdateActivityInput } from "@/types/activity";
-import { User } from "@/types/user";
+import { Role, User } from "@/types/user";
+import { useRoles } from "@/hooks/useRoles";
 
 const EditActivityForm: React.FC<{
   onSubmit: (data: UpdateActivityInput) => void;
@@ -22,6 +23,7 @@ const EditActivityForm: React.FC<{
   } = useForm<UpdateActivityInput>({
     defaultValues: activity,
   });
+  const { data: roles } = useRoles();
 
   const priorityOptions = [
     { value: "Critical", label: "Critical" },
@@ -45,11 +47,21 @@ const EditActivityForm: React.FC<{
     { value: "Pending", label: "Pending" },
   ];
 
+  const CLIENT_ROLE_ID = "aa192529-c692-458e-bf96-42b7d4782c3d";
+
   const userOptions =
-    users?.map((user) => ({
-      value: user.id,
-      label: `${user.first_name} ${user.last_name} (${user.role?.name})`,
-    })) || [];
+    users
+      ?.filter((user: User) => user.role_id !== CLIENT_ROLE_ID)
+      .map((user: User) => {
+        const roleObj: Role | undefined = roles?.find(
+          (r) => r.id === user.role_id
+        );
+        const roleName = roleObj ? roleObj.name : "No Role";
+        return {
+          value: user.id!,
+          label: `${user.first_name} (${roleName})`,
+        };
+      }) || [];
 
   return (
     <form
