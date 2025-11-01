@@ -18,7 +18,7 @@ const getClientToken = () => {
 };
 
 const apiClient = axios.create({
-  baseURL: "http://localhost:8000/api/v1/",
+  baseURL: "https://api.nilepms.com/api/v1/",
   withCredentials: true,
 });
 
