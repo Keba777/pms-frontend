@@ -22,10 +22,16 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
   const [chatBadge, setChatBadge] = useState(0);
   const [groupChatBadge, setGroupChatBadge] = useState(0);
 
+  // Determine if current user is HR (case-insensitive, includes "hr")
+  const isHR = Boolean(
+    user?.role?.name && user.role.name.toLowerCase().includes("hr")
+  );
+
   // Fetch unread message count for “Chat” badge
   useEffect(() => {
     if (!user) {
       setChatBadge(0);
+      setGroupChatBadge(0);
       return;
     }
 
@@ -41,6 +47,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
           setChatBadge(count ?? 0);
         }
       });
+
     supabase
       .from("group_messages")
       .select("id", { count: "exact" })
@@ -59,7 +66,16 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
 
   // Apply your existing permission-based filtering
   const filteredMenuItems = menuItemsWithBadge.filter((item) => {
-    if (item.link === "/") return true;
+    // HR-only dashboard item (keep as you had it)
+    if (item.title === "HR Dashboard") {
+      return user?.role?.name === "HR Manager" || isHR;
+    }
+
+    // Exclude the root "/" menu item for HR users
+    if (item.link === "/") {
+      return !isHR;
+    }
+
     if (item.submenu) {
       const filteredSub = item.submenu.filter((s) => {
         const resource = s.link?.split("/")[1];
@@ -72,6 +88,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
       });
       return filteredSub.length > 0;
     }
+
     const resource = item.link?.split("/")[1];
     return resource
       ? hasPermission(resource, "manage") ||
@@ -96,7 +113,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
       </button>
 
       <div className="flex items-center justify-center ">
-        <Link href="/" className="flex items-center">
+        {/* Logo: send HR users to /hrm, others to / */}
+        <Link href={isHR ? "/hrm" : "/"} className="flex items-center">
           <Image
             src={logo}
             alt="Logo"

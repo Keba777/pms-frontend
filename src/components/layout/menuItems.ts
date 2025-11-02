@@ -35,6 +35,12 @@ const menuItems = [
   { title: "Dashboard", link: "/", icon: Home, iconColor: "text-rose-500" },
 
   {
+    title: "HR Dashboard",
+    link: "/hrm",
+    icon: Users,
+    iconColor: "text-cyan-700",
+  },
+  {
     title: "Projects",
     icon: Briefcase,
     iconColor: "text-emerald-600",
