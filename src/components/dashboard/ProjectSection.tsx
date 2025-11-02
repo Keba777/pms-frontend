@@ -223,7 +223,7 @@ const ProjectSection: React.FC = () => {
                 .map((col) => (
                   <TableHead
                     key={col.value}
-                    className="text-gray-50 font-medium  px-4 py-3"
+                    className="text-gray-50 font-medium  px-4 py-4"
                   >
                     {col.label}
                   </TableHead>
@@ -240,10 +240,10 @@ const ProjectSection: React.FC = () => {
                 return (
                   <TableRow key={project.id} className="hover:bg-gray-50">
                     {selectedColumns.includes("id") && (
-                      <TableCell className="px-4 py-3 ">{idx + 1}</TableCell>
+                      <TableCell className="px-4 py-2 ">{idx + 1}</TableCell>
                     )}
                     {selectedColumns.includes("title") && (
-                      <TableCell className="px-4 py-3 ">
+                      <TableCell className="px-4 py-2 ">
                         <Link
                           href={`/projects/${project.id}`}
                           className="text-cyan-700 hover:underline font-medium"
@@ -253,7 +253,7 @@ const ProjectSection: React.FC = () => {
                       </TableCell>
                     )}
                     {selectedColumns.includes("members") && (
-                      <TableCell className="px-4 py-3">
+                      <TableCell className="px-4 py-2">
                         {project.members?.length ? (
                           <div className="flex -space-x-2">
                             {project.members.map((m) => (
@@ -266,12 +266,12 @@ const ProjectSection: React.FC = () => {
                       </TableCell>
                     )}
                     {selectedColumns.includes("client") && (
-                      <TableCell className="px-4 py-3 ">
+                      <TableCell className="px-4 py-2 ">
                         {project.client}
                       </TableCell>
                     )}
                     {selectedColumns.includes("status") && (
-                      <TableCell className="px-4 py-3">
+                      <TableCell className="px-4 py-2">
                         <span
                           className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
                             statusBadgeClasses[project.status]
@@ -282,7 +282,7 @@ const ProjectSection: React.FC = () => {
                       </TableCell>
                     )}
                     {selectedColumns.includes("priority") && (
-                      <TableCell className="px-4 py-3">
+                      <TableCell className="px-4 py-2">
                         <span
                           className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
                             priorityBadgeClasses[project.priority]
@@ -293,30 +293,30 @@ const ProjectSection: React.FC = () => {
                       </TableCell>
                     )}
                     {selectedColumns.includes("progress") && (
-                      <TableCell className="px-4 py-3 ">
+                      <TableCell className="px-4 py-2 ">
                         {project.progress ?? 0}%
                       </TableCell>
                     )}
                     {selectedColumns.includes("start_date") && (
-                      <TableCell className="px-4 py-3 ">
+                      <TableCell className="px-4 py-2 ">
                         {formatDate(project.start_date)}
                       </TableCell>
                     )}
                     {selectedColumns.includes("end_date") && (
-                      <TableCell className="px-4 py-3 ">
+                      <TableCell className="px-4 py-2 ">
                         {formatDate(project.end_date)}
                       </TableCell>
                     )}
                     {selectedColumns.includes("duration") && (
-                      <TableCell className="px-4 py-3 ">
+                      <TableCell className="px-4 py-2 ">
                         {getDateDuration(project.start_date, project.end_date)}
                       </TableCell>
                     )}
                     {selectedColumns.includes("remaining") && (
-                      <TableCell className="px-4 py-3 ">{remaining}</TableCell>
+                      <TableCell className="px-4 py-2 ">{remaining}</TableCell>
                     )}
                     {selectedColumns.includes("actions") && (
-                      <TableCell className="px-4 py-3">
+                      <TableCell className="px-4 py-2">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button

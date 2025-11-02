@@ -25,7 +25,7 @@ import "react-datepicker/dist/react-datepicker.css";
 
 const ProjectPage: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
-  const [isListView, setIsListView] = useState(false);
+  const [isListView, setIsListView] = useState(true);
   const [activeTab, setActiveTab] = useState<"planned" | "actual">("planned");
   const { data: projects } = useProjects();
   const { projects: storeProjects } = useProjectStore();
