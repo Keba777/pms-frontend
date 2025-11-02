@@ -3,7 +3,7 @@
 
 import React, { useState, useMemo } from "react";
 import Link from "next/link";
-import { MenuIcon, Search, Bell, LogOut } from "lucide-react";
+import { MenuIcon, Search, Bell, LogOut, User } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
@@ -176,6 +176,12 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
             <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuLabel>Hi, {user?.first_name}</DropdownMenuLabel>
               <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link href="/profile" className="flex items-center">
+                  <User className="w-4 h-4 mr-2" />
+                  Profile
+                </Link>
+              </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={handleLogout}
                 className="text-red-600 focus:text-red-700"
