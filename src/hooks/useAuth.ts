@@ -13,6 +13,11 @@ interface ApiResponse<T> {
   message?: string;
 }
 
+interface SimpleResponse {
+  success: boolean;
+  message: string;
+}
+
 // ----------------------------
 // API Functions
 // ----------------------------
@@ -29,6 +34,23 @@ const registerUser = async (data: CreateUserInput): Promise<UserLogin> => {
   const userWithToken = response.data.user;
   const { token, ...user } = userWithToken;
   return { user, token };
+};
+
+const changePassword = async (data: { oldPassword: string; newPassword: string }): Promise<SimpleResponse> => {
+  const response = await apiClient.patch<SimpleResponse>("/auth/change-password", data);
+  return response.data;
+};
+
+const forgotPassword = async (email: string): Promise<SimpleResponse> => {
+  const response = await apiClient.post<SimpleResponse>("/auth/forgot-password", { email });
+  return response.data;
+};
+
+const resetPassword = async (token: string, password: string): Promise<UserLogin> => {
+  const response = await apiClient.put<ApiResponse<User & { token: string }>>(`/auth/reset-password/${token}`, { password });
+  const userWithToken = response.data.user;
+  const { token: resetToken, ...user } = userWithToken;
+  return { user, token: resetToken };
 };
 
 // ----------------------------
@@ -80,4 +102,58 @@ export const useLogout = () => {
     logout(); // Clear the auth state
     toast.success("Logged out successfully");
   };
+};
+
+export const useChangePassword = () => {
+  return useMutation({
+    mutationFn: (data: { oldPassword: string; newPassword: string }) =>
+      changePassword(data),
+    onSuccess: (response) => {
+      toast.success(response.message || "Password changed successfully!");
+    },
+    onError: (error: unknown) => {
+      if (error instanceof Error) {
+        toast.error(`Password change failed: ${error.message}`);
+      } else {
+        toast.error("An unknown error occurred");
+      }
+    },
+  });
+};
+
+export const useForgotPassword = () => {
+  return useMutation({
+    mutationFn: (email: string) =>
+      forgotPassword(email),
+    onSuccess: (response) => {
+      toast.success(response.message || "Reset email sent!");
+    },
+    onError: (error: unknown) => {
+      if (error instanceof Error) {
+        toast.error(`Forgot password failed: ${error.message}`);
+      } else {
+        toast.error("An unknown error occurred");
+      }
+    },
+  });
+};
+
+export const useResetPassword = () => {
+  const login = useAuthStore((state) => state.login);
+
+  return useMutation({
+    mutationFn: ({ token, password }: { token: string; password: string }) =>
+      resetPassword(token, password),
+    onSuccess: (data: UserLogin) => {
+      toast.success("Password reset successful!");
+      login(data.user, data.token); // Auto-login after reset
+    },
+    onError: (error: unknown) => {
+      if (error instanceof Error) {
+        toast.error(`Reset password failed: ${error.message}`);
+      } else {
+        toast.error("An unknown error occurred");
+      }
+    },
+  });
 };

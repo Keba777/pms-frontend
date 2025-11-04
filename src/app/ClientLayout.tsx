@@ -25,6 +25,8 @@ export default function ClientLayout({
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const logoutTimer = useRef<number | null>(null);
 
+  const publicPaths = ["/login", "/reset-password"];
+
   // Register AG Grid modules globally
   useEffect(() => {
     ModuleRegistry.registerModules([AllCommunityModule]);
@@ -39,7 +41,7 @@ export default function ClientLayout({
       return;
     }
 
-    // if user exists and expiresAt is in the future, schedule a timeout
+    // If user exists and expiresAt is in the future, schedule a timeout
     if (user && expiresAt) {
       const msUntilExpiry = expiresAt - Date.now();
       logoutTimer.current = window.setTimeout(() => {
@@ -48,7 +50,7 @@ export default function ClientLayout({
       }, msUntilExpiry);
     }
 
-    // cleanup on unmount or when user changes
+    // Cleanup on unmount or when user changes
     return () => {
       if (logoutTimer.current) {
         clearTimeout(logoutTimer.current);
@@ -57,18 +59,22 @@ export default function ClientLayout({
     };
   }, [_hasHydrated, user, expiresAt, logout, router]);
 
-  // existing auth redirection & loading logic
+  // Auth redirection & loading logic
   useEffect(() => {
     if (!_hasHydrated) return;
-    if (!user && pathname !== "/login") {
+
+    // Redirect unauthenticated users to login, except for public paths
+    if (!user && !publicPaths.includes(pathname)) {
       router.push("/login");
-    } else if (user && pathname === "/login") {
+    } else if (user && publicPaths.includes(pathname)) {
+      // If authenticated, redirect away from public paths to dashboard
       router.push("/");
     }
+
     if (isLoading) {
       setIsLoading(false);
     }
-  }, [user, pathname, router, _hasHydrated, isLoading]);
+  }, [user, pathname, router, _hasHydrated, isLoading, publicPaths]);
 
   if (!_hasHydrated || isLoading) {
     return (
@@ -78,7 +84,8 @@ export default function ClientLayout({
     );
   }
 
-  if (pathname === "/login") {
+  // For public paths, render children without layout wrapper
+  if (publicPaths.includes(pathname)) {
     return (
       <QueryClientProvider client={queryClient}>
         <ToastContainer />

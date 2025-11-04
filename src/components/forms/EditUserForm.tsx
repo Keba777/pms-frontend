@@ -13,6 +13,7 @@ interface EditUserFormProps {
   onSubmit: (data: UpdateUserInput) => void;
   onClose: () => void;
   user: User;
+  usePasswordField?: boolean;
 }
 
 interface Option {
@@ -24,6 +25,7 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
   onSubmit,
   onClose,
   user,
+  usePasswordField = true,
 }) => {
   const {
     register,
@@ -93,7 +95,6 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
     if (user.department_id) setValue("department_id", user.department_id);
   }, [user, setValue]);
 
- 
   const submit = (data: UpdateUserInput) => {
     // strip out password if it's empty or undefined
     const payload: UpdateUserInput = { ...data };
@@ -212,7 +213,8 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
         </div>
       </div>
 
-        {/* Password */}
+      {/* Password */}
+      {usePasswordField && (
         <div>
           <label className="block text-sm font-medium">
             Password (leave blank to keep current)
@@ -223,6 +225,7 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
             className="w-full border px-3 py-2 rounded"
           />
         </div>
+      )}
 
       {/* Site / Department */}
       <div className="grid md:grid-cols-2 gap-4">
