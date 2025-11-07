@@ -1,3 +1,4 @@
+// hooks/useProjects.ts
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -58,6 +59,12 @@ const deleteProject = async (id: string): Promise<{ message: string }> => {
 
 const updateProjectActuals = async (payload: { id: string; actuals: any }): Promise<Project> => {
   const response = await apiClient.patch<ApiResponse<Project>>(`/projects/${payload.id}/actuals`, { actuals: payload.actuals });
+  return response.data.data;
+};
+
+const updateProjectProgress = async (data: any): Promise<Project> => {
+  const { projectId, ...body } = data;
+  const response = await apiClient.put<ApiResponse<Project>>(`/projects/${projectId}/progress`, body);
   return response.data.data;
 };
 
@@ -163,6 +170,24 @@ export const useUpdateProjectActuals = () => {
     },
     onError: () => {
       toast.error("Failed to update project actuals");
+    },
+  });
+};
+
+export const useUpdateProjectProgress = () => {
+  const queryClient = useQueryClient();
+  const updateProjectInStore = useProjectStore((state) => state.updateProject);
+
+  return useMutation({
+    mutationFn: updateProjectProgress,
+    onSuccess: (updatedProject) => {
+      toast.success("Project progress updated successfully!");
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      queryClient.invalidateQueries({ queryKey: ["project", updatedProject.id] });
+      updateProjectInStore(updatedProject);
+    },
+    onError: () => {
+      toast.error("Failed to update project progress");
     },
   });
 };

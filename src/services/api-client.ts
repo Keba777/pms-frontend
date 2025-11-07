@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { AxiosHeaders } from "axios";
 import jwt from "jsonwebtoken";
 import { useAuthStore } from "@/store/authStore";
 
@@ -18,7 +18,8 @@ const getClientToken = () => {
 };
 
 const apiClient = axios.create({
-  baseURL: "http://localhost:8000/api/v1/",
+  // baseURL: "http://localhost:8000/api/v1/",
+  baseURL: "https://api.nilepms.com/api/v1/",
   withCredentials: true,
 });
 
@@ -27,10 +28,16 @@ apiClient.interceptors.request.use(
     const token = isServer ? generateBuildToken() : getClientToken();
 
     if (config.url && !config.url.includes("/auth/") && token) {
-      config.headers = {
-        ...config.headers,
-        Authorization: `Bearer ${token}`,
-      };
+      // Ensure headers is an AxiosHeaders instance (type-safe) then set Authorization
+      if (config.headers instanceof AxiosHeaders) {
+        config.headers.set("Authorization", `Bearer ${token}`);
+      } else {
+        // create a new AxiosHeaders from whatever headers exist (safe cast)
+        config.headers = new AxiosHeaders({
+          ...(config.headers as Record<string, unknown>),
+          Authorization: `Bearer ${token}`,
+        });
+      }
     }
 
     return config;

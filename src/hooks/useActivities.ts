@@ -2,7 +2,11 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import apiClient from "@/services/api-client";
-import { Activity, Actuals, CreateActivityInput, UpdateActivityInput } from "@/types/activity";
+import {
+  Activity,
+  Actuals,
+  CreateActivityInput,
+} from "@/types/activity";
 import { useActivityStore } from "@/store/activityStore";
 import { toast } from "react-toastify";
 import { useEffect } from "react";
@@ -21,7 +25,7 @@ const fetchActivities = async (): Promise<Activity[]> => {
     const response = await apiClient.get<ApiResponse<Activity[]>>("/activities");
     return response.data.data;
   } catch (error) {
-    console.log(error)
+    console.log(error);
     throw new Error("Failed to fetch activities");
   }
 };
@@ -41,7 +45,8 @@ const createActivity = async (data: CreateActivityInput): Promise<Activity> => {
   return response.data.data;
 };
 
-const updateActivity = async (data: UpdateActivityInput): Promise<Activity> => {
+// Keep generic activity update (if used elsewhere)
+const updateActivity = async (data: Partial<CreateActivityInput> & { id: string }): Promise<Activity> => {
   const response = await apiClient.put<ApiResponse<Activity>>(`/activities/${data.id}`, data);
   return response.data.data;
 };
@@ -56,11 +61,39 @@ const deleteActivity = async (id: string): Promise<{ message: string }> => {
   return response.data.data;
 };
 
+/**
+ * Payload for updating activity progress.
+ * activityId is used in the URL; the rest is the request body.
+ */
+export interface UpdateActivityProgressPayload {
+  activityId: string;
+  progress: number;
+  remark?: string;
+  status?: string;
+  checkedBy?: string;
+  approvedBy?: string;
+  action?: string;
+  summaryReport?: string;
+  comment?: string;
+  approvedDate?: string | null;
+  dateTime?: string;
+  userId?: string;
+}
+
+/**
+ * Calls PUT /activities/:id/progress with the correct body.
+ * The server will append a progressUpdate entry and update activity.progress.
+ */
+const updateActivityProgress = async (payload: UpdateActivityProgressPayload): Promise<Activity> => {
+  const { activityId, ...body } = payload;
+  const response = await apiClient.put<ApiResponse<Activity>>(`/activities/${activityId}/progress`, body);
+  return response.data.data;
+};
+
 // ----------------------------
 // React Query Hooks
 // ----------------------------
 
-// Hook to fetch all Activities and update the store
 export const useActivities = () => {
   const setActivities = useActivityStore((s) => s.setActivities);
 
@@ -86,7 +119,6 @@ export const useActivities = () => {
   return query;
 };
 
-// Hook to fetch a single Activity by ID
 export const useActivity = (id: string) => {
   return useQuery<Activity | null, Error>({
     queryKey: ["activity", id],
@@ -95,7 +127,6 @@ export const useActivity = (id: string) => {
   });
 };
 
-// Hook to create a new Activity and update the store
 export const useCreateActivity = (onSuccessCallback?: (activity: Activity) => void) => {
   const queryClient = useQueryClient();
   const addActivity = useActivityStore((state) => state.addActivity);
@@ -113,7 +144,6 @@ export const useCreateActivity = (onSuccessCallback?: (activity: Activity) => vo
   });
 };
 
-// Hook to update an Activity and update the store
 export const useUpdateActivity = () => {
   const queryClient = useQueryClient();
   const updateActivityInStore = useActivityStore((state) => state.updateActivity);
@@ -130,7 +160,6 @@ export const useUpdateActivity = () => {
   });
 };
 
-// Hook to update an Activity's actuals and update the store
 export const useUpdateActivityActuals = () => {
   const queryClient = useQueryClient();
   const updateActivityInStore = useActivityStore((state) => state.updateActivity);
@@ -147,7 +176,6 @@ export const useUpdateActivityActuals = () => {
   });
 };
 
-// Hook to delete an Activity and update the store
 export const useDeleteActivity = () => {
   const queryClient = useQueryClient();
   const deleteActivityFromStore = useActivityStore((state) => state.deleteActivity);
@@ -160,6 +188,30 @@ export const useDeleteActivity = () => {
     },
     onError: () => {
       toast.error("Failed to delete activity");
+    },
+  });
+};
+
+/**
+ * Hook to update activity progress (uses PUT /activities/:id/progress)
+ * Accepts UpdateActivityProgressPayload (activityId + body)
+ */
+export const useUpdateActivityProgress = () => {
+  const queryClient = useQueryClient();
+  const updateActivityInStore = useActivityStore((state) => state.updateActivity);
+
+  return useMutation({
+    mutationFn: updateActivityProgress,
+    onSuccess: (updatedActivity) => {
+      toast.success("Activity progress updated successfully!");
+      // refresh lists and single activity cache
+      queryClient.invalidateQueries({ queryKey: ["activities"] });
+      queryClient.invalidateQueries({ queryKey: ["activity", updatedActivity.id] });
+      // update store
+      updateActivityInStore(updatedActivity);
+    },
+    onError: () => {
+      toast.error("Failed to update activity progress");
     },
   });
 };

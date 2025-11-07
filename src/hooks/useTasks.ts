@@ -54,6 +54,12 @@ const deleteTask = async (id: string): Promise<{ message: string }> => {
   return response.data.data;
 };
 
+const updateTaskProgress = async (data: any): Promise<Task> => {
+  const { taskId, ...body } = data;
+  const response = await apiClient.put<ApiResponse<Task>>(`/tasks/${taskId}/progress`, body);
+  return response.data.data;
+};
+
 // ----------------------------
 // React Query Hooks
 // ----------------------------
@@ -147,6 +153,24 @@ export const useDeleteTask = () => {
     },
     onError: () => {
       toast.error("Failed to delete task");
+    },
+  });
+};
+
+export const useUpdateTaskProgress = () => {
+  const queryClient = useQueryClient();
+  const updateTaskInStore = useTaskStore((s) => s.updateTask);
+
+  return useMutation({
+    mutationFn: updateTaskProgress,
+    onSuccess: (updatedTask) => {
+      toast.success("Task progress updated successfully!");
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["task", updatedTask.id] });
+      updateTaskInStore(updatedTask);
+    },
+    onError: () => {
+      toast.error("Failed to update task progress");
     },
   });
 };
