@@ -35,6 +35,15 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
+/**
+ * Narrowed local type so we can guarantee `id: string` when passing to forms
+ */
+type UpdatableTaskWithId = UpdateTaskInput & {
+  id: string;
+  name?: string;
+  progressUpdates?: any[] | null;
+};
+
 const priorityBadgeClasses: Record<Task["priority"], string> = {
   Critical: "bg-red-100 text-red-800",
   High: "bg-orange-100 text-orange-800",
@@ -90,23 +99,27 @@ const TaskSection: React.FC = () => {
 
   // Edit/Delete modal state
   const [showEditForm, setShowEditForm] = useState(false);
-  const [taskToEdit, setTaskToEdit] = useState<UpdateTaskInput | null>(null);
+  // NOTE: use UpdatableTaskWithId so TypeScript knows id is present when we pass to EditTaskForm
+  const [taskToEdit, setTaskToEdit] = useState<UpdatableTaskWithId | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
 
-  // Manage modal state
+  // Manage modal state (same narrower type)
   const [showManageForm, setShowManageForm] = useState(false);
-  const [taskToManage, setTaskToManage] = useState<UpdateTaskInput | null>(
-    null
-  );
+  const [taskToManage, setTaskToManage] = useState<UpdatableTaskWithId | null>(null);
 
   const handleEditClick = (t: Task) => {
-    setTaskToEdit({
+    const payload: UpdatableTaskWithId = {
       ...t,
-      assignedUsers: t.assignedUsers?.map((u) => u.id),
-    });
+      assignedUsers: t.assignedUsers?.map((u) => u.id) as any,
+      id: t.id,
+      name: (t as any).name ?? undefined,
+      progressUpdates: (t as any).progressUpdates ?? null,
+    };
+    setTaskToEdit(payload);
     setShowEditForm(true);
   };
+
   const handleDeleteClick = (id: string) => {
     setSelectedTaskId(id);
     setIsDeleteModalOpen(true);
@@ -118,12 +131,17 @@ const TaskSection: React.FC = () => {
   const handleView = (id: string) => router.push(`/tasks/${id}`);
 
   const handleManageClick = (t: Task) => {
-    setTaskToManage({
+    const payload: UpdatableTaskWithId = {
       ...t,
-      assignedUsers: t.assignedUsers?.map((u) => u.id),
-    });
+      assignedUsers: t.assignedUsers?.map((u) => u.id) as any,
+      id: t.id,
+      name: (t as any).name ?? undefined,
+      progressUpdates: (t as any).progressUpdates ?? null,
+    };
+    setTaskToManage(payload);
     setShowManageForm(true);
   };
+
   const handleManageSubmit = (data: UpdateTaskInput) => {
     updateTask(data);
     setShowManageForm(false);
@@ -199,12 +217,11 @@ const TaskSection: React.FC = () => {
         </div>
       )}
 
-      {/* Manage modal */}
+      {/* Manage modal (removed onSubmit prop to match ManageTaskForm's prop types) */}
       {showManageForm && taskToManage && (
         <div className="modal-overlay">
           <div className="modal-content">
             <ManageTaskForm
-              onSubmit={handleManageSubmit}
               onClose={() => setShowManageForm(false)}
               task={taskToManage}
             />

@@ -44,6 +44,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { ProgressUpdateItem } from "@/types/activity";
 
 const priorityBadgeClasses: Record<Project["priority"], string> = {
   Critical: "bg-red-100 text-red-800",
@@ -102,8 +103,14 @@ const ProjectSection: React.FC = () => {
   );
   // Manage state
   const [showManageForm, setShowManageForm] = useState(false);
-  const [projectToManage, setProjectToManage] =
-    useState<UpdateProjectInput | null>(null);
+  const [projectToManage, setProjectToManage] = useState<
+    | (UpdateProjectInput & {
+        id: string;
+        name?: string;
+        progressUpdates?: ProgressUpdateItem[] | null;
+      })
+    | null
+  >(null);
   // Delete state
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
@@ -146,17 +153,17 @@ const ProjectSection: React.FC = () => {
   };
 
   const handleManageClick = (proj: Project) => {
+    if (!proj.id) return;
     setProjectToManage({
       ...proj,
+      id: proj.id,
       members: proj.members?.map((m) => m.id),
+      name: proj.title,
+      progressUpdates: proj.progressUpdates,
     });
     setShowManageForm(true);
   };
 
-  const handleManageSubmit = (data: UpdateProjectInput) => {
-    updateProject(data);
-    setShowManageForm(false);
-  };
 
   if (isLoading)
     return (
@@ -392,17 +399,15 @@ const ProjectSection: React.FC = () => {
               onSubmit={handleEditSubmit}
               onClose={() => setShowEditForm(false)}
               users={users}
-
             />
           </div>
         </div>
       )}
 
-      {showManageForm && projectToManage && (
+      {showManageForm && projectToManage && projectToManage.id && (
         <div className="modal-overlay">
           <div className="modal-content">
             <ManageProjectForm
-              onSubmit={handleManageSubmit}
               onClose={() => setShowManageForm(false)}
               project={projectToManage}
             />

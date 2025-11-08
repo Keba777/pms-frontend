@@ -84,15 +84,15 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
   );
 
   // Edit modal
+  // Guarantee `id: string` exists in the state so it can be passed to forms that require it
   const [showEditForm, setShowEditForm] = useState(false);
-  const [projectToEdit, setProjectToEdit] = useState<UpdateProjectInput | null>(
-    null
-  );
+  const [projectToEdit, setProjectToEdit] =
+    useState<UpdateProjectInput & { id: string } | null>(null);
 
   // Manage modal
   const [showManageForm, setShowManageForm] = useState(false);
   const [projectToManage, setProjectToManage] =
-    useState<UpdateProjectInput | null>(null);
+    useState<UpdateProjectInput & { id: string } | null>(null);
 
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -341,7 +341,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                                       members: project.members?.map(
                                         (m) => m.id
                                       ),
-                                    });
+                                    } as UpdateProjectInput & { id: string });
                                     setShowEditForm(true);
                                   }}
                                   className={`w-full text-left px-3 py-2 text-sm ${
@@ -378,7 +378,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                                       members: project.members?.map(
                                         (m) => m.id
                                       ),
-                                    });
+                                    } as UpdateProjectInput & { id: string });
                                     setShowManageForm(true);
                                   }}
                                   className={`w-full text-left px-3 py-2 text-sm ${
@@ -444,7 +444,6 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
           <div className="modal-content">
             <ManageProjectForm
               onClose={() => setShowManageForm(false)}
-              onSubmit={handleManageSubmit}
               project={projectToManage}
             />
           </div>

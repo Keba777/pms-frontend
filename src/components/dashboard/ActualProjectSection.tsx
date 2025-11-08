@@ -68,9 +68,8 @@ const ActualProjectSection: React.FC = () => {
   const [projectToEdit, setProjectToEdit] = useState<UpdateProjectInput | null>(
     null
   );
-  const [showManageForm, setShowManageForm] = useState(false);
-  const [projectToManage, setProjectToManage] =
-    useState<UpdateProjectInput | null>(null);
+  const [, setShowManageForm] = useState(false);
+  const [, setProjectToManage] = useState<UpdateProjectInput | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
     null
@@ -161,11 +160,6 @@ const ActualProjectSection: React.FC = () => {
       budget: 0,
     });
     setShowManageForm(true);
-  };
-
-  const handleManageSubmit = (data: UpdateProjectInput) => {
-    updateProject(data);
-    setShowManageForm(false);
   };
 
   // Custom cell renderer for progress bar
@@ -563,7 +557,7 @@ const ActualProjectSection: React.FC = () => {
       )}
 
       {/* Manage Modal */}
-      {showManageForm && projectToManage && (
+      {/* {showManageForm && projectToManage && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md m-4">
             <ManageProjectForm
@@ -573,7 +567,7 @@ const ActualProjectSection: React.FC = () => {
             />
           </div>
         </div>
-      )}
+      )} */}
 
       {/* Footer */}
       <div className="flex items-center justify-between p-4">

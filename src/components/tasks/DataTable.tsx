@@ -83,11 +83,12 @@ const DataTable: React.FC = () => {
 
   // modal and action state
   const [showEditForm, setShowEditForm] = useState(false);
-  const [taskToEdit, setTaskToEdit] = useState<UpdateTaskInput | null>(null);
+  // ensure `id: string` is guaranteed for forms that require it
+  const [taskToEdit, setTaskToEdit] =
+    useState<UpdateTaskInput & { id: string } | null>(null);
   const [showManageForm, setShowManageForm] = useState(false);
-  const [taskToManage, setTaskToManage] = useState<UpdateTaskInput | null>(
-    null
-  );
+  const [taskToManage, setTaskToManage] =
+    useState<UpdateTaskInput & { id: string } | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [filterValues, setFilterValues] = useState<FilterValues>({});
@@ -102,7 +103,8 @@ const DataTable: React.FC = () => {
     router.push(`/tasks/${id}`);
   };
   const handleUpdateTask = (task: UpdateTaskInput) => {
-    setTaskToEdit(task);
+    // cast because UpdateTaskInput may have optional id but we know caller supplies it
+    setTaskToEdit(task as UpdateTaskInput & { id: string });
     setShowEditForm(true);
   };
   const handleDeleteTaskClick = (id: string) => {
@@ -121,13 +123,8 @@ const DataTable: React.FC = () => {
     setTaskToManage({
       ...t,
       assignedUsers: t.assignedUsers?.map((u) => u.id),
-    });
+    } as UpdateTaskInput & { id: string });
     setShowManageForm(true);
-  };
-
-  const handleManageSubmit = (data: UpdateTaskInput) => {
-    updateTask(data);
-    setShowManageForm(false);
   };
 
   const statusOptions: Option<string>[] = [
@@ -508,7 +505,6 @@ const DataTable: React.FC = () => {
         <div className="modal-overlay">
           <div className="modal-content">
             <ManageTaskForm
-              onSubmit={handleManageSubmit}
               onClose={() => setShowManageForm(false)}
               task={taskToManage}
             />

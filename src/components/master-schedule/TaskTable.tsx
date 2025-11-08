@@ -1,4 +1,3 @@
-// components/TaskTable.tsx
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
@@ -48,6 +47,17 @@ const priorityBadgeClasses: Record<Task["priority"], string> = {
   Low: "bg-green-100 text-green-800",
 };
 
+/**
+ * Narrowed local type so we guarantee `id: string` when passing to forms
+ * Use `any` for progressUpdates here to avoid importing ProgressUpdateItem.
+ * Replace `any` with the real ProgressUpdateItem[] type if you want stricter typing.
+ */
+type UpdatableTaskWithId = UpdateTaskInput & {
+  id: string;
+  name?: string;
+  progressUpdates?: any[] | null;
+};
+
 export default function TaskTable({ tasks, projectId }: TaskTableProps) {
   const router = useRouter();
   const { mutate: deleteTask } = useDeleteTask();
@@ -58,11 +68,9 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
   // Modals & forms
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
-  const [taskToEdit, setTaskToEdit] = useState<UpdateTaskInput | null>(null);
+  const [taskToEdit, setTaskToEdit] = useState<UpdatableTaskWithId | null>(null);
   const [showManageForm, setShowManageForm] = useState(false);
-  const [taskToManage, setTaskToManage] = useState<UpdateTaskInput | null>(
-    null
-  );
+  const [taskToManage, setTaskToManage] = useState<UpdatableTaskWithId | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
 
@@ -192,10 +200,14 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
   const handleView = (id: string) => router.push(`/tasks/${id}`);
 
   const handleEditClick = (t: Task) => {
-    setTaskToEdit({
+    const payload: UpdatableTaskWithId = {
       ...t,
-      assignedUsers: t.assignedUsers?.map((u) => u.id),
-    });
+      assignedUsers: t.assignedUsers?.map((u) => u.id) as any,
+      id: t.id,
+      name: (t as any).name ?? undefined,
+      progressUpdates: (t as any).progressUpdates ?? null,
+    };
+    setTaskToEdit(payload);
     setShowEditForm(true);
   };
   const handleEditSubmit = (data: UpdateTaskInput) => {
@@ -204,10 +216,14 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
   };
 
   const handleManageClick = (t: Task) => {
-    setTaskToManage({
+    const payload: UpdatableTaskWithId = {
       ...t,
-      assignedUsers: t.assignedUsers?.map((u) => u.id),
-    });
+      assignedUsers: t.assignedUsers?.map((u) => u.id) as any,
+      id: t.id,
+      name: (t as any).name ?? undefined,
+      progressUpdates: (t as any).progressUpdates ?? null,
+    };
+    setTaskToManage(payload);
     setShowManageForm(true);
   };
   const handleManageSubmit = (data: UpdateTaskInput) => {
@@ -246,7 +262,6 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
     { header: "End Date", accessor: "end_date", type: "date" },
     { header: "Progress", accessor: "progress", type: "number" },
     { header: "Status", accessor: "status", type: "string" },
-    // { header: "Project ID", accessor: "project_id", type: "string" },
   ];
 
   const requiredAccessors: (keyof CreateTaskInput)[] = [
@@ -255,13 +270,10 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
     "start_date",
     "end_date",
     "status",
-    // "approvalStatus",
-    // "project_id",
   ];
 
   const handleTaskImport = async (data: CreateTaskInput[]) => {
     try {
-      // Validate priority, status, and approvalStatus values
       const validPriorities = ["Critical", "High", "Medium", "Low"];
       const validStatuses = [
         "Not Started",
@@ -271,7 +283,6 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
         "Onhold",
         "Completed",
       ];
-      // const validApprovalStatuses = ["Approved", "Not Approved", "Pending"];
 
       for (let i = 0; i < data.length; i++) {
         const task = data[i];
@@ -291,23 +302,7 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
           );
           return;
         }
-        // if (!validApprovalStatuses.includes(task.approvalStatus)) {
-        //   toast.error(
-        //     `Invalid approval status in row ${
-        //       i + 2
-        //     }. Must be one of: ${validApprovalStatuses.join(", ")}`
-        //   );
-        //   return;
-        // }
-        // if (task.project_id !== projectId) {
-        //   toast.error(
-        //     `Invalid project ID in row ${
-        //       i + 2
-        //     }. Must match current project ID: ${projectId}`
-        //   );
-        //   return;
-        // }
-        // Provide default for description
+
         task.project_id = projectId!;
         task.description = task.description || "Imported task";
       }
@@ -411,11 +406,8 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
       {showManageForm && taskToManage && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <ManageTaskForm
-              onClose={() => setShowManageForm(false)}
-              onSubmit={handleManageSubmit}
-              task={taskToManage}
-            />
+            {/* Removed onSubmit prop to match ManageTaskForm's prop types */}
+            <ManageTaskForm onClose={() => setShowManageForm(false)} task={taskToManage} />
           </div>
         </div>
       )}

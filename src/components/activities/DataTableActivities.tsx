@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { Menu, MenuButton, MenuItems, MenuItem } from "@headlessui/react";
@@ -26,14 +25,12 @@ import ProfileAvatar from "../common/ProfileAvatar";
 import { useUsers } from "@/hooks/useUsers";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-
 const priorityBadgeClasses: Record<Activity["priority"], string> = {
   Critical: "bg-red-100 text-red-800",
   High: "bg-orange-100 text-orange-800",
   Medium: "bg-yellow-100 text-yellow-800",
   Low: "bg-green-100 text-green-800",
 };
-
 const statusBadgeClasses: Record<Activity["status"], string> = {
   "Not Started": "bg-gray-100 text-gray-800",
   Started: "bg-blue-100 text-blue-800",
@@ -42,7 +39,6 @@ const statusBadgeClasses: Record<Activity["status"], string> = {
   Onhold: "bg-amber-100 text-amber-800",
   Completed: "bg-green-100 text-green-800",
 };
-
 const columnOptions: Record<string, string> = {
   activity_name: "Activity",
   assignedUsers: "Assigned To",
@@ -61,26 +57,22 @@ const columnOptions: Record<string, string> = {
   approvalStatus: "Approval",
   actions: "Actions",
 };
-
 const DataTableActivities: React.FC = () => {
   const { data: activities = [], isLoading, error } = useActivities();
   const { mutate: deleteActivity } = useDeleteActivity();
   const { mutate: updateActivity } = useUpdateActivity();
   const { data: users } = useUsers();
   const router = useRouter();
-
   // Filter state
   const [filterValues, setFilterValues] = useState<FilterValues>({});
   const [fromDate, setFromDate] = useState<Date | null>(null);
   const [toDate, setToDate] = useState<Date | null>(null);
-
   // Column selection state
   const [selectedColumns, setSelectedColumns] = useState<string[]>(
     Object.keys(columnOptions)
   );
   const [showColumnMenu, setShowColumnMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-
   // Modal state
   const [showEditForm, setShowEditForm] = useState(false);
   const [activityToEdit, setActivityToEdit] =
@@ -92,7 +84,6 @@ const DataTableActivities: React.FC = () => {
   const [selectedActivityId, setSelectedActivityId] = useState<string | null>(
     null
   );
-
   // Close column menu when clicking outside
   const toggleColumn = (col: string) => {
     setSelectedColumns((prev) =>
@@ -108,10 +99,8 @@ const DataTableActivities: React.FC = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
   if (isLoading) return <ActivityTableSkeleton />;
   if (error) return <div>Error fetching activities.</div>;
-
   // Filter options
   const priorityOptions: Option<string>[] = [
     { label: "Low", value: "Low" },
@@ -124,7 +113,6 @@ const DataTableActivities: React.FC = () => {
     { label: "In Progress", value: "In Progress" },
     { label: "Completed", value: "Completed" },
   ];
-
   // Filter fields
   const filterFields: FilterField<string>[] = [
     {
@@ -141,7 +129,6 @@ const DataTableActivities: React.FC = () => {
     },
     { name: "status", label: "Status", type: "select", options: statusOptions },
   ];
-
   const filteredActivities = activities.filter((activity) => {
     return (
       Object.entries(filterValues).every(([key, value]) => {
@@ -160,7 +147,6 @@ const DataTableActivities: React.FC = () => {
       (toDate ? new Date(activity.end_date) <= toDate : true)
     );
   });
-
   // Handlers
   const handleDeleteActivityClick = (id: string) => {
     setSelectedActivityId(id);
@@ -185,11 +171,6 @@ const DataTableActivities: React.FC = () => {
     setActivityToManage(activity);
     setShowManageForm(true);
   };
-  const handleManageSubmit = (data: UpdateActivityInput) => {
-    updateActivity(data);
-    setShowManageForm(false);
-  };
-
   return (
     <div>
       <div className="mb-5 flex space-x-4 justify-between">
@@ -240,7 +221,6 @@ const DataTableActivities: React.FC = () => {
           />
         </div>
       </div>
-
       {/* Modals */}
       {showEditForm && activityToEdit && (
         <div className="modal-overlay">
@@ -254,19 +234,16 @@ const DataTableActivities: React.FC = () => {
           </div>
         </div>
       )}
-
       {showManageForm && activityToManage && (
         <div className="modal-overlay">
           <div className="modal-content">
             <ManageActivityForm
               onClose={() => setShowManageForm(false)}
-              onSubmit={handleManageSubmit}
               activity={activityToManage}
             />
           </div>
         </div>
       )}
-
       {isDeleteModalOpen && (
         <ConfirmModal
           isVisible={isDeleteModalOpen}
@@ -279,7 +256,6 @@ const DataTableActivities: React.FC = () => {
           onConfirm={handleDeleteActivity}
         />
       )}
-
       {/* Table */}
       <div className="overflow-x-auto px-2 ">
         <table className="min-w-max divide-y divide-gray-200 border">
@@ -433,7 +409,6 @@ const DataTableActivities: React.FC = () => {
                       </Link>
                     </td>
                   )}
-
                   {selectedColumns.includes("assignedUsers") && (
                     <td className="px-4 py-2">
                       {activity.assignedUsers?.length ? (
@@ -631,7 +606,6 @@ const DataTableActivities: React.FC = () => {
           </tbody>
         </table>
       </div>
-
       {/* Pagination placeholder */}
       <div className="flex items-center justify-between p-4">
         <div className="flex items-center gap-4">

@@ -6,12 +6,12 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       {
-        protocol: 'https',
-        hostname: 'raycon.oasismgmt2.com',
+        protocol: "https",
+        hostname: "raycon.oasismgmt2.com",
       },
       {
-        protocol: 'https',
-        hostname: 'example.com',
+        protocol: "https",
+        hostname: "example.com",
       },
       {
         protocol: "https",
@@ -23,9 +23,7 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
+  // NOTE: eslint option removed — run eslint with an npm script or CI job instead.
 };
 
 export default nextConfig;

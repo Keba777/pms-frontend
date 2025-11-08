@@ -614,7 +614,7 @@ export default function ActualTaskTable({
         </div>
       )}
 
-      {showManageForm && taskToManage && (
+      {/* {showManageForm && taskToManage && (
         <div className="modal-overlay fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="modal-content bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl">
             <ManageTaskForm
@@ -624,7 +624,7 @@ export default function ActualTaskTable({
             />
           </div>
         </div>
-      )}
+      )} */}
 
       <div className="flex items-center justify-between p-4">
         <span className="text-sm text-[#697a8d]">

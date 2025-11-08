@@ -259,9 +259,9 @@ const ActivityTable: React.FC<ActivityTableProps> = ({
       {showManageForm && activityToEdit && (
         <div className="modal-overlay">
           <div className="modal-content">
+            {/* Removed onSubmit prop because ManageActivityForm's prop type does not include it */}
             <ManageActivityForm
               onClose={() => setShowManageForm(false)}
-              onSubmit={handleManageSubmit}
               activity={activityToEdit}
             />
           </div>
