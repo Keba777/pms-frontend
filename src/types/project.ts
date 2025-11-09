@@ -30,6 +30,7 @@ export interface Project {
   client: string;
   site_id?: string;
   site?: Site;
+  projectSite?: Site;
   progress?: number;
   isFavourite?: boolean;
   status: ProjectStatus;

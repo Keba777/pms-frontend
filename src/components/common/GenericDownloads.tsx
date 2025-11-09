@@ -1,4 +1,3 @@
-import React from "react";
 import { Printer, FileText, Sheet } from "lucide-react";
 import { jsPDF } from "jspdf";
 import autoTable, { RowInput } from "jspdf-autotable";
@@ -66,6 +65,22 @@ const GenericDownloads = <T,>({
     doc.setFontSize(13).setTextColor(40, 40, 40);
     doc.text(title, 105, 46, { align: "center" });
 
+    // Load Amharic-supporting font (assume NotoSansEthiopic-Regular.ttf in public/fonts/)
+    const fontUrl = '/fonts/NotoSansEthiopic-Regular.ttf'; // Add this font file to public/fonts/
+    const fontResponse = await fetch(fontUrl);
+    const fontBlob = await fontResponse.blob();
+    const fontReader = new FileReader();
+    const fontBase64: string = await new Promise((resolve) => {
+      fontReader.onloadend = () => resolve(fontReader.result as string);
+      fontReader.readAsDataURL(fontBlob);
+    });
+    const fontData = fontBase64.split(',')[1]; // Extract base64 data
+
+    // Add font to jsPDF VFS and register it
+    doc.addFileToVFS('NotoSansEthiopic-Regular.ttf', fontData);
+    doc.addFont('NotoSansEthiopic-Regular.ttf', 'NotoSansEthiopic', 'normal');
+    doc.setFont('NotoSansEthiopic');
+
     // Dynamic font size calculation based on number of columns to ensure horizontal fit without vertical wrapping or truncation
     const numColumns = columns.length;
     let pdfFontSize = 10;
@@ -86,6 +101,8 @@ const GenericDownloads = <T,>({
       theme: "grid", // Added to make formatting less boring with borders
       margin: { left: 10, right: 10 }, // Ensure full horizontal usage
       styles: { 
+        font: 'NotoSansEthiopic', // Use Amharic font
+        fontStyle: 'normal',
         fontSize: pdfFontSize,
         overflow: "linebreak", // Allow wrapping only if absolutely needed after font reduction
         cellPadding: 2, // Slightly reduced padding for tighter fit
@@ -93,6 +110,8 @@ const GenericDownloads = <T,>({
         valign: "middle",
       },
       headStyles: { 
+        font: 'NotoSansEthiopic', // Use Amharic font for header too
+        fontStyle: 'normal',
         fillColor: [0, 102, 204],
         textColor: [255, 255, 255], // White text for contrast
         fontSize: pdfFontSize,
@@ -120,7 +139,8 @@ const GenericDownloads = <T,>({
             value = new Date(value).toISOString().split("T")[0];
           }
         }
-        obj[col.header] = value;
+        // Ensure value is string for proper UTF-8 handling in Excel
+        obj[col.header] = typeof value === 'string' ? value : String(value ?? '');
       });
       return obj;
     });
@@ -131,9 +151,10 @@ const GenericDownloads = <T,>({
     const excelBuffer = XLSX.write(workbook, {
       bookType: "xlsx",
       type: "array",
+      compression: false, // Avoid compression issues with unicode
     });
     const blob = new Blob([excelBuffer], {
-      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8",
     });
     saveAs(blob, `${getTodayString()}_${title}.xlsx`);
   };
@@ -186,6 +207,12 @@ const GenericDownloads = <T,>({
       <html>
         <head>
           <title>${title}</title>
+          <meta charset="UTF-8">
+          <style>
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+            @font-face { font-family: 'Noto Sans Ethiopic'; src: url('/fonts/NotoSansEthiopic-Regular.ttf') format('truetype'); }
+            table td, table th { font-family: 'Noto Sans Ethiopic', Arial, sans-serif; }
+          </style>
         </head>
         <body>
           ${headerHtml}
