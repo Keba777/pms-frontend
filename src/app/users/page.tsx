@@ -239,7 +239,10 @@ const UsersPage = () => {
 
   // Build download columns similar to example
   const downloadColumns: Column<User>[] = [
-    { header: "ID", accessor: (r: User) => r.id },
+    {
+    header: "ID",
+    accessor: (_r, index) => `RC${String(index! + 1).padStart(3, "0")}`, 
+  },
     {
       header: "Name",
       accessor: (r: User) => `${r.first_name ?? ""} ${r.last_name ?? ""}`,

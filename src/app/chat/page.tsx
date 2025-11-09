@@ -1,11 +1,9 @@
 "use client";
-
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/authStore";
 import { useUsers } from "@/hooks/useUsers";
-import { Search, MessageSquare, Send, Paperclip } from "lucide-react";
-import Image from "next/image";
+import { Search, MessageSquare, Send } from "lucide-react";
 
 interface Message {
   message_id: string;
@@ -16,16 +14,13 @@ interface Message {
   timestamp: string;
   is_read: boolean;
   sender_name: string;
-  attachment_path: string | null;
 }
-
 interface ConversationMeta {
   user_id: string;
   last_message: string;
   last_message_time: string;
   unread_count: number;
 }
-
 /**
  * This represents the raw row from Supabase
  * before we inject the `sender_name` field.
@@ -38,7 +33,6 @@ interface SupaMessageRow {
   message_text: string;
   timestamp: string;
   is_read: boolean;
-  attachment_path: string | null;
   sender?: {
     first_name: string;
     last_name: string;
@@ -48,7 +42,6 @@ interface SupaMessageRow {
 export default function ProfessionalMessages() {
   const user = useAuthStore((state) => state.user);
   const { data: users, isLoading: loadingUsers } = useUsers();
-
   const [conversations, setConversations] = useState<
     Record<string, ConversationMeta>
   >({});
@@ -59,16 +52,13 @@ export default function ProfessionalMessages() {
   const [newMessage, setNewMessage] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // 1) Load conversation metadata
   const loadConversationsMeta = useCallback(async () => {
     if (!user) return;
-
     const { data, error } = await supabase
       .from("messages")
-      .select("sender_id, receiver_id, message_text, timestamp, is_read, attachment_path")
+      .select("sender_id, receiver_id, message_text, timestamp, is_read")
       .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
       .order("timestamp", { ascending: false });
 
@@ -78,22 +68,22 @@ export default function ProfessionalMessages() {
     }
 
     const metaMap: Record<string, ConversationMeta> = {};
-    data?.forEach((msg) => {
+    data?.forEach((msg: any) => {
       const partnerId =
         msg.sender_id === user.id ? msg.receiver_id : msg.sender_id;
-
+      if (!partnerId) return;
       if (!metaMap[partnerId]) {
         metaMap[partnerId] = {
           user_id: partnerId,
-          last_message: msg.message_text || (msg.attachment_path ? "Attachment" : ""),
+          last_message: msg.message_text || "",
           last_message_time: msg.timestamp,
-          unread_count: msg.receiver_id === user.id && !msg.is_read ? 1 : 0,
+          unread_count:
+            msg.receiver_id === user.id && !msg.is_read ? 1 : 0,
         };
       } else if (msg.receiver_id === user.id && !msg.is_read) {
         metaMap[partnerId].unread_count += 1;
       }
     });
-
     setConversations(metaMap);
   }, [user]);
 
@@ -106,7 +96,6 @@ export default function ProfessionalMessages() {
     async (partnerId: string) => {
       if (!user) return;
       setLoading(true);
-
       try {
         const { data, error } = await supabase
           .from("messages")
@@ -123,9 +112,8 @@ export default function ProfessionalMessages() {
 
         if (error) throw error;
 
-        // map with correct typing
         const formatted: Message[] =
-          data?.map((row: SupaMessageRow) => ({
+          (data?.map((row: SupaMessageRow) => ({
             message_id: row.message_id,
             conversation_id: row.conversation_id,
             sender_id: row.sender_id,
@@ -136,8 +124,7 @@ export default function ProfessionalMessages() {
             sender_name: row.sender
               ? `${row.sender.first_name} ${row.sender.last_name}`
               : "Unknown",
-            attachment_path: row.attachment_path,
-          })) || [];
+          })) as Message[]) || [];
 
         setMessages(formatted);
 
@@ -164,88 +151,142 @@ export default function ProfessionalMessages() {
   }, [selectedConversation, loadMessages]);
 
   // 3) Send message with robust conversation upsert/select
-  const sendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user || !selectedConversation || (!newMessage.trim() && !selectedFile)) return;
-
-    let conversation_id: string;
-
-    // First, try to find existing conversation
-    const { data: existing, error: selErr } = await supabase
-      .from("conversations")
-      .select("conversation_id")
-      .or(
-        `and(user_a.eq.${user.id},user_b.eq.${selectedConversation}),and(user_a.eq.${selectedConversation},user_b.eq.${user.id})`
-      );
-
-    if (selErr) {
-      console.error("Error selecting conversation:", selErr);
-      return;
+  const sendMessage = async (
+    e?: React.FormEvent | React.KeyboardEvent | undefined
+  ) => {
+    if (e && typeof (e as any).preventDefault === "function") {
+      (e as any).preventDefault();
     }
 
-    if (existing && existing.length > 0) {
-      conversation_id = existing[0].conversation_id;
-    } else {
-      // Insert new conversation with authenticated user as user_a
-      const { data: inserted, error: insErr } = await supabase
+    if (!user || !selectedConversation || !newMessage.trim()) return;
+
+    let conversation_id: string | undefined;
+
+    try {
+      // 1) try to find existing conversation
+      const { data: existing, error: selErr } = await supabase
         .from("conversations")
-        .insert({
-          user_a: user.id,
-          user_b: selectedConversation,
-        })
         .select("conversation_id")
-        .single();
+        .or(
+          `and(user_a.eq.${user.id},user_b.eq.${selectedConversation}),and(user_a.eq.${selectedConversation},user_b.eq.${user.id})`
+        );
 
-      if (insErr) {
-        console.error("Error inserting conversation:", insErr);
+      if (selErr) {
+        console.error("Error selecting conversation:", selErr);
+        // continue to attempt insert
+      }
+
+      if (existing && Array.isArray(existing) && existing.length > 0) {
+        conversation_id = existing[0].conversation_id;
+      } else {
+        // Insert new conversation. don't use .single() to avoid hard failure if response shape differs
+        const { data: inserted, error: insErr } = await supabase
+          .from("conversations")
+          .insert({
+            user_a: user.id,
+            user_b: selectedConversation,
+          })
+          .select("conversation_id");
+
+        if (insErr) {
+          console.error("Error inserting conversation (insErr):", insErr);
+          try {
+            console.error(
+              "insErr fields:",
+              "status=",
+              (insErr as any)?.status,
+              "code=",
+              (insErr as any)?.code,
+              "message=",
+              (insErr as any)?.message,
+              "details=",
+              (insErr as any)?.details,
+              "hint=",
+              (insErr as any)?.hint
+            );
+          } catch (e) {
+            console.error("Could not parse insErr fields", e);
+          }
+          console.error("inserted payload:", inserted);
+          // retry select in case of race or RLS oddness
+          const { data: retry, error: retryErr } = await supabase
+            .from("conversations")
+            .select("conversation_id")
+            .or(
+              `and(user_a.eq.${user.id},user_b.eq.${selectedConversation}),and(user_a.eq.${selectedConversation},user_b.eq.${user.id})`
+            );
+          if (retryErr) {
+            console.error("Retry select conversation failed:", retryErr);
+            return;
+          }
+          if (retry && Array.isArray(retry) && retry.length > 0) {
+            conversation_id = retry[0].conversation_id;
+          } else {
+            return;
+          }
+        } else {
+          if (Array.isArray(inserted)) {
+            conversation_id = inserted[0]?.conversation_id;
+          } else {
+            conversation_id = (inserted as any)?.conversation_id;
+          }
+
+          if (!conversation_id) {
+            const { data: retry2 } = await supabase
+              .from("conversations")
+              .select("conversation_id")
+              .or(
+                `and(user_a.eq.${user.id},user_b.eq.${selectedConversation}),and(user_a.eq.${selectedConversation},user_b.eq.${user.id})`
+              );
+            if (retry2 && Array.isArray(retry2) && retry2.length > 0) {
+              conversation_id = retry2[0].conversation_id;
+            }
+          }
+        }
+      }
+
+      if (!conversation_id) {
+        console.error(
+          "Could not determine conversation_id after insert/select attempts."
+        );
         return;
       }
 
-      conversation_id = inserted.conversation_id;
-    }
+      // insert message
+      const { error: msgErr } = await supabase.from("messages").insert({
+        conversation_id,
+        sender_id: user.id,
+        receiver_id: selectedConversation,
+        message_text: newMessage.trim() || "",
+        is_read: false,
+      });
 
-    let attachment_path: string | null = null;
-    if (selectedFile) {
-      const ext = selectedFile.name.split('.').pop() || '';
-      const fileName = `${crypto.randomUUID()}.${ext}`;
-      const { data: uploadData, error: uploadErr } = await supabase.storage
-        .from('chat-attachments')
-        .upload(fileName, selectedFile);
-
-      if (uploadErr) {
-        console.error("Error uploading file:", uploadErr);
+      if (msgErr) {
+        console.error("Error sending message:", msgErr);
         return;
       }
-      attachment_path = uploadData.path;
+
+      // success — clear UI
+      setNewMessage("");
+
+      // reload messages and metadata
+      await loadMessages(selectedConversation);
+      await loadConversationsMeta();
+
+      // scroll to bottom
+      setTimeout(() => {
+        const c = document.querySelector(".messages-container");
+        if (c) c.scrollTop = c.scrollHeight;
+      }, 50);
+    } catch (err) {
+      console.error("Unexpected error in sendMessage:", err);
     }
-
-    const { error: msgErr } = await supabase.from("messages").insert({
-      conversation_id,
-      sender_id: user.id,
-      receiver_id: selectedConversation,
-      message_text: newMessage.trim() || '', // Ensure message_text is not null
-      is_read: false,
-      attachment_path,
-    });
-    if (msgErr) {
-      console.error("Error sending message:", msgErr);
-      return;
-    }
-
-    setNewMessage("");
-    setSelectedFile(null);
-    await loadMessages(selectedConversation);
-
-    setTimeout(() => {
-      const c = document.querySelector(".messages-container");
-      if (c) c.scrollTop = c.scrollHeight;
-    }, 50);
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      sendMessage(e);
+      void sendMessage();
     }
   };
 
@@ -278,10 +319,7 @@ export default function ProfessionalMessages() {
             className="flex-1 px-3 py-2 border rounded-lg focus:outline-none"
           />
         </div>
-        {loadingUsers && (
-          <p className="text-center py-4">Loading contacts...</p>
-        )}
-
+        {loadingUsers && <p className="text-center py-4">Loading contacts...</p>}
         <ul className="max-h-[60vh] overflow-y-auto">
           {filteredUsers.map((u) => {
             const m = conversations[u.id];
@@ -332,50 +370,21 @@ export default function ProfessionalMessages() {
             <div className="flex-1 overflow-y-auto p-4 space-y-4 messages-container">
               {loading && <p className="text-center py-4">Loading messages…</p>}
               {!loading && messages.length === 0 && (
-                <p className="text-center py-4 text-gray-500">
-                  No messages yet.
-                </p>
+                <p className="text-center py-4 text-gray-500">No messages yet.</p>
               )}
               {messages.map((m) => {
                 const isMine = m.sender_id === user?.id;
-                const attachmentUrl = m.attachment_path
-                  ? supabase.storage.from('chat-attachments').getPublicUrl(m.attachment_path).data.publicUrl
-                  : null;
-                const isImage = attachmentUrl && /\.(jpg|jpeg|png|gif|webp)$/i.test(m.attachment_path ?? "");
                 return (
                   <div
                     key={m.message_id}
                     className={`max-w-md p-3 rounded-lg ${
-                      isMine
-                        ? "ml-auto bg-blue-500 text-white"
-                        : "mr-auto bg-white"
+                      isMine ? "ml-auto bg-blue-500 text-white" : "mr-auto bg-white"
                     }`}
                   >
                     {!isMine && (
-                      <p className="text-xs font-semibold mb-1">
-                        {m.sender_name}
-                      </p>
+                      <p className="text-xs font-semibold mb-1">{m.sender_name}</p>
                     )}
                     {m.message_text && <p>{m.message_text}</p>}
-                    {attachmentUrl && (
-                      <>
-                        {isImage ? (
-                          <Image
-                            src={attachmentUrl}
-                            alt="Attachment"
-                            className="max-w-full rounded mt-2"
-                          />
-                        ) : (
-                          <a
-                            href={attachmentUrl}
-                            download
-                            className="text-blue-300 underline mt-2 block"
-                          >
-                            Download attachment: {m.attachment_path? m.attachment_path.split('/').pop(): ""}
-                          </a>
-                        )}
-                      </>
-                    )}
                     <span className="block text-xs opacity-80 mt-1 text-right">
                       {new Date(m.timestamp).toLocaleTimeString([], {
                         hour: "2-digit",
@@ -388,22 +397,9 @@ export default function ProfessionalMessages() {
             </div>
 
             <form
-              onSubmit={sendMessage}
+              onSubmit={(e) => void sendMessage(e)}
               className="p-4 bg-white border-t flex items-center"
             >
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="mr-2 p-2 rounded-full bg-gray-200 text-gray-600 hover:bg-gray-300"
-              >
-                <Paperclip size={18} />
-              </button>
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                className="hidden"
-              />
               <textarea
                 rows={1}
                 className="flex-1 px-3 py-2 border rounded-lg focus:outline-none resize-none"
@@ -414,9 +410,9 @@ export default function ProfessionalMessages() {
               />
               <button
                 type="submit"
-                disabled={!newMessage.trim() && !selectedFile}
+                disabled={!newMessage.trim()}
                 className={`ml-3 p-2 rounded-full ${
-                  newMessage.trim() || selectedFile
+                  newMessage.trim()
                     ? "bg-blue-500 text-white hover:bg-blue-600"
                     : "bg-gray-300 text-gray-500 cursor-not-allowed"
                 }`}

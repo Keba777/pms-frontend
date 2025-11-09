@@ -122,7 +122,6 @@ const menuItems = [
     submenu: [
       { title: "Request Allocation", link: "/allocation", icon: ArrowRight, iconColor: "text-purple-600" },
       { title: "Approvals", link: "/request-approval", icon: ClipboardList, iconColor: "text-amber-600" },
-      { title: "Delivery Report", link: "/deliveries", icon: FileText, iconColor: "text-rose-600" },
     ],
   },
   {

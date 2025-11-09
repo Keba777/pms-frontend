@@ -134,8 +134,8 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onClose }) => {
     approvals?.map((approval: Approval) => ({
       value: approval.id,
       label: approval.approvedByUser
-        ? `Approval ${approval.request?.activity?.activity_name}`
-        : `Approval ${approval.id}`,
+        ? `${approval.request?.activity?.activity_name}`
+        : `${approval.id}`, 
     })) || [];
 
   const siteOptions =
@@ -165,7 +165,7 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onClose }) => {
         {/* Approval */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Approval <span className="text-red-500">*</span>
+            Activity <span className="text-red-500">*</span>
           </label>
           <Controller
             name="approvalId"

@@ -8,7 +8,7 @@ import logo from "@/../public/images/logo.jpg";
 
 export interface Column<T> {
   header: string;
-  accessor: keyof T | ((row: T) => unknown);
+  accessor: keyof T | ((row: T, index?: number) => unknown);
 }
 
 interface GenericDownloadsProps<T> {
@@ -23,18 +23,18 @@ const GenericDownloads = <T,>({
   columns,
 }: GenericDownloadsProps<T>) => {
   const getTableRows = () =>
-    data.map((row) =>
-      columns.map((col) => {
-        if (typeof col.accessor === "function") {
-          return col.accessor(row);
-        }
-        const value = row[col.accessor];
-        if (typeof value === "string" && value.match(/^\d{4}-\d{2}-\d{2}T/)) {
-          return new Date(value).toISOString().split("T")[0];
-        }
-        return value;
-      })
-    );
+  data.map((row, index) =>
+    columns.map((col) => {
+      if (typeof col.accessor === "function") {
+        return col.accessor(row, index); // pass index
+      }
+      const value = row[col.accessor];
+      if (typeof value === "string" && value.match(/^\d{4}-\d{2}-\d{2}T/)) {
+        return new Date(value).toISOString().split("T")[0];
+      }
+      return value;
+    })
+  );
 
   const getTodayString = () => new Date().toISOString().split("T")[0];
 
@@ -66,12 +66,42 @@ const GenericDownloads = <T,>({
     doc.setFontSize(13).setTextColor(40, 40, 40);
     doc.text(title, 105, 46, { align: "center" });
 
+    // Dynamic font size calculation based on number of columns to ensure horizontal fit without vertical wrapping or truncation
+    const numColumns = columns.length;
+    let pdfFontSize = 10;
+    if (numColumns > 6) {
+      pdfFontSize = 8;
+    }
+    if (numColumns > 10) {
+      pdfFontSize = 6;
+    }
+    if (numColumns > 14) {
+      pdfFontSize = 5;
+    }
+
     autoTable(doc, {
       startY: 52,
       head: [columns.map((col) => col.header)],
       body: getTableRows() as RowInput[],
-      styles: { fontSize: 10 },
-      headStyles: { fillColor: [0, 102, 204] },
+      theme: "grid", // Added to make formatting less boring with borders
+      margin: { left: 10, right: 10 }, // Ensure full horizontal usage
+      styles: { 
+        fontSize: pdfFontSize,
+        overflow: "linebreak", // Allow wrapping only if absolutely needed after font reduction
+        cellPadding: 2, // Slightly reduced padding for tighter fit
+        halign: "center", // Center align for better appearance
+        valign: "middle",
+      },
+      headStyles: { 
+        fillColor: [0, 102, 204],
+        textColor: [255, 255, 255], // White text for contrast
+        fontSize: pdfFontSize,
+        halign: "center",
+        valign: "middle",
+      },
+      alternateRowStyles: {
+        fillColor: [245, 245, 250], // Subtle alternating row color for less boring look
+      },
     });
 
     doc.save(`${getTodayString()}_${title}.pdf`);

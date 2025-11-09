@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronDown, PlusIcon } from "lucide-react";
 import { Menu, MenuButton, MenuItems, MenuItem } from "@headlessui/react";
-import GenericDownload from "@/components/common/GenericDownloads";
+import GenericDownloads, { Column } from "@/components/common/GenericDownloads";
 import {
   GenericFilter,
   FilterField,
@@ -88,27 +88,51 @@ const DispatchesPage: React.FC = () => {
 
   const filteredDispatches = dispatches.filter((d) => {
     let matches = true;
-    if (filterValues.status)
-      matches = matches && d.status === filterValues.status;
-
+    if (filterValues.status) matches = matches && d.status === filterValues.status;
+    // Add other filters if needed (e.g., driverName)
+    if (filterValues.driverName && typeof filterValues.driverName === "string") {
+      matches =
+        matches &&
+        (d.driverName ?? "")
+          .toLowerCase()
+          .includes((filterValues.driverName as string).toLowerCase());
+    }
     return matches;
   });
 
-  const downloadData = filteredDispatches.map((d) => ({
-    ID: d.id,
-    Ref: d.refNumber || "N/A",
-    Driver: d.driverName || "N/A",
-    Vehicle: d.vehicleNumber || "N/A",
-    Type: d.vehicleType || "N/A",
-    Mode: d.dispatchedBy || "N/A",
-    Status: d.status,
-    Dispatched: new Date(d.dispatchedDate).toLocaleDateString(),
-    Arrival: new Date(d.estArrivalTime).toLocaleDateString(),
-    From: d.depatureSite?.name || "N/A",
-    To: d.arrivalSite?.name || "N/A",
-    Cost: d.totalTransportCost,
-    Remarks: d.remarks || "N/A",
-  }));
+  // --- DOWNLOAD COLUMNS (use the original dispatch objects) ---
+  // Using Column<any>[] here to avoid reliance on an explicit Dispatch type import,
+  // but accessors read fields from the original dispatch objects.
+  const downloadColumns: Column<any>[] = [
+    {
+      header: "ID",
+      accessor: (_d, index) => `RC${String(index! + 1).padStart(3, "0")}`,
+    },
+    { header: "Ref No.", accessor: (d: any) => d.refNumber || "N/A" },
+    { header: "Driver", accessor: (d: any) => d.driverName || "N/A" },
+    { header: "Vehicle No.", accessor: (d: any) => d.vehicleNumber || "N/A" },
+    { header: "Vehicle Type", accessor: (d: any) => d.vehicleType || "N/A" },
+    { header: "Mode", accessor: (d: any) => d.dispatchedBy || "N/A" },
+    { header: "Status", accessor: (d: any) => d.status || "N/A" },
+    {
+      header: "Dispatched Date",
+      accessor: (d: any) =>
+        d.dispatchedDate ? new Date(d.dispatchedDate).toLocaleDateString() : "N/A",
+    },
+    {
+      header: "Est. Arrival",
+      accessor: (d: any) =>
+        d.estArrivalTime ? new Date(d.estArrivalTime).toLocaleDateString() : "N/A",
+    },
+    { header: "Departure", accessor: (d: any) => d.depatureSite?.name || "N/A" },
+    { header: "Arrival", accessor: (d: any) => d.arrivalSite?.name || "N/A" },
+    {
+      header: "Cost",
+      accessor: (d: any) =>
+        typeof d.totalTransportCost === "number" ? d.totalTransportCost : (d.totalTransportCost ?? 0),
+    },
+    { header: "Remarks", accessor: (d: any) => d.remarks || "N/A" },
+  ];
 
   const handleDelete = () => {
     if (selectedDispatchId) {
@@ -121,18 +145,26 @@ const DispatchesPage: React.FC = () => {
 
   return (
     <div className="mt-8">
-      <div className="flex space-x-6">
+      <div className="flex space-x-6 items-center">
         <button
           className="bg-cyan-700 hover:bg-cyan-800 text-white font-bold py-2 px-3 rounded text-sm"
           onClick={() => setShowForm(true)}
         >
           <PlusIcon width={15} height={12} />
         </button>
-        <GenericDownload data={downloadData} title="" columns={[]} />
+
+        {/* GenericDownloads now receives the original filteredDispatches and proper columns */}
+        <div className="w-full sm:w-auto">
+          <GenericDownloads
+            data={filteredDispatches}
+            title="Dispatch_List"
+            columns={downloadColumns}
+          />
+        </div>
       </div>
 
       <div className="flex items-center justify-between my-5">
-        <div ref={menuRef}>
+        <div ref={menuRef} className="relative">
           <button
             onClick={() => setShowColumnMenu((prev) => !prev)}
             className="flex items-center gap-1 px-4 py-2 text-sm bg-emerald-600 text-white rounded hover:bg-emerald-700"
@@ -245,12 +277,12 @@ const DispatchesPage: React.FC = () => {
                   )}
                   {selectedColumns.includes("dispatchedDate") && (
                     <td className="px-4 py-2">
-                      {new Date(d.dispatchedDate).toLocaleDateString()}
+                      {d.dispatchedDate ? new Date(d.dispatchedDate).toLocaleDateString() : "N/A"}
                     </td>
                   )}
                   {selectedColumns.includes("estArrivalTime") && (
                     <td className="px-4 py-2">
-                      {new Date(d.estArrivalTime).toLocaleDateString()}
+                      {d.estArrivalTime ? new Date(d.estArrivalTime).toLocaleDateString() : "N/A"}
                     </td>
                   )}
                   {selectedColumns.includes("depatureSite") && (

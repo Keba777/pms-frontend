@@ -2,9 +2,9 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, PlusIcon } from "lucide-react";
 import { Menu, MenuButton, MenuItems, MenuItem } from "@headlessui/react";
-import GenericDownload from "@/components/common/GenericDownloads";
+import GenericDownloads, { Column } from "@/components/common/GenericDownloads";
 import {
   GenericFilter,
   FilterField,
@@ -17,6 +17,7 @@ import {
   useDeleteRequestDelivery,
 } from "@/hooks/useRequestDeliveries";
 import RequestDeliveryTableSkeleton from "@/components/skeletons/RequestDeliveryTableSkeleton";
+import RequestDeliveryForm from "@/components/forms/RequestDeliverForm";
 
 const columnOptions: Record<string, string> = {
   refNumber: "Ref No.",
@@ -35,6 +36,7 @@ const RequestDeliveryPage: React.FC = () => {
   const { data: deliveries = [], isLoading, error } = useRequestDeliveries();
   const { mutate: deleteDelivery } = useDeleteRequestDelivery();
 
+  const [showForm, setShowForm] = useState(false);
   const [selectedColumns, setSelectedColumns] = useState<string[]>(
     Object.keys(columnOptions)
   );
@@ -97,17 +99,30 @@ const RequestDeliveryPage: React.FC = () => {
     return matches;
   });
 
-  const downloadData = filteredDeliveries.map((d) => ({
-    ID: d.id,
-    Ref: d.refNumber || "N/A",
-    DeliveredBy: d.deliveredBy,
-    ReceivedBy: d.recievedBy,
-    Status: d.status,
-    DeliveryDate: new Date(d.deliveryDate).toLocaleDateString(),
-    Quantity: d.recievedQuantity,
-    Site: d.site?.name || "N/A",
-    Remarks: d.remarks || "N/A",
-  }));
+  // DOWNLOAD COLUMNS (use the original delivery objects)
+  const downloadColumns: Column<any>[] = [
+    {
+      header: "ID",
+      accessor: (_d, index) => `RD${String(index! + 1).padStart(3, "0")}`,
+    },
+    { header: "Ref No.", accessor: (d: any) => d.refNumber || "N/A" },
+    { header: "Delivered By", accessor: (d: any) => d.deliveredBy || "N/A" },
+    { header: "Received By", accessor: (d: any) => d.recievedBy || "N/A" },
+    { header: "Status", accessor: (d: any) => d.status || "N/A" },
+    {
+      header: "Delivery Date",
+      accessor: (d: any) =>
+        d.deliveryDate ? new Date(d.deliveryDate).toLocaleDateString() : "N/A",
+    },
+    { header: "Qty Received", accessor: (d: any) => d.recievedQuantity || 0 },
+    { header: "Site", accessor: (d: any) => d.site?.name || "N/A" },
+    { header: "Remarks", accessor: (d: any) => d.remarks || "N/A" },
+    // {
+    //   header: "Activity",
+    //   accessor: (d: any) =>
+    //     d.approval?.request?.activity?.activity_name || d.approvalId || "N/A",
+    // },
+  ];
 
   const handleDelete = () => {
     if (selectedId) {
@@ -120,9 +135,24 @@ const RequestDeliveryPage: React.FC = () => {
 
   return (
     <div className="mt-8">
-      <GenericDownload data={downloadData} title="" columns={[]} />
+      <div className="flex justify-end space-x-6 items-center">
+        <button
+          className="bg-cyan-700 hover:bg-cyan-800 text-white font-bold py-2 px-3 rounded text-sm"
+          onClick={() => setShowForm(true)}
+        >
+          <PlusIcon width={15} height={12} />
+        </button>
+        <div className="w-full sm:w-auto">
+          <GenericDownloads
+            data={filteredDeliveries}
+            title="Request_Deliveries_List"
+            columns={downloadColumns}
+          />
+        </div>
+      </div>
+
       <div className="flex items-center justify-between my-5">
-        <div ref={menuRef}>
+        <div ref={menuRef} className="relative">
           <button
             onClick={() => setShowColumnMenu((prev) => !prev)}
             className="flex items-center gap-1 px-4 py-2 text-sm bg-emerald-600 text-white rounded hover:bg-emerald-700"
@@ -151,6 +181,14 @@ const RequestDeliveryPage: React.FC = () => {
         <GenericFilter fields={filterFields} onFilterChange={setFilterValues} />
       </div>
 
+      {showForm && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <RequestDeliveryForm onClose={() => setShowForm(false)} />
+          </div>
+        </div>
+      )}
+
       {isDeleteModalOpen && (
         <ConfirmModal
           isVisible={isDeleteModalOpen}
@@ -166,7 +204,7 @@ const RequestDeliveryPage: React.FC = () => {
 
       {/* Table */}
       <div className="overflow-x-auto">
-        <table className="min-w-max divide-y divide-gray-200">
+        <table className="min-w-full w-full divide-y divide-gray-200">
           <thead className="bg-cyan-700">
             <tr>
               {selectedColumns.map(
