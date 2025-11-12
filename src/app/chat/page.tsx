@@ -1,434 +1,604 @@
 "use client";
-import React, { useState, useEffect, useCallback } from "react";
-import { supabase } from "@/lib/supabase";
-import { useAuthStore } from "@/store/authStore";
-import { useUsers } from "@/hooks/useUsers";
-import { Search, MessageSquare, Send } from "lucide-react";
 
-interface Message {
-  message_id: string;
-  conversation_id: string | null;
-  sender_id: string;
-  receiver_id: string;
-  message_text: string;
-  timestamp: string;
-  is_read: boolean;
-  sender_name: string;
-}
-interface ConversationMeta {
-  user_id: string;
-  last_message: string;
-  last_message_time: string;
-  unread_count: number;
-}
-/**
- * This represents the raw row from Supabase
- * before we inject the `sender_name` field.
- */
-interface SupaMessageRow {
-  message_id: string;
-  conversation_id: string | null;
-  sender_id: string;
-  receiver_id: string;
-  message_text: string;
-  timestamp: string;
-  is_read: boolean;
-  sender?: {
-    first_name: string;
-    last_name: string;
-  };
-}
+import React, { useState, useEffect, useRef, useMemo, useCallback, JSX } from "react";
+import { Search, MessageSquare, Send, Plus, Trash2, UserX, Mic, Paperclip, ChevronLeft } from "lucide-react";
+import Image from "next/image";
+import { useChatRooms, useCreateIndividualChatRoom, useCreateGroupChatRoom, useUpdateGroupChatRoom, useDeleteGroupChatRoom, useAddMembersToGroup, useRemoveMemberFromGroup, useChatRoom, useChatMessages, useSendChatMessage, useDeleteChatMessage } from "@/hooks/useChats"; // Adjust path as needed
+import { useUsers } from "@/hooks/useUsers"; // Assume this hook exists, fetching User[]
+import { useAuthStore } from "@/store/authStore"; // Assume this exists for current user
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Skeleton } from "@/components/ui/skeleton";
+import { formatDate } from "@/utils/helper"; // Assume exists for formatting dates
+import { toast } from "react-toastify";
+import { User } from "@/types/user";
+import { ChatRoom, ChatMessage } from "@/types/chat";
 
-export default function ProfessionalMessages() {
-  const user = useAuthStore((state) => state.user);
-  const { data: users, isLoading: loadingUsers } = useUsers();
-  const [conversations, setConversations] = useState<
-    Record<string, ConversationMeta>
-  >({});
-  const [selectedConversation, setSelectedConversation] = useState<
-    string | null
-  >(null);
-  const [messages, setMessages] = useState<Message[]>([]);
+const ChatPage: React.FC = () => {
+  const { data: rooms = [], isLoading: loadingRooms } = useChatRooms();
+  const { data: allUsers = [] } = useUsers();
+  const currentUser = useAuthStore((state) => state.user) as User | null; // Allow null for safety
+  const [selectedRoom, setSelectedRoom] = useState<ChatRoom | null>(null);
   const [newMessage, setNewMessage] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [isCreatingGroup, setIsCreatingGroup] = useState(false);
+  const [newGroupName, setNewGroupName] = useState("");
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState(""); // Main search for sidebar
+  const [groupSearchQuery, setGroupSearchQuery] = useState(""); // Separate search for group dialog to avoid re-render loops
+  const [isMobileViewChat, setIsMobileViewChat] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // 1) Load conversation metadata
-  const loadConversationsMeta = useCallback(async () => {
-    if (!user) return;
-    const { data, error } = await supabase
-      .from("messages")
-      .select("sender_id, receiver_id, message_text, timestamp, is_read")
-      .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
-      .order("timestamp", { ascending: false });
+  const createIndividualMutation = useCreateIndividualChatRoom((room) => {
+    setSelectedRoom(room);
+    setIsMobileViewChat(true);
+  });
+  const createGroupMutation = useCreateGroupChatRoom((room) => {
+    setSelectedRoom(room);
+    setIsCreatingGroup(false);
+    setNewGroupName("");
+    setSelectedUsers([]);
+    setGroupSearchQuery(""); // Reset dialog search
+    setIsMobileViewChat(true);
+  });
+  const updateGroupMutation = useUpdateGroupChatRoom();
+  const deleteGroupMutation = useDeleteGroupChatRoom();
+  const addMembersMutation = useAddMembersToGroup();
+  const removeMemberMutation = useRemoveMemberFromGroup();
+  const { data: roomData, isLoading: loadingRoom } = useChatRoom(selectedRoom?.id || "");
+  const { data: messagesData = [], isLoading: loadingMessages } = useChatMessages(selectedRoom?.id || "");
+  const sendMessageMutation = useSendChatMessage(selectedRoom?.id || "");
+  const deleteMessageMutation = useDeleteChatMessage(selectedRoom?.id || "");
 
-    if (error) {
-      console.error("Error loading conversations:", error);
-      return;
-    }
+  // Memoize filtered data to prevent re-computation on every render
+  const filteredUsers = useMemo(() => 
+    allUsers.filter((u) =>
+      `${u.first_name} ${u.last_name}`.toLowerCase().includes(searchQuery.toLowerCase())
+    ), [allUsers, searchQuery]);
 
-    const metaMap: Record<string, ConversationMeta> = {};
-    data?.forEach((msg: any) => {
-      const partnerId =
-        msg.sender_id === user.id ? msg.receiver_id : msg.sender_id;
-      if (!partnerId) return;
-      if (!metaMap[partnerId]) {
-        metaMap[partnerId] = {
-          user_id: partnerId,
-          last_message: msg.message_text || "",
-          last_message_time: msg.timestamp,
-          unread_count:
-            msg.receiver_id === user.id && !msg.is_read ? 1 : 0,
-        };
-      } else if (msg.receiver_id === user.id && !msg.is_read) {
-        metaMap[partnerId].unread_count += 1;
-      }
-    });
-    setConversations(metaMap);
-  }, [user]);
+  const filteredRooms = useMemo(() => 
+    rooms.filter((r) => {
+      const member = r.members?.find((m) => m.id !== currentUser?.id);
+      const name = r.is_group ? r.name : (member ? `${member.first_name} ${member.last_name}` : "");
+      return name?.toLowerCase().includes(searchQuery.toLowerCase());
+    }), [rooms, searchQuery, currentUser]);
 
-  useEffect(() => {
-    if (user) loadConversationsMeta();
-  }, [user, loadConversationsMeta]);
-
-  // 2) Load messages for a given partner
-  const loadMessages = useCallback(
-    async (partnerId: string) => {
-      if (!user) return;
-      setLoading(true);
-      try {
-        const { data, error } = await supabase
-          .from("messages")
-          .select(
-            `
-            *,
-            sender:users!messages_sender_id_fkey(first_name, last_name)
-          `
-          )
-          .or(
-            `and(sender_id.eq.${user.id},receiver_id.eq.${partnerId}),and(sender_id.eq.${partnerId},receiver_id.eq.${user.id})`
-          )
-          .order("timestamp", { ascending: true });
-
-        if (error) throw error;
-
-        const formatted: Message[] =
-          (data?.map((row: SupaMessageRow) => ({
-            message_id: row.message_id,
-            conversation_id: row.conversation_id,
-            sender_id: row.sender_id,
-            receiver_id: row.receiver_id,
-            message_text: row.message_text,
-            timestamp: row.timestamp,
-            is_read: row.is_read,
-            sender_name: row.sender
-              ? `${row.sender.first_name} ${row.sender.last_name}`
-              : "Unknown",
-          })) as Message[]) || [];
-
-        setMessages(formatted);
-
-        // Mark unread as read
-        await supabase
-          .from("messages")
-          .update({ is_read: true })
-          .eq("sender_id", partnerId)
-          .eq("receiver_id", user.id);
-
-        // Refresh conversation badges
-        loadConversationsMeta();
-      } catch (err) {
-        console.error("Error loading messages:", err);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [user, loadConversationsMeta]
-  );
+  const groupFilteredUsers = useMemo(() => 
+    allUsers.filter((u) =>
+      u.id !== currentUser?.id &&
+      `${u.first_name} ${u.last_name}`.toLowerCase().includes(groupSearchQuery.toLowerCase())
+    ), [allUsers, groupSearchQuery, currentUser]);
 
   useEffect(() => {
-    if (selectedConversation) loadMessages(selectedConversation);
-  }, [selectedConversation, loadMessages]);
-
-  // 3) Send message with robust conversation upsert/select
-  const sendMessage = async (
-    e?: React.FormEvent | React.KeyboardEvent | undefined
-  ) => {
-    if (e && typeof (e as any).preventDefault === "function") {
-      (e as any).preventDefault();
+    if (roomData) {
+      setSelectedRoom(roomData);
     }
+  }, [roomData]);
 
-    if (!user || !selectedConversation || !newMessage.trim()) return;
+  useEffect(() => {
+    const messagesContainer = document.getElementById("messages-container");
+    if (messagesContainer) {
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+  }, [messagesData]);
 
-    let conversation_id: string | undefined;
-
+  const startRecording = useCallback(async () => {
     try {
-      // 1) try to find existing conversation
-      const { data: existing, error: selErr } = await supabase
-        .from("conversations")
-        .select("conversation_id")
-        .or(
-          `and(user_a.eq.${user.id},user_b.eq.${selectedConversation}),and(user_a.eq.${selectedConversation},user_b.eq.${user.id})`
-        );
-
-      if (selErr) {
-        console.error("Error selecting conversation:", selErr);
-        // continue to attempt insert
-      }
-
-      if (existing && Array.isArray(existing) && existing.length > 0) {
-        conversation_id = existing[0].conversation_id;
-      } else {
-        // Insert new conversation. don't use .single() to avoid hard failure if response shape differs
-        const { data: inserted, error: insErr } = await supabase
-          .from("conversations")
-          .insert({
-            user_a: user.id,
-            user_b: selectedConversation,
-          })
-          .select("conversation_id");
-
-        if (insErr) {
-          console.error("Error inserting conversation (insErr):", insErr);
-          try {
-            console.error(
-              "insErr fields:",
-              "status=",
-              (insErr as any)?.status,
-              "code=",
-              (insErr as any)?.code,
-              "message=",
-              (insErr as any)?.message,
-              "details=",
-              (insErr as any)?.details,
-              "hint=",
-              (insErr as any)?.hint
-            );
-          } catch (e) {
-            console.error("Could not parse insErr fields", e);
-          }
-          console.error("inserted payload:", inserted);
-          // retry select in case of race or RLS oddness
-          const { data: retry, error: retryErr } = await supabase
-            .from("conversations")
-            .select("conversation_id")
-            .or(
-              `and(user_a.eq.${user.id},user_b.eq.${selectedConversation}),and(user_a.eq.${selectedConversation},user_b.eq.${user.id})`
-            );
-          if (retryErr) {
-            console.error("Retry select conversation failed:", retryErr);
-            return;
-          }
-          if (retry && Array.isArray(retry) && retry.length > 0) {
-            conversation_id = retry[0].conversation_id;
-          } else {
-            return;
-          }
-        } else {
-          if (Array.isArray(inserted)) {
-            conversation_id = inserted[0]?.conversation_id;
-          } else {
-            conversation_id = (inserted as any)?.conversation_id;
-          }
-
-          if (!conversation_id) {
-            const { data: retry2 } = await supabase
-              .from("conversations")
-              .select("conversation_id")
-              .or(
-                `and(user_a.eq.${user.id},user_b.eq.${selectedConversation}),and(user_a.eq.${selectedConversation},user_b.eq.${user.id})`
-              );
-            if (retry2 && Array.isArray(retry2) && retry2.length > 0) {
-              conversation_id = retry2[0].conversation_id;
-            }
-          }
-        }
-      }
-
-      if (!conversation_id) {
-        console.error(
-          "Could not determine conversation_id after insert/select attempts."
-        );
-        return;
-      }
-
-      // insert message
-      const { error: msgErr } = await supabase.from("messages").insert({
-        conversation_id,
-        sender_id: user.id,
-        receiver_id: selectedConversation,
-        message_text: newMessage.trim() || "",
-        is_read: false,
-      });
-
-      if (msgErr) {
-        console.error("Error sending message:", msgErr);
-        return;
-      }
-
-      // success — clear UI
-      setNewMessage("");
-
-      // reload messages and metadata
-      await loadMessages(selectedConversation);
-      await loadConversationsMeta();
-
-      // scroll to bottom
-      setTimeout(() => {
-        const c = document.querySelector(".messages-container");
-        if (c) c.scrollTop = c.scrollHeight;
-      }, 50);
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorderRef.current = new MediaRecorder(stream);
+      const chunks: Blob[] = []; // Reset chunks for each recording
+      mediaRecorderRef.current.ondataavailable = (e) => chunks.push(e.data);
+      mediaRecorderRef.current.onstop = () => setAudioBlob(new Blob(chunks, { type: "audio/m4a" }));
+      mediaRecorderRef.current.start();
+      setIsRecording(true);
     } catch (err) {
-      console.error("Unexpected error in sendMessage:", err);
+      toast.error("Failed to access microphone");
     }
-  };
+  }, []);
 
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      void sendMessage();
+  const stopRecording = useCallback(() => {
+    if (mediaRecorderRef.current?.state === "recording") {
+      mediaRecorderRef.current.stop();
     }
-  };
+    setIsRecording(false);
+  }, []);
 
-  const filteredUsers = users
-    ? users
-        .filter((u) =>
-          `${u.first_name} ${u.last_name}`
-            .toLowerCase()
-            .includes(searchQuery.toLowerCase())
-        )
-        .sort((a, b) =>
-          `${a.first_name} ${a.last_name}`.localeCompare(
-            `${b.first_name} ${b.last_name}`
-          )
-        )
-    : [];
+  useEffect(() => {
+    if (audioBlob && selectedRoom) {
+      sendMessageMutation.mutate({ room_id: selectedRoom.id, type: "voice", file: audioBlob });
+      setAudioBlob(null);
+    }
+  }, [audioBlob, selectedRoom, sendMessageMutation]);
+
+  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && selectedRoom) {
+      sendMessageMutation.mutate({ room_id: selectedRoom.id, type: "file", file });
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }, [selectedRoom, sendMessageMutation]);
+
+  const sendTextMessage = useCallback((e: React.FormEvent) => {
+    e.preventDefault();
+    if (newMessage.trim() && selectedRoom) {
+      sendMessageMutation.mutate({ room_id: selectedRoom.id, type: "text", content: newMessage.trim() });
+      setNewMessage("");
+    }
+  }, [newMessage, selectedRoom, sendMessageMutation]);
+
+  const toggleUserSelection = useCallback((userId: string) => {
+    setSelectedUsers((prev) => prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]);
+  }, []);
+
+  const createNewGroup = useCallback((e: React.FormEvent) => {
+    e.preventDefault();
+    if (newGroupName.trim() && selectedUsers.length > 0) {
+      createGroupMutation.mutate({ name: newGroupName, memberIds: selectedUsers });
+    }
+  }, [newGroupName, selectedUsers, createGroupMutation]);
+
+  const createIndividualChat = useCallback((otherUserId: string) => {
+    createIndividualMutation.mutate({ otherUserId });
+  }, [createIndividualMutation]);
+
+  const deleteGroup = useCallback(() => {
+    if (selectedRoom?.is_group && confirm("Are you sure you want to delete this group?")) {
+      deleteGroupMutation.mutate(selectedRoom.id);
+      setSelectedRoom(null);
+      setIsMobileViewChat(false);
+    }
+  }, [selectedRoom, deleteGroupMutation]);
+
+  const removeMember = useCallback((userId: string) => {
+    if (selectedRoom?.is_group) {
+      removeMemberMutation.mutate({ id: selectedRoom.id, userId });
+    }
+  }, [selectedRoom, removeMemberMutation]);
+
+  const deleteMessage = useCallback((id: string) => {
+    if (confirm("Delete message?")) {
+      deleteMessageMutation.mutate(id);
+    }
+  }, [deleteMessageMutation]);
+
+  // Group messages with date separators
+  const groupedMessages = useMemo(() => {
+    return messagesData.reduce((acc: JSX.Element[], msg: ChatMessage, index: number) => {
+      const msgDate = new Date(msg.createdAt).toDateString();
+      const prevMsgDate = index > 0 ? new Date(messagesData[index - 1].createdAt).toDateString() : null;
+
+      if (index === 0 || msgDate !== prevMsgDate) {
+        acc.push(
+          <div key={msgDate} className="text-center text-gray-500 my-4">
+            <span className="bg-gray-200 px-3 py-1 rounded-full text-sm">{new Date(msg.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+          </div>
+        );
+      }
+
+      acc.push(
+        <MessageItem
+          key={msg.id}
+          msg={msg}
+          currentUser={currentUser!}
+          deleteMessage={deleteMessage}
+        />
+      );
+
+      return acc;
+    }, []);
+  }, [messagesData, currentUser, deleteMessage]);
+
+  // Safe current user check
+  if (!currentUser) {
+    return <div>Loading user...</div>; // Or redirect to login
+  }
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen bg-gray-50 text-gray-900">
       {/* Sidebar */}
-      <aside className="w-1/4 border-r p-4 bg-white">
-        <h2 className="text-xl font-semibold mb-4">Contacts</h2>
-        <div className="flex items-center mb-4">
-          <Search className="text-gray-500 mr-2" />
-          <input
-            type="text"
-            placeholder="Search contacts..."
+      <aside className={`w-full lg:w-80 border-r bg-white p-4 shadow-sm ${isMobileViewChat ? "hidden" : "block"} lg:block`}>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-bold text-cyan-700">Chats</h2>
+          <Button onClick={() => setIsCreatingGroup(true)} className="bg-cyan-700 hover:bg-cyan-600 text-white">
+            <Plus className="mr-2 h-4 w-4" /> New Group
+          </Button>
+        </div>
+        <div className="relative mb-4">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+          <Input
+            className="pl-10 border-cyan-300 focus:border-cyan-500"
+            placeholder="Search chats or users..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex-1 px-3 py-2 border rounded-lg focus:outline-none"
           />
         </div>
-        {loadingUsers && <p className="text-center py-4">Loading contacts...</p>}
-        <ul className="max-h-[60vh] overflow-y-auto">
-          {filteredUsers.map((u) => {
-            const m = conversations[u.id];
-            return (
-              <li
-                key={u.id}
-                onClick={() => setSelectedConversation(u.id)}
-                className={`flex justify-between p-3 mb-2 rounded-lg cursor-pointer hover:bg-gray-100 ${
-                  selectedConversation === u.id ? "bg-blue-50" : "bg-white"
-                }`}
-              >
-                <div>
-                  <p className="font-medium">
-                    {u.first_name} {u.last_name}
-                  </p>
-                  <p className="text-sm text-gray-500 truncate">
-                    {m?.last_message || "No messages yet"}
-                  </p>
+        <ScrollArea className="h-[calc(100vh-12rem)] pr-4"> {/* Add padding-right to prevent scroll issues */}
+          {loadingRooms ? (
+            <div className="space-y-4">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="flex items-center space-x-4">
+                  <Skeleton className="h-10 w-10 rounded-full" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-4 w-[200px]" />
+                    <Skeleton className="h-3 w-[150px]" />
+                  </div>
                 </div>
-                {m?.unread_count ? (
-                  <span className="inline-block text-xs bg-blue-500 text-white rounded-full px-2">
-                    {m.unread_count}
-                  </span>
-                ) : null}
-              </li>
-            );
-          })}
-        </ul>
+              ))}
+            </div>
+          ) : searchQuery ? (
+            filteredUsers.map((u) => (
+              <div
+                key={u.id}
+                className="flex items-center p-3 hover:bg-cyan-50 rounded-lg cursor-pointer transition-colors"
+                onClick={() => {
+                  createIndividualChat(u.id);
+                  setSearchQuery("");
+                }}
+              >
+                <UserAvatar user={u} />
+                <div className="ml-3">
+                  <p className="font-medium text-cyan-800">{u.first_name} {u.last_name}</p>
+                  <p className="text-sm text-gray-500">Start a new chat</p>
+                </div>
+              </div>
+            ))
+          ) : (
+            filteredRooms.map((room) => {
+              const otherMember = room.members?.find((m) => m.id !== currentUser.id);
+              const lastMsg = room.messages?.[0];
+              const previewText = lastMsg 
+                ? lastMsg.type === "text" 
+                  ? lastMsg.content 
+                  : lastMsg.type === "voice" 
+                    ? "Voice message" 
+                    : `File: ${lastMsg.filename || "file"}`
+                : "No messages yet";
+              return (
+                <div
+                  key={room.id}
+                  className="flex items-center justify-between p-3 hover:bg-cyan-50 rounded-lg cursor-pointer transition-colors"
+                  onClick={() => {
+                    setSelectedRoom(room);
+                    setIsMobileViewChat(true);
+                  }}
+                >
+                  <div className="flex items-center">
+                    {room.is_group ? (
+                      <div className="w-10 h-10 bg-cyan-200 rounded-full flex items-center justify-center text-cyan-700 font-bold">
+                        {room.name?.[0] || "G"}
+                      </div>
+                    ) : otherMember ? (
+                      <UserAvatar user={otherMember} />
+                    ) : (
+                      <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center text-gray-500">
+                        U
+                      </div>
+                    )}
+                    <div className="ml-3">
+                      <p className="font-medium text-cyan-800">
+                        {room.is_group ? room.name : otherMember ? `${otherMember.first_name} ${otherMember.last_name}` : "Unknown User"}
+                      </p>
+                      <p className="text-sm text-gray-500 truncate w-48">{previewText}</p>
+                    </div>
+                  </div>
+                  {room.is_group && room.owner_id === currentUser.id && (
+                    <span className="text-xs bg-cyan-100 text-cyan-700 px-2 py-1 rounded-full">Owner</span>
+                  )}
+                </div>
+              );
+            })
+          )}
+        </ScrollArea>
       </aside>
 
-      {/* Chat area */}
-      <main className="flex-1 flex flex-col bg-gray-50">
-        {selectedConversation ? (
+      {/* Chat Area */}
+      <main className={`flex-1 flex flex-col ${isMobileViewChat ? "block" : "hidden lg:flex"} bg-white`}>
+        {selectedRoom ? (
           <>
-            <header className="flex items-center justify-between p-4 bg-white border-b">
-              <button
-                onClick={() => setSelectedConversation(null)}
-                className="text-blue-500"
-              >
-                ← Back
-              </button>
-              <h3 className="text-lg font-semibold">
-                {users?.find((u) => u.id === selectedConversation)?.first_name}{" "}
-                {users?.find((u) => u.id === selectedConversation)?.last_name}
-              </h3>
-            </header>
-
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 messages-container">
-              {loading && <p className="text-center py-4">Loading messages…</p>}
-              {!loading && messages.length === 0 && (
-                <p className="text-center py-4 text-gray-500">No messages yet.</p>
+            <header className="flex items-center justify-between p-4 border-b shadow-sm bg-cyan-50">
+              <div className="flex items-center">
+                <Button variant="ghost" className="lg:hidden" onClick={() => setIsMobileViewChat(false)}>
+                  <ChevronLeft className="h-6 w-6 text-cyan-700" />
+                </Button>
+                <h3 className="ml-2 text-lg font-semibold text-cyan-700">
+                  {selectedRoom.is_group ? selectedRoom.name : selectedRoom.members?.find((m) => m.id !== currentUser.id)?.first_name + " " + selectedRoom.members?.find((m) => m.id !== currentUser.id)?.last_name || "Chat"}
+                </h3>
+              </div>
+              {selectedRoom.is_group && selectedRoom.owner_id === currentUser.id && (
+                <Button variant="destructive" size="sm" onClick={deleteGroup} className="bg-red-600 hover:bg-red-700">
+                  <Trash2 className="mr-2 h-4 w-4" /> Delete
+                </Button>
               )}
-              {messages.map((m) => {
-                const isMine = m.sender_id === user?.id;
-                return (
-                  <div
-                    key={m.message_id}
-                    className={`max-w-md p-3 rounded-lg ${
-                      isMine ? "ml-auto bg-blue-500 text-white" : "mr-auto bg-white"
-                    }`}
-                  >
-                    {!isMine && (
-                      <p className="text-xs font-semibold mb-1">{m.sender_name}</p>
-                    )}
-                    {m.message_text && <p>{m.message_text}</p>}
-                    <span className="block text-xs opacity-80 mt-1 text-right">
-                      {new Date(m.timestamp).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-
-            <form
-              onSubmit={(e) => void sendMessage(e)}
-              className="p-4 bg-white border-t flex items-center"
-            >
-              <textarea
+            </header>
+            <ChatMembersComponent
+              room={selectedRoom}
+              currentUser={currentUser}
+              removeMember={removeMember}
+              allUsers={allUsers}
+              addMembersMutation={addMembersMutation}
+            />
+            <ScrollArea id="messages-container" className="flex-1 p-4 bg-gray-50 pr-4"> {/* Add padding-right */}
+              {loadingMessages || loadingRoom ? (
+                <div className="space-y-4">
+                  {[...Array(5)].map((_, i) => (
+                    <div key={i} className={`mb-4 max-w-[80%] ${i % 2 === 0 ? "ml-auto" : ""}`}>
+                      <Skeleton className="h-12 w-[200px] rounded-lg" />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                groupedMessages
+              )}
+            </ScrollArea>
+            <form onSubmit={sendTextMessage} className="p-4 border-t flex items-center space-x-2 bg-white">
+              <Textarea
                 rows={1}
-                className="flex-1 px-3 py-2 border rounded-lg focus:outline-none resize-none"
-                placeholder="Type a message…"
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
-                onKeyDown={handleKeyPress}
+                placeholder="Type a message..."
+                className="flex-1 resize-none border-cyan-300 focus:border-cyan-500"
               />
-              <button
-                type="submit"
-                disabled={!newMessage.trim()}
-                className={`ml-3 p-2 rounded-full ${
-                  newMessage.trim()
-                    ? "bg-blue-500 text-white hover:bg-blue-600"
-                    : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                }`}
-              >
-                <Send size={18} />
-              </button>
+              <Button type="button" variant="ghost" onClick={() => fileInputRef.current?.click()}>
+                <Paperclip className="h-5 w-5 text-cyan-700" />
+              </Button>
+              <input type="file" ref={fileInputRef} onChange={handleFileChange} hidden />
+              <Button type="button" variant="ghost" onClick={isRecording ? stopRecording : startRecording}>
+                <Mic className={`h-5 w-5 ${isRecording ? "text-red-500" : "text-cyan-700"}`} />
+              </Button>
+              <Button type="submit" disabled={!newMessage.trim()} className="bg-cyan-700 hover:bg-cyan-600 text-white">
+                <Send className="h-5 w-5" />
+              </Button>
             </form>
           </>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center text-gray-500">
-            <MessageSquare size={48} />
-            <p className="mt-4 text-lg">No conversation selected</p>
-            <p>Select a contact to start chatting.</p>
+          <div className="flex flex-1 items-center justify-center flex-col text-gray-500">
+            <MessageSquare className="h-12 w-12 mb-4" />
+            <p className="text-xl">Select a chat to start messaging</p>
           </div>
         )}
       </main>
+
+      {/* Create Group Dialog */}
+      <Dialog open={isCreatingGroup} onOpenChange={setIsCreatingGroup}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-cyan-700">Create New Group</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={createNewGroup} className="space-y-4">
+            <Input
+              placeholder="Group Name"
+              value={newGroupName}
+              onChange={(e) => setNewGroupName(e.target.value)}
+              className="border-cyan-300 focus:border-cyan-500"
+            />
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+              <Input
+                className="pl-10 border-cyan-300 focus:border-cyan-500"
+                placeholder="Search users to add..."
+                value={groupSearchQuery}
+                onChange={(e) => setGroupSearchQuery(e.target.value)}
+              />
+            </div>
+            <ScrollArea className="h-48 border border-cyan-200 rounded-md p-2 pr-4"> {/* Add padding-right */}
+              {groupFilteredUsers.map((u) => (
+                <div
+                  key={u.id}
+                  className="flex items-center space-x-2 p-2 hover:bg-cyan-50 rounded-md"
+                >
+                  <Checkbox 
+                    checked={selectedUsers.includes(u.id)} 
+                    onCheckedChange={() => toggleUserSelection(u.id)} 
+                    className="border-cyan-500" 
+                  />
+                  <UserAvatar user={u} />
+                  <span className="text-cyan-800">{u.first_name} {u.last_name}</span>
+                </div>
+              ))}
+            </ScrollArea>
+            <div className="flex justify-end space-x-2">
+              <Button type="button" variant="outline" onClick={() => setIsCreatingGroup(false)} className="border-cyan-300 text-cyan-700">
+                Cancel
+              </Button>
+              <Button type="submit" disabled={!newGroupName.trim() || selectedUsers.length === 0} className="bg-cyan-700 hover:bg-cyan-600 text-white">
+                Create Group
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
+};
+
+interface ChatMembersProps {
+  room: ChatRoom;
+  currentUser: User;
+  removeMember: (userId: string) => void;
+  allUsers: User[];
+  addMembersMutation: ReturnType<typeof useAddMembersToGroup>;
 }
+
+const ChatMembersComponent: React.FC<ChatMembersProps> = React.memo(({ room, currentUser, removeMember, allUsers, addMembersMutation }) => {
+  const [showMembers, setShowMembers] = useState(false);
+  const [addMode, setAddMode] = useState(false);
+  const [searchAdd, setSearchAdd] = useState("");
+  const [selectedAdd, setSelectedAdd] = useState<string[]>([]);
+
+  const filteredAdd = useMemo(() => 
+    allUsers.filter((u) => 
+      !room.members?.some((m) => m.id === u.id) && 
+      `${u.first_name} ${u.last_name}`.toLowerCase().includes(searchAdd.toLowerCase())
+    ), [allUsers, room.members, searchAdd]);
+
+  const handleAdd = useCallback(() => {
+    if (selectedAdd.length > 0) {
+      addMembersMutation.mutate({ id: room.id, memberIds: selectedAdd });
+      setSelectedAdd([]);
+      setAddMode(false);
+    }
+  }, [selectedAdd, room.id, addMembersMutation]);
+
+  if (!room.is_group) return null;
+
+  return (
+    <div className="p-4 border-b bg-cyan-50">
+      <div className="flex items-center justify-between mb-4">
+        <Button variant="link" onClick={() => setShowMembers(!showMembers)} className="text-cyan-700 p-0">
+          {showMembers ? "Hide" : "Show"} Members ({room.members?.length || 0})
+        </Button>
+        {room.owner_id === currentUser.id && (
+          <Button onClick={() => setAddMode(true)} className="bg-cyan-700 hover:bg-cyan-600 text-white">
+            <Plus className="mr-2 h-4 w-4" /> Add Members
+          </Button>
+        )}
+      </div>
+      {showMembers && (
+        <ScrollArea className="mt-4 max-h-64">
+          <div className="flex flex-col gap-2">
+            {room.members?.map((member, index) => (
+              <div
+                key={member.id}
+                className={`flex items-center justify-between p-3 bg-white rounded-lg shadow-sm ${index < (room.members?.length || 0) - 1 ? "border-b border-gray-200" : ""}`}
+              >
+                <div className="flex items-center">
+                  <UserAvatar user={member} />
+                  <div className="ml-4">
+                    <span className="text-cyan-800 font-medium">{member.first_name} {member.last_name}</span>
+                    {member.id === room.owner_id && (
+                      <span className="ml-2 text-xs bg-cyan-100 text-cyan-700 px-2 py-1 rounded-full">Admin</span>
+                    )}
+                  </div>
+                </div>
+                {currentUser.id === room.owner_id && member.id !== currentUser.id && (
+                  <Button variant="ghost" size="icon" onClick={() => removeMember(member.id)} className="text-red-500">
+                    <UserX className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+            ))}
+          </div>
+        </ScrollArea>
+      )}
+      <Dialog open={addMode} onOpenChange={setAddMode}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-cyan-700">Add Members</DialogTitle>
+          </DialogHeader>
+          <div className="relative mt-4">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+            <Input
+              className="pl-10 border-cyan-300 focus:border-cyan-500"
+              placeholder="Search users..."
+              value={searchAdd}
+              onChange={(e) => setSearchAdd(e.target.value)}
+            />
+          </div>
+          <ScrollArea className="h-48 mt-2 border border-cyan-200 rounded-md p-2 pr-4"> {/* Add padding-right */}
+            {filteredAdd.map((u, index) => (
+              <div
+                key={u.id}
+                className={`flex items-center space-x-4 p-3 hover:bg-cyan-50 rounded-md ${index < filteredAdd.length - 1 ? "border-b border-gray-200" : ""}`}
+              >
+                <Checkbox 
+                  checked={selectedAdd.includes(u.id)} 
+                  onCheckedChange={() => setSelectedAdd((prev) => prev.includes(u.id) ? prev.filter(id => id !== u.id) : [...prev, u.id])}
+                  className="border-cyan-500" 
+                />
+                <UserAvatar user={u} />
+                <span className="text-cyan-800">{u.first_name} {u.last_name}</span>
+              </div>
+            ))}
+          </ScrollArea>
+          <div className="flex justify-end mt-4 space-x-2">
+            <Button onClick={() => setAddMode(false)} variant="outline" className="border-cyan-300 text-cyan-700">
+              Cancel
+            </Button>
+            <Button onClick={handleAdd} disabled={selectedAdd.length === 0} className="bg-cyan-700 hover:bg-cyan-600 text-white">
+              Add Selected
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+});
+
+interface MessageItemProps {
+  msg: ChatMessage;
+  currentUser: User;
+  deleteMessage: (id: string) => void;
+}
+
+const MessageItem: React.FC<MessageItemProps> = React.memo(({ msg, currentUser, deleteMessage }) => (
+  <div className={`mb-4 max-w-[80%] ${msg.sender_id === currentUser.id ? "ml-auto" : ""}`}>
+    <div className={`p-3 rounded-lg ${msg.sender_id === currentUser.id ? "bg-cyan-500 text-white" : "bg-white shadow-sm"}`}>
+      {msg.sender_id !== currentUser.id && msg.sender && (
+        <p className="font-semibold text-cyan-700 mb-1">{msg.sender.first_name} {msg.sender.last_name}</p>
+      )}
+      {msg.type === "text" && <p>{msg.content}</p>}
+      {msg.type === "voice" && msg.media_url && <audio controls src={msg.media_url} className="w-full" />}
+      {msg.type === "file" && msg.media_url && (
+        <>
+          {msg.mime_type?.startsWith("image/") ? (
+            <a href={msg.media_url} download={msg.filename || "image"} className="block">
+              <img src={msg.media_url} alt={msg.filename || "image"} className="max-w-full rounded-lg" />
+            </a>
+          ) : (
+            <a href={msg.media_url} download={msg.filename} className="text-cyan-500 hover:underline flex items-center">
+              <Paperclip className="mr-1 h-4 w-4" /> {msg.filename || "Download File"}
+            </a>
+          )}
+        </>
+      )}
+    </div>
+    <div className={`flex ${msg.sender_id === currentUser.id ? "justify-end" : "justify-start"} items-center mt-1 text-xs text-gray-500`}>
+      {formatDate(msg.createdAt)}
+      {msg.sender_id === currentUser.id && (
+        <Button variant="ghost" size="icon" onClick={() => deleteMessage(msg.id)} className="ml-2 text-red-500">
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      )}
+    </div>
+  </div>
+));
+
+interface UserAvatarProps {
+  user: User | undefined; // Allow undefined for safety
+}
+
+const UserAvatar: React.FC<UserAvatarProps> = ({ user }) => {
+  if (!user) {
+    return (
+      <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
+        U
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative">
+      {user.profile_picture ? (
+        <Image
+          src={user.profile_picture}
+          alt={`${user.first_name} ${user.last_name}`}
+          width={40}
+          height={40}
+          className="rounded-full"
+        />
+      ) : (
+        <div className="w-10 h-10 rounded-full bg-cyan-200 flex items-center justify-center text-cyan-700 font-bold">
+          {user.first_name[0]}{user.last_name[0]}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default ChatPage;

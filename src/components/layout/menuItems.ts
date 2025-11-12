@@ -191,13 +191,13 @@ const menuItems = [
     iconColor: "text-yellow-500",
     badge: 0,
   },
-  {
-    title: "Team Chats",
-    link: "/group-chat",
-    icon: Users,
-    iconColor: "text-purple-600",
-    badge: 0,
-  },
+  // {
+  //   title: "Team Chats",
+  //   link: "/group-chat",
+  //   icon: Users,
+  //   iconColor: "text-purple-600",
+  //   badge: 0,
+  // },
 
   {
     title: "Meetings",
