@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useMemo, useCallback, JSX } from "react";
-import { Search, MessageSquare, Send, Plus, Trash2, UserX, Mic, Paperclip, ChevronLeft } from "lucide-react";
+import { Search, MessageSquare, Send, Plus, Trash2, UserX, Mic, Paperclip, ChevronLeft, File, FileText, Presentation, BarChart } from "lucide-react";
 import Image from "next/image";
 import { useChatRooms, useCreateIndividualChatRoom, useCreateGroupChatRoom, useUpdateGroupChatRoom, useDeleteGroupChatRoom, useAddMembersToGroup, useRemoveMemberFromGroup, useChatRoom, useChatMessages, useSendChatMessage, useDeleteChatMessage } from "@/hooks/useChats"; // Adjust path as needed
 import { useUsers } from "@/hooks/useUsers"; // Assume this hook exists, fetching User[]
@@ -536,38 +536,73 @@ interface MessageItemProps {
   deleteMessage: (id: string) => void;
 }
 
-const MessageItem: React.FC<MessageItemProps> = React.memo(({ msg, currentUser, deleteMessage }) => (
-  <div className={`mb-4 max-w-[80%] ${msg.sender_id === currentUser.id ? "ml-auto" : ""}`}>
-    <div className={`p-3 rounded-lg ${msg.sender_id === currentUser.id ? "bg-cyan-500 text-white" : "bg-white shadow-sm"}`}>
-      {msg.sender_id !== currentUser.id && msg.sender && (
-        <p className="font-semibold text-cyan-700 mb-1">{msg.sender.first_name} {msg.sender.last_name}</p>
-      )}
-      {msg.type === "text" && <p>{msg.content}</p>}
-      {msg.type === "voice" && msg.media_url && <audio controls src={msg.media_url} className="w-full" />}
-      {msg.type === "file" && msg.media_url && (
-        <>
-          {msg.mime_type?.startsWith("image/") ? (
-            <a href={msg.media_url} download={msg.filename || "image"} className="block">
-              <img src={msg.media_url} alt={msg.filename || "image"} className="max-w-full rounded-lg" />
-            </a>
-          ) : (
-            <a href={msg.media_url} download={msg.filename} className="text-cyan-500 hover:underline flex items-center">
-              <Paperclip className="mr-1 h-4 w-4" /> {msg.filename || "Download File"}
-            </a>
-          )}
-        </>
-      )}
+const MessageItem: React.FC<MessageItemProps> = React.memo(({ msg, currentUser, deleteMessage }) => {
+  let fileContent = null;
+  if (msg.type === "file" && msg.media_url) {
+    const mime = msg.mime_type || '';
+    const isImage = mime.startsWith("image/");
+    const isVideo = mime.startsWith("video/");
+    const isPdf = mime === "application/pdf";
+    const filename = msg.filename || "File";
+    const ext = filename.toLowerCase().split('.').pop() || '';
+
+    let Icon = File;
+    if (['pdf', 'doc', 'docx', 'txt'].includes(ext)) {
+      Icon = FileText;
+    } else if (['xls', 'xlsx', 'csv'].includes(ext)) {
+      Icon = BarChart;
+    } else if (['ppt', 'pptx'].includes(ext)) {
+      Icon = Presentation;
+    }
+
+    if (isImage) {
+      fileContent = (
+        <a href={msg.media_url} target="_blank" rel="noopener noreferrer" className="block">
+          <img src={msg.media_url} alt={filename} className="max-w-full rounded-lg" />
+        </a>
+      );
+    } else if (isVideo) {
+      fileContent = (
+        <video controls src={msg.media_url} className="max-w-full rounded-lg" />
+      );
+    } else if (isPdf) {
+      const previewUrl = msg.media_url.replace('/raw/upload/', '/image/upload/pg_1/w_300,c_scale/');
+      fileContent = (
+        <a href={msg.media_url} target="_blank" rel="noopener noreferrer" className="block">
+          <img src={previewUrl} alt={filename} className="max-w-full rounded-lg" />
+          <p className="text-center mt-2 text-cyan-500 hover:underline">{filename}</p>
+        </a>
+      );
+    } else {
+      fileContent = (
+        <a href={msg.media_url} target="_blank" rel="noopener noreferrer" className="text-cyan-500 hover:underline flex items-center">
+          <Icon className="mr-1 h-4 w-4" /> {filename}
+        </a>
+      );
+    }
+  }
+
+  return (
+    <div className={`mb-4 max-w-[80%] ${msg.sender_id === currentUser.id ? "ml-auto" : ""}`}>
+      <div className={`p-3 rounded-lg ${msg.sender_id === currentUser.id ? "bg-cyan-500 text-white" : "bg-white shadow-sm"}`}>
+        {msg.sender_id !== currentUser.id && msg.sender && (
+          <p className="font-semibold text-cyan-700 mb-1">{msg.sender.first_name} {msg.sender.last_name}</p>
+        )}
+        {msg.type === "text" && <p>{msg.content}</p>}
+        {msg.type === "voice" && msg.media_url && <audio controls src={msg.media_url} className="w-full" />}
+        {msg.type === "file" && fileContent}
+      </div>
+      <div className={`flex ${msg.sender_id === currentUser.id ? "justify-end" : "justify-start"} items-center mt-1 text-xs text-gray-500`}>
+        {formatDate(msg.createdAt)}
+        {msg.sender_id === currentUser.id && (
+          <Button variant="ghost" size="icon" onClick={() => deleteMessage(msg.id)} className="ml-2 text-red-500">
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
     </div>
-    <div className={`flex ${msg.sender_id === currentUser.id ? "justify-end" : "justify-start"} items-center mt-1 text-xs text-gray-500`}>
-      {formatDate(msg.createdAt)}
-      {msg.sender_id === currentUser.id && (
-        <Button variant="ghost" size="icon" onClick={() => deleteMessage(msg.id)} className="ml-2 text-red-500">
-          <Trash2 className="h-4 w-4" />
-        </Button>
-      )}
-    </div>
-  </div>
-));
+  );
+});
 
 interface UserAvatarProps {
   user: User | undefined; // Allow undefined for safety
