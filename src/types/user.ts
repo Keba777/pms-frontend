@@ -34,6 +34,7 @@ export interface CreateUserInput {
     phone: string;
     email: string;
     password: string;
+    profile_picture?: string;
     department_id?: string;
     status?: "Active" | "InActive";
     role_name: string;

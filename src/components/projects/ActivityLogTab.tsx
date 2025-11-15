@@ -1,17 +1,19 @@
-import React from "react";
-import WorkflowLogTable from "../common/WorkflowLogTable";
+"use client";
+
+import { ActivityLogTable } from "./CollaborationTables";
 
 interface ActivityLogTabProps {
-  projectId: string;
+  type: "project" | "task" | "activity" | "todo";
+  referenceId: string;
 }
 
-export default function ActivityLogTab({ projectId }: ActivityLogTabProps) {
+export default function ActivityLogTab({
+  type = "project",
+  referenceId,
+}: ActivityLogTabProps) {
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-cyan-700 mb-6 mt-8">
-        Project Workflow Logs
-      </h1>
-      <WorkflowLogTable entityType="Project" entityId={projectId} />
+      <ActivityLogTable type={type} referenceId={referenceId} />
     </div>
   );
 }

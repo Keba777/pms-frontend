@@ -52,7 +52,7 @@ const TodosPage = () => {
   );
   const [showColumnMenu, setShowColumnMenu] = useState(false);
   const [showForm, setShowForm] = useState(false);
-  const [isListView, setIsListView] = useState(false);
+  const [isListView, setIsListView] = useState(true);
   const menuRef = useRef<HTMLDivElement>(null);
 
   const toggleColumn = (col: string) => {
@@ -235,7 +235,7 @@ const TodosPage = () => {
       {/* Filters + Date Pickers */}
       <div className="flex flex-col lg:flex-row justify-between gap-4 mb-6 items-start">
         {/* Customize Columns Button */}
-        <div ref={menuRef} className="relative w-full lg:w-auto flex-shrink-0">
+        <div ref={menuRef} className="relative w-full lg:w-auto shrink-0">
           <button
             onClick={() => setShowColumnMenu((prev) => !prev)}
             className="flex items-center justify-center gap-1 px-4 py-2 text-sm bg-cyan-700 text-white rounded hover:bg-cyan-800 w-full lg:w-auto whitespace-nowrap"

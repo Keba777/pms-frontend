@@ -291,7 +291,7 @@ const TodoForm: React.FC<TodoFormProps> = ({ onClose }) => {
         </div>
 
         {/* Latest Todo History Card */}
-        <div className="p-4 rounded-lg shadow-md bg-gradient-to-r from-cyan-500 to-cyan-700 text-white">
+        <div className="p-4 rounded-lg shadow-md bg-linear-to-r from-cyan-500 to-cyan-700 text-white">
           <h4 className="text-lg font-semibold mb-2">Latest Todo</h4>
           {lastTodo ? (
             <div>
@@ -438,7 +438,7 @@ const TodoForm: React.FC<TodoFormProps> = ({ onClose }) => {
         </div>
 
         {/* Remainder */}
-        <div>
+        {/* <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Reminder
           </label>
@@ -448,7 +448,7 @@ const TodoForm: React.FC<TodoFormProps> = ({ onClose }) => {
             placeholder="Enter Reminder"
             className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
           />
-        </div>
+        </div> */}
 
         {/* Attachment - Simple file input, but handling upload is not implemented here */}
         {/* <div>

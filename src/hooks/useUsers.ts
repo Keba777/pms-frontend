@@ -39,6 +39,16 @@ const createUser = async (data: Omit<User, "id">): Promise<User> => {
     return response.data.data;
 };
 
+// Import multiple users
+const importUsers = async (formData: FormData): Promise<User[]> => {
+  const response = await apiClient.post<ApiResponse<User[]>>("/users/import", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+  return response.data.data;
+};
+
 // Update an existing user
 const updateUser = async (data: UpdateUserInput): Promise<User> => {
     const formData = new FormData();
@@ -126,6 +136,23 @@ export const useCreateUser = (onSuccess?: (user: User) => void) => {
             toast.error("Failed to create user");
         },
     });
+};
+
+// Hook to import multiple users and refresh users list
+export const useImportUsers = (onSuccess?: (users: User[]) => void) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: importUsers,
+    onSuccess: (users) => {
+      toast.success("Users imported successfully!");
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      if (onSuccess) onSuccess(users);
+    },
+    onError: () => {
+      toast.error("Failed to import users");
+    },
+  });
 };
 
 // Hook to update an existing user and refresh users list

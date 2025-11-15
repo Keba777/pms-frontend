@@ -21,6 +21,7 @@ import GenericImport, { ImportColumn } from "@/components/common/GenericImport";
 import { toast } from "react-toastify";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { LaborInformation } from "@/types/laborInformation";
 
 const LaborsPage = () => {
   const { user } = useAuthStore();
@@ -46,30 +47,75 @@ const LaborsPage = () => {
     [labors, siteId]
   );
 
-  // Filtered list based on filters and dates
-  const filteredLabors = useMemo(
-    () =>
-      siteLabors.filter(
-        (l) =>
-          Object.entries(filterValues).every(([key, value]) => {
-            if (!value) return true;
-            if (key === "allocationStatus") {
-              return l.allocationStatus === value;
-            }
-            if (key === "role") {
-              return l.role
-                .toLowerCase()
-                .includes((value as string).toLowerCase());
-            }
-            return true;
-          }) &&
-          (fromDate
-            ? l.startingDate && new Date(l.startingDate) >= fromDate
-            : true) &&
-          (toDate ? l.dueDate && new Date(l.dueDate) <= toDate : true)
-      ),
-    [filterValues, siteLabors, fromDate, toDate]
-  );
+  // Filtered list based on filters and dates (adjusted for laborInformations)
+  const filteredLabors = useMemo(() => {
+    return siteLabors
+      .map((labor) => {
+        let filteredInfos = labor.laborInformations || [];
+
+        if (filterValues.role) {
+          if (
+            !labor.role
+              .toLowerCase()
+              .includes((filterValues.role as string).toLowerCase())
+          ) {
+            return null;
+          }
+        }
+
+        if (filterValues.allocationStatus) {
+          filteredInfos = filteredInfos.filter(
+            (info) => info.status === filterValues.allocationStatus
+          );
+        }
+
+        if (fromDate) {
+          filteredInfos = filteredInfos.filter(
+            (info) => info.startsAt && new Date(info.startsAt) >= fromDate
+          );
+        }
+
+        if (toDate) {
+          filteredInfos = filteredInfos.filter(
+            (info) => info.endsAt && new Date(info.endsAt) <= toDate
+          );
+        }
+
+        if (filteredInfos.length === 0) return null;
+
+        return { ...labor, laborInformations: filteredInfos } as Labor & { laborInformations: LaborInformation[] };
+      })
+      .filter((l): l is Labor & { laborInformations: LaborInformation[] } => l !== null);
+  }, [siteLabors, filterValues, fromDate, toDate]);
+
+  // Flattened data for download
+  const flattenedForDownload = useMemo(() => {
+    return filteredLabors.flatMap((l) => {
+      return l.laborInformations.map((info) => ({
+        firstName: info.firstName,
+        lastName: info.lastName,
+        role: l.role,
+        unit: l.unit,
+        quantity: l.quantity ?? 0,
+        minQuantity: l.minQuantity ?? 0,
+        estimatedHours: l.estimatedHours ?? 0,
+        rate: l.rate ?? 0,
+        overtimeRate: l.overtimeRate ?? 0,
+        totalAmount: l.totalAmount ?? 0,
+        startingDate: info.startsAt
+          ? new Date(info.startsAt).toISOString().split("T")[0]
+          : "-",
+        dueDate: info.endsAt
+          ? new Date(info.endsAt).toISOString().split("T")[0]
+          : "-",
+        duration:
+          info.startsAt && info.endsAt
+            ? String(getDuration(info.startsAt, info.endsAt))
+            : "-",
+        status: info.status || "-",
+      }));
+    });
+  }, [filteredLabors]);
 
   // Loading / error guards
   if (labLoading || siteLoading) return <div>Loading...</div>;
@@ -83,42 +129,22 @@ const LaborsPage = () => {
     );
   }
 
-  // Define download columns
-  const columns: Column<Labor>[] = [
+  // Define download columns (updated for flattened format)
+  const columns: Column<typeof flattenedForDownload[0]>[] = [
+    { header: "First Name", accessor: "firstName" },
+    { header: "Last Name", accessor: "lastName" },
     { header: "Role", accessor: "role" },
     { header: "Unit", accessor: "unit" },
-    { header: "Qty", accessor: (row: Labor) => row.quantity ?? 0 },
-    { header: "Min Qty", accessor: (row: Labor) => row.minQuantity ?? 0 },
-    {
-      header: "Est Hours",
-      accessor: (row: Labor) => row.estimatedHours ?? 0,
-    },
-    { header: "Rate", accessor: (row: Labor) => row.rate ?? 0 },
-    { header: "OT Rate", accessor: (row: Labor) => row.overtimeRate ?? 0 },
-    {
-      header: "Total Amount",
-      accessor: (row: Labor) => row.totalAmount ?? 0,
-    },
-    {
-      header: "Starting Date",
-      accessor: (row: Labor) =>
-        row.startingDate
-          ? new Date(row.startingDate).toISOString().split("T")[0]
-          : "-",
-    },
-    {
-      header: "Due Date",
-      accessor: (row: Labor) =>
-        row.dueDate ? new Date(row.dueDate).toISOString().split("T")[0] : "-",
-    },
-    {
-      header: "Duration",
-      accessor: (row: Labor) =>
-        row.startingDate && row.dueDate
-          ? String(getDuration(row.startingDate, row.dueDate))
-          : "-",
-    },
-    { header: "Status", accessor: (row: Labor) => row.allocationStatus || "-" },
+    { header: "Qty", accessor: "quantity" },
+    { header: "Min Qty", accessor: "minQuantity" },
+    { header: "Est Hours", accessor: "estimatedHours" },
+    { header: "Rate", accessor: "rate" },
+    { header: "OT Rate", accessor: "overtimeRate" },
+    { header: "Total Amount", accessor: "totalAmount" },
+    { header: "Starting Date", accessor: "startingDate" },
+    { header: "Due Date", accessor: "dueDate" },
+    { header: "Duration", accessor: "duration" },
+    { header: "Status", accessor: "status" },
   ];
 
   const importColumns: ImportColumn<LooseLaborInput>[] = [
@@ -183,6 +209,10 @@ const LaborsPage = () => {
           processed[field] = isNaN(num) ? undefined : num;
         }
       });
+
+      if (processed.quantity === undefined) {
+        processed.quantity = 1;
+      }
 
       if (processed.minQuantity === undefined) {
         processed.minQuantity = 1;
@@ -269,7 +299,7 @@ const LaborsPage = () => {
           {canManage && (
             <div className="w-full md:w-auto mt-2 md:mt-0">
               <GenericDownloads
-                data={filteredLabors}
+                data={flattenedForDownload}
                 title={`Labors_${site.name}`}
                 columns={columns}
               />
@@ -326,15 +356,15 @@ const LaborsPage = () => {
         <p className="text-gray-600">No labor entries match your search.</p>
       ) : (
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200 border border-gray-200">
+          <table className="min-w-full divide-y divide-gray-200 border border-gray-200 table-auto">
             <thead className="bg-cyan-700">
               <tr>
                 {[
                   "#",
+                  "First Name",
+                  "Last Name",
                   "Role",
                   "Unit",
-                  "Qty",
-                  "Min Qty",
                   "Est-Hrs",
                   "Rate",
                   "OT",
@@ -346,7 +376,7 @@ const LaborsPage = () => {
                 ].map((h) => (
                   <th
                     key={h}
-                    className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase"
+                    className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase tracking-wider"
                   >
                     {h}
                   </th>
@@ -354,56 +384,64 @@ const LaborsPage = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredLabors.map((l, idx) => (
-                <tr key={l.id}>
-                  <td className="px-4 py-2 border border-gray-200">
-                    {idx + 1}
-                  </td>
-                  <td className="px-4 py-2 border border-gray-200">
-                    <Link
-                      href={`/resources/labor/${l.id}`}
-                      className="text-blue-600 hover:underline"
-                    >
-                      {l.role}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-2 border border-gray-200">{l.unit}</td>
-                  <td className="px-4 py-2 border border-gray-200">
-                    {l.quantity ?? 0}
-                  </td>
-                  <td className="px-4 py-2 border border-gray-200">
-                    {l.minQuantity ?? 0}
-                  </td>
-                  <td className="px-4 py-2 border border-gray-200">
-                    {l.estimatedHours ?? 0}
-                  </td>
-                  <td className="px-4 py-2 border border-gray-200">
-                    {l.rate ?? 0}
-                  </td>
-                  <td className="px-4 py-2 border border-gray-200">
-                    {l.overtimeRate ?? 0}
-                  </td>
-                  <td className="px-4 py-2 border border-gray-200">
-                    {l.totalAmount ?? 0}
-                  </td>
-                  <td className="px-4 py-2 border border-gray-200">
-                    {l.startingDate
-                      ? new Date(l.startingDate).toLocaleDateString()
-                      : "-"}
-                  </td>
-                  <td className="px-4 py-2 border border-gray-200">
-                    {l.dueDate ? new Date(l.dueDate).toLocaleDateString() : "-"}
-                  </td>
-                  <td className="px-4 py-2 border border-gray-200">
-                    {l.startingDate && l.dueDate
-                      ? getDuration(l.startingDate, l.dueDate)
-                      : "-"}
-                  </td>
-                  <td className="px-4 py-2 border border-gray-200">
-                    {l.allocationStatus ?? "-"}
-                  </td>
-                </tr>
-              ))}
+              {filteredLabors.flatMap((l, laborIndex) => {
+                return (
+                  l.laborInformations.map((info, infoIndex) => (
+                    <tr key={`${l.id}-${info.id}`}>
+                      <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
+                        {laborIndex + 1}.{infoIndex + 1}
+                      </td>
+                      <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
+                        {info.firstName}
+                      </td>
+                      <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
+                        {info.lastName}
+                      </td>
+                      <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
+                        <Link
+                          href={`/site-labors/${l.id}`}
+                          className="text-blue-600 hover:underline"
+                        >
+                          {l.role}
+                        </Link>
+                      </td>
+                      <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
+                        {l.unit}
+                      </td>
+                      <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
+                        {l.estimatedHours ?? "-"}
+                      </td>
+                      <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
+                        {l.rate ?? "-"}
+                      </td>
+                      <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
+                        {l.overtimeRate ?? "-"}
+                      </td>
+                      <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
+                        {l.totalAmount ?? "-"}
+                      </td>
+                      <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
+                        {info.startsAt
+                          ? new Date(info.startsAt).toLocaleDateString()
+                          : "-"}
+                      </td>
+                      <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
+                        {info.endsAt
+                          ? new Date(info.endsAt).toLocaleDateString()
+                          : "-"}
+                      </td>
+                      <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
+                        {info.startsAt && info.endsAt
+                          ? getDuration(info.startsAt, info.endsAt)
+                          : "-"}
+                      </td>
+                      <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
+                        {info.status ?? "-"}
+                      </td>
+                    </tr>
+                  ))
+                );
+              })}
             </tbody>
           </table>
         </div>

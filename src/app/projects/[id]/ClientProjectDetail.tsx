@@ -177,7 +177,7 @@ export default function ClientProjectDetail({
         </TabsList>
 
         <TabsContent value="discussion" className="p-4 sm:p-6 border rounded-lg shadow bg-white">
-          <DiscussionTab />
+          <DiscussionTab type="project" referenceId={projectId}/>
         </TabsContent>
         <TabsContent value="issue" className="p-4 sm:p-6 border rounded-lg shadow bg-white">
           <IssueTab projectId={projectId} />
@@ -186,10 +186,10 @@ export default function ClientProjectDetail({
           <FilesTab type="project" referenceId={projectId} />
         </TabsContent>
         <TabsContent value="notification" className="p-4 sm:p-6 border rounded-lg shadow bg-white">
-          <NotificationTab />
+          <NotificationTab type="project" referenceId={projectId}/>
         </TabsContent>
         <TabsContent value="activityLog" className="p-4 sm:p-6 border rounded-lg shadow bg-white">
-          <ActivityLogTab projectId={projectId} />
+          <ActivityLogTab type="project" referenceId={projectId} />
         </TabsContent>
       </Tabs>
 

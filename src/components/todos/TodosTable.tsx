@@ -127,11 +127,11 @@ const TodosTable: React.FC<TodosTableProps> = ({
                 Due Date
               </th>
             )}
-            {selectedColumns.includes("kpi") && (
+            {/* {selectedColumns.includes("kpi") && (
               <th className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase whitespace-nowrap">
                 KPI
               </th>
-            )}
+            )} */}
             {selectedColumns.includes("department") && (
               <th className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase whitespace-nowrap">
                 Department
@@ -215,11 +215,11 @@ const TodosTable: React.FC<TodosTableProps> = ({
                     : "-"}
                 </td>
               )}
-              {selectedColumns.includes("kpi") && (
+              {/* {selectedColumns.includes("kpi") && (
                 <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
                   {todo.kpi?.score || todo.kpiId || "-"}
                 </td>
-              )}
+              )} */}
               {selectedColumns.includes("department") && (
                 <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
                   {todo.department?.name ||

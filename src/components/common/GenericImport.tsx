@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 export interface ImportColumn<T> {
   header: string;
   accessor: keyof T & string;
-  type?: "string" | "number" | "date" | "boolean";
+  type?: "string" | "number" | "date" | "boolean" | "file";
 }
 
 interface GenericImportProps<T extends object> {
@@ -50,17 +50,24 @@ const GenericImport = <T extends object>({
         // Extract headers
         const headers = rawData[0] as string[];
 
+        // Normalize function
+        const normalize = (h: string) => h.trim().toLowerCase().replace(/\s+/g, '_');
+
         // Validate headers
         const expectedHeaders = expectedColumns.map((c) =>
-          c.header.trim().toLowerCase()
+          normalize(c.header)
         );
-        const actualHeaders = headers.map((h) => h.trim().toLowerCase());
+        const actualHeaders = headers.map(normalize);
 
         const missing = expectedHeaders.filter(
           (h) => !actualHeaders.includes(h)
         );
         if (missing.length > 0) {
-          const msg = `Header mismatch. Missing or incorrect headers: ${missing.join(
+          const originalMissing = missing.map(h => {
+            const col = expectedColumns.find(c => normalize(c.header) === h);
+            return col ? col.header : h;
+          });
+          const msg = `Header mismatch. Missing or incorrect headers: ${originalMissing.join(
             ", "
           )}.`;
           if (onError) {
@@ -75,12 +82,12 @@ const GenericImport = <T extends object>({
         type Key = keyof T & string;
 
         // Parse rows into objects of type T
-        const parsedData: T[] = rawData.slice(1).map((row, rowIndex) => {
+        let parsedData: T[] = rawData.slice(1).map((row, rowIndex) => {
           const obj: Partial<Record<Key, unknown>> = {};
           headers.forEach((header, index) => {
-            const trimmedHeader = header.trim().toLowerCase();
+            const trimmedHeader = normalize(header);
             const column = expectedColumns.find(
-              (col) => col.header.trim().toLowerCase() === trimmedHeader
+              (col) => normalize(col.header) === trimmedHeader
             );
             if (column) {
               const value = row[index];
@@ -129,6 +136,8 @@ const GenericImport = <T extends object>({
                 } else {
                   parsedValue = !!value;
                 }
+              } else if (column.type === "file") {
+                parsedValue = value != null ? String(value) : undefined;
               } else {
                 // Default to string
                 parsedValue = value != null ? String(value) : undefined;
@@ -139,32 +148,37 @@ const GenericImport = <T extends object>({
           return obj as T;
         });
 
-        // Validate required fields
-        for (let i = 0; i < parsedData.length; i++) {
-          const row = parsedData[i];
-          for (const req of requiredAccessors ?? []) {
-            const val = row[req];
-            if (val == null || (typeof val === "string" && val.trim() === "")) {
-              const msg = `Missing or empty required field "${String(
-                req
-              )}" in row ${i + 2}.`;
-              if (onError) {
-                onError(msg);
-              } else {
-                toast.error(msg);
-              }
-              setLoading(false);
-              return;
-            }
-          }
-        }
-
-        // Filter out empty rows
-        const filteredData = parsedData.filter((row) =>
+        // Filter out empty rows first
+        parsedData = parsedData.filter((row) =>
           Object.values(row).some((val) => val !== undefined && val !== "")
         );
 
-        if (filteredData.length === 0) {
+        // Collect valid rows, skip those missing required fields
+        const validData: T[] = [];
+        const skippedRows: number[] = [];
+
+        for (let i = 0; i < parsedData.length; i++) {
+          const row = parsedData[i];
+          let isValid = true;
+          for (const req of requiredAccessors ?? []) {
+            const val = row[req];
+            if (val == null || (typeof val === "string" && val.trim() === "")) {
+              isValid = false;
+              skippedRows.push(i + 2);
+              break;
+            }
+          }
+          if (isValid) {
+            validData.push(row);
+          }
+        }
+
+        if (skippedRows.length > 0) {
+          const msg = `Skipped rows with missing required fields: ${skippedRows.join(", ")}.`;
+          toast.warn(msg);
+        }
+
+        if (validData.length === 0) {
           const msg = "No valid data found in the file.";
           if (onError) {
             onError(msg);
@@ -175,7 +189,7 @@ const GenericImport = <T extends object>({
           return;
         }
 
-        await onImport(filteredData);
+        await onImport(validData);
       } catch (error) {
         const msg = `Error importing file: ${(error as Error).message}`;
         if (onError) {

@@ -45,6 +45,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { ProgressUpdateItem } from "@/types/activity";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const priorityBadgeClasses: Record<Project["priority"], string> = {
   Critical: "bg-red-100 text-red-800",
@@ -165,10 +166,46 @@ const ProjectSection: React.FC = () => {
   };
 
 
-  if (isLoading)
+  if (isLoading) {
     return (
-      <div className="text-center py-8 text-gray-600">Loading projects...</div>
+      <div className="space-y-6">
+        <Skeleton className="h-9 w-48" />
+
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <Skeleton className="h-10 w-full sm:w-40" />
+          <Skeleton className="h-10 w-full sm:w-64" />
+        </div>
+
+        <div className="overflow-x-auto rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-cyan-700 hover:bg-cyan-700">
+                {columnOptions.map((col) => (
+                  <TableHead
+                    key={col.value}
+                    className="text-gray-50 font-medium px-4 py-4"
+                  >
+                    <Skeleton className="h-4 w-20 bg-gray-300" />
+                  </TableHead>
+                ))}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {Array.from({ length: 5 }).map((_, index) => (
+                <TableRow key={index} className="hover:bg-gray-50">
+                  {columnOptions.map((col) => (
+                    <TableCell key={col.value} className="px-4 py-2">
+                      <Skeleton className="h-4 w-full" />
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
     );
+  }
   if (isError)
     return (
       <div className="text-center py-8 text-red-600">

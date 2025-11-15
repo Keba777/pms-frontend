@@ -1,12 +1,19 @@
-// components/tabs/DiscussionTab.tsx
-import React from "react";
+"use client";
 
-export default function DiscussionTab() {
+import { DiscussionTable } from "./CollaborationTables";
+
+interface DiscussionTabProps {
+  type: "project" | "task" | "activity" | "todo";
+  referenceId: string;
+}
+
+export default function DiscussionTab({
+  type = "project",
+  referenceId,
+}: DiscussionTabProps) {
   return (
     <div>
-      <h2 className="text-2xl font-semibold mb-4">Discussion</h2>
-      {/* TODO: render your discussion list here */}
-      <p className="text-gray-600">No discussions yet.</p>
+      <DiscussionTable type={type} referenceId={referenceId} />
     </div>
   );
 }

@@ -10,6 +10,7 @@ import ConfirmModal from "../common/ui/ConfirmModal";
 import EditTaskForm from "../forms/EditTaskForm";
 import ManageTaskForm from "../forms/ManageTaskForm";
 import { Task, UpdateTaskInput } from "@/types/task";
+import { useUsers } from "@/hooks/useUsers";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -34,6 +35,16 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 /**
  * Narrowed local type so we can guarantee `id: string` when passing to forms
@@ -64,6 +75,7 @@ const TaskSection: React.FC = () => {
   const { data: tasks, isLoading, isError } = useTasks();
   const { mutate: deleteTask } = useDeleteTask();
   const { mutate: updateTask } = useUpdateTask();
+  const { data: users } = useUsers();
 
   const columnOptions = [
     { value: "id", label: "ID" },
@@ -84,6 +96,8 @@ const TaskSection: React.FC = () => {
     columnOptions.map((col) => col.value)
   );
   const [searchTerm, setSearchTerm] = useState("");
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
 
   const toggleColumn = (col: string) =>
     setSelectedColumns((prev) =>
@@ -99,12 +113,11 @@ const TaskSection: React.FC = () => {
 
   // Edit/Delete modal state
   const [showEditForm, setShowEditForm] = useState(false);
-  // NOTE: use UpdatableTaskWithId so TypeScript knows id is present when we pass to EditTaskForm
   const [taskToEdit, setTaskToEdit] = useState<UpdatableTaskWithId | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
 
-  // Manage modal state (same narrower type)
+  // Manage modal state
   const [showManageForm, setShowManageForm] = useState(false);
   const [taskToManage, setTaskToManage] = useState<UpdatableTaskWithId | null>(null);
 
@@ -149,7 +162,42 @@ const TaskSection: React.FC = () => {
 
   if (isLoading)
     return (
-      <div className="text-center py-8 text-gray-600">Loading tasks...</div>
+      <div className="space-y-6">
+        <Skeleton className="h-9 w-48" />
+
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <Skeleton className="h-10 w-full sm:w-40" />
+          <Skeleton className="h-10 w-full sm:w-64" />
+        </div>
+
+        <div className="overflow-x-auto rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-cyan-700 hover:bg-cyan-700">
+                {columnOptions.map((col) => (
+                  <TableHead
+                    key={col.value}
+                    className="text-gray-50 font-medium px-4 py-4"
+                  >
+                    <Skeleton className="h-4 w-20 bg-gray-300" />
+                  </TableHead>
+                ))}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {Array.from({ length: 5 }).map((_, index) => (
+                <TableRow key={index} className="hover:bg-gray-50">
+                  {columnOptions.map((col) => (
+                    <TableCell key={col.value} className="px-4 py-2">
+                      <Skeleton className="h-4 w-full" />
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
     );
   if (isError)
     return (
@@ -162,6 +210,75 @@ const TaskSection: React.FC = () => {
         t.task_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         t.status.toLowerCase().includes(searchTerm.toLowerCase())
     ) || [];
+
+  const totalPages = Math.ceil(filtered.length / pageSize);
+  const paginatedTasks = filtered.slice((page - 1) * pageSize, page * pageSize);
+
+  // Helper to render page numbers with ellipsis
+  const renderPageNumbers = () => {
+    const pages: React.ReactNode[] = [];
+    const maxVisible = 5;
+    const startPage = Math.max(1, page - Math.floor(maxVisible / 2));
+    const endPage = Math.min(totalPages, startPage + maxVisible - 1);
+
+    if (startPage > 1) {
+      pages.push(
+        <PaginationItem key={1}>
+          <PaginationLink
+            onClick={() => setPage(1)}
+            className="cursor-pointer"
+            isActive={page === 1}
+          >
+            1
+          </PaginationLink>
+        </PaginationItem>
+      );
+      if (startPage > 2) {
+        pages.push(
+          <PaginationItem key="ellipsis-start">
+            <PaginationEllipsis />
+          </PaginationItem>
+        );
+      }
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(
+        <PaginationItem key={i}>
+          <PaginationLink
+            onClick={() => setPage(i)}
+            className="cursor-pointer"
+            isActive={page === i}
+          >
+            {i}
+          </PaginationLink>
+        </PaginationItem>
+      );
+    }
+
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) {
+        pages.push(
+          <PaginationItem key="ellipsis-end">
+            <PaginationEllipsis />
+          </PaginationItem>
+        );
+      }
+      pages.push(
+        <PaginationItem key={totalPages}>
+          <PaginationLink
+            onClick={() => setPage(totalPages)}
+            className="cursor-pointer"
+            isActive={page === totalPages}
+          >
+            {totalPages}
+          </PaginationLink>
+        </PaginationItem>
+      );
+    }
+
+    return pages;
+  };
 
   return (
     <div className="space-y-6">
@@ -211,13 +328,14 @@ const TaskSection: React.FC = () => {
                 updateTask(data);
                 setShowEditForm(false);
               }}
+              users={users}
               onClose={() => setShowEditForm(false)}
             />
           </div>
         </div>
       )}
 
-      {/* Manage modal (removed onSubmit prop to match ManageTaskForm's prop types) */}
+      {/* Manage modal */}
       {showManageForm && taskToManage && (
         <div className="modal-overlay">
           <div className="modal-content">
@@ -238,7 +356,7 @@ const TaskSection: React.FC = () => {
                 .map((col) => (
                   <TableHead
                     key={col.value}
-                    className="text-gray-50 font-medium  px-4 py-3"
+                    className="text-gray-50 font-medium  px-4 py-4"
                   >
                     {col.label}
                   </TableHead>
@@ -246,8 +364,8 @@ const TaskSection: React.FC = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filtered.length > 0 ? (
-              filtered.map((task, idx) => {
+            {paginatedTasks.length > 0 ? (
+              paginatedTasks.map((task, idx) => {
                 const duration = getDateDuration(
                   task.start_date,
                   task.end_date
@@ -260,15 +378,17 @@ const TaskSection: React.FC = () => {
                 return (
                   <TableRow key={task.id} className="hover:bg-gray-50">
                     {selectedColumns.includes("id") && (
-                      <TableCell className="px-4 py-3 ">{idx + 1}</TableCell>
+                      <TableCell className="px-4 py-2 ">
+                        {(page - 1) * pageSize + idx + 1}
+                      </TableCell>
                     )}
                     {selectedColumns.includes("task_name") && (
-                      <TableCell className="px-4 py-3  font-medium text-cyan-700">
+                      <TableCell className="px-4 py-2  font-medium text-cyan-700">
                         <Link href={`/tasks/${task.id}`}>{task.task_name}</Link>
                       </TableCell>
                     )}
                     {selectedColumns.includes("assignedUsers") && (
-                      <TableCell className="px-4 py-3">
+                      <TableCell className="px-4 py-2">
                         {task.assignedUsers?.length ? (
                           <div className="flex -space-x-2">
                             {task.assignedUsers.map((u) => (
@@ -281,7 +401,7 @@ const TaskSection: React.FC = () => {
                       </TableCell>
                     )}
                     {selectedColumns.includes("priority") && (
-                      <TableCell className="px-4 py-3">
+                      <TableCell className="px-4 py-2">
                         <span
                           className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
                             priorityBadgeClasses[task.priority]
@@ -292,28 +412,28 @@ const TaskSection: React.FC = () => {
                       </TableCell>
                     )}
                     {selectedColumns.includes("progress") && (
-                      <TableCell className="px-4 py-3 ">
+                      <TableCell className="px-4 py-2 ">
                         {task.progress ?? 0}%
                       </TableCell>
                     )}
                     {selectedColumns.includes("start_date") && (
-                      <TableCell className="px-4 py-3 ">
+                      <TableCell className="px-4 py-2 ">
                         {formatDateLocal(task.start_date)}
                       </TableCell>
                     )}
                     {selectedColumns.includes("end_date") && (
-                      <TableCell className="px-4 py-3 ">
+                      <TableCell className="px-4 py-2 ">
                         {formatDateLocal(task.end_date)}
                       </TableCell>
                     )}
                     {selectedColumns.includes("duration") && (
-                      <TableCell className="px-4 py-3 ">{duration}</TableCell>
+                      <TableCell className="px-4 py-2 ">{duration}</TableCell>
                     )}
                     {selectedColumns.includes("remaining") && (
-                      <TableCell className="px-4 py-3 ">{remaining}</TableCell>
+                      <TableCell className="px-4 py-2 ">{remaining}</TableCell>
                     )}
                     {selectedColumns.includes("status") && (
-                      <TableCell className="px-4 py-3">
+                      <TableCell className="px-4 py-2">
                         <span
                           className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
                             statusBadgeClasses[task.status]
@@ -324,12 +444,12 @@ const TaskSection: React.FC = () => {
                       </TableCell>
                     )}
                     {selectedColumns.includes("approvalStatus") && (
-                      <TableCell className="px-4 py-3 ">
+                      <TableCell className="px-4 py-2 ">
                         {task.approvalStatus}
                       </TableCell>
                     )}
                     {selectedColumns.includes("actions") && (
-                      <TableCell className="px-4 py-3">
+                      <TableCell className="px-4 py-2">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button
@@ -381,6 +501,27 @@ const TaskSection: React.FC = () => {
           </TableBody>
         </Table>
       </div>
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <Pagination>
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                className={page === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+              />
+            </PaginationItem>
+            {renderPageNumbers()}
+            <PaginationItem>
+              <PaginationNext
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                className={page === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      )}
 
       {/* Delete Confirmation */}
       {isDeleteModalOpen && (

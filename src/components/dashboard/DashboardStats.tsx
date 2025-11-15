@@ -161,6 +161,10 @@ export default function DashboardStats() {
         />
       </div>
 
+      <div>
+        <TodosStats />
+      </div>
+
       <div className="mb-4 mt-6">
         <h2 className="text-4xl text-center font-bold text-cyan-800">
           Project Statistics
@@ -184,9 +188,7 @@ export default function DashboardStats() {
           total={totalActivities}
         />
       </div>
-      <div>
-        <TodosStats />
-      </div>
+      
     </div>
   );
 }
