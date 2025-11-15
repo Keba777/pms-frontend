@@ -6,6 +6,7 @@ export interface LaborInformation {
     startsAt: Date;
     endsAt: Date;
     status: 'Allocated' | 'Unallocated';
+    profile_picture?: string;
 }
 
 export interface CreateLaborInformationInput {

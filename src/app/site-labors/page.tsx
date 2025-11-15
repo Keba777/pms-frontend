@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
+import Image from "next/image";
+import avatar from "@/../public/images/user.png";
 import { Plus } from "lucide-react";
 import { useLabors, useImportLabors } from "@/hooks/useLabors";
 import { useCreateLabor } from "@/hooks/useLabors";
@@ -471,6 +473,7 @@ const LaborsPage = () => {
                   "Due Date",
                   "Duration",
                   "Status",
+                  "Profile",
                 ].map((h) => (
                   <th
                     key={h}
@@ -535,6 +538,17 @@ const LaborsPage = () => {
                       </td>
                       <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
                         {info.status ?? "-"}
+                      </td>
+
+                      {/* PROFILE PICTURE - last column (avatar like users table) */}
+                      <td className="px-4 py-2 border border-gray-200 text-center">
+                        <Image
+                          src={(info as any).profile_picture || avatar}
+                          alt={`${info.firstName ?? ""} ${info.lastName ?? ""}`}
+                          width={32}
+                          height={32}
+                          className="rounded-full object-cover"
+                        />
                       </td>
                     </tr>
                   ))
