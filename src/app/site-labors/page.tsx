@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import { Plus } from "lucide-react";
-import { useLabors } from "@/hooks/useLabors";
+import { useLabors, useImportLabors } from "@/hooks/useLabors";
 import { useCreateLabor } from "@/hooks/useLabors";
 import { useSites } from "@/hooks/useSites";
 import Link from "next/link";
@@ -23,6 +23,17 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { LaborInformation } from "@/types/laborInformation";
 
+interface ImportLaborRow extends LooseLaborInput {
+  // laborInformation columns per row (single info record)
+  firstName?: string;
+  lastName?: string;
+  startsAt?: string; // date string
+  endsAt?: string; // date string
+  profile_picture?: File | string; // File (from import) or URL
+  // optional allocation/status override for the laborInformation
+  infoStatus?: "Allocated" | "Unallocated";
+}
+
 const LaborsPage = () => {
   const { user } = useAuthStore();
   const hasPermission = useAuthStore((state) => state.hasPermission);
@@ -35,8 +46,10 @@ const LaborsPage = () => {
   const [filterValues, setFilterValues] = useState<FilterValues>({});
   const [fromDate, setFromDate] = useState<Date | null>(null);
   const [toDate, setToDate] = useState<Date | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const { mutateAsync: createLaborAsync } = useCreateLabor(() => {});
+  const { mutateAsync: importLabors } = useImportLabors();
 
   const canCreate = hasPermission("labors", "create");
   const canManage = hasPermission("labors", "manage");
@@ -88,31 +101,31 @@ const LaborsPage = () => {
       .filter((l): l is Labor & { laborInformations: LaborInformation[] } => l !== null);
   }, [siteLabors, filterValues, fromDate, toDate]);
 
-  // Flattened data for download
+  // Flattened data for download — MATCHES import columns exactly
+  // Fields: role, unit, quantity, minQuantity, estimatedHours, rate, overtimeRate, totalAmount,
+  // startingDate, dueDate, allocationStatus, firstName, lastName, startsAt, endsAt, profile_picture, infoStatus
   const flattenedForDownload = useMemo(() => {
     return filteredLabors.flatMap((l) => {
       return l.laborInformations.map((info) => ({
-        firstName: info.firstName,
-        lastName: info.lastName,
-        role: l.role,
-        unit: l.unit,
-        quantity: l.quantity ?? 0,
-        minQuantity: l.minQuantity ?? 0,
-        estimatedHours: l.estimatedHours ?? 0,
-        rate: l.rate ?? 0,
-        overtimeRate: l.overtimeRate ?? 0,
-        totalAmount: l.totalAmount ?? 0,
-        startingDate: info.startsAt
-          ? new Date(info.startsAt).toISOString().split("T")[0]
+        role: l.role ?? "-",
+        unit: l.unit ?? "-",
+        quantity: l.quantity ?? "-",
+        minQuantity: l.minQuantity ?? "-",
+        estimatedHours: l.estimatedHours ?? "-",
+        rate: l.rate ?? "-",
+        overtimeRate: l.overtimeRate ?? "-",
+        totalAmount: l.totalAmount ?? "-",
+        startingDate: l.startingDate
+          ? new Date(l.startingDate).toISOString().split("T")[0]
           : "-",
-        dueDate: info.endsAt
-          ? new Date(info.endsAt).toISOString().split("T")[0]
-          : "-",
-        duration:
-          info.startsAt && info.endsAt
-            ? String(getDuration(info.startsAt, info.endsAt))
-            : "-",
-        status: info.status || "-",
+        dueDate: l.dueDate ? new Date(l.dueDate).toISOString().split("T")[0] : "-",
+        allocationStatus: l.allocationStatus ?? "-",
+        firstName: info.firstName ?? "-",
+        lastName: info.lastName ?? "-",
+        startsAt: info.startsAt ? new Date(info.startsAt).toISOString().split("T")[0] : "-",
+        endsAt: info.endsAt ? new Date(info.endsAt).toISOString().split("T")[0] : "-",
+        profile_picture: (info as any).profile_picture ?? "-", // might be URL string
+        infoStatus: info.status ?? "-",
       }));
     });
   }, [filteredLabors]);
@@ -129,10 +142,10 @@ const LaborsPage = () => {
     );
   }
 
-  // Define download columns (updated for flattened format)
-  const columns: Column<typeof flattenedForDownload[0]>[] = [
-    { header: "First Name", accessor: "firstName" },
-    { header: "Last Name", accessor: "lastName" },
+  // -----------------------
+  // DOWNLOAD COLUMNS (exact same as import columns)
+  // -----------------------
+  const downloadColumns: Column<any>[] = [
     { header: "Role", accessor: "role" },
     { header: "Unit", accessor: "unit" },
     { header: "Qty", accessor: "quantity" },
@@ -143,26 +156,37 @@ const LaborsPage = () => {
     { header: "Total Amount", accessor: "totalAmount" },
     { header: "Starting Date", accessor: "startingDate" },
     { header: "Due Date", accessor: "dueDate" },
-    { header: "Duration", accessor: "duration" },
-    { header: "Status", accessor: "status" },
+    { header: "Allocation Status", accessor: "allocationStatus" },
+    { header: "First Name", accessor: "firstName" },
+    { header: "Last Name", accessor: "lastName" },
+    { header: "Info Starts At", accessor: "startsAt" },
+    { header: "Info Ends At", accessor: "endsAt" },
+    { header: "Info Profile Picture", accessor: "profile_picture" },
+    { header: "Info Status", accessor: "infoStatus" },
   ];
 
-  const importColumns: ImportColumn<LooseLaborInput>[] = [
+  // -----------------------
+  // IMPORT COLUMNS (include laborInformation columns)
+  // -----------------------
+  const importColumns: ImportColumn<ImportLaborRow>[] = [
     { header: "Role", accessor: "role", type: "string" },
     { header: "Unit", accessor: "unit", type: "string" },
     { header: "Qty", accessor: "quantity", type: "string" },
     { header: "Min Qty", accessor: "minQuantity", type: "string" },
-    {
-      header: "Est Hours",
-      accessor: "estimatedHours",
-      type: "string",
-    },
+    { header: "Est Hours", accessor: "estimatedHours", type: "string" },
     { header: "Rate", accessor: "rate", type: "string" },
     { header: "OT Rate", accessor: "overtimeRate", type: "string" },
     { header: "Total Amount", accessor: "totalAmount", type: "string" },
     { header: "Starting Date", accessor: "startingDate", type: "string" },
     { header: "Due Date", accessor: "dueDate", type: "string" },
-    { header: "Status", accessor: "allocationStatus", type: "string" },
+    { header: "Allocation Status", accessor: "allocationStatus", type: "string" },
+    // laborInformation fields (one info per import row)
+    { header: "First Name", accessor: "firstName", type: "string" },
+    { header: "Last Name", accessor: "lastName", type: "string" },
+    { header: "Info Starts At", accessor: "startsAt", type: "string" },
+    { header: "Info Ends At", accessor: "endsAt", type: "string" },
+    { header: "Info Profile Picture", accessor: "profile_picture", type: "file" },
+    { header: "Info Status", accessor: "infoStatus", type: "string" },
   ];
 
   const requiredAccessors: (keyof LooseLaborInput)[] = ["role", "unit"];
@@ -188,6 +212,7 @@ const LaborsPage = () => {
     },
   ];
 
+  // Transform CSV/imported strings to correct CreateLaborInput numeric/date types
   const processLaborData = (data: LooseLaborInput[]): CreateLaborInput[] => {
     return data.map((laborRow) => {
       const processed: Record<string, unknown> = { ...laborRow, siteId };
@@ -236,32 +261,105 @@ const LaborsPage = () => {
     });
   };
 
-  const handleImport = async (data: LooseLaborInput[]) => {
+  // -----------------------
+  // IMPORT HANDLER
+  // -----------------------
+  const handleImport = async (rows: ImportLaborRow[]) => {
+    if (rows.length === 0) return;
+
     try {
-      const processedData = processLaborData(data);
+      setUploading(true);
 
-      const validAllocation = ["Allocated", "Unallocated", "OnLeave"];
+      // Build files + labors payload; server expects:
+      // formData: { labors: JSON.stringify([...]), files: File[] }
+      const formData = new FormData();
+      const filesToAppend: File[] = [];
 
-      for (let i = 0; i < processedData.length; i++) {
-        const labor = processedData[i];
-        if (
-          labor.allocationStatus &&
-          !validAllocation.includes(labor.allocationStatus)
-        ) {
-          toast.error(
-            `Invalid allocation status in row ${
-              i + 2
-            }. Must be one of: ${validAllocation.join(", ")}`
-          );
-          return;
+      const laborsPayload = rows.map((r, idx) => {
+        // required checks
+        if (!r.role || !r.unit) {
+          throw new Error(`Row ${idx + 2}: Missing required field 'role' or 'unit'`);
         }
-      }
 
-      await Promise.all(processedData.map((labor) => createLaborAsync(labor)));
-      toast.success("Labors imported and created successfully!");
-    } catch (error) {
-      toast.error("Error importing and creating labors");
-      console.error("Import error:", error);
+        // process numeric fields (keep same basic logic as processLaborData)
+        const numberFields = ["quantity", "minQuantity", "estimatedHours", "rate", "overtimeRate", "totalAmount"];
+        const laborObj: any = {
+          role: (r.role || "").trim(),
+          siteId,
+        };
+
+        numberFields.forEach((nf) => {
+          const val = (r as any)[nf];
+          if (val === "-" || val === "" || val == null) {
+            // skip
+          } else {
+            const num = Number(val);
+            if (!isNaN(num)) laborObj[nf] = num;
+          }
+        });
+
+        // optional simple fields
+        if (r.allocationStatus) laborObj.allocationStatus = r.allocationStatus;
+        if (r.unit) laborObj.unit = r.unit;
+        if (r.estimatedHours === "-") delete laborObj.estimatedHours;
+
+        // parse starting/ending dates at labor level if provided (string)
+        if (r.startingDate && r.startingDate !== "-" && r.startingDate !== "") {
+          const d = new Date(r.startingDate);
+          if (!isNaN(d.getTime())) laborObj.startingDate = d.toISOString();
+        }
+        if (r.dueDate && r.dueDate !== "-" && r.dueDate !== "") {
+          const d = new Date(r.dueDate);
+          if (!isNaN(d.getTime())) laborObj.dueDate = d.toISOString();
+        }
+
+        // LABOR INFORMATION (single info per row) — only include when firstName/lastName present
+        const info: any = {};
+        if (r.firstName) info.firstName = r.firstName;
+        if (r.lastName) info.lastName = r.lastName;
+        if (r.startsAt && r.startsAt !== "-" && r.startsAt !== "") {
+          const d = new Date(r.startsAt);
+          if (!isNaN(d.getTime())) info.startsAt = d.toISOString();
+        }
+        if (r.endsAt && r.endsAt !== "-" && r.endsAt !== "") {
+          const d = new Date(r.endsAt);
+          if (!isNaN(d.getTime())) info.endsAt = d.toISOString();
+        }
+        if (r.infoStatus) info.status = r.infoStatus;
+
+        // Handle profile picture for the info:
+        // - If File: append to files and set fileName in the info object
+        // - If URL string starting with http: add directly to info.profile_picture
+        if (r.profile_picture instanceof File) {
+          filesToAppend.push(r.profile_picture);
+          info.fileName = (r.profile_picture as File).name;
+        } else if (typeof r.profile_picture === "string" && r.profile_picture.startsWith("http")) {
+          info.profile_picture = r.profile_picture;
+        }
+
+        // Only attach laborInformations if we have some info data
+        if (Object.keys(info).length > 0) {
+          laborObj.laborInformations = [info];
+        }
+
+        return laborObj;
+      });
+
+      // Append labors JSON
+      formData.append("labors", JSON.stringify(laborsPayload));
+
+      // Append files (if any) under 'files' key (multer().array("files") will pick them)
+      filesToAppend.forEach((f) => {
+        formData.append("files", f);
+      });
+
+      await importLabors(formData);
+      toast.success(`Imported ${rows.length} labors successfully!`);
+    } catch (err: any) {
+      console.error("Import error:", err);
+      toast.error(err.message || "Import failed");
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -301,7 +399,7 @@ const LaborsPage = () => {
               <GenericDownloads
                 data={flattenedForDownload}
                 title={`Labors_${site.name}`}
-                columns={columns}
+                columns={downloadColumns}
               />
             </div>
           )}
@@ -311,7 +409,7 @@ const LaborsPage = () => {
       {/* Import */}
       <div className="flex justify-end mb-4">
         {canManage && (
-          <GenericImport<LooseLaborInput>
+          <GenericImport<ImportLaborRow>
             expectedColumns={importColumns}
             requiredAccessors={requiredAccessors}
             onImport={handleImport}
