@@ -23,17 +23,8 @@ interface ActualActivityTableProps {
   taskId?: string; // made optional
 }
 
-interface ResourceCosts {
-  labor: { ot: number; dt: number };
-  material: { ot: number; dt: number };
-  equipment: { ot: number; dt: number };
-  total: number;
-}
-
 interface ExtendedActivity extends Activity {
-  resourceCosts: ResourceCosts;
-  overUnder: string;
-  actuals?: Actuals;
+  actuals: Actuals;
 }
 
 const ActualActivityTable: React.FC<ActualActivityTableProps> = ({ taskId }) => {
@@ -81,6 +72,13 @@ const ActualActivityTable: React.FC<ActualActivityTableProps> = ({ taskId }) => 
     null
   );
 
+  // Dirty tracking for saves
+  const [dirtyRows, setDirtyRows] = useState<Set<string>>(new Set());
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Grid data state to hold local edits
+  const [gridData, setGridData] = useState<ExtendedActivity[]>([]);
+
   // Handle outside-click for column menu
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -116,31 +114,17 @@ const ActualActivityTable: React.FC<ActualActivityTableProps> = ({ taskId }) => 
       ? activities
       : activities.filter((a) => a.task_id === taskId);
 
-    return base.map((act) => {
-      const actuals = { ...defaultActuals, ...(act.actuals || {}) };
-      const laborCost = actuals.labor_cost ?? 0;
-      const materialCost = actuals.material_cost ?? 0;
-      const equipmentCost = actuals.equipment_cost ?? 0;
-      const total = laborCost + materialCost + equipmentCost;
-      const laborDiff = (actuals.labor_cost ?? 0) - (act.labor_cost ?? 0);
-      const materialDiff =
-        (actuals.material_cost ?? 0) - (act.material_cost ?? 0);
-      const equipmentDiff =
-        (actuals.equipment_cost ?? 0) - (act.equipment_cost ?? 0);
-      const totalDiff = laborDiff + materialDiff + equipmentDiff;
-      return {
-        ...act,
-        actuals,
-        resourceCosts: {
-          labor: { ot: laborCost, dt: laborDiff },
-          material: { ot: materialCost, dt: materialDiff },
-          equipment: { ot: equipmentCost, dt: equipmentDiff },
-          total,
-        },
-        overUnder: `$${totalDiff.toFixed(2)}`,
-      };
-    });
+    return base.map((act) => ({
+      ...act,
+      actuals: { ...defaultActuals, ...(act.actuals || {}) },
+    }));
   }, [activities, taskId]);
+
+  // Sync gridData when extendedActivities change (e.g., after refetch)
+  useEffect(() => {
+    setGridData(extendedActivities);
+    setDirtyRows(new Set()); // Clear dirty on refetch
+  }, [extendedActivities]);
 
   // Column toggle (updates visibility in AG Grid)
   const toggleColumn = (col: string) =>
@@ -284,29 +268,34 @@ const ActualActivityTable: React.FC<ActualActivityTableProps> = ({ taskId }) => 
     return safe as Actuals;
   };
 
-  // Handle cell edit: Update actuals and save via API (sanitized)
+  // Handle cell edit: Mark dirty and refresh computed cells
   const handleCellValueChanged = (params: any) => {
-    const { data, colDef } = params;
+    const { colDef } = params;
     const fieldParts = (colDef.field || "").split("."); // e.g., ['actuals','labor_cost']
     if (fieldParts[0] === "actuals") {
-      data.actuals = { ...(data.actuals || {}) };
-
-      const sanitized = sanitizeActualsForApi(data.actuals);
-
-      data.actuals = sanitized;
-
-      updateActivityActuals(
-        { id: data.id, actuals: sanitized },
-        {
-          onError: (err: any) => {
-            console.error("Failed to update actuals:", err);
-          },
-        }
-      );
+      setDirtyRows((prev) => {
+        const newSet = new Set(prev);
+        newSet.add(params.data.id);
+        return newSet;
+      });
     }
 
     // Refresh row to update calculated fields (e.g., diffs)
     params.api.refreshCells({ rowNodes: [params.node], force: true });
+  };
+
+  // Handle save changes
+  const handleSave = () => {
+    setIsSaving(true);
+    Array.from(dirtyRows).forEach((id) => {
+      const row = gridData.find((r) => r.id === id);
+      if (row) {
+        const sanitized = sanitizeActualsForApi(row.actuals);
+        updateActivityActuals({ id, actuals: sanitized });
+      }
+    });
+    setDirtyRows(new Set());
+    setIsSaving(false);
   };
 
   // Dynamic columnDefs based on selectedColumns
@@ -514,7 +503,13 @@ const ActualActivityTable: React.FC<ActualActivityTableProps> = ({ taskId }) => 
       },
       {
         headerName: "Over/Under",
-        field: "overUnder",
+        valueGetter: (params: any) => {
+          const laborDiff = (params.data.actuals?.labor_cost ?? 0) - (params.data.labor_cost ?? 0);
+          const materialDiff = (params.data.actuals?.material_cost ?? 0) - (params.data.material_cost ?? 0);
+          const equipmentDiff = (params.data.actuals?.equipment_cost ?? 0) - (params.data.equipment_cost ?? 0);
+          const totalDiff = laborDiff + materialDiff + equipmentDiff;
+          return `$${totalDiff.toFixed(2)}`;
+        },
         hide: !selectedColumns.includes("overUnder"),
       },
       {
@@ -546,7 +541,7 @@ const ActualActivityTable: React.FC<ActualActivityTableProps> = ({ taskId }) => 
         </div>
       )}
 
-      {/* Customize Columns */}
+      {/* Customize Columns and Save */}
       <div className="flex items-center justify-between mb-4 mt-6">
         <div ref={menuRef} className="relative">
           <button
@@ -574,6 +569,15 @@ const ActualActivityTable: React.FC<ActualActivityTableProps> = ({ taskId }) => 
             </div>
           )}
         </div>
+        {dirtyRows.size > 0 && (
+          <button
+            onClick={handleSave}
+            disabled={isSaving}
+            className="flex items-center gap-1 px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+          >
+            {isSaving ? "Saving..." : "Save Changes"}
+          </button>
+        )}
       </div>
 
       {/* AG Grid Table */}
@@ -583,7 +587,7 @@ const ActualActivityTable: React.FC<ActualActivityTableProps> = ({ taskId }) => 
       >
         <AgGridReact
           ref={gridRef}
-          rowData={extendedActivities}
+          rowData={gridData}
           columnDefs={columnDefs}
           onCellValueChanged={handleCellValueChanged}
           domLayout="autoHeight"
@@ -615,7 +619,7 @@ const ActualActivityTable: React.FC<ActualActivityTableProps> = ({ taskId }) => 
       {/* Footer */}
       <div className="flex items-center justify-between p-4">
         <span className="text-sm text-gray-700">
-          Showing {extendedActivities.length} rows
+          Showing {gridData.length} rows
         </span>
       </div>
 

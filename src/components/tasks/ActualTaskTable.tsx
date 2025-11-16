@@ -77,6 +77,13 @@ const ActualTaskTable: React.FC = () => {
 
   const [search, setSearch] = useState("");
 
+  // Dirty tracking for saves
+  const [dirtyRows, setDirtyRows] = useState<Set<string>>(new Set());
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Grid data state to hold local edits
+  const [gridData, setGridData] = useState<ExtendedTask[]>([]);
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
@@ -129,7 +136,13 @@ const ActualTaskTable: React.FC = () => {
     });
   }, [tasks]);
 
-  const filtered = extendedTasks.filter((t) =>
+  // Sync gridData when extendedTasks change
+  useEffect(() => {
+    setGridData(extendedTasks);
+    setDirtyRows(new Set());
+  }, [extendedTasks]);
+
+  const filtered = gridData.filter((t) =>
     t.task_name.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -251,22 +264,37 @@ const ActualTaskTable: React.FC = () => {
 
   // On cell value changed (only for actuals.* fields we push patch)
   const handleCellValueChanged = (params: any) => {
-    const { colDef, data } = params;
+    const { colDef } = params;
     const fieldParts = (colDef.field || "").split(".");
     if (fieldParts[0] === "actuals") {
-      data.actuals = { ...(data.actuals || {}), ...(data.actuals || {}) };
-      const sanitized = sanitizeActualsForApi(data.actuals);
-      data.actuals = sanitized;
-      updateTaskActuals(
-        { id: data.id, actuals: sanitized },
-        {
-          onError: (err: any) => {
-            console.error("Failed to update task actuals:", err);
-          },
-        }
-      );
+      setDirtyRows((prev) => {
+        const newSet = new Set(prev);
+        newSet.add(params.data.id);
+        return newSet;
+      });
     }
     params.api.refreshCells({ rowNodes: [params.node], force: true });
+  };
+
+  // Handle save changes
+  const handleSave = () => {
+    setIsSaving(true);
+    Array.from(dirtyRows).forEach((id) => {
+      const row = gridData.find((r) => r.id === id);
+      if (row) {
+        const sanitized = sanitizeActualsForApi(row.actuals);
+        updateTaskActuals(
+          { id, actuals: sanitized },
+          {
+            onError: (err: any) => {
+              console.error("Failed to update task actuals:", err);
+            },
+          }
+        );
+      }
+    });
+    setDirtyRows(new Set());
+    setIsSaving(false);
   };
 
   // Column definitions
@@ -332,7 +360,6 @@ const ActualTaskTable: React.FC = () => {
           return isNaN(dt.getTime()) ? "" : dt.toLocaleDateString();
         },
         valueSetter: (params: any) => {
-          params.data.actuals = params.data.actuals || {};
           params.data.actuals.start_date = params.newValue || null;
           return true;
         },
@@ -353,7 +380,6 @@ const ActualTaskTable: React.FC = () => {
           return isNaN(dt.getTime()) ? "" : dt.toLocaleDateString();
         },
         valueSetter: (params: any) => {
-          params.data.actuals = params.data.actuals || {};
           params.data.actuals.end_date = params.newValue || null;
           return true;
         },
@@ -399,7 +425,6 @@ const ActualTaskTable: React.FC = () => {
           return b === null || b === undefined ? "" : String(b);
         },
         valueSetter: (params: any) => {
-          params.data.actuals = params.data.actuals || {};
           const v = params.newValue;
           params.data.actuals.budget = v === "" ? null : parseFloat(v);
           return true;
@@ -415,7 +440,6 @@ const ActualTaskTable: React.FC = () => {
         field: "actuals.progress",
         valueGetter: (params: any) => params.data.actuals?.progress ?? 0,
         valueSetter: (params: any) => {
-          params.data.actuals = params.data.actuals || {};
           const v = params.newValue;
           params.data.actuals.progress = v === "" ? null : parseInt(v);
           return true;
@@ -432,7 +456,6 @@ const ActualTaskTable: React.FC = () => {
         field: "actuals.status",
         valueGetter: (params: any) => params.data.actuals?.status ?? "",
         valueSetter: (params: any) => {
-          params.data.actuals = params.data.actuals || {};
           params.data.actuals.status = params.newValue || null;
           return true;
         },
@@ -516,7 +539,15 @@ const ActualTaskTable: React.FC = () => {
             </div>
           )}
         </div>
-
+        {dirtyRows.size > 0 && (
+          <button
+            onClick={handleSave}
+            disabled={isSaving}
+            className="flex items-center gap-1 px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+          >
+            {isSaving ? "Saving..." : "Save Changes"}
+          </button>
+        )}
         <SearchInput placeholder="Search tasks..." value={search} onChange={setSearch} />
       </div>
 

@@ -77,6 +77,13 @@ export default function ActualTaskTable({
     "actions",
   ]);
 
+  // Dirty tracking for saves
+  const [dirtyRows, setDirtyRows] = useState<Set<string>>(new Set());
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Grid data state to hold local edits
+  const [gridData, setGridData] = useState<Task[]>([]);
+
   // compute extendedTasks with actuals defaults + duration/remaining
   const extendedTasks = useMemo(() => {
     if (!tasks) return [];
@@ -103,7 +110,13 @@ export default function ActualTaskTable({
     });
   }, [tasks]);
 
-  const filtered = extendedTasks.filter((t) =>
+  // Sync gridData when extendedTasks change
+  useEffect(() => {
+    setGridData(extendedTasks);
+    setDirtyRows(new Set());
+  }, [extendedTasks]);
+
+  const filtered = gridData.filter((t) =>
     t.task_name.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -280,27 +293,42 @@ export default function ActualTaskTable({
 
   // called when a cell is edited
   const handleCellValueChanged = (params: any) => {
-    const { colDef, data } = params;
+    const { colDef } = params;
     const fieldParts = (colDef.field || "").split(".");
     if (fieldParts[0] === "actuals") {
-      data.actuals = { ...(data.actuals || {}) };
-      const sanitized = sanitizeActualsForApi(data.actuals);
-      data.actuals = sanitized;
-      updateTaskActuals(
-        { id: data.id, actuals: sanitized },
-        {
-          onSuccess: () => {
-            toast.success("Task actuals saved");
-          },
-          onError: (err: any) => {
-            console.error("Failed to update task actuals", err);
-            toast.error("Failed to save actuals");
-          },
-        }
-      );
+      setDirtyRows((prev) => {
+        const newSet = new Set(prev);
+        newSet.add(params.data.id);
+        return newSet;
+      });
     }
     // refresh row to update calculated columns
     params.api.refreshCells({ rowNodes: [params.node], force: true });
+  };
+
+  // Handle save changes
+  const handleSave = () => {
+    setIsSaving(true);
+    Array.from(dirtyRows).forEach((id) => {
+      const row = gridData.find((r) => r.id === id);
+      if (row) {
+        const sanitized = sanitizeActualsForApi(row.actuals);
+        updateTaskActuals(
+          { id, actuals: sanitized },
+          {
+            onSuccess: () => {
+              toast.success("Task actuals saved");
+            },
+            onError: (err: any) => {
+              console.error("Failed to update task actuals", err);
+              toast.error("Failed to save actuals");
+            },
+          }
+        );
+      }
+    });
+    setDirtyRows(new Set());
+    setIsSaving(false);
   };
 
   // column definitions for AG Grid (only fields requested)
@@ -329,7 +357,6 @@ export default function ActualTaskTable({
           return isNaN(dt.getTime()) ? "" : dt.toLocaleDateString();
         },
         valueSetter: (params: any) => {
-          params.data.actuals = params.data.actuals || {};
           params.data.actuals.start_date = params.newValue || null;
           return true;
         },
@@ -348,7 +375,6 @@ export default function ActualTaskTable({
           return isNaN(dt.getTime()) ? "" : dt.toLocaleDateString();
         },
         valueSetter: (params: any) => {
-          params.data.actuals = params.data.actuals || {};
           params.data.actuals.end_date = params.newValue || null;
           return true;
         },
@@ -364,8 +390,7 @@ export default function ActualTaskTable({
           const end = params.data.actuals?.end_date;
           if (!start || !end) return "";
           const diff = Math.ceil(
-            (new Date(end).getTime() - new Date(start).getTime()) /
-              (1000 * 3600 * 24)
+            (new Date(end).getTime() - new Date(start).getTime()) / (1000 * 3600 * 24)
           );
           return isNaN(diff) ? "" : diff;
         },
@@ -393,7 +418,6 @@ export default function ActualTaskTable({
           return b === null || b === undefined ? "" : String(b);
         },
         valueSetter: (params: any) => {
-          params.data.actuals = params.data.actuals || {};
           const v = params.newValue;
           params.data.actuals.budget = v === "" ? null : parseFloat(v);
           return true;
@@ -407,7 +431,6 @@ export default function ActualTaskTable({
         field: "actuals.progress",
         valueGetter: (params: any) => params.data.actuals?.progress ?? 0,
         valueSetter: (params: any) => {
-          params.data.actuals = params.data.actuals || {};
           const v = params.newValue;
           params.data.actuals.progress = v === "" ? null : parseInt(v);
           return true;
@@ -422,7 +445,6 @@ export default function ActualTaskTable({
         field: "actuals.status",
         valueGetter: (params: any) => params.data.actuals?.status ?? "",
         valueSetter: (params: any) => {
-          params.data.actuals = params.data.actuals || {};
           params.data.actuals.status = params.newValue || null;
           return true;
         },
@@ -556,7 +578,15 @@ export default function ActualTaskTable({
             </div>
           )}
         </div>
-
+        {dirtyRows.size > 0 && (
+          <button
+            onClick={handleSave}
+            disabled={isSaving}
+            className="flex items-center gap-1 px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+          >
+            {isSaving ? "Saving..." : "Save Changes"}
+          </button>
+        )}
         <SearchInput
           placeholder="Search tasks..."
           value={search}
