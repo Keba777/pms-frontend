@@ -593,7 +593,7 @@ const MessageItem: React.FC<MessageItemProps> = React.memo(({ msg, currentUser, 
         {msg.type === "file" && fileContent}
       </div>
       <div className={`flex ${msg.sender_id === currentUser.id ? "justify-end" : "justify-start"} items-center mt-1 text-xs text-gray-500`}>
-        {formatDate(msg.createdAt)}
+        <span>{new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
         {msg.sender_id === currentUser.id && (
           <Button variant="ghost" size="icon" onClick={() => deleteMessage(msg.id)} className="ml-2 text-red-500">
             <Trash2 className="h-4 w-4" />
