@@ -1,16 +1,10 @@
 "use client";
 
 import React, { useState, useRef } from "react";
-import {
-  ChevronDown,
-  Eye,
-  Edit,
-  Trash2,
-  PlusIcon,
-  ExternalLink,
-} from "lucide-react";
+import { ChevronDown, Eye, Edit, Trash2, PlusIcon, ExternalLink } from "lucide-react";
 import { toast } from "react-toastify";
 import { Skeleton } from "@/components/ui/skeleton";
+import GenericDownloads, { Column } from "@/components/common/GenericDownloads";
 
 import CollaborationForm from "@/components/forms/CollaborationForm";
 import { useUsers } from "@/hooks/useUsers";
@@ -119,16 +113,32 @@ export function DiscussionTable({ type, referenceId }: DiscussionTableProps) {
     setDropdownId(null);
   };
 
+  const downloadColumns: Column<any>[] = [
+    { header: "No", accessor: (_d, index) => index! + 1 },
+    { header: "Subject", accessor: (d: any) => d.subject || "N/A" },
+    { header: "Created By", accessor: (d: any) => `${d.createdByUser?.first_name} ${d.createdByUser?.last_name}` || "N/A" },
+    { header: "Participants", accessor: (d: any) => (d.participants ?? []).map(getUserName).join(", ") || "-" },
+    { header: "Last Message", accessor: (d: any) => formatDate(d.lastMessageAt) },
+    { header: "Pinned", accessor: (d: any) => d.pinned ? "Yes" : "No" },
+  ];
+
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
         <h1 className="my-6 text-3xl font-bold text-gray-800">Discussions</h1>
-        <button
-          className="bg-cyan-700 hover:bg-cyan-800 text-white font-bold py-2 px-3 rounded text-sm flex items-center gap-2"
-          onClick={openCreate}
-        >
-          <PlusIcon width={15} height={12} /> New
-        </button>
+        <div className="flex items-center gap-4">
+          <button
+            className="bg-cyan-700 hover:bg-cyan-800 text-white font-bold py-2 px-3 rounded text-sm flex items-center gap-2"
+            onClick={openCreate}
+          >
+            <PlusIcon width={15} height={12} /> New
+          </button>
+          <GenericDownloads
+            data={items}
+            title="Discussions"
+            columns={downloadColumns}
+          />
+        </div>
       </div>
 
       {showForm && (
@@ -314,16 +324,32 @@ export function NotificationTable({
     setDropdownId(null);
   };
 
+  const downloadColumns: Column<any>[] = [
+    { header: "No", accessor: (_n, index) => index! + 1 },
+    { header: "Date", accessor: (n: any) => formatDate(n.date) },
+    { header: "Title", accessor: (n: any) => n.title ?? "-" },
+    { header: "Message", accessor: (n: any) => n.message || "N/A" },
+    { header: "Recipient", accessor: (n: any) => `${n.recipientUser?.first_name} ${n.recipientUser?.last_name}` || "N/A" },
+    { header: "Read", accessor: (n: any) => n.read ? "Yes" : "No" },
+  ];
+
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
         <h1 className="my-6 text-3xl font-bold text-gray-800">Notifications</h1>
-        <button
-          className="bg-cyan-700 hover:bg-cyan-800 text-white font-bold py-2 px-3 rounded text-sm flex items-center gap-2"
-          onClick={openCreate}
-        >
-          <PlusIcon width={15} height={12} /> New
-        </button>
+        <div className="flex items-center gap-4">
+          <button
+            className="bg-cyan-700 hover:bg-cyan-800 text-white font-bold py-2 px-3 rounded text-sm flex items-center gap-2"
+            onClick={openCreate}
+          >
+            <PlusIcon width={15} height={12} /> New
+          </button>
+          <GenericDownloads
+            data={items}
+            title="Notifications"
+            columns={downloadColumns}
+          />
+        </div>
       </div>
 
       {showForm && (
@@ -499,16 +525,32 @@ export function ActivityLogTable({ type, referenceId }: ActivityLogTableProps) {
     setDropdownId(null);
   };
 
+  const downloadColumns: Column<any>[] = [
+    { header: "No", accessor: (_a, index) => index! + 1 },
+    { header: "Date", accessor: (a: any) => formatDate(a.date) },
+    { header: "Action", accessor: (a: any) => a.action || "N/A" },
+    { header: "Actor", accessor: (a: any) => `${a.actorUser?.first_name} ${a.actorUser?.last_name}` || "N/A" },
+    { header: "Details", accessor: (a: any) => a.details ?? "-" },
+    { header: "Parent", accessor: (a: any) => a.parentActivityId ?? "-" },
+  ];
+
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
         <h1 className="my-6 text-3xl font-bold text-gray-800">Activity Logs</h1>
-        <button
-          className="bg-cyan-700 hover:bg-cyan-800 text-white font-bold py-2 px-3 rounded text-sm flex items-center gap-2"
-          onClick={openCreate}
-        >
-          <PlusIcon width={15} height={12} /> New
-        </button>
+        <div className="flex items-center gap-4">
+          <button
+            className="bg-cyan-700 hover:bg-cyan-800 text-white font-bold py-2 px-3 rounded text-sm flex items-center gap-2"
+            onClick={openCreate}
+          >
+            <PlusIcon width={15} height={12} /> New
+          </button>
+          <GenericDownloads
+            data={items}
+            title="Activity_Logs"
+            columns={downloadColumns}
+          />
+        </div>
       </div>
 
       {showForm && (
@@ -581,7 +623,7 @@ export function ActivityLogTable({ type, referenceId }: ActivityLogTableProps) {
                             onClick={() => handleView(a)}
                             className="w-full text-left px-3 py-2 hover:bg-gray-100 flex items-center gap-2"
                           >
-                            <ExternalLink className="w-4 h-4" /> View
+                            <Eye className="w-4 h-4" /> View
                           </button>
 
                           <button

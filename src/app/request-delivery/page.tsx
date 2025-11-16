@@ -15,11 +15,14 @@ import ConfirmModal from "@/components/common/ui/ConfirmModal";
 import {
   useRequestDeliveries,
   useDeleteRequestDelivery,
+  useUpdateRequestDelivery,
 } from "@/hooks/useRequestDeliveries";
 import RequestDeliveryTableSkeleton from "@/components/skeletons/RequestDeliveryTableSkeleton";
 import RequestDeliveryForm from "@/components/forms/RequestDeliverForm";
+import EditRequestDeliveryForm from "@/components/forms/resource/EditRequestDeliveryForm"; 
 
 const columnOptions: Record<string, string> = {
+  no: "No",
   refNumber: "Ref No.",
   deliveredBy: "Delivered By",
   recievedBy: "Received By",
@@ -35,6 +38,7 @@ const RequestDeliveryPage: React.FC = () => {
   const router = useRouter();
   const { data: deliveries = [], isLoading, error } = useRequestDeliveries();
   const { mutate: deleteDelivery } = useDeleteRequestDelivery();
+  const { mutate: updateDelivery } = useUpdateRequestDelivery();
 
   const [showForm, setShowForm] = useState(false);
   const [selectedColumns, setSelectedColumns] = useState<string[]>(
@@ -45,6 +49,9 @@ const RequestDeliveryPage: React.FC = () => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showColumnMenu, setShowColumnMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [deliveryToEdit, setDeliveryToEdit] = useState<any | null>(null);
 
   const toggleColumn = (col: string) => {
     setSelectedColumns((prev) =>
@@ -102,8 +109,8 @@ const RequestDeliveryPage: React.FC = () => {
   // DOWNLOAD COLUMNS (use the original delivery objects)
   const downloadColumns: Column<any>[] = [
     {
-      header: "ID",
-      accessor: (_d, index) => `RD${String(index! + 1).padStart(3, "0")}`,
+      header: "No",
+      accessor: (_d, index) => index! + 1,
     },
     { header: "Ref No.", accessor: (d: any) => d.refNumber || "N/A" },
     { header: "Delivered By", accessor: (d: any) => d.deliveredBy || "N/A" },
@@ -117,11 +124,6 @@ const RequestDeliveryPage: React.FC = () => {
     { header: "Qty Received", accessor: (d: any) => d.recievedQuantity || 0 },
     { header: "Site", accessor: (d: any) => d.site?.name || "N/A" },
     { header: "Remarks", accessor: (d: any) => d.remarks || "N/A" },
-    // {
-    //   header: "Activity",
-    //   accessor: (d: any) =>
-    //     d.approval?.request?.activity?.activity_name || d.approvalId || "N/A",
-    // },
   ];
 
   const handleDelete = () => {
@@ -132,6 +134,16 @@ const RequestDeliveryPage: React.FC = () => {
   };
 
   const handleView = (id: string) => router.push(`/request-delivery/${id}`);
+
+  const handleEditClick = (d: any) => {
+    setDeliveryToEdit(d);
+    setShowEditForm(true);
+  };
+
+  const handleEditSubmit = (data: any) => {
+    updateDelivery(data);
+    setShowEditForm(false);
+  };
 
   return (
     <div className="mt-8">
@@ -189,6 +201,18 @@ const RequestDeliveryPage: React.FC = () => {
         </div>
       )}
 
+      {showEditForm && deliveryToEdit && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <EditRequestDeliveryForm
+              requestDelivery={deliveryToEdit}
+              onSubmit={handleEditSubmit}
+              onClose={() => setShowEditForm(false)}
+            />
+          </div>
+        </div>
+      )}
+
       {isDeleteModalOpen && (
         <ConfirmModal
           isVisible={isDeleteModalOpen}
@@ -227,18 +251,21 @@ const RequestDeliveryPage: React.FC = () => {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {filteredDeliveries.length > 0 ? (
-              filteredDeliveries.map((d) => (
+              filteredDeliveries.map((d, index) => (
                 <tr key={d.id} className="hover:bg-gray-50">
+                  {selectedColumns.includes("no") && (
+                    <td className="px-4 py-2 font-medium">{index + 1}</td>
+                  )}
                   {selectedColumns.includes("refNumber") && (
                     <td className="px-4 py-2 font-medium">
                       {d.refNumber || "N/A"}
                     </td>
                   )}
                   {selectedColumns.includes("deliveredBy") && (
-                    <td className="px-4 py-2">{d.deliveredBy}</td>
+                    <td className="px-4 py-2">{d.deliveredBy || "N/A"}</td>
                   )}
                   {selectedColumns.includes("recievedBy") && (
-                    <td className="px-4 py-2">{d.recievedBy}</td>
+                    <td className="px-4 py-2">{d.recievedBy || "N/A"}</td>
                   )}
                   {selectedColumns.includes("status") && (
                     <td className="px-4 py-2">
@@ -257,11 +284,11 @@ const RequestDeliveryPage: React.FC = () => {
                   )}
                   {selectedColumns.includes("deliveryDate") && (
                     <td className="px-4 py-2">
-                      {new Date(d.deliveryDate).toLocaleDateString()}
+                      {d.deliveryDate ? new Date(d.deliveryDate).toLocaleDateString() : "N/A"}
                     </td>
                   )}
                   {selectedColumns.includes("recievedQuantity") && (
-                    <td className="px-4 py-2">{d.recievedQuantity}</td>
+                    <td className="px-4 py-2">{d.recievedQuantity || 0}</td>
                   )}
                   {selectedColumns.includes("site") && (
                     <td className="px-4 py-2">{d.site?.name || "N/A"}</td>
@@ -271,11 +298,11 @@ const RequestDeliveryPage: React.FC = () => {
                   )}
                   {selectedColumns.includes("actions") && (
                     <td className="px-4 py-2">
-                      <Menu>
+                      <Menu as="div" className="relative inline-block text-left">
                         <MenuButton className="flex items-center gap-1 px-3 py-1 text-sm bg-cyan-700 text-white rounded hover:bg-cyan-800">
                           Action <ChevronDown className="w-4 h-4" />
                         </MenuButton>
-                        <MenuItems className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-10">
+                        <MenuItems className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-9999">
                           <MenuItem>
                             {({ active }) => (
                               <button
@@ -285,6 +312,18 @@ const RequestDeliveryPage: React.FC = () => {
                                 }`}
                               >
                                 View
+                              </button>
+                            )}
+                          </MenuItem>
+                          <MenuItem>
+                            {({ active }) => (
+                              <button
+                                onClick={() => handleEditClick(d)}
+                                className={`block w-full px-4 py-2 text-left ${
+                                  active ? "bg-blue-100" : ""
+                                }`}
+                              >
+                                Edit
                               </button>
                             )}
                           </MenuItem>

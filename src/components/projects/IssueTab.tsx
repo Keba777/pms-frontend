@@ -1,11 +1,11 @@
 "use client";
-
 import React, { useState } from "react";
 import { useIssues, useDeleteIssue } from "@/hooks/useIssues";
 import { Issue } from "@/types/issue";
 import IssueForm from "../forms/IssueForm";
 import { useAuthStore } from "@/store/authStore";
 import { PlusIcon } from "lucide-react";
+import GenericDownloads, { Column } from "@/components/common/GenericDownloads";
 
 interface IssueTabProps {
   projectId: string;
@@ -16,24 +16,43 @@ export default function IssueTab({ projectId }: IssueTabProps) {
   const deleteMutation = useDeleteIssue();
   const [showForm, setShowForm] = useState(false);
   const { user } = useAuthStore();
-
   if (isLoading) return <p>Loading issues…</p>;
   if (isError) return <p>Failed to load issues.</p>;
-
   // Only show issues for this project
   const filtered = issues?.filter((i) => i.projectId === projectId) ?? [];
+
+  const downloadColumns: Column<any>[] = [
+    { header: "No", accessor: (_i, index) => index! + 1 },
+    { header: "ID", accessor: (i: any) => i.id || "N/A" },
+    { header: "Date", accessor: (i: any) => new Date(i.date).toLocaleDateString() || "N/A" },
+    { header: "Type", accessor: (i: any) => i.issueType || "N/A" },
+    { header: "Description", accessor: (i: any) => i.description || "N/A" },
+    { header: "Raised By", accessor: (i: any) => i.raisedBy.first_name || "N/A" },
+    { header: "Priority", accessor: (i: any) => i.priority || "N/A" },
+    { header: "Site", accessor: (i: any) => i.site?.name || "N/A" },
+    { header: "Department", accessor: (i: any) => i.department?.name || "N/A" },
+    { header: "Responsible", accessor: (i: any) => i.responsible?.first_name || "N/A" },
+    { header: "Action Taken", accessor: (i: any) => i.actionTaken || "N/A" },
+    { header: "Status", accessor: (i: any) => i.status || "N/A" },
+  ];
 
   return (
     <div>
       <div className="flex justify-end mb-6">
-        <button
-          className="bg-cyan-700 hover:bg-cyan-800 text-white font-bold py-2 px-3 rounded text-sm"
-          onClick={() => setShowForm(true)}
-        >
-          <PlusIcon width={15} height={12} />
-        </button>
+        <div className="flex items-center gap-4">
+          <button
+            className="bg-cyan-700 hover:bg-cyan-800 text-white font-bold py-2 px-3 rounded text-sm"
+            onClick={() => setShowForm(true)}
+          >
+            <PlusIcon width={15} height={12} />
+          </button>
+          <GenericDownloads
+            data={filtered}
+            title="Issues"
+            columns={downloadColumns}
+          />
+        </div>
       </div>
-
       {showForm && (
         <div className="modal-overlay">
           <div className="modal-content">
@@ -47,7 +66,6 @@ export default function IssueTab({ projectId }: IssueTabProps) {
         </div>
       )}
       <h2 className="text-2xl font-semibold mb-4">Issues</h2>
-
       <div className="overflow-x-auto">
         <table className="min-w-max w-full border-collapse">
           <thead>

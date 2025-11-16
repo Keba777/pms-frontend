@@ -7,9 +7,10 @@ import { ChevronDown, PlusIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import ConfirmModal from "@/components/common/ui/ConfirmModal";
 import ProfileAvatar from "@/components/common/ProfileAvatar";
-import { useDeleteKpi, useCreateKpi } from "@/hooks/useKpis";
-import { CreateKpiInput, Kpi } from "@/types/kpi";
+import { useDeleteKpi, useCreateKpi, useUpdateKpi } from "@/hooks/useKpis";
+import { CreateKpiInput, UpdateKpiInput, Kpi } from "@/types/kpi";
 import KpiForm from "../forms/KpiForm";
+import EditKpiForm from "../forms/EditKpiForm";
 
 const columnOptions: Record<string, string> = {
   type: "Type",
@@ -31,6 +32,7 @@ interface KpiProps {
 const KpiTable = ({ kpis }: KpiProps) => {
   const { mutate: deleteKpi } = useDeleteKpi();
   const { mutate: createKpi } = useCreateKpi();
+  const { mutate: updateKpi } = useUpdateKpi();
   const router = useRouter();
 
   const [tableType, setTableType] = useState<"users" | "labors" | "equipment">(
@@ -45,6 +47,8 @@ const KpiTable = ({ kpis }: KpiProps) => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedKpiId, setSelectedKpiId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [selectedKpi, setSelectedKpi] = useState<Kpi | null>(null);
 
   const filteredKpis =
     kpis?.filter((k) => {
@@ -84,12 +88,25 @@ const KpiTable = ({ kpis }: KpiProps) => {
     }
   };
 
-  const handleViewKpi = (id: string) => router.push(`/kpi/${id}`);
+  const handleViewKpi = (id: string) => router.push(`/kpis/${id}`);
+
+  const handleEditKpiClick = (kpi: Kpi) => {
+    setSelectedKpi(kpi);
+    setShowEditForm(true);
+  };
 
   const handleKpiSubmit = (data: CreateKpiInput) => {
     createKpi(data, {
       onSuccess: () => setShowForm(false),
     });
+  };
+
+  const handleEditKpiSubmit = (data: UpdateKpiInput) => {
+    if (selectedKpi) {
+      updateKpi({ id: selectedKpi.id, ...data }, {
+        onSuccess: () => setShowEditForm(false),
+      });
+    }
   };
 
   return (
@@ -136,6 +153,17 @@ const KpiTable = ({ kpis }: KpiProps) => {
               tableType={tableType}
               onSubmit={handleKpiSubmit}
               onClose={() => setShowForm(false)}
+            />
+          </div>
+        </div>
+      )}
+      {showEditForm && selectedKpi && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white p-4 md:p-6 rounded-lg shadow-xl max-w-md w-full mx-4 overflow-y-auto max-h-[80vh]">
+            <EditKpiForm
+              kpi={selectedKpi}
+              onSubmit={handleEditKpiSubmit}
+              onClose={() => setShowEditForm(false)}
             />
           </div>
         </div>
@@ -261,7 +289,7 @@ const KpiTable = ({ kpis }: KpiProps) => {
                   {selectedColumns.includes("type") && (
                     <td className="md:px-4 px-2 md:py-2 py-1 font-medium text-bs-primary">
                       <Link
-                        href={`/lkpi/${kpi.id}`}
+                        href={`/kpi/${kpi.id}`}
                         className="hover:underline"
                       >
                         {kpi.type}
@@ -353,7 +381,19 @@ const KpiTable = ({ kpis }: KpiProps) => {
                                 }`}
                                 onClick={() => handleViewKpi(kpi.id)}
                               >
-                                Quick View
+                                View
+                              </button>
+                            )}
+                          </MenuItem>
+                          <MenuItem>
+                            {({ active }) => (
+                              <button
+                                className={`block w-full md:px-4 px-2 py-2 text-left ${
+                                  active ? "bg-blue-100" : ""
+                                }`}
+                                onClick={() => handleEditKpiClick(kpi)}
+                              >
+                                Edit
                               </button>
                             )}
                           </MenuItem>

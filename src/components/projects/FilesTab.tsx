@@ -13,6 +13,7 @@ import { useFiles } from "@/hooks/useFiles";
 import { toast } from "react-toastify";
 import FileForm from "../forms/FileForm";
 import { AppFile } from "@/types/file";
+import GenericDownloads, { Column } from "@/components/common/GenericDownloads";
 
 interface FileTableProps {
   type: "project" | "task" | "activity" | "todo";
@@ -23,7 +24,7 @@ export default function FileTable({ type, referenceId }: FileTableProps) {
   const { data: files, isLoading, error } = useFiles();
   const [showForm, setShowForm] = useState(false);
   const [dropdownFileId, setDropdownFileId] = useState<string | null>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
 
   if (isLoading) return <div>Loading files...</div>;
   if (error) return <div>Error loading files</div>;
@@ -55,21 +56,38 @@ export default function FileTable({ type, referenceId }: FileTableProps) {
     setDropdownFileId(null);
   };
 
+  const downloadColumns: Column<any>[] = [
+    { header: "No", accessor: (_f, index) => index! + 1 },
+    { header: "Date", accessor: (f: any) => formatDate(f.date) || "N/A" },
+    { header: "Title", accessor: (f: any) => f.title || "N/A" },
+    { header: "Uploaded By", accessor: (f: any) => `${f.uploadedByUser?.first_name} ${f.uploadedByUser?.last_name}` || "N/A" },
+    { header: "Send To", accessor: (f: any) => `${f.sendToUser?.first_name} ${f.sendToUser?.last_name}` || "N/A" },
+    { header: "File Name", accessor: (f: any) => f.fileName || "N/A" },
+    { header: "File URL", accessor: (f: any) => f.fileUrl || "N/A" },
+  ];
+
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
         <h1 className="my-6 text-3xl font-bold text-gray-800">Files</h1>
-        <button
-          className="bg-cyan-700 hover:bg-cyan-800 text-white font-bold py-2 px-3 rounded text-sm"
-          onClick={() => setShowForm(true)}
-        >
-          <PlusIcon width={15} height={12} />
-        </button>
+        <div className="flex items-center gap-4">
+          <button
+            className="bg-cyan-700 hover:bg-cyan-800 text-white font-bold py-2 px-3 rounded text-sm"
+            onClick={() => setShowForm(true)}
+          >
+            <PlusIcon width={15} height={12} />
+          </button>
+          <GenericDownloads
+            data={files ?? []}
+            title="Files"
+            columns={downloadColumns}
+          />
+        </div>
       </div>
 
       {showForm && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl p-4 sm:p-6 w-full max-w-md sm:max-w-lg">
+        <div className="modal-overlay">
+          <div className="modal-content">
             <FileForm
               onClose={() => setShowForm(false)}
               type={type}

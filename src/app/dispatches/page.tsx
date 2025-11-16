@@ -12,9 +12,10 @@ import {
   Option,
 } from "@/components/common/GenericFilter";
 import ConfirmModal from "@/components/common/ui/ConfirmModal";
-import { useDispatches, useDeleteDispatch } from "@/hooks/useDispatches";
+import { useDispatches, useDeleteDispatch, useUpdateDispatch } from "@/hooks/useDispatches";
 import DispatchTableSkeleton from "@/components/skeletons/DispatchTableSkeleton";
 import DispatchForm from "@/components/forms/resource/DispatchForm";
+import EditDispatchForm from "@/components/forms/resource/EditDispatchForm"; // Assuming the path is correct
 
 const columnOptions: Record<string, string> = {
   refNumber: "Ref No.",
@@ -35,6 +36,7 @@ const columnOptions: Record<string, string> = {
 const DispatchesPage: React.FC = () => {
   const { data: dispatches = [], isLoading, error } = useDispatches();
   const { mutate: deleteDispatch } = useDeleteDispatch();
+  const { mutate: updateDispatch } = useUpdateDispatch();
   const router = useRouter();
 
   const [showForm, setShowForm] = useState(false);
@@ -48,6 +50,9 @@ const DispatchesPage: React.FC = () => {
   );
   const [showColumnMenu, setShowColumnMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [dispatchToEdit, setDispatchToEdit] = useState<any | null>(null);
 
   const toggleColumn = (col: string) => {
     setSelectedColumns((prev) =>
@@ -141,11 +146,21 @@ const DispatchesPage: React.FC = () => {
     }
   };
 
-  const handleView = (id: string) => router.push(`/dispatch/${id}`);
+  const handleView = (id: string) => router.push(`/dispatches/${id}`);
+
+  const handleEditClick = (d: any) => {
+    setDispatchToEdit(d);
+    setShowEditForm(true);
+  };
+
+  const handleEditSubmit = (data: any) => {
+    updateDispatch(data);
+    setShowEditForm(false);
+  };
 
   return (
     <div className="mt-8">
-      <div className="flex space-x-6 items-center">
+      <div className="flex space-x-6 items-center justify-end">
         <button
           className="bg-cyan-700 hover:bg-cyan-800 text-white font-bold py-2 px-3 rounded text-sm"
           onClick={() => setShowForm(true)}
@@ -197,6 +212,18 @@ const DispatchesPage: React.FC = () => {
         <div className="modal-overlay">
           <div className="modal-content">
             <DispatchForm onClose={() => setShowForm(false)} />
+          </div>
+        </div>
+      )}
+
+      {showEditForm && dispatchToEdit && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <EditDispatchForm
+              dispatch={dispatchToEdit}
+              onSubmit={handleEditSubmit}
+              onClose={() => setShowEditForm(false)}
+            />
           </div>
         </div>
       )}
@@ -303,11 +330,11 @@ const DispatchesPage: React.FC = () => {
                   )}
                   {selectedColumns.includes("actions") && (
                     <td className="px-4 py-2">
-                      <Menu>
+                      <Menu as="div" className="relative inline-block text-left">
                         <MenuButton className="flex items-center gap-1 px-3 py-1 text-sm bg-cyan-700 text-white rounded hover:bg-cyan-800">
                           Action <ChevronDown className="w-4 h-4" />
                         </MenuButton>
-                        <MenuItems className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-10">
+                        <MenuItems className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-[9999]">
                           <MenuItem>
                             {({ active }) => (
                               <button
@@ -317,6 +344,18 @@ const DispatchesPage: React.FC = () => {
                                 }`}
                               >
                                 View
+                              </button>
+                            )}
+                          </MenuItem>
+                          <MenuItem>
+                            {({ active }) => (
+                              <button
+                                onClick={() => handleEditClick(d)}
+                                className={`block w-full px-4 py-2 text-left ${
+                                  active ? "bg-blue-100" : ""
+                                }`}
+                              >
+                                Edit
                               </button>
                             )}
                           </MenuItem>

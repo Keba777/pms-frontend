@@ -11,12 +11,12 @@ import {
   FilterValues,
 } from "@/components/common/GenericFilter";
 import ConfirmModal from "@/components/common/ui/ConfirmModal";
-import { useStoreRequisitions, useDeleteStoreRequisition } from "@/hooks/useStoreRequisition";
-import StoreRequisitionForm from "@/components/forms/resource/StoreRequisitionForm"; // We'll define this below
-
+import { useStoreRequisitions, useDeleteStoreRequisition, useUpdateStoreRequisition } from "@/hooks/useStoreRequisition";
+import StoreRequisitionForm from "@/components/forms/resource/StoreRequisitionForm";
+import EditStoreRequisitionForm from "@/components/forms/resource/EditStoreRequisitionForm";
 
 const columnOptions: Record<string, string> = {
-  id: "ID",
+  no: "No",
   description: "Description",
   unitOfMeasure: "Unit of Measure",
   quantity: "Quantity",
@@ -29,6 +29,7 @@ const columnOptions: Record<string, string> = {
 const StoreRequisitionsPage: React.FC = () => {
   const { data: requisitions = [], isLoading, error } = useStoreRequisitions();
   const { mutate: deleteStoreRequisition } = useDeleteStoreRequisition();
+  const { mutate: updateStoreRequisition } = useUpdateStoreRequisition();
   const router = useRouter();
 
   const [showForm, setShowForm] = useState(false);
@@ -42,6 +43,9 @@ const StoreRequisitionsPage: React.FC = () => {
   );
   const [showColumnMenu, setShowColumnMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [requisitionToEdit, setRequisitionToEdit] = useState<any | null>(null);
 
   const toggleColumn = (col: string) => {
     setSelectedColumns((prev) =>
@@ -89,17 +93,13 @@ const StoreRequisitionsPage: React.FC = () => {
   // DOWNLOAD COLUMNS (use the original requisition objects)
   const downloadColumns: Column<any>[] = [
     {
-      header: "ID",
-      accessor: (_r, index) => `SR${String(index! + 1).padStart(3, "0")}`,
+      header: "No",
+      accessor: (_r, index) => index! + 1,
     },
     { header: "Description", accessor: (r: any) => r.description || "N/A" },
     { header: "Unit of Measure", accessor: (r: any) => r.unitOfMeasure || "N/A" },
     { header: "Quantity", accessor: (r: any) => r.quantity || 0 },
     { header: "Remarks", accessor: (r: any) => r.remarks || "N/A" },
-    // {
-    //   header: "Activity",
-    //   accessor: (r: any) => r.approval?.request?.activity?.activity_name || r.approvalId || "N/A",
-    // },
     {
       header: "Created At",
       accessor: (r: any) =>
@@ -119,7 +119,17 @@ const StoreRequisitionsPage: React.FC = () => {
     }
   };
 
-  const handleView = (id: string) => router.push(`/store-requisitions/${id}`);
+  const handleView = (id: string) => router.push(`/store-requisition/${id}`);
+
+  const handleEditClick = (r: any) => {
+    setRequisitionToEdit(r);
+    setShowEditForm(true);
+  };
+
+  const handleEditSubmit = (data: any) => {
+    updateStoreRequisition(data);
+    setShowEditForm(false);
+  };
 
   return (
     <div className="mt-8">
@@ -177,6 +187,18 @@ const StoreRequisitionsPage: React.FC = () => {
         </div>
       )}
 
+      {showEditForm && requisitionToEdit && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <EditStoreRequisitionForm
+              storeRequisition={requisitionToEdit}
+              onSubmit={handleEditSubmit}
+              onClose={() => setShowEditForm(false)}
+            />
+          </div>
+        </div>
+      )}
+
       {isDeleteModalOpen && (
         <ConfirmModal
           isVisible={isDeleteModalOpen}
@@ -192,7 +214,7 @@ const StoreRequisitionsPage: React.FC = () => {
 
       {/* Table */}
       <div className="overflow-x-auto">
-        <table className="min-w-max divide-y divide-gray-200">
+        <table className="min-w-max divide-y divide-gray-200 table-auto w-full">
           <thead className="bg-cyan-700">
             <tr>
               {selectedColumns.map(
@@ -200,14 +222,14 @@ const StoreRequisitionsPage: React.FC = () => {
                   col !== "actions" && (
                     <th
                       key={col}
-                      className="px-4 py-3 text-left text-sm text-white"
+                      className="px-4 py-3 text-left text-sm text-white whitespace-nowrap"
                     >
                       {columnOptions[col]}
                     </th>
                   )
               )}
               {selectedColumns.includes("actions") && (
-                <th className="px-4 py-3 text-left text-sm text-white">
+                <th className="px-4 py-3 text-left text-sm text-white whitespace-nowrap">
                   Actions
                 </th>
               )}
@@ -215,44 +237,40 @@ const StoreRequisitionsPage: React.FC = () => {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {filteredRequisitions.length > 0 ? (
-              filteredRequisitions.map((r) => (
+              filteredRequisitions.map((r, index) => (
                 <tr key={String(r.id)} className="hover:bg-gray-50">
-                  {selectedColumns.includes("id") && (
-                    <td className="px-4 py-2 font-medium">
-                      {/* Assuming sequential ID display; adjust if needed */}
-                      {filteredRequisitions.findIndex((req) => req.id === r.id) + 1}
-                    </td>
+                  {selectedColumns.includes("no") && (
+                    <td className="px-4 py-2 font-medium">{index + 1}</td>
                   )}
                   {selectedColumns.includes("description") && (
-                    <td className="px-4 py-2">{r.description || "N/A"}</td>
+                    <td className="px-4 py-2 whitespace-nowrap overflow-hidden text-ellipsis max-w-xs">{r.description || "N/A"}</td>
                   )}
                   {selectedColumns.includes("unitOfMeasure") && (
-                    <td className="px-4 py-2">{r.unitOfMeasure || "N/A"}</td>
+                    <td className="px-4 py-2 whitespace-nowrap">{r.unitOfMeasure || "N/A"}</td>
                   )}
                   {selectedColumns.includes("quantity") && (
-                    <td className="px-4 py-2">{r.quantity || 0}</td>
+                    <td className="px-4 py-2 whitespace-nowrap">{r.quantity || 0}</td>
                   )}
                   {selectedColumns.includes("remarks") && (
-                    <td className="px-4 py-2">{r.remarks || "N/A"}</td>
+                    <td className="px-4 py-2 whitespace-nowrap overflow-hidden text-ellipsis max-w-xs">{r.remarks || "N/A"}</td>
                   )}
-
                   {selectedColumns.includes("createdAt") && (
-                    <td className="px-4 py-2">
+                    <td className="px-4 py-2 whitespace-nowrap">
                       {r.createdAt ? new Date(r.createdAt).toLocaleDateString() : "N/A"}
                     </td>
                   )}
                   {selectedColumns.includes("updatedAt") && (
-                    <td className="px-4 py-2">
+                    <td className="px-4 py-2 whitespace-nowrap">
                       {r.updatedAt ? new Date(r.updatedAt).toLocaleDateString() : "N/A"}
                     </td>
                   )}
                   {selectedColumns.includes("actions") && (
                     <td className="px-4 py-2">
-                      <Menu>
+                      <Menu as="div" className="relative inline-block text-left">
                         <MenuButton className="flex items-center gap-1 px-3 py-1 text-sm bg-cyan-700 text-white rounded hover:bg-cyan-800">
                           Action <ChevronDown className="w-4 h-4" />
                         </MenuButton>
-                        <MenuItems className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-10">
+                        <MenuItems className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-[9999]">
                           <MenuItem>
                             {({ active }) => (
                               <button
@@ -262,6 +280,18 @@ const StoreRequisitionsPage: React.FC = () => {
                                 }`}
                               >
                                 View
+                              </button>
+                            )}
+                          </MenuItem>
+                          <MenuItem>
+                            {({ active }) => (
+                              <button
+                                onClick={() => handleEditClick(r)}
+                                className={`block w-full px-4 py-2 text-left ${
+                                  active ? "bg-blue-100" : ""
+                                }`}
+                              >
+                                Edit
                               </button>
                             )}
                           </MenuItem>

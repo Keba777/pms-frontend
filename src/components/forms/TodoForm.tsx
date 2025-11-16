@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import Select from "react-select";
 import DatePicker from "react-datepicker";
@@ -9,7 +9,7 @@ import { CreateTodoInput } from "@/types/todo";
 import { useCreateTodo } from "@/hooks/useTodos";
 import { useTodoStore } from "@/store/todoStore";
 import { formatDate } from "@/utils/helper";
-import { ArrowRight, Calendar } from "lucide-react";
+import { Calendar } from "lucide-react";
 import { useUsers } from "@/hooks/useUsers";
 import { Role, User } from "@/types/user";
 import { useRoles } from "@/hooks/useRoles";
@@ -27,8 +27,6 @@ const TodoForm: React.FC<TodoFormProps> = ({ onClose }) => {
     register,
     handleSubmit,
     control,
-    watch,
-    setValue,
     formState: { errors },
   } = useForm<CreateTodoInput>({
     defaultValues: {
@@ -49,38 +47,11 @@ const TodoForm: React.FC<TodoFormProps> = ({ onClose }) => {
   } = useUsers();
   const { data: roles } = useRoles();
 
-  const [duration, setDuration] = useState<string>("");
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files ? Array.from(event.target.files) : [];
     setSelectedFiles(files);
-  };
-
-  const targetDate = watch("target");
-  const dueDate = watch("dueDate");
-
-  useEffect(() => {
-    if (targetDate && dueDate) {
-      const diffTime =
-        new Date(dueDate).getTime() - new Date(targetDate).getTime();
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      setDuration(diffDays.toString());
-    }
-  }, [targetDate, dueDate]);
-
-  // When the user types in the duration field, update the dueDate automatically.
-  const handleDurationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newDuration = e.target.value;
-    setDuration(newDuration);
-    // If a valid target date exists and duration is a valid number, update the dueDate.
-    if (targetDate && newDuration && !isNaN(Number(newDuration))) {
-      const calculatedDueDate = new Date(targetDate);
-      calculatedDueDate.setDate(
-        calculatedDueDate.getDate() + Number(newDuration)
-      );
-      setValue("dueDate", calculatedDueDate);
-    }
   };
 
   const onSubmit = (data: CreateTodoInput) => {
@@ -302,9 +273,6 @@ const TodoForm: React.FC<TodoFormProps> = ({ onClose }) => {
               <div className="flex items-center text-sm mt-1">
                 <Calendar size={16} className="mr-1" />
                 <span>{formatDate(lastTodo.target)}</span>
-                <ArrowRight size={16} className="mx-2" />
-                <Calendar size={16} className="mr-1" />
-                <span>{formatDate(lastTodo.dueDate)}</span>
               </div>
             </div>
           ) : (
@@ -312,17 +280,16 @@ const TodoForm: React.FC<TodoFormProps> = ({ onClose }) => {
           )}
         </div>
 
-        {/* Dates Section with Duration */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Dates Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Target Date */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Target Date <span className="text-red-500">*</span>
+              Target Date
             </label>
             <Controller
               name="target"
               control={control}
-              rules={{ required: "Target date is required" }}
               render={({ field }) => (
                 <DatePicker
                   selected={field.value ? new Date(field.value) : null}
@@ -333,25 +300,6 @@ const TodoForm: React.FC<TodoFormProps> = ({ onClose }) => {
                   scrollableYearDropdown
                 />
               )}
-            />
-            {errors.target && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.target.message}
-              </p>
-            )}
-          </div>
-
-          {/* Duration Field (Optional - Not Submitted) */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Duration (days) <span className="text-gray-500">(optional)</span>
-            </label>
-            <input
-              type="number"
-              value={duration}
-              onChange={handleDurationChange}
-              placeholder="Enter duration in days"
-              className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
             />
           </div>
 
@@ -367,18 +315,7 @@ const TodoForm: React.FC<TodoFormProps> = ({ onClose }) => {
               render={({ field }) => (
                 <DatePicker
                   selected={field.value ? new Date(field.value) : null}
-                  onChange={(date) => {
-                    field.onChange(date);
-                    if (targetDate && date) {
-                      const diffTime =
-                        new Date(date).getTime() -
-                        new Date(targetDate).getTime();
-                      const diffDays = Math.ceil(
-                        diffTime / (1000 * 60 * 60 * 24)
-                      );
-                      setDuration(diffDays.toString());
-                    }
-                  }}
+                  onChange={(date) => field.onChange(date)}
                   className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
                   dateFormat="MM/dd/yyyy"
                   showYearDropdown

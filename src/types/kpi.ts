@@ -15,6 +15,8 @@ export interface Kpi {
     equipmentId?: string;
     equipment?: Equipment;
     target?: number;
+    createdAt: Date;
+    updatedAt: Date;
 }
 
 export interface CreateKpiInput {
