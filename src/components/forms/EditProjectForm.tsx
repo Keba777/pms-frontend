@@ -2,21 +2,19 @@
 
 import React from "react";
 import { useForm, Controller } from "react-hook-form";
-import { Info } from "lucide-react";
 import Select from "react-select";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
+import EtDatePicker from "habesha-datepicker";
+import { Info } from "lucide-react";
 import { UpdateProjectInput } from "@/types/project";
 import { User } from "@/types/user";
 import { useSites } from "@/hooks/useSites";
-
+import { useSettingsStore } from "@/store/settingsStore";
 
 interface EditProjectFormProps {
   onSubmit: (data: UpdateProjectInput) => void;
   onClose: () => void;
   project: UpdateProjectInput;
   users: User[] | undefined;
-
 }
 
 const EditProjectForm: React.FC<EditProjectFormProps> = ({
@@ -24,8 +22,8 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
   onClose,
   project,
   users,
-
 }) => {
+  const { useEthiopianDate } = useSettingsStore();
   const {
     register,
     handleSubmit,
@@ -54,17 +52,15 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
 
   const memberOptions =
     users?.map((user) => ({
-      value: user.id!,
+      value: user.id,
       label: `${user.first_name} ${user.last_name} (${user.role?.name})`,
     })) || [];
 
-  
-   const siteOptions =
+  const siteOptions =
     sites?.map((site) => ({
-      value: site.id!,
+      value: site.id,
       label: site.name,
     })) || [];
-
 
   return (
     <form
@@ -112,12 +108,8 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
                   {...field}
                   options={priorityOptions}
                   className="w-full"
-                  onChange={(selectedOption) =>
-                    field.onChange(selectedOption?.value)
-                  }
-                  value={priorityOptions.find(
-                    (option) => option.value === field.value
-                  )}
+                  onChange={(option) => field.onChange(option?.value)}
+                  value={priorityOptions.find((o) => o.value === field.value)}
                 />
               )}
             />
@@ -136,12 +128,8 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
                   {...field}
                   options={statusOptions}
                   className="w-full"
-                  onChange={(selectedOption) =>
-                    field.onChange(selectedOption?.value)
-                  }
-                  value={statusOptions.find(
-                    (option) => option.value === field.value
-                  )}
+                  onChange={(option) => field.onChange(option?.value)}
+                  value={statusOptions.find((o) => o.value === field.value)}
                 />
               )}
             />
@@ -209,12 +197,10 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
               control={control}
               rules={{ required: "Start date is required" }}
               render={({ field }) => (
-                <DatePicker
-                  selected={field.value ? new Date(field.value) : null}
+                <EtDatePicker
+                  value={field.value ? new Date(field.value) : null}
                   onChange={(date) => field.onChange(date)}
                   className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-                  showYearDropdown
-                  scrollableYearDropdown
                 />
               )}
             />
@@ -234,12 +220,10 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
               control={control}
               rules={{ required: "End date is required" }}
               render={({ field }) => (
-                <DatePicker
-                  selected={field.value ? new Date(field.value) : null}
+                <EtDatePicker
+                  value={field.value ? new Date(field.value) : null}
                   onChange={(date) => field.onChange(date)}
                   className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-                  showYearDropdown
-                  scrollableYearDropdown
                 />
               )}
             />
@@ -324,8 +308,6 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
             )}
           />
         </div>
-
-       
 
         {/* Description */}
         <div>

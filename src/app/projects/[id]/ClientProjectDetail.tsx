@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Plus } from "lucide-react";
 import { useProjectStore } from "@/store/projectStore";
-import { getDateDuration } from "@/utils/helper";
+import { formatDate, getDateDuration } from "@/utils/dateUtils";
 import { Task } from "@/types/task";
 import StatsCard from "@/components/dashboard/StatsCard";
 import TaskTable from "@/components/master-schedule/TaskTable";
@@ -15,6 +15,7 @@ import FilesTab from "@/components/projects/FilesTab";
 import NotificationTab from "@/components/projects/NotificationTab";
 import ActivityLogTab from "@/components/projects/ActivityLogTab";
 import ActualTaskTable from "@/components/master-schedule/ActualTaskTable";
+import { useSettingsStore } from "@/store/settingsStore";
 
 // ✅ Use shadcn/ui Tabs
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -26,6 +27,7 @@ interface ClientProjectDetailProps {
 export default function ClientProjectDetail({
   projectId,
 }: ClientProjectDetailProps) {
+  const { useEthiopianDate } = useSettingsStore();
   const router = useRouter();
   const [showCreateForm, setShowCreateForm] = useState(false);
 
@@ -122,7 +124,7 @@ export default function ClientProjectDetail({
       </div>
 
       {/* Stats + Details */}
-      <div className="flex flex-col lg:flex-row lg:space-x-8 mb-8">
+      <div className="flex flex-col lg:flex-row lg:space-x-8 lg:mb-8">
         <div className="lg:w-1/3 mb-6 lg:mb-0">
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-cyan-800 mb-4">
             Task Statistics
@@ -140,10 +142,10 @@ export default function ClientProjectDetail({
               Priority: {project.priority}
             </span>
             <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-medium">
-              Start: {new Date(project.start_date).toLocaleDateString()}
+              Start: {formatDate(project.start_date, useEthiopianDate)}
             </span>
             <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">
-              End: {new Date(project.end_date).toLocaleDateString()}
+              End: {formatDate(project.end_date, useEthiopianDate)}
             </span>
             {duration && (
               <span className="bg-gray-200 text-gray-800 px-3 py-1 rounded-full text-sm font-medium">

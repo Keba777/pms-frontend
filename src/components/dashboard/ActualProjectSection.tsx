@@ -27,10 +27,12 @@ import {
   formatDate,
   getDateDuration,
   getDuration as calcRemaining,
-} from "@/utils/helper";
+} from "@/utils/dateUtils";
 import { toast } from "react-toastify";
+import { useSettingsStore } from "@/store/settingsStore";
 
 const ActualProjectSection: React.FC = () => {
+  const { useEthiopianDate } = useSettingsStore();
   const router = useRouter();
   const { data: projects, isLoading, isError } = useProjects();
   const { data: users } = useUsers();
@@ -68,8 +70,8 @@ const ActualProjectSection: React.FC = () => {
   const [projectToEdit, setProjectToEdit] = useState<UpdateProjectInput | null>(
     null
   );
-  const [, setShowManageForm] = useState(false);
-  const [, setProjectToManage] = useState<UpdateProjectInput | null>(null);
+  const [showManageForm, setShowManageForm] = useState(false);
+  const [projectToManage, setProjectToManage] = useState<UpdateProjectInput | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
     null
@@ -183,13 +185,10 @@ const ActualProjectSection: React.FC = () => {
     const members = params.value || [];
     if (!members.length) return <span>N/A</span>;
     return (
-      <div className="flex flex-wrap gap-1">
-        {members.slice(0, 3).map((user: User) => (
+      <div className="flex -space-x-2">
+        {members.map((user: User) => (
           <ProfileAvatar key={user.id} user={user} />
         ))}
-        {members.length > 3 && (
-          <span className="text-xs text-gray-500">+{members.length - 3}</span>
-        )}
       </div>
     );
   };
@@ -267,7 +266,7 @@ const ActualProjectSection: React.FC = () => {
     );
   };
 
-  // Helper: sanitize actuals before sending to API
+  // Sanitize actuals before sending to API
   const sanitizeProjectActualsForApi = (raw: any): ProjectActuals => {
     const safe = { ...(raw || {}) } as any;
     const toIso = (v: any) => {
@@ -372,7 +371,7 @@ const ActualProjectSection: React.FC = () => {
           const date = params.data.actuals?.start_date;
           if (!date) return "";
           const d = new Date(date);
-          return isNaN(d.getTime()) ? "" : d.toLocaleDateString();
+          return isNaN(d.getTime()) ? "" : formatDate(date, useEthiopianDate);
         },
         valueSetter: (params: any) => {
           params.data.actuals.start_date = params.newValue || null;
@@ -389,7 +388,7 @@ const ActualProjectSection: React.FC = () => {
           const date = params.data.actuals?.end_date;
           if (!date) return "";
           const d = new Date(date);
-          return isNaN(d.getTime()) ? "" : d.toLocaleDateString();
+          return isNaN(d.getTime()) ? "" : formatDate(date, useEthiopianDate);
         },
         valueSetter: (params: any) => {
           params.data.actuals.end_date = params.newValue || null;
@@ -413,11 +412,10 @@ const ActualProjectSection: React.FC = () => {
         headerName: "Remaining",
         valueGetter: (params: any) => {
           const end = params.data.actuals?.end_date;
-          const remaining =
-            end && new Date(end) > new Date()
-              ? calcRemaining(new Date(), end)
-              : "N/A";
-          return `${remaining}`;
+          if (end && new Date(end) > new Date()) {
+            return calcRemaining(new Date(), end);
+          }
+          return "N/A";
         },
         hide: !selectedColumns.includes("remaining"),
       },
@@ -463,7 +461,7 @@ const ActualProjectSection: React.FC = () => {
       },
     ];
     return allDefs;
-  }, [selectedColumns, router]);
+  }, [selectedColumns, useEthiopianDate]);
 
   if (isLoading) return <div>Loading projects…</div>;
   if (isError) return <div>Error loading projects.</div>;

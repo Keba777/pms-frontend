@@ -1,23 +1,26 @@
+// components/forms/ProjectForm.tsx
 "use client";
 
 import React, { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { Info } from "lucide-react";
 import Select from "react-select";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
 import { CreateProjectInput } from "@/types/project";
 import { useCreateProject } from "@/hooks/useProjects";
 import { useUsers } from "@/hooks/useUsers";
 import { User } from "@/types/user";
 import { useCreateNotification } from "@/hooks/useNotifications";
 import { useSites } from "@/hooks/useSites";
+import { useSettingsStore } from "@/store/settingsStore";
+import EtDatePicker from "habesha-datepicker"; 
+import "react-datepicker/dist/react-datepicker.css";
 
 interface ProjectFormProps {
-  onClose: () => void; // Function to close the modal
+  onClose: () => void;
 }
 
 const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
+  const { useEthiopianDate } = useSettingsStore();
   const {
     register,
     handleSubmit,
@@ -29,56 +32,41 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
 
   const { mutate: createProject, isPending } = useCreateProject();
   const { mutate: createNotification } = useCreateNotification();
-  const {
-    data: users,
-    isLoading: usersLoading,
-    error: usersError,
-  } = useUsers();
+  const { data: users, isLoading: usersLoading, error: usersError } = useUsers();
   const { data: sites, isLoading: sitesLoading, error: sitesError } = useSites();
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [duration, setDuration] = useState<string>("");
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files ? Array.from(event.target.files) : [];
     setSelectedFiles(files);
   };
 
-  // Local state for duration (in days). This field is for display/calculation only.
-  const [duration, setDuration] = useState<string>("");
-
-  // Watch start_date and end_date for changes.
   const startDate = watch("start_date");
   const endDate = watch("end_date");
 
-  // Calculate duration when the end date is updated by the user.
   useEffect(() => {
-    if (startDate && endDate) {
-      const diffTime =
-        new Date(endDate).getTime() - new Date(startDate).getTime();
+    if (startDate instanceof Date && endDate instanceof Date) {
+      const diffTime = endDate.getTime() - startDate.getTime();
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
       setDuration(diffDays.toString());
     }
   }, [startDate, endDate]);
 
-  // When the user types in the duration field, update the end_date automatically
   const handleDurationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newDuration = e.target.value;
     setDuration(newDuration);
-    // If a valid start date exists and duration is a valid number, update the end_date.
-    if (startDate && newDuration && !isNaN(Number(newDuration))) {
+    if (startDate instanceof Date && newDuration && !isNaN(Number(newDuration))) {
       const calculatedEndDate = new Date(startDate);
-      calculatedEndDate.setDate(
-        calculatedEndDate.getDate() + Number(newDuration)
-      );
+      calculatedEndDate.setDate(calculatedEndDate.getDate() + Number(newDuration));
       setValue("end_date", calculatedEndDate);
     }
   };
 
-  const onSubmit = (data: CreateProjectInput & { members?: string[] }) => {
+  const onSubmit = (data: CreateProjectInput) => {
     createProject(data, {
       onSuccess: (project) => {
         onClose();
-        // window.location.reload();
-        // Send a notification to each assigned member
         if (data.members?.length) {
           data.members.forEach((userId) => {
             createNotification({
@@ -95,7 +83,6 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
     });
   };
 
-  // Options for dropdowns
   const statusOptions = [
     {
       value: "Not Started",
@@ -148,20 +135,15 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
     },
   ];
 
-  // Map fetched users to options for the multi-select.
-  // Each option now displays user's first name along with their role (from the roles store) in parentheses.
   const CLIENT_ROLE_ID = "aa192529-c692-458e-bf96-42b7d4782c3d";
 
   const memberOptions =
     users
-      ?.filter((user: User) => user.role?.id !== CLIENT_ROLE_ID)
-      .map((user: User) => {
-        const roleName = user.role?.name || "No Role";
-        return {
-          value: user.id!,
-          label: `${user.first_name} (${roleName})`,
-        };
-      }) || [];
+      ?.filter((user: User) => user.role_id !== CLIENT_ROLE_ID)
+      .map((user: User) => ({
+        value: user.id!,
+        label: `${user.first_name} ${user.last_name} (${user.role?.name || "No Role"})`,
+      })) || [];
 
   const siteOptions =
     sites?.map((site) => ({
@@ -169,6 +151,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
       label: site.name,
     })) || [];
 
+  // Use EtDatePicker (handled by provider)
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
@@ -288,12 +271,10 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
               control={control}
               rules={{ required: "Start date is required" }}
               render={({ field }) => (
-                <DatePicker
-                  selected={field.value ? new Date(field.value) : null}
+                <EtDatePicker
+                  value={field.value ? new Date(field.value) : null}
                   onChange={(date) => field.onChange(date)}
                   className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-                  showYearDropdown
-                  scrollableYearDropdown
                 />
               )}
             />
@@ -327,23 +308,17 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
               control={control}
               rules={{ required: "End date is required" }}
               render={({ field }) => (
-                <DatePicker
-                  selected={field.value ? new Date(field.value) : null}
+                <EtDatePicker
+                  value={field.value ? new Date(field.value) : null}
                   onChange={(date) => {
                     field.onChange(date);
-                    if (startDate && date) {
-                      const diffTime =
-                        new Date(date).getTime() -
-                        new Date(startDate).getTime();
-                      const diffDays = Math.ceil(
-                        diffTime / (1000 * 60 * 60 * 24)
-                      );
+                    if (startDate instanceof Date && date instanceof Date) {
+                      const diffTime = date.getTime() - startDate.getTime();
+                      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                       setDuration(diffDays.toString());
                     }
                   }}
                   className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-                  showYearDropdown
-                  scrollableYearDropdown
                 />
               )}
             />
@@ -422,7 +397,6 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
                 isLoading={usersLoading}
                 className="basic-multi-select"
                 classNamePrefix="select"
-                // Only send the user ids (the role is only displayed in the label)
                 onChange={(selectedOptions) =>
                   field.onChange(selectedOptions.map((option) => option.value))
                 }

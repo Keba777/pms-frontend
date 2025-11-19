@@ -10,6 +10,8 @@ import { useAuthStore } from "@/store/authStore";
 import { useEffect, useState, useRef } from "react";
 import { ModuleRegistry } from 'ag-grid-community';
 import { AllCommunityModule } from 'ag-grid-community';
+import { useSettingsStore } from "@/store/settingsStore"; 
+import { EtLocalizationProvider } from "habesha-datepicker";
 
 const queryClient = new QueryClient();
 
@@ -21,6 +23,7 @@ export default function ClientLayout({
   const pathname = usePathname();
   const router = useRouter();
   const { user, expiresAt, logout, _hasHydrated } = useAuthStore();
+  const { useEthiopianDate } = useSettingsStore();
   const [isLoading, setIsLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const logoutTimer = useRef<number | null>(null);
@@ -66,7 +69,8 @@ export default function ClientLayout({
     // Redirect unauthenticated users to login, except for public paths
     if (!user && !publicPaths.includes(pathname)) {
       router.push("/login");
-    } else if (user && publicPaths.includes(pathname)) {
+    }
+    else if (user && publicPaths.includes(pathname)) {
       // If authenticated, redirect away from public paths to dashboard
       router.push("/");
     }
@@ -94,20 +98,24 @@ export default function ClientLayout({
     );
   }
 
+  const localType = useEthiopianDate ? "EC" : "GC";
+
   return (
     <QueryClientProvider client={queryClient}>
       <ToastContainer />
-      <div className="flex min-h-screen flex-col lg:flex-row">
-        <Sidebar
-          isOpen={isSidebarOpen}
-          toggleSidebar={() => setIsSidebarOpen(false)}
-        />
-        <main className="flex-1 p-4 sm:p-6 md:p-8 lg:ml-64 overflow-x-hidden">
-          <Header toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
-          {children}
-        </main>
-      </div>
-      <Footer />
+      <EtLocalizationProvider locale={localType}>
+        <div className="flex min-h-screen flex-col lg:flex-row">
+          <Sidebar
+            isOpen={isSidebarOpen}
+            toggleSidebar={() => setIsSidebarOpen(false)}
+          />
+          <main className="flex-1 p-4 sm:p-6 md:p-8 lg:ml-64 overflow-x-hidden">
+            <Header toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
+            {children}
+          </main>
+        </div>
+        <Footer />
+      </EtLocalizationProvider>
     </QueryClientProvider>
   );
 }

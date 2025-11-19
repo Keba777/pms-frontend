@@ -13,12 +13,15 @@ import {
 } from "lucide-react";
 import { Project } from "@/types/project";
 import { useRoles } from "@/hooks/useRoles";
+import { formatDate as format, getDateDuration, getDuration } from "@/utils/dateUtils";
+import { useSettingsStore } from "@/store/settingsStore";
 
 export interface ProjectCardProps {
   project: Project;
 }
 
 const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
+  const { useEthiopianDate } = useSettingsStore();
   const [showTasksModal, setShowTasksModal] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState({ x: 0, y: 0 });
@@ -27,19 +30,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
 
   const { data: roles = [] } = useRoles();
 
-  const getDuration = (start: string | Date, end: string | Date): string => {
-    const startDate = new Date(start);
-    const endDate = new Date(end);
-    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-      return "Invalid date";
-    }
-    const msPerDay = 1000 * 3600 * 24;
-    return `${Math.ceil(
-      Math.abs(endDate.getTime() - startDate.getTime()) / msPerDay
-    )} days`;
-  };
-
-  const duration = getDuration(project.start_date, project.end_date);
+  const duration = getDateDuration(project.start_date, project.end_date);
   const tasksCount = project.tasks?.length ?? 0;
 
   const toggleDropdown = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -238,14 +229,14 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
       <div className="mt-4 flex flex-wrap text-xs text-gray-600">
         <div className="w-full md:w-1/3 flex items-center mb-1 md:mb-0">
           <Calendar size={12} className="mr-1 text-green-500" />
-          Starts: {new Date(project.start_date).toLocaleDateString()}
+          Starts: {format(project.start_date, useEthiopianDate)}
         </div>
         <div className="w-full md:w-1/3 flex items-center justify-center mb-1 md:mb-0">
           Duration: <span className="ml-1 text-green-500">{duration}</span>
         </div>
         <div className="w-full md:w-1/3 flex items-center justify-end">
           <Calendar size={12} className="mr-1 text-red-500" />
-          Ends: {new Date(project.end_date).toLocaleDateString()}
+          Ends: {format(project.end_date, useEthiopianDate)}
         </div>
       </div>
 

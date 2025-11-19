@@ -24,10 +24,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  formatDate,
+  formatDate as format,
   getDateDuration,
   getDuration as calcRemaining,
-} from "@/utils/helper";
+} from "@/utils/dateUtils"; // Updated import
 import { Input } from "@/components/ui/input";
 import ProfileAvatar from "../common/ProfileAvatar";
 import {
@@ -46,6 +46,7 @@ import {
 } from "@/components/ui/popover";
 import { ProgressUpdateItem } from "@/types/activity";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useSettingsStore } from "@/store/settingsStore";
 
 const priorityBadgeClasses: Record<Project["priority"], string> = {
   Critical: "bg-red-100 text-red-800",
@@ -64,6 +65,7 @@ const statusBadgeClasses: Record<Project["status"], string> = {
 };
 
 const ProjectSection: React.FC = () => {
+  const { useEthiopianDate } = useSettingsStore();
   const router = useRouter();
   const { data: projects, isLoading, isError } = useProjects();
   const { data: users } = useUsers();
@@ -343,12 +345,12 @@ const ProjectSection: React.FC = () => {
                     )}
                     {selectedColumns.includes("start_date") && (
                       <TableCell className="px-4 py-2 ">
-                        {formatDate(project.start_date)}
+                        {format(project.start_date, useEthiopianDate)}
                       </TableCell>
                     )}
                     {selectedColumns.includes("end_date") && (
                       <TableCell className="px-4 py-2 ">
-                        {formatDate(project.end_date)}
+                        {format(project.end_date, useEthiopianDate)}
                       </TableCell>
                     )}
                     {selectedColumns.includes("duration") && (
