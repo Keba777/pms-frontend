@@ -185,7 +185,7 @@ const TodosTable: React.FC<TodosTableProps> = ({
               )}
               {selectedColumns.includes("assignedBy") && (
                 <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
-                  {todo.assignedBy?.first_name || "-"}
+                  { `${todo.assignedBy?.first_name} ${todo.assignedBy?.last_name}` || "-"}
                 </td>
               )}
               {selectedColumns.includes("assignedUsers") && (

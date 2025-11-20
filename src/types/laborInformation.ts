@@ -7,6 +7,11 @@ export interface LaborInformation {
     endsAt: Date;
     status: 'Allocated' | 'Unallocated';
     profile_picture?: string;
+    position?: string;
+    sex?: 'Male' | 'Female';
+    terms?: 'Part Time' | 'Contract' | 'Temporary' | 'Permanent';
+    estSalary?: number;
+    educationLevel?: string
 }
 
 export interface CreateLaborInformationInput {
@@ -16,6 +21,11 @@ export interface CreateLaborInformationInput {
     startsAt: Date;
     endsAt: Date;
     status: 'Allocated' | 'Unallocated';
+    position?: string;
+    sex?: 'Male' | 'Female';
+    terms?: 'Part Time' | 'Contract' | 'Temporary' | 'Permanent';
+    estSalary?: number;
+    educationLevel?: string
 }
 
 export interface UpdateLaborInformationInput {
@@ -26,4 +36,9 @@ export interface UpdateLaborInformationInput {
     startsAt?: Date;
     endsAt?: Date;
     status?: 'Allocated' | 'Unallocated';
+    position?: string;
+    sex?: 'Male' | 'Female';
+    terms?: 'Part Time' | 'Contract' | 'Temporary' | 'Permanent';
+    estSalary?: number;
+    educationLevel?: string
 }

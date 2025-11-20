@@ -336,25 +336,48 @@ const TodoForm: React.FC<TodoFormProps> = ({ onClose }) => {
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Assigned to
           </label>
+          <p className="text-sm text-gray-500 mb-2">The first selected user will be designated as the team leader, with the remaining users as team members.</p>
           <Controller
             name="assignedUsers"
             control={control}
-            render={({ field }) => (
-              <Select
-                isMulti
-                options={assignedUsersOptions}
-                isLoading={usersLoading}
-                className="basic-multi-select"
-                classNamePrefix="select"
-                onChange={(selectedOptions) =>
-                  field.onChange(selectedOptions.map((option) => option.value))
-                }
-                value={assignedUsersOptions.filter(
-                  (option: { value: string; label: string }) =>
-                    field.value?.includes(option.value)
-                )}
-              />
-            )}
+            render={({ field }) => {
+              const selectedOptions = (field.value || []).map((val: string) =>
+                assignedUsersOptions.find((opt: any) => opt.value === val)
+              ).filter(Boolean);
+              return (
+                <>
+                  <Select
+                    isMulti
+                    options={assignedUsersOptions}
+                    isLoading={usersLoading}
+                    className="basic-multi-select"
+                    classNamePrefix="select"
+                    onChange={(selectedOptions) =>
+                      field.onChange(selectedOptions.map((option) => option?.value))
+                    }
+                    value={selectedOptions}
+                  />
+                  {selectedOptions.length > 0 && (
+                    <div className="mt-4 space-y-4">
+                      <div>
+                        <span className="block font-medium text-gray-700 mb-1">Leader</span>
+                        <div className="ml-2 text-gray-600">{selectedOptions[0]?.label}</div>
+                      </div>
+                      {selectedOptions.length > 1 && (
+                        <div>
+                          <span className="block font-medium text-gray-700 mb-1">Members</span>
+                          <div className="ml-2 space-y-1 text-gray-600">
+                            {selectedOptions.slice(1).map((opt: any, idx: number) => (
+                              <div key={idx}>{opt.label}</div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </>
+              );
+            }}
           />
           {usersError && (
             <p className="text-red-500 text-sm mt-1">Error loading users</p>

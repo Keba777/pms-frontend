@@ -10,7 +10,7 @@ import { useSites } from "@/hooks/useSites";
 import Link from "next/link";
 import { Labor, CreateLaborInput, LooseLaborInput } from "@/types/labor";
 import { getDuration } from "@/utils/helper";
-import LaborForm from "@/components/forms/LaborForm";
+import LaborForm from "@/components/forms/LaborInformationForm";
 import { useAuthStore } from "@/store/authStore";
 import GenericDownloads, { Column } from "@/components/common/GenericDownloads";
 import {
@@ -98,9 +98,14 @@ const LaborsPage = () => {
 
         if (filteredInfos.length === 0) return null;
 
-        return { ...labor, laborInformations: filteredInfos } as Labor & { laborInformations: LaborInformation[] };
+        return { ...labor, laborInformations: filteredInfos } as Labor & {
+          laborInformations: LaborInformation[];
+        };
       })
-      .filter((l): l is Labor & { laborInformations: LaborInformation[] } => l !== null);
+      .filter(
+        (l): l is Labor & { laborInformations: LaborInformation[] } =>
+          l !== null
+      );
   }, [siteLabors, filterValues, fromDate, toDate]);
 
   // Flattened data for download — MATCHES import columns exactly
@@ -120,12 +125,23 @@ const LaborsPage = () => {
         startingDate: l.startingDate
           ? new Date(l.startingDate).toISOString().split("T")[0]
           : "-",
-        dueDate: l.dueDate ? new Date(l.dueDate).toISOString().split("T")[0] : "-",
+        dueDate: l.dueDate
+          ? new Date(l.dueDate).toISOString().split("T")[0]
+          : "-",
         allocationStatus: l.allocationStatus ?? "-",
         firstName: info.firstName ?? "-",
         lastName: info.lastName ?? "-",
-        startsAt: info.startsAt ? new Date(info.startsAt).toISOString().split("T")[0] : "-",
-        endsAt: info.endsAt ? new Date(info.endsAt).toISOString().split("T")[0] : "-",
+        position: info.position ?? "-",
+        sex: info.sex ?? "-",
+        terms: info.terms ?? "-",
+        estSalary: info.estSalary ?? "-",
+        educationLevel: info.educationLevel ?? "-",
+        startsAt: info.startsAt
+          ? new Date(info.startsAt).toISOString().split("T")[0]
+          : "-",
+        endsAt: info.endsAt
+          ? new Date(info.endsAt).toISOString().split("T")[0]
+          : "-",
         profile_picture: (info as any).profile_picture ?? "-", // might be URL string
         infoStatus: info.status ?? "-",
       }));
@@ -161,6 +177,11 @@ const LaborsPage = () => {
     { header: "Allocation Status", accessor: "allocationStatus" },
     { header: "First Name", accessor: "firstName" },
     { header: "Last Name", accessor: "lastName" },
+    { header: "Position", accessor: "position" },
+    { header: "Sex", accessor: "sex" },
+    { header: "Terms", accessor: "terms" },
+    { header: "Est Salary", accessor: "estSalary" },
+    { header: "Education Level", accessor: "educationLevel" },
     { header: "Info Starts At", accessor: "startsAt" },
     { header: "Info Ends At", accessor: "endsAt" },
     { header: "Info Profile Picture", accessor: "profile_picture" },
@@ -181,13 +202,26 @@ const LaborsPage = () => {
     { header: "Total Amount", accessor: "totalAmount", type: "string" },
     { header: "Starting Date", accessor: "startingDate", type: "string" },
     { header: "Due Date", accessor: "dueDate", type: "string" },
-    { header: "Allocation Status", accessor: "allocationStatus", type: "string" },
+    {
+      header: "Allocation Status",
+      accessor: "allocationStatus",
+      type: "string",
+    },
     // laborInformation fields (one info per import row)
     { header: "First Name", accessor: "firstName", type: "string" },
     { header: "Last Name", accessor: "lastName", type: "string" },
+    { header: "Position", accessor: "position", type: "string" },
+    { header: "Sex", accessor: "sex", type: "string" },
+    { header: "Terms", accessor: "terms", type: "string" },
+    { header: "Est Salary", accessor: "estSalary", type: "string" },
+    { header: "Education Level", accessor: "educationLevel", type: "string" },
     { header: "Info Starts At", accessor: "startsAt", type: "string" },
     { header: "Info Ends At", accessor: "endsAt", type: "string" },
-    { header: "Info Profile Picture", accessor: "profile_picture", type: "file" },
+    {
+      header: "Info Profile Picture",
+      accessor: "profile_picture",
+      type: "file",
+    },
     { header: "Info Status", accessor: "infoStatus", type: "string" },
   ];
 
@@ -280,11 +314,20 @@ const LaborsPage = () => {
       const laborsPayload = rows.map((r, idx) => {
         // required checks
         if (!r.role || !r.unit) {
-          throw new Error(`Row ${idx + 2}: Missing required field 'role' or 'unit'`);
+          throw new Error(
+            `Row ${idx + 2}: Missing required field 'role' or 'unit'`
+          );
         }
 
         // process numeric fields (keep same basic logic as processLaborData)
-        const numberFields = ["quantity", "minQuantity", "estimatedHours", "rate", "overtimeRate", "totalAmount"];
+        const numberFields = [
+          "quantity",
+          "minQuantity",
+          "estimatedHours",
+          "rate",
+          "overtimeRate",
+          "totalAmount",
+        ];
         const laborObj: any = {
           role: (r.role || "").trim(),
           siteId,
@@ -319,6 +362,18 @@ const LaborsPage = () => {
         const info: any = {};
         if (r.firstName) info.firstName = r.firstName;
         if (r.lastName) info.lastName = r.lastName;
+        if (r.position) info.position = r.position;
+        if (r.sex) info.sex = r.sex;
+        if (r.terms) info.terms = r.terms;
+        if (
+          r.estSalary !== undefined &&
+          r.estSalary !== null &&
+          r.estSalary !== 0
+        ) {
+          const num = Number(r.estSalary);
+          if (!isNaN(num)) info.estSalary = num;
+        }
+        if (r.educationLevel) info.educationLevel = r.educationLevel;
         if (r.startsAt && r.startsAt !== "-" && r.startsAt !== "") {
           const d = new Date(r.startsAt);
           if (!isNaN(d.getTime())) info.startsAt = d.toISOString();
@@ -335,7 +390,10 @@ const LaborsPage = () => {
         if (r.profile_picture instanceof File) {
           filesToAppend.push(r.profile_picture);
           info.fileName = (r.profile_picture as File).name;
-        } else if (typeof r.profile_picture === "string" && r.profile_picture.startsWith("http")) {
+        } else if (
+          typeof r.profile_picture === "string" &&
+          r.profile_picture.startsWith("http")
+        ) {
           info.profile_picture = r.profile_picture;
         }
 
@@ -463,6 +521,11 @@ const LaborsPage = () => {
                   "#",
                   "First Name",
                   "Last Name",
+                  "Position",
+                  "Sex",
+                  "Terms",
+                  "Est Salary",
+                  "Education Level",
                   "Role",
                   "Unit",
                   "Est-Hrs",
@@ -486,73 +549,86 @@ const LaborsPage = () => {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredLabors.flatMap((l, laborIndex) => {
-                return (
-                  l.laborInformations.map((info, infoIndex) => (
-                    <tr key={`${l.id}-${info.id}`}>
-                      <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
-                        {laborIndex + 1}.{infoIndex + 1}
-                      </td>
-                      <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
+                return l.laborInformations.map((info, infoIndex) => (
+                  <tr key={`${l.id}-${info.id}`}>
+                    <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
+                      {laborIndex + 1}.{infoIndex + 1}
+                    </td>
+                    <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
+                      <Link
+                        href={`/site-labors/${info.id}`}
+                        className="text-blue-600 hover:underline"
+                      >
                         {info.firstName}
-                      </td>
-                      <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
-                        {info.lastName}
-                      </td>
-                      <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
-                        <Link
-                          href={`/site-labors/${l.id}`}
-                          className="text-blue-600 hover:underline"
-                        >
-                          {l.role}
-                        </Link>
-                      </td>
-                      <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
-                        {l.unit}
-                      </td>
-                      <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
-                        {l.estimatedHours ?? "-"}
-                      </td>
-                      <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
-                        {l.rate ?? "-"}
-                      </td>
-                      <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
-                        {l.overtimeRate ?? "-"}
-                      </td>
-                      <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
-                        {l.totalAmount ?? "-"}
-                      </td>
-                      <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
-                        {info.startsAt
-                          ? new Date(info.startsAt).toLocaleDateString()
-                          : "-"}
-                      </td>
-                      <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
-                        {info.endsAt
-                          ? new Date(info.endsAt).toLocaleDateString()
-                          : "-"}
-                      </td>
-                      <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
-                        {info.startsAt && info.endsAt
-                          ? getDuration(info.startsAt, info.endsAt)
-                          : "-"}
-                      </td>
-                      <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
-                        {info.status ?? "-"}
-                      </td>
+                      </Link>
+                    </td>
+                    <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
+                      {info.lastName}
+                    </td>
+                    <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
+                      {info.position ?? "-"}
+                    </td>
+                    <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
+                      {info.sex ?? "-"}
+                    </td>
+                    <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
+                      {info.terms ?? "-"}
+                    </td>
+                    <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
+                      {info.estSalary ?? "-"}
+                    </td>
+                    <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
+                      {info.educationLevel ?? "-"}
+                    </td>
+                    <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
+                      {l.role}
+                    </td>
+                    <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
+                      {l.unit}
+                    </td>
+                    <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
+                      {l.estimatedHours ?? "-"}
+                    </td>
+                    <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
+                      {l.rate ?? "-"}
+                    </td>
+                    <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
+                      {l.overtimeRate ?? "-"}
+                    </td>
+                    <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
+                      {l.totalAmount ?? "-"}
+                    </td>
+                    <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
+                      {info.startsAt
+                        ? new Date(info.startsAt).toLocaleDateString()
+                        : "-"}
+                    </td>
+                    <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
+                      {info.endsAt
+                        ? new Date(info.endsAt).toLocaleDateString()
+                        : "-"}
+                    </td>
+                    <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
+                      {info.startsAt && info.endsAt
+                        ? getDuration(info.startsAt, info.endsAt)
+                        : "-"}
+                    </td>
+                    <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
+                      {info.status ?? "-"}
+                    </td>
 
-                      {/* PROFILE PICTURE - last column (avatar like users table) */}
-                      <td className="px-4 py-2 border border-gray-200 text-center">
-                        <Image
-                          src={(info as any).profile_picture || avatar}
-                          alt={`${info.firstName ?? ""} ${info.lastName ?? ""}`}
-                          width={32}
-                          height={32}
-                          className="rounded-full object-cover"
-                        />
-                      </td>
-                    </tr>
-                  ))
-                );
+                    {/* PROFILE PICTURE - last column (avatar like users table) */}
+                    <td className="px-4 py-2 border border-gray-200 text-center">
+                      <Image
+                        src={(info as any).profile_picture || avatar}
+                        alt={`${info.firstName ?? ""} ${info.lastName ?? ""}`}
+                        width={32}
+                        height={32}
+                        className="rounded-full object-cover"
+                      />
+                    </td>
+                  </tr>
+                ));
               })}
             </tbody>
           </table>

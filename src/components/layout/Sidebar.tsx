@@ -35,27 +35,27 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
       return;
     }
 
-    supabase
-      .from("messages")
-      .select("*", { count: "exact", head: true })
-      .eq("receiver_id", user.id)
-      .eq("is_read", false)
-      .then(({ count, error }) => {
-        if (error) {
-          console.error("Error fetching unread count:", error);
-        } else {
-          setChatBadge(count ?? 0);
-        }
-      });
+    // supabase
+    //   .from("messages")
+    //   .select("*", { count: "exact", head: true })
+    //   .eq("receiver_id", user.id)
+    //   .eq("is_read", false)
+    //   .then(({ count, error }) => {
+    //     if (error) {
+    //       console.error("Error fetching unread count:", error);
+    //     } else {
+    //       setChatBadge(count ?? 0);
+    //     }
+    //   });
 
-    supabase
-      .from("group_messages")
-      .select("id", { count: "exact" })
-      .not("readers", "cs", `{"${user.id}"}`)
-      .then(({ count, error }) => {
-        if (error) console.error("Error fetching group unread count:", error);
-        else setGroupChatBadge(count ?? 0);
-      });
+    // supabase
+    //   .from("group_messages")
+    //   .select("id", { count: "exact" })
+    //   .not("readers", "cs", `{"${user.id}"}`)
+    //   .then(({ count, error }) => {
+    //     if (error) console.error("Error fetching group unread count:", error);
+    //     else setGroupChatBadge(count ?? 0);
+    //   });
   }, [user]);
 
   const menuItemsWithBadge = menuItems.map((item) => {

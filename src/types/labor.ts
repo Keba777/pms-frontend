@@ -61,6 +61,11 @@ export interface LooseLaborInput {
   startingDate?: string;
   dueDate?: string;
   allocationStatus?: string;
+  position?: string;
+  sex?: 'Male' | 'Female';
+  terms?: 'Part Time' | 'Contract' | 'Temporary' | 'Permanent';
+  estSalary?: number;
+  educationLevel?: string
 }
 
 export interface UpdateLaborInput {
