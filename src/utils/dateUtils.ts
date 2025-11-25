@@ -1,5 +1,6 @@
 // utils/dateUtils.ts
 import { EthiopianDateUtil as EthiopianDate } from 'habesha-datepicker';
+import { useSettingsStore } from '../store/settingsStore';
 
 export const convertToEth = (gregDate: Date | string | null): { Day: number; Month: number; Year: number } | null => {
   if (!gregDate) return null;
@@ -51,6 +52,9 @@ export const getDateDuration = (
     if (isNaN(startDate.getTime()) || isNaN(endDate.getTime()))
         return "Invalid Date";
 
+    const { useEthiopianDate } = useSettingsStore.getState();
+    const isEthiopian = useEthiopianDate;
+
     let totalDays = Math.ceil(
         (endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24)
     );
@@ -59,9 +63,17 @@ export const getDateDuration = (
     const months = Math.floor(totalDays / 30);
     const days = totalDays % 30;
     const parts = [];
-    if (years > 0) parts.push(`${years} ${years === 1 ? "Y" : "Ys"}`);
-    if (months > 0) parts.push(`${months} ${months === 1 ? "M" : "Ms"}`);
-    if (days > 0 || parts.length === 0)
-        parts.push(`${days} ${days === 1 ? "D" : "Ds"}`);
+    
+    if (isEthiopian) {
+        if (years > 0) parts.push(`${years} አ`);
+        if (months > 0) parts.push(`${months} ወ`);
+        if (days > 0 || parts.length === 0)
+            parts.push(`${days} ቀ`);
+    } else {
+        if (years > 0) parts.push(`${years} ${years === 1 ? "Y" : "Ys"}`);
+        if (months > 0) parts.push(`${months} ${months === 1 ? "M" : "Ms"}`);
+        if (days > 0 || parts.length === 0)
+            parts.push(`${days} ${days === 1 ? "D" : "Ds"}`);
+    }
     return parts.join(", ");
 };
