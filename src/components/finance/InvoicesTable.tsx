@@ -8,6 +8,8 @@ import { useRouter } from "next/navigation";
 import { useDeleteInvoice, useUpdateInvoice } from "@/hooks/useFinancials";
 import EditInvoiceForm from "../forms/finance/EditInvoiceForm";
 import ConfirmModal from "../common/ui/ConfirmModal";
+import { formatDate as format } from "@/utils/dateUtils";
+import { useSettingsStore } from "@/store/settingsStore";
 
 const statusBadgeClasses: Record<Invoice["status"], string> = {
   "Pending": "bg-yellow-100 text-yellow-800",
@@ -24,6 +26,7 @@ const InvoicesTable: React.FC<InvoicesTableProps> = ({
   filteredInvoices,
   selectedColumns,
 }) => {
+  const { useEthiopianDate } = useSettingsStore();
   const router = useRouter();
   const { mutate: deleteInvoice } = useDeleteInvoice();
   const { mutate: updateInvoice } = useUpdateInvoice();
@@ -108,7 +111,7 @@ const InvoicesTable: React.FC<InvoicesTableProps> = ({
               {selectedColumns.includes("dueDate") && (
                 <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
                   {invoice.dueDate
-                    ? new Date(invoice.dueDate).toLocaleDateString()
+                    ? format(invoice.dueDate, useEthiopianDate)
                     : "-"}
                 </td>
               )}

@@ -23,6 +23,8 @@ import GenericDownloads, { Column } from "../common/GenericDownloads";
 import SearchInput from "../common/ui/SearchInput";
 import ProfileAvatar from "../common/ProfileAvatar";
 import { toast } from "react-toastify";
+import { formatDate as format } from "@/utils/dateUtils";
+import { useSettingsStore } from "@/store/settingsStore";
 
 interface ActualTaskTableProps {
   tasks: Task[];
@@ -44,6 +46,7 @@ export default function ActualTaskTable({
   tasks,
   projectId,
 }: ActualTaskTableProps) {
+  const { useEthiopianDate } = useSettingsStore();
   const router = useRouter();
   const gridRef = useRef<AgGridReact | null>(null);
 
@@ -353,8 +356,7 @@ export default function ActualTaskTable({
         valueGetter: (params: any) => {
           const d = params.data.actuals?.start_date;
           if (!d) return "";
-          const dt = new Date(d);
-          return isNaN(dt.getTime()) ? "" : dt.toLocaleDateString();
+          return format(d, useEthiopianDate);
         },
         valueSetter: (params: any) => {
           params.data.actuals.start_date = params.newValue || null;
@@ -371,8 +373,7 @@ export default function ActualTaskTable({
         valueGetter: (params: any) => {
           const d = params.data.actuals?.end_date;
           if (!d) return "";
-          const dt = new Date(d);
-          return isNaN(dt.getTime()) ? "" : dt.toLocaleDateString();
+          return format(d, useEthiopianDate);
         },
         valueSetter: (params: any) => {
           params.data.actuals.end_date = params.newValue || null;
@@ -480,14 +481,14 @@ export default function ActualTaskTable({
       header: "Start Date",
       accessor: (r) =>
         r.actuals?.start_date
-          ? new Date(r.actuals.start_date).toLocaleDateString()
+          ? format(r.actuals.start_date, useEthiopianDate)
           : "",
     },
     {
       header: "End Date",
       accessor: (r) =>
         r.actuals?.end_date
-          ? new Date(r.actuals.end_date).toLocaleDateString()
+          ? format(r.actuals.end_date, useEthiopianDate)
           : "",
     },
     {

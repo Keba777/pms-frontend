@@ -13,7 +13,9 @@ import { useRouter } from "next/navigation";
 import { useDeleteTask, useUpdateTask } from "@/hooks/useTasks";
 import { useUsers } from "@/hooks/useUsers";
 import Link from "next/link";
-import { formatDate, getDateDuration } from "@/utils/helper";
+import { getDateDuration } from "@/utils/helper";
+import { formatDate as format } from "@/utils/dateUtils";
+import { useSettingsStore } from "@/store/settingsStore";
 import { FilterField, GenericFilter } from "../common/GenericFilter";
 import GenericImport, { ImportColumn } from "@/components/common/GenericImport";
 import { useCreateTask } from "@/hooks/useTasks";
@@ -59,6 +61,7 @@ type UpdatableTaskWithId = UpdateTaskInput & {
 };
 
 export default function TaskTable({ tasks, projectId }: TaskTableProps) {
+  const { useEthiopianDate } = useSettingsStore();
   const router = useRouter();
   const { mutate: deleteTask } = useDeleteTask();
   const { mutate: updateTask } = useUpdateTask();
@@ -235,8 +238,8 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
   const downloadColumns: Column<Task>[] = [
     { header: "Task", accessor: "task_name" },
     { header: "Priority", accessor: "priority" },
-    { header: "Start Date", accessor: (row) => formatDate(row.start_date) },
-    { header: "End Date", accessor: (row) => formatDate(row.end_date) },
+    { header: "Start Date", accessor: (row) => format(row.start_date, useEthiopianDate) },
+    { header: "End Date", accessor: (row) => format(row.end_date, useEthiopianDate) },
     {
       header: "Duration",
       accessor: (row) => getDateDuration(row.start_date, row.end_date),
@@ -528,12 +531,12 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
                     )}
                     {selectedColumns.includes("start_date") && (
                       <td className="border px-4 py-2 w-28 truncate-ellipsis">
-                        {formatDate(task.start_date)}
+                        {format(task.start_date, useEthiopianDate)}
                       </td>
                     )}
                     {selectedColumns.includes("end_date") && (
                       <td className="border px-4 py-2 w-28 truncate-ellipsis">
-                        {formatDate(task.end_date)}
+                        {format(task.end_date, useEthiopianDate)}
                       </td>
                     )}
                     {selectedColumns.includes("duration") && (

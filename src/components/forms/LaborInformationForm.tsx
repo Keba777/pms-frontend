@@ -4,9 +4,10 @@ import React, { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { CreateLaborInput } from "@/types/labor";
 import { useImportLabors } from "@/hooks/useLabors";
-import DatePicker from "react-datepicker";
+import EtDatePicker from "habesha-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { toast } from "react-toastify";
+import { useSettingsStore } from "@/store/settingsStore";
 
 interface LaborFormProps {
   siteId: string;
@@ -27,6 +28,7 @@ type FormData = CreateLaborInput & {
 };
 
 const LaborForm: React.FC<LaborFormProps> = ({ siteId, onClose }) => {
+  const { useEthiopianDate } = useSettingsStore();
   const {
     register,
     handleSubmit,
@@ -331,14 +333,10 @@ const LaborForm: React.FC<LaborFormProps> = ({ siteId, onClose }) => {
               name="startingDate"
               control={control}
               render={({ field }) => (
-                <DatePicker
-                  selected={field.value ? new Date(field.value) : null}
+                <EtDatePicker
+                  value={field.value ? new Date(field.value) : null}
                   onChange={field.onChange}
                   className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-                  dateFormat="MM/dd/yyyy"
-                  placeholderText="Select Starting Date (optional)"
-                  showYearDropdown
-                  scrollableYearDropdown
                 />
               )}
             />
@@ -351,14 +349,10 @@ const LaborForm: React.FC<LaborFormProps> = ({ siteId, onClose }) => {
               name="dueDate"
               control={control}
               render={({ field }) => (
-                <DatePicker
-                  selected={field.value ? new Date(field.value) : null}
+                <EtDatePicker
+                  value={field.value ? new Date(field.value) : null}
                   onChange={field.onChange}
                   className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-                  dateFormat="MM/dd/yyyy"
-                  placeholderText="Select Due Date (optional)"
-                  showYearDropdown
-                  scrollableYearDropdown
                 />
               )}
             />
@@ -498,14 +492,10 @@ const LaborForm: React.FC<LaborFormProps> = ({ siteId, onClose }) => {
               name="startsAt"
               control={control}
               render={({ field }) => (
-                <DatePicker
-                  selected={field.value}
+                <EtDatePicker
+                  value={field.value}
                   onChange={field.onChange}
                   className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-                  dateFormat="MM/dd/yyyy"
-                  placeholderText="Select Starts At (optional)"
-                  showYearDropdown
-                  scrollableYearDropdown
                 />
               )}
             />
@@ -518,14 +508,10 @@ const LaborForm: React.FC<LaborFormProps> = ({ siteId, onClose }) => {
               name="endsAt"
               control={control}
               render={({ field }) => (
-                <DatePicker
-                  selected={field.value}
+                <EtDatePicker
+                  value={field.value}
                   onChange={field.onChange}
                   className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-                  dateFormat="MM/dd/yyyy"
-                  placeholderText="Select Ends At (optional)"
-                  showYearDropdown
-                  scrollableYearDropdown
                 />
               )}
             />

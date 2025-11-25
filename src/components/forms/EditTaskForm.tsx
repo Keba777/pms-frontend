@@ -3,10 +3,11 @@
 import React from "react";
 import { useForm, Controller } from "react-hook-form";
 import Select from "react-select";
-import DatePicker from "react-datepicker";
+import EtDatePicker from "habesha-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { UpdateTaskInput } from "@/types/task";
 import { User } from "@/types/user";
+import { useSettingsStore } from "@/store/settingsStore";
 
 interface EditTaskFormProps {
   onSubmit: (data: UpdateTaskInput) => void;
@@ -21,6 +22,7 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({
   task,
   users,
 }) => {
+  const { useEthiopianDate } = useSettingsStore();
   const {
     register,
     handleSubmit,
@@ -175,12 +177,10 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({
           control={control}
           rules={{ required: "Start date is required" }}
           render={({ field }) => (
-            <DatePicker
-              selected={field.value ? new Date(field.value) : null}
+            <EtDatePicker
+              value={field.value ? new Date(field.value) : null}
               onChange={(date) => field.onChange(date)}
               className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-              showYearDropdown
-              scrollableYearDropdown
             />
           )}
         />
@@ -201,12 +201,10 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({
           control={control}
           rules={{ required: "End date is required" }}
           render={({ field }) => (
-            <DatePicker
-              selected={field.value ? new Date(field.value) : null}
+            <EtDatePicker
+              value={field.value ? new Date(field.value) : null}
               onChange={(date) => field.onChange(date)}
               className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-              showYearDropdown
-              scrollableYearDropdown
             />
           )}
         />

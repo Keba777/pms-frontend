@@ -26,8 +26,11 @@ import { Button } from "@/components/ui/button";
 import ConfirmModal from "../common/ui/ConfirmModal";
 import CreateMaterialSheetForm from "../forms/timesheet/CreateMaterialSheetForm";
 import EditMaterialSheetForm from "../forms/timesheet/EditMaterialSheetForm";
+import { formatDate as format } from "@/utils/dateUtils";
+import { useSettingsStore } from "@/store/settingsStore";
 
 export const MaterialSheet: React.FC = () => {
+  const { useEthiopianDate } = useSettingsStore();
   const {
     data: materialSheets,
     isLoading: sheetsLoading,
@@ -182,7 +185,7 @@ export const MaterialSheet: React.FC = () => {
                     {mat?.item || row.materialId}
                   </TableCell>
                   <TableCell className="px-5 py-2">
-                    {new Date(row.date).toLocaleDateString()}
+                    {format(row.date, useEthiopianDate)}
                   </TableCell>
                   <TableCell className="px-5 py-2">{row.receivedQty}</TableCell>
                   <TableCell className="px-5 py-2">{row.utilizedQty}</TableCell>

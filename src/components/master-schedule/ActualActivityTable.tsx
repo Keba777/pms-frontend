@@ -18,6 +18,8 @@ import Link from "next/link";
 import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
+import { formatDate as format } from "@/utils/dateUtils";
+import { useSettingsStore } from "@/store/settingsStore";
 
 interface ActualActivityTableProps {
   taskId?: string; // made optional
@@ -28,6 +30,7 @@ interface ExtendedActivity extends Activity {
 }
 
 const ActualActivityTable: React.FC<ActualActivityTableProps> = ({ taskId }) => {
+  const { useEthiopianDate } = useSettingsStore();
   const {
     data: activities,
     isLoading: loadingAct,
@@ -342,8 +345,7 @@ const ActualActivityTable: React.FC<ActualActivityTableProps> = ({ taskId }) => 
         valueGetter: (params: any) => {
           const date = params.data.actuals?.start_date;
           if (!date) return "";
-          const d = new Date(date);
-          return isNaN(d.getTime()) ? "" : d.toLocaleDateString();
+          return format(date, useEthiopianDate);
         },
         valueSetter: (params: any) => {
           params.data.actuals.start_date = params.newValue || null;
@@ -359,8 +361,7 @@ const ActualActivityTable: React.FC<ActualActivityTableProps> = ({ taskId }) => 
         valueGetter: (params: any) => {
           const date = params.data.actuals?.end_date;
           if (!date) return "";
-          const d = new Date(date);
-          return isNaN(d.getTime()) ? "" : d.toLocaleDateString();
+          return format(date, useEthiopianDate);
         },
         valueSetter: (params: any) => {
           params.data.actuals.end_date = params.newValue || null;

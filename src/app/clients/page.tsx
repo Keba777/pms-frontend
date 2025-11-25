@@ -5,7 +5,8 @@ import { ChevronDown } from "lucide-react";
 import { useProjects } from "@/hooks/useProjects";
 import { Project } from "@/types/project";
 import { Button } from "@/components/ui/button";
-import { formatDate, getDateDuration } from "@/utils/helper";
+import { formatDate as format, getDateDuration } from "@/utils/dateUtils";
+import { useSettingsStore } from "@/store/settingsStore";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -35,6 +36,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import Link from "next/link";
 
 const ClientsPage: React.FC = () => {
+  const { useEthiopianDate } = useSettingsStore();
   const { data: projects, isLoading, isError } = useProjects();
   const { projects: storeProjects } = useProjectStore();
 
@@ -273,12 +275,12 @@ const ClientsPage: React.FC = () => {
                     )}
                     {selectedColumns.includes("start_date") && (
                       <TableCell className="px-4 py-2">
-                        {formatDate(project.start_date)}
+                        {format(project.start_date, useEthiopianDate)}
                       </TableCell>
                     )}
                     {selectedColumns.includes("end_date") && (
                       <TableCell className="px-4 py-2">
-                        {formatDate(project.end_date)}
+                        {format(project.end_date, useEthiopianDate)}
                       </TableCell>
                     )}
                     {selectedColumns.includes("duration") && (

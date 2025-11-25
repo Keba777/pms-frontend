@@ -3,12 +3,13 @@
 import React, { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import Select from "react-select";
-import DatePicker from "react-datepicker";
+import EtDatePicker from "habesha-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { CreateTodoInput } from "@/types/todo";
 import { useCreateTodo } from "@/hooks/useTodos";
 import { useTodoStore } from "@/store/todoStore";
-import { formatDate } from "@/utils/helper";
+import { formatDate as format } from "@/utils/dateUtils";
+import { useSettingsStore } from "@/store/settingsStore";
 import { Calendar } from "lucide-react";
 import { useUsers } from "@/hooks/useUsers";
 import { Role, User } from "@/types/user";
@@ -20,6 +21,7 @@ interface TodoFormProps {
 }
 
 const TodoForm: React.FC<TodoFormProps> = ({ onClose }) => {
+  const { useEthiopianDate } = useSettingsStore();
   const { user } = useAuthStore();
   const departmentId = user!.department_id!;
 
@@ -272,7 +274,7 @@ const TodoForm: React.FC<TodoFormProps> = ({ onClose }) => {
               </p>
               <div className="flex items-center text-sm mt-1">
                 <Calendar size={16} className="mr-1" />
-                <span>{formatDate(lastTodo.target)}</span>
+                <span>{format(lastTodo.target, useEthiopianDate)}</span>
               </div>
             </div>
           ) : (
@@ -291,13 +293,10 @@ const TodoForm: React.FC<TodoFormProps> = ({ onClose }) => {
               name="target"
               control={control}
               render={({ field }) => (
-                <DatePicker
-                  selected={field.value ? new Date(field.value) : null}
+                <EtDatePicker
+                  value={field.value ? new Date(field.value) : null}
                   onChange={(date) => field.onChange(date)}
                   className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
-                  dateFormat="MM/dd/yyyy"
-                  showYearDropdown
-                  scrollableYearDropdown
                 />
               )}
             />
@@ -313,13 +312,10 @@ const TodoForm: React.FC<TodoFormProps> = ({ onClose }) => {
               control={control}
               rules={{ required: "Due date is required" }}
               render={({ field }) => (
-                <DatePicker
-                  selected={field.value ? new Date(field.value) : null}
+                <EtDatePicker
+                  value={field.value ? new Date(field.value) : null}
                   onChange={(date) => field.onChange(date)}
                   className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
-                  dateFormat="MM/dd/yyyy"
-                  showYearDropdown
-                  scrollableYearDropdown
                 />
               )}
             />

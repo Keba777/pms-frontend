@@ -15,12 +15,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import DatePicker from "react-datepicker";
+import DatePicker from "@/components/common/DatePicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { createPortal } from "react-dom";
 import { useUpdateTaskProgress } from "@/hooks/useTasks";
 import { toast } from "react-toastify";
 import { ProgressUpdateItem } from "@/types/activity";
+import { useSettingsStore } from "@/store/settingsStore";
+import { normalizeDatePickerValue } from "@/utils/datePicker";
 /**
  * popper container matching the expected signature:
  * React.ComponentType<{ children?: React.ReactNode }>
@@ -53,6 +55,7 @@ const ManageTaskForm: React.FC<{
   onClose: () => void;
   task: UpdateTaskInput & { id: string; name?: string; progressUpdates?: ProgressUpdateItem[] | null };
 }> = ({ onClose, task }) => {
+  const { useEthiopianDate } = useSettingsStore();
   const { handleSubmit, control, setValue } = useForm<UpdateTaskInput>({
     defaultValues: task,
   });
@@ -332,10 +335,11 @@ const ManageTaskForm: React.FC<{
               <TableCell>{rows.length + 1}</TableCell>
               <TableCell>
                 <DatePicker
-                  selected={newRow.dateTime ? new Date(newRow.dateTime) : null}
-                  onChange={(date: Date | null) =>
-                    updateNewRowField("dateTime", date ? date.toISOString() : "")
-                  }
+                  value={newRow.dateTime ? new Date(newRow.dateTime) : null}
+                  onChange={(value) => {
+                    const nextDate = normalizeDatePickerValue(value);
+                    updateNewRowField("dateTime", nextDate ? nextDate.toISOString() : "");
+                  }}
                   showTimeSelect
                   timeIntervals={15}
                   timeFormat="h:mm aa"
@@ -393,10 +397,11 @@ const ManageTaskForm: React.FC<{
               </TableCell>
               <TableCell>
                 <DatePicker
-                  selected={newRow.approvedDate ? new Date(newRow.approvedDate) : null}
-                  onChange={(date: Date | null) =>
-                    updateNewRowField("approvedDate", date ? date.toISOString() : null)
-                  }
+                  value={newRow.approvedDate ? new Date(newRow.approvedDate) : null}
+                  onChange={(value) => {
+                    const nextDate = normalizeDatePickerValue(value);
+                    updateNewRowField("approvedDate", nextDate ? nextDate.toISOString() : null);
+                  }}
                   showTimeSelect
                   timeIntervals={15}
                   timeFormat="h:mm aa"

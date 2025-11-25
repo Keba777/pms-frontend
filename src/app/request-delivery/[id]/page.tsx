@@ -9,8 +9,11 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, Calendar, User, DollarSign, MapPin, Clipboard, Clock, Hash, Package, CheckCircle, XCircle } from "lucide-react";
 import { useRequestDelivery } from "@/hooks/useRequestDeliveries"; // Assuming a hook to fetch single request delivery by ID
+import { formatDate as format } from "@/utils/dateUtils";
+import { useSettingsStore } from "@/store/settingsStore";
 
 const RequestDeliveryDetailsPage = () => {
+  const { useEthiopianDate } = useSettingsStore();
   const params = useParams();
   const id = params.id as string;
   const router = useRouter();
@@ -130,7 +133,7 @@ const RequestDeliveryDetailsPage = () => {
               Delivery Details
             </h3>
             <div className="space-y-1 sm:space-y-2 text-xs sm:text-sm text-gray-700">
-              <p className="flex items-center gap-1"><Clock className="h-4 w-4 text-cyan-700" /><span className="font-medium ml-1">Delivery Date:</span> {new Date(delivery.deliveryDate).toLocaleString()}</p>
+              <p className="flex items-center gap-1"><Clock className="h-4 w-4 text-cyan-700" /><span className="font-medium ml-1">Delivery Date:</span> {format(delivery.deliveryDate, useEthiopianDate)}</p>
               <p className="flex items-center gap-1"><Package className="h-4 w-4 text-cyan-700" /><span className="font-medium ml-1">Received Quantity:</span> {delivery.recievedQuantity}</p>
               <p className="flex items-center gap-1"><Badge className={`ml-1 ${getStatusColor(delivery.status)}`}>{delivery.status}</Badge></p>
             </div>

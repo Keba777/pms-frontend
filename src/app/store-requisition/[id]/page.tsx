@@ -5,9 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, Calendar, Clipboard, Hash, Ruler, MessageSquare, Clock } from "lucide-react";
-import { useStoreRequisition } from "@/hooks/useStoreRequisition"; 
+import { useStoreRequisition } from "@/hooks/useStoreRequisition";
+import { formatDate as format } from "@/utils/dateUtils";
+import { useSettingsStore } from "@/store/settingsStore"; 
 
 const StoreRequisitionDetailsPage = () => {
+  const { useEthiopianDate } = useSettingsStore();
   const params = useParams();
   const id = params.id as string;
   const router = useRouter();
@@ -102,8 +105,8 @@ const StoreRequisitionDetailsPage = () => {
               Timestamps
             </h3>
             <div className="space-y-1 sm:space-y-2 text-xs sm:text-sm text-gray-700">
-              <p className="flex items-center gap-1"><Clock className="h-4 w-4 text-cyan-700" /><span className="font-medium ml-1">Created At:</span> {new Date(requisition.createdAt).toLocaleString()}</p>
-              <p className="flex items-center gap-1"><Clock className="h-4 w-4 text-cyan-700" /><span className="font-medium ml-1">Updated At:</span> {new Date(requisition.updatedAt).toLocaleString()}</p>
+              <p className="flex items-center gap-1"><Clock className="h-4 w-4 text-cyan-700" /><span className="font-medium ml-1">Created At:</span> {format(requisition.createdAt, useEthiopianDate)}</p>
+              <p className="flex items-center gap-1"><Clock className="h-4 w-4 text-cyan-700" /><span className="font-medium ml-1">Updated At:</span> {format(requisition.updatedAt, useEthiopianDate)}</p>
             </div>
           </section>
 

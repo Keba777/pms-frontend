@@ -19,7 +19,9 @@ import {
 } from "@/hooks/useRequestDeliveries";
 import RequestDeliveryTableSkeleton from "@/components/skeletons/RequestDeliveryTableSkeleton";
 import RequestDeliveryForm from "@/components/forms/RequestDeliverForm";
-import EditRequestDeliveryForm from "@/components/forms/resource/EditRequestDeliveryForm"; 
+import EditRequestDeliveryForm from "@/components/forms/resource/EditRequestDeliveryForm";
+import { formatDate as format } from "@/utils/dateUtils";
+import { useSettingsStore } from "@/store/settingsStore"; 
 
 const columnOptions: Record<string, string> = {
   no: "No",
@@ -35,6 +37,7 @@ const columnOptions: Record<string, string> = {
 };
 
 const RequestDeliveryPage: React.FC = () => {
+  const { useEthiopianDate } = useSettingsStore();
   const router = useRouter();
   const { data: deliveries = [], isLoading, error } = useRequestDeliveries();
   const { mutate: deleteDelivery } = useDeleteRequestDelivery();
@@ -119,7 +122,7 @@ const RequestDeliveryPage: React.FC = () => {
     {
       header: "Delivery Date",
       accessor: (d: any) =>
-        d.deliveryDate ? new Date(d.deliveryDate).toLocaleDateString() : "N/A",
+        d.deliveryDate ? format(d.deliveryDate, useEthiopianDate) : "N/A",
     },
     { header: "Qty Received", accessor: (d: any) => d.recievedQuantity || 0 },
     { header: "Site", accessor: (d: any) => d.site?.name || "N/A" },
@@ -284,7 +287,7 @@ const RequestDeliveryPage: React.FC = () => {
                   )}
                   {selectedColumns.includes("deliveryDate") && (
                     <td className="px-4 py-2">
-                      {d.deliveryDate ? new Date(d.deliveryDate).toLocaleDateString() : "N/A"}
+                      {d.deliveryDate ? format(d.deliveryDate, useEthiopianDate) : "N/A"}
                     </td>
                   )}
                   {selectedColumns.includes("recievedQuantity") && (

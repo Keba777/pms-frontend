@@ -22,22 +22,12 @@ import {
 import { Slider } from "@/components/ui/slider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { formatDate as format } from "@/utils/dateUtils";
+import { useSettingsStore } from "@/store/settingsStore";
 
 const LogTable = ({ updates }: { updates: ProgressUpdateItem[] }) => {
+  const { useEthiopianDate } = useSettingsStore();
   const { data: users } = useUsers();
-  const dateFormatter = new Intl.DateTimeFormat("en-US", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  });
-
-  const formatDate = (dateString: string | null | undefined) => {
-    if (!dateString) return "N/A";
-    try {
-      return dateFormatter.format(new Date(dateString));
-    } catch {
-      return "N/A";
-    }
-  };
 
   return (
     <div className="overflow-x-auto">
@@ -60,7 +50,7 @@ const LogTable = ({ updates }: { updates: ProgressUpdateItem[] }) => {
               key={update.id || index}
               className="even:bg-gray-100 hover:bg-gray-300"
             >
-              <TableCell>{formatDate(update.dateTime)}</TableCell>
+              <TableCell>{format(update.dateTime, useEthiopianDate)}</TableCell>
               <TableCell>
                 {update.fromProgress !== undefined
                   ? `${update.fromProgress}%`
@@ -70,7 +60,7 @@ const LogTable = ({ updates }: { updates: ProgressUpdateItem[] }) => {
               <TableCell>{update.status || "N/A"}</TableCell>
               <TableCell>{update.checkedBy || "N/A"}</TableCell>
               <TableCell>{update.approvedBy || "N/A"}</TableCell>
-              <TableCell>{formatDate(update.approvedDate)}</TableCell>
+              <TableCell>{update.approvedDate ? format(update.approvedDate, useEthiopianDate) : "N/A"}</TableCell>
               <TableCell>
                 {users?.find((u) => u.id === update.userId)?.first_name ||
                   update.userId ||

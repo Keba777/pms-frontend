@@ -7,6 +7,6 @@ interface SettingsState {
 }
 
 export const useSettingsStore = create<SettingsState>((set) => ({
-  useEthiopianDate: false,
+  useEthiopianDate: true,
   toggleEthiopianDate: () => set((state) => ({ useEthiopianDate: !state.useEthiopianDate })),
 }));

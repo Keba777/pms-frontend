@@ -24,9 +24,12 @@ import GenericImport, { ImportColumn } from "@/components/common/GenericImport";
 import { Badge } from "@/components/ui/badge";
 import EquipmentForm from "@/components/forms/EquipmentForm";
 import { getDuration } from "@/utils/helper";
+import { formatDate as format } from "@/utils/dateUtils";
+import { useSettingsStore } from "@/store/settingsStore";
 import { toast } from "react-toastify";
 
 const EquipmentsPage = () => {
+  const { useEthiopianDate } = useSettingsStore();
   const { user } = useAuthStore();
   const hasPermission = useAuthStore((state) => state.hasPermission);
   const siteId = user!.siteId;
@@ -456,12 +459,12 @@ const EquipmentsPage = () => {
                     </td>
                     <td className="px-4 py-2 border border-gray-200">
                       {eq.startingDate
-                        ? new Date(eq.startingDate).toLocaleDateString()
+                        ? format(eq.startingDate, useEthiopianDate)
                         : "-"}
                     </td>
                     <td className="px-4 py-2 border border-gray-200">
                       {eq.dueDate
-                        ? new Date(eq.dueDate).toLocaleDateString()
+                        ? format(eq.dueDate, useEthiopianDate)
                         : "-"}
                     </td>
                     <td className="px-4 py-2 border border-gray-200">

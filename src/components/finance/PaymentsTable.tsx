@@ -8,6 +8,8 @@ import { useRouter } from "next/navigation";
 import { useDeletePayment, useUpdatePayment } from "@/hooks/useFinancials";
 import EditPaymentForm from "../forms/finance/EditPaymentForm";
 import ConfirmModal from "../common/ui/ConfirmModal";
+import { formatDate as format } from "@/utils/dateUtils";
+import { useSettingsStore } from "@/store/settingsStore";
 
 interface PaymentsTableProps {
   filteredPayments: Payment[];
@@ -18,6 +20,7 @@ const PaymentsTable: React.FC<PaymentsTableProps> = ({
   filteredPayments,
   selectedColumns,
 }) => {
+  const { useEthiopianDate } = useSettingsStore();
   const router = useRouter();
   const { mutate: deletePayment } = useDeletePayment();
   const { mutate: updatePayment } = useUpdatePayment();
@@ -102,7 +105,7 @@ const PaymentsTable: React.FC<PaymentsTableProps> = ({
               {selectedColumns.includes("date") && (
                 <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
                   {payment.date
-                    ? new Date(payment.date).toLocaleDateString()
+                    ? format(payment.date, useEthiopianDate)
                     : "-"}
                 </td>
               )}

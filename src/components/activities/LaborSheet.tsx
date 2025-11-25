@@ -26,8 +26,11 @@ import { Button } from "@/components/ui/button";
 import ConfirmModal from "../common/ui/ConfirmModal";
 import CreateLaborTimesheetForm from "../forms/timesheet/CreateLaborTimesheetForm";
 import EditLaborTimesheetForm from "../forms/timesheet/EditLaborTimesheetForm";
+import { formatDate as format } from "@/utils/dateUtils";
+import { useSettingsStore } from "@/store/settingsStore";
 
 export const LaborSheet: React.FC = () => {
+  const { useEthiopianDate } = useSettingsStore();
   const {
     data: laborTimesheets,
     isLoading: isLoadingTimes,
@@ -209,7 +212,7 @@ export const LaborSheet: React.FC = () => {
                   <TableCell className="px-5 py-2">{idx + 1}</TableCell>
                   <TableCell className="px-5 py-2">{userName}</TableCell>
                   <TableCell className="px-5 py-2">
-                    {new Date(row.date).toLocaleDateString()}
+                    {format(row.date, useEthiopianDate)}
                   </TableCell>
                   <TableCell className="px-5 py-2">{row.morningIn}</TableCell>
                   <TableCell className="px-5 py-2">{row.morningOut}</TableCell>

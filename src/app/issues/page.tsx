@@ -6,6 +6,8 @@ import "react-datepicker/dist/react-datepicker.css";
 import { ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useIssues, useUpdateIssue, useDeleteIssue } from "@/hooks/useIssues";
+import { formatDate as format } from "@/utils/dateUtils";
+import { useSettingsStore } from "@/store/settingsStore";
 import { useSites } from "@/hooks/useSites";
 import { useDepartments } from "@/hooks/useDepartments";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
@@ -48,6 +50,7 @@ const columnOptions: Record<string, string> = {
 };
 
 const IssuesPage = () => {
+  const { useEthiopianDate } = useSettingsStore();
   const router = useRouter();
   const {
     data: issues,
@@ -433,7 +436,7 @@ const IssuesPage = () => {
                   {selectedColumns.includes("date") && (
                     <td className="px-4 py-2 border border-gray-200">
                       {issue.date
-                        ? new Date(issue.date).toLocaleDateString()
+                        ? format(issue.date, useEthiopianDate)
                         : "-"}
                     </td>
                   )}

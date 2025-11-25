@@ -14,6 +14,8 @@ import ConfirmModal from "@/components/common/ui/ConfirmModal";
 import { useStoreRequisitions, useDeleteStoreRequisition, useUpdateStoreRequisition } from "@/hooks/useStoreRequisition";
 import StoreRequisitionForm from "@/components/forms/resource/StoreRequisitionForm";
 import EditStoreRequisitionForm from "@/components/forms/resource/EditStoreRequisitionForm";
+import { formatDate as format } from "@/utils/dateUtils";
+import { useSettingsStore } from "@/store/settingsStore";
 
 const columnOptions: Record<string, string> = {
   no: "No",
@@ -27,6 +29,7 @@ const columnOptions: Record<string, string> = {
 };
 
 const StoreRequisitionsPage: React.FC = () => {
+  const { useEthiopianDate } = useSettingsStore();
   const { data: requisitions = [], isLoading, error } = useStoreRequisitions();
   const { mutate: deleteStoreRequisition } = useDeleteStoreRequisition();
   const { mutate: updateStoreRequisition } = useUpdateStoreRequisition();
@@ -103,12 +106,12 @@ const StoreRequisitionsPage: React.FC = () => {
     {
       header: "Created At",
       accessor: (r: any) =>
-        r.createdAt ? new Date(r.createdAt).toLocaleDateString() : "N/A",
+        r.createdAt ? format(r.createdAt, useEthiopianDate) : "N/A",
     },
     {
       header: "Updated At",
       accessor: (r: any) =>
-        r.updatedAt ? new Date(r.updatedAt).toLocaleDateString() : "N/A",
+        r.updatedAt ? format(r.updatedAt, useEthiopianDate) : "N/A",
     },
   ];
 
@@ -256,12 +259,12 @@ const StoreRequisitionsPage: React.FC = () => {
                   )}
                   {selectedColumns.includes("createdAt") && (
                     <td className="px-4 py-2 whitespace-nowrap">
-                      {r.createdAt ? new Date(r.createdAt).toLocaleDateString() : "N/A"}
+                      {r.createdAt ? format(r.createdAt, useEthiopianDate) : "N/A"}
                     </td>
                   )}
                   {selectedColumns.includes("updatedAt") && (
                     <td className="px-4 py-2 whitespace-nowrap">
-                      {r.updatedAt ? new Date(r.updatedAt).toLocaleDateString() : "N/A"}
+                      {r.updatedAt ? format(r.updatedAt, useEthiopianDate) : "N/A"}
                     </td>
                   )}
                   {selectedColumns.includes("actions") && (

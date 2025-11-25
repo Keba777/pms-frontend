@@ -6,7 +6,9 @@ import { Menu, MenuButton, MenuItems, MenuItem } from "@headlessui/react";
 import { ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTaskStore } from "@/store/taskStore";
-import { formatDate, getDuration } from "@/utils/helper";
+import { getDuration } from "@/utils/helper";
+import { formatDate as format } from "@/utils/dateUtils";
+import { useSettingsStore } from "@/store/settingsStore";
 import GenericDownloads from "@/components/common/GenericDownloads";
 import { Task, UpdateTaskInput } from "@/types/task";
 import { useDeleteTask, useUpdateTask } from "@/hooks/useTasks";
@@ -25,6 +27,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
 const DataTable: React.FC = () => {
+  const { useEthiopianDate } = useSettingsStore();
   const tasks = useTaskStore((state) => state.tasks) as Task[];
   const isLoading = !tasks;
   const error = !tasks ? "Error fetching tasks." : null;
@@ -342,10 +345,10 @@ const DataTable: React.FC = () => {
                     </td>
                   )}
                   {selectedColumns.includes("start_date") && (
-                    <td className="px-4 py-2">{formatDate(task.start_date)}</td>
+                    <td className="px-4 py-2">{format(task.start_date, useEthiopianDate)}</td>
                   )}
                   {selectedColumns.includes("end_date") && (
-                    <td className="px-4 py-2">{formatDate(task.end_date)}</td>
+                    <td className="px-4 py-2">{format(task.end_date, useEthiopianDate)}</td>
                   )}
                   {selectedColumns.includes("duration") && (
                     <td className="px-4 py-2">

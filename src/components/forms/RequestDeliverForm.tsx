@@ -1,17 +1,19 @@
 import { useApprovals } from "@/hooks/useApprovals";
 import { useSites } from "@/hooks/useSites";
 import Select from "react-select";
-import DatePicker from "react-datepicker";
+import EtDatePicker from "habesha-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { Approval } from "@/types/approval";
 import { Site } from "@/types/site";
 import { CreateRequestDeliveryInput } from "@/types/requestDelivery";
 import { Controller, useForm } from "react-hook-form";
 import { useCreateRequestDelivery } from "@/hooks/useRequestDeliveries";
+import { useSettingsStore } from "@/store/settingsStore";
 
 const RequestDeliveryForm: React.FC<{ onClose: () => void }> = ({
   onClose,
 }) => {
+  const { useEthiopianDate } = useSettingsStore();
   const {
     register,
     handleSubmit,
@@ -214,13 +216,10 @@ const RequestDeliveryForm: React.FC<{ onClose: () => void }> = ({
             control={control}
             rules={{ required: "Delivery date is required" }}
             render={({ field }) => (
-              <DatePicker
-                selected={field.value ? new Date(field.value) : null}
+              <EtDatePicker
+                value={field.value ? new Date(field.value) : null}
                 onChange={(date) => field.onChange(date)}
                 className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
-                dateFormat="MM/dd/yyyy"
-                showYearDropdown
-                scrollableYearDropdown
               />
             )}
           />

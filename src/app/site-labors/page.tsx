@@ -10,6 +10,8 @@ import { useSites } from "@/hooks/useSites";
 import Link from "next/link";
 import { Labor, CreateLaborInput, LooseLaborInput } from "@/types/labor";
 import { getDuration } from "@/utils/helper";
+import { formatDate as format } from "@/utils/dateUtils";
+import { useSettingsStore } from "@/store/settingsStore";
 import LaborForm from "@/components/forms/LaborInformationForm";
 import { useAuthStore } from "@/store/authStore";
 import GenericDownloads, { Column } from "@/components/common/GenericDownloads";
@@ -37,6 +39,7 @@ interface ImportLaborRow extends LooseLaborInput {
 }
 
 const LaborsPage = () => {
+  const { useEthiopianDate } = useSettingsStore();
   const { user } = useAuthStore();
   const hasPermission = useAuthStore((state) => state.hasPermission);
   const siteId = user!.siteId;
@@ -600,12 +603,12 @@ const LaborsPage = () => {
                     </td>
                     <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
                       {info.startsAt
-                        ? new Date(info.startsAt).toLocaleDateString()
+                        ? format(info.startsAt, useEthiopianDate)
                         : "-"}
                     </td>
                     <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
                       {info.endsAt
-                        ? new Date(info.endsAt).toLocaleDateString()
+                        ? format(info.endsAt, useEthiopianDate)
                         : "-"}
                     </td>
                     <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">

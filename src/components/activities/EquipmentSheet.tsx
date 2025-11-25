@@ -26,8 +26,11 @@ import { Button } from "@/components/ui/button";
 import ConfirmModal from "../common/ui/ConfirmModal";
 import CreateEquipmentTimesheetForm from "../forms/timesheet/CreateEquipmentTimesheetForm";
 import EditEquipmentTimesheetForm from "../forms/timesheet/EditEquipmentTimesheetForm";
+import { formatDate as format } from "@/utils/dateUtils";
+import { useSettingsStore } from "@/store/settingsStore";
 
 export const EquipmentSheet: React.FC = () => {
+  const { useEthiopianDate } = useSettingsStore();
   const {
     data: equipmentTimesheets,
     isLoading: isLoadingTimes,
@@ -220,7 +223,7 @@ export const EquipmentSheet: React.FC = () => {
                   <TableCell className="px-5 py-2">{idx + 1}</TableCell>
                   <TableCell className="px-5 py-2">{equipmentName}</TableCell>
                   <TableCell className="px-5 py-2">
-                    {new Date(row.date).toLocaleDateString()}
+                    {format(row.date, useEthiopianDate)}
                   </TableCell>
                   <TableCell className="px-5 py-2">{row.morningIn}</TableCell>
                   <TableCell className="px-5 py-2">{row.morningOut}</TableCell>

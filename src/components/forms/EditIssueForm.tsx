@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useForm, Controller } from "react-hook-form";
-import DatePicker from "react-datepicker";
+import DatePicker from "@/components/common/DatePicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { UpdateIssueInput } from "@/types/issue";
 import { useDepartments } from "@/hooks/useDepartments";
@@ -12,6 +12,7 @@ import Select from "react-select";
 import { Department } from "@/types/department";
 import { Site } from "@/types/site";
 import { User } from "@/types/user";
+import { normalizeDatePickerValue } from "@/utils/datePicker";
 
 interface EditIssueFormProps {
   onSubmit: (data: UpdateIssueInput) => void;
@@ -209,11 +210,9 @@ const EditIssueForm: React.FC<EditIssueFormProps> = ({
           control={control}
           render={({ field }) => (
             <DatePicker
-              selected={field.value ? new Date(field.value as unknown as string) : null}
-              onChange={(date) => field.onChange(date)}
+              value={field.value ? new Date(field.value as unknown as string) : null}
+              onChange={(value) => field.onChange(normalizeDatePickerValue(value))}
               className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-              showYearDropdown
-              scrollableYearDropdown
             />
           )}
         />

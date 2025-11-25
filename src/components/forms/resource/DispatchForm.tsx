@@ -3,23 +3,29 @@
 import React, { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import Select from "react-select";
-import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { CreateDispatchInput } from "@/types/dispatch";
 import { useCreateDispatch } from "@/hooks/useDispatches";
 import { useDispatchStore } from "@/store/dispatchStore";
-import { formatDate } from "@/utils/helper";
+import { formatDate as format } from "@/utils/dateUtils";
+import { useSettingsStore } from "@/store/settingsStore";
 import { ArrowRight, Calendar } from "lucide-react";
 import { useApprovals } from "@/hooks/useApprovals";
 import { useSites } from "@/hooks/useSites";
 import { Approval } from "@/types/approval";
 import { Site } from "@/types/site";
+import DatePicker from "@/components/common/DatePicker";
+import {
+  normalizeDatePickerValue,
+  DatePickerValue,
+} from "@/utils/datePicker";
 
 interface DispatchFormProps {
   onClose: () => void;
 }
 
 const DispatchForm: React.FC<DispatchFormProps> = ({ onClose }) => {
+  const { useEthiopianDate } = useSettingsStore();
   const {
     register,
     handleSubmit,
@@ -57,17 +63,20 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onClose }) => {
 
   const [duration, setDuration] = useState<string>("");
 
-  const dispatchedDate = watch("dispatchedDate");
-  const estArrivalTime = watch("estArrivalTime");
+  const dispatchedDateValue = watch("dispatchedDate") as DatePickerValue;
+  const estArrivalTimeValue = watch("estArrivalTime") as DatePickerValue;
+  const dispatchedDate = normalizeDatePickerValue(dispatchedDateValue);
+  const estArrivalTime = normalizeDatePickerValue(estArrivalTimeValue);
 
   useEffect(() => {
     if (dispatchedDate && estArrivalTime) {
-      const diffTime =
-        new Date(estArrivalTime).getTime() - new Date(dispatchedDate).getTime();
+      const diffTime = estArrivalTime.getTime() - dispatchedDate.getTime();
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
       setDuration(diffDays.toString());
+    } else {
+      setDuration("");
     }
-  }, [dispatchedDate, estArrivalTime]);
+  }, [dispatchedDateValue, estArrivalTimeValue]);
 
   // When the user types in the duration field, update the estArrivalTime automatically.
   const handleDurationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -291,10 +300,10 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onClose }) => {
               </p>
               <div className="flex items-center text-sm mt-1">
                 <Calendar size={16} className="mr-1" />
-                <span>{formatDate(lastDispatch.dispatchedDate)}</span>
+                <span>{format(lastDispatch.dispatchedDate, useEthiopianDate)}</span>
                 <ArrowRight size={16} className="mx-2" />
                 <Calendar size={16} className="mr-1" />
-                <span>{formatDate(lastDispatch.estArrivalTime)}</span>
+                <span>{format(lastDispatch.estArrivalTime, useEthiopianDate)}</span>
               </div>
             </div>
           ) : (
@@ -315,12 +324,11 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onClose }) => {
               rules={{ required: "Dispatched date is required" }}
               render={({ field }) => (
                 <DatePicker
-                  selected={field.value ? new Date(field.value) : null}
-                  onChange={(date) => field.onChange(date)}
+                  value={field.value ? new Date(field.value) : null}
+                  onChange={(value) =>
+                    field.onChange(normalizeDatePickerValue(value))
+                  }
                   className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
-                  dateFormat="MM/dd/yyyy"
-                  showYearDropdown
-                  scrollableYearDropdown
                 />
               )}
             />
@@ -356,13 +364,13 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onClose }) => {
               rules={{ required: "Estimated arrival time is required" }}
               render={({ field }) => (
                 <DatePicker
-                  selected={field.value ? new Date(field.value) : null}
-                  onChange={(date) => {
-                    field.onChange(date);
-                    if (dispatchedDate && date) {
+                  value={field.value ? new Date(field.value) : null}
+                  onChange={(value) => {
+                    const nextDate = normalizeDatePickerValue(value);
+                    field.onChange(nextDate);
+                    if (dispatchedDate && nextDate) {
                       const diffTime =
-                        new Date(date).getTime() -
-                        new Date(dispatchedDate).getTime();
+                        nextDate.getTime() - dispatchedDate.getTime();
                       const diffDays = Math.ceil(
                         diffTime / (1000 * 60 * 60 * 24)
                       );
@@ -370,9 +378,6 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onClose }) => {
                     }
                   }}
                   className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
-                  dateFormat="MM/dd/yyyy"
-                  showYearDropdown
-                  scrollableYearDropdown
                 />
               )}
             />

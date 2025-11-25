@@ -4,7 +4,9 @@ import React, { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { CreateEquipmentInput } from "@/types/equipment";
 import { useCreateEquipment } from "@/hooks/useEquipments";
-import DatePicker from "react-datepicker";
+import EtDatePicker from "habesha-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { useSettingsStore } from "@/store/settingsStore";
 
 interface EquipmentFormProps {
   siteId: string;
@@ -12,6 +14,7 @@ interface EquipmentFormProps {
 }
 
 const EquipmentForm: React.FC<EquipmentFormProps> = ({ siteId, onClose }) => {
+  const { useEthiopianDate } = useSettingsStore();
   const {
     register,
     handleSubmit,
@@ -349,14 +352,10 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ siteId, onClose }) => {
               name="startingDate"
               control={control}
               render={({ field }) => (
-                <DatePicker
-                  selected={field.value ? new Date(field.value) : null}
+                <EtDatePicker
+                  value={field.value ? new Date(field.value) : null}
                   onChange={field.onChange}
                   className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-                  dateFormat="MM/dd/yyyy"
-                  placeholderText="Select Starting Date (optional)"
-                  showYearDropdown
-                  scrollableYearDropdown
                 />
               )}
             />
@@ -371,14 +370,10 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ siteId, onClose }) => {
               name="dueDate"
               control={control}
               render={({ field }) => (
-                <DatePicker
-                  selected={field.value ? new Date(field.value) : null}
+                <EtDatePicker
+                  value={field.value ? new Date(field.value) : null}
                   onChange={field.onChange}
                   className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-                  dateFormat="MM/dd/yyyy"
-                  placeholderText="Select Due Date (optional)"
-                  showYearDropdown
-                  scrollableYearDropdown
                 />
               )}
             />
@@ -391,14 +386,10 @@ const EquipmentForm: React.FC<EquipmentFormProps> = ({ siteId, onClose }) => {
               name="shiftingDate"
               control={control}
               render={({ field }) => (
-                <DatePicker
-                  selected={field.value ? new Date(field.value) : null}
+                <EtDatePicker
+                  value={field.value ? new Date(field.value) : null}
                   onChange={field.onChange}
                   className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-                  dateFormat="MM/dd/yyyy"
-                  placeholderText="Select Shifting Date (optional)"
-                  showYearDropdown
-                  scrollableYearDropdown
                 />
               )}
             />

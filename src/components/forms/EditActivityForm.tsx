@@ -3,11 +3,12 @@
 import React from "react";
 import { useForm, Controller } from "react-hook-form";
 import Select from "react-select";
-import DatePicker from "react-datepicker";
+import EtDatePicker from "habesha-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { UpdateActivityInput } from "@/types/activity";
 import { Role, User } from "@/types/user";
 import { useRoles } from "@/hooks/useRoles";
+import { useSettingsStore } from "@/store/settingsStore";
 
 const EditActivityForm: React.FC<{
   onSubmit: (data: UpdateActivityInput) => void;
@@ -15,6 +16,7 @@ const EditActivityForm: React.FC<{
   activity: UpdateActivityInput;
   users?: User[];
 }> = ({ onSubmit, onClose, activity, users }) => {
+  const { useEthiopianDate } = useSettingsStore();
   const {
     register,
     handleSubmit,
@@ -191,12 +193,10 @@ const EditActivityForm: React.FC<{
           control={control}
           rules={{ required: "Start date is required" }}
           render={({ field }) => (
-            <DatePicker
-              selected={field.value ? new Date(field.value) : null}
+            <EtDatePicker
+              value={field.value ? new Date(field.value) : null}
               onChange={(date) => field.onChange(date)}
               className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-              showYearDropdown
-              scrollableYearDropdown
             />
           )}
         />
@@ -217,12 +217,10 @@ const EditActivityForm: React.FC<{
           control={control}
           rules={{ required: "End date is required" }}
           render={({ field }) => (
-            <DatePicker
-              selected={field.value ? new Date(field.value) : null}
+            <EtDatePicker
+              value={field.value ? new Date(field.value) : null}
               onChange={(date) => field.onChange(date)}
               className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-              showYearDropdown
-              scrollableYearDropdown
             />
           )}
         />

@@ -3,13 +3,14 @@
 import React, { useState, useEffect } from "react";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
 import Select from "react-select";
-import DatePicker from "react-datepicker";
+import EtDatePicker from "habesha-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { CreateActivityInput } from "@/types/activity";
 import { useCreateActivity } from "@/hooks/useActivities";
 import { useTasks } from "@/hooks/useTasks";
 import { ArrowRight, Calendar } from "lucide-react";
-import { formatDate } from "@/utils/helper";
+import { formatDate as format } from "@/utils/dateUtils";
+import { useSettingsStore } from "@/store/settingsStore";
 import { useActivityStore } from "@/store/activityStore";
 import { useUsers } from "@/hooks/useUsers";
 import { useRoles } from "@/hooks/useRoles";
@@ -24,6 +25,7 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
   onClose,
   defaultTaskId,
 }) => {
+  const { useEthiopianDate } = useSettingsStore();
   const {
     register,
     handleSubmit,
@@ -221,10 +223,10 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
                 </p>
                 <div className="flex items-center text-sm mt-1">
                   <Calendar size={16} className="mr-1" />
-                  <span>{formatDate(lastActivity.start_date)}</span>
+                  <span>{format(lastActivity.start_date, useEthiopianDate)}</span>
                   <ArrowRight size={16} className="mx-2" />
                   <Calendar size={16} className="mr-1" />
-                  <span>{formatDate(lastActivity.end_date)}</span>
+                  <span>{format(lastActivity.end_date, useEthiopianDate)}</span>
                 </div>
               </div>
             ) : (
@@ -244,14 +246,10 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
                 control={control}
                 rules={{ required: "Start date is required" }}
                 render={({ field }) => (
-                  <DatePicker
-                    selected={field.value ? new Date(field.value) : null}
+                  <EtDatePicker
+                    value={field.value ? new Date(field.value) : null}
                     onChange={(date) => field.onChange(date)}
                     className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-                    dateFormat="MM/dd/yyyy"
-                    placeholderText="Select start date"
-                    showYearDropdown
-                    scrollableYearDropdown
                   />
                 )}
               />
@@ -292,13 +290,14 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
                     "End date must be after start date",
                 }}
                 render={({ field }) => (
-                  <DatePicker
-                    selected={field.value ? new Date(field.value) : null}
+                  <EtDatePicker
+                    value={field.value ? new Date(field.value) : null}
                     onChange={(date) => {
-                      field.onChange(date);
-                      if (startDate && date) {
+                      const dateValue = Array.isArray(date) ? date[0] : date;
+                      field.onChange(dateValue);
+                      if (startDate && dateValue) {
                         const diffTime =
-                          new Date(date).getTime() -
+                          new Date(dateValue).getTime() -
                           new Date(startDate).getTime();
                         const diffDays = Math.ceil(
                           diffTime / (1000 * 60 * 60 * 24)
@@ -307,11 +306,6 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
                       }
                     }}
                     className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-                    dateFormat="MM/dd/yyyy"
-                    placeholderText="Select end date"
-                    minDate={new Date()}
-                    showYearDropdown
-                    scrollableYearDropdown
                   />
                 )}
               />
@@ -823,14 +817,10 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
               control={control}
               name="checked_by_date"
               render={({ field }) => (
-                <DatePicker
-                  selected={field.value ? new Date(field.value) : null}
+                <EtDatePicker
+                  value={field.value ? new Date(field.value) : null}
                   onChange={field.onChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary focus:border-bs-primary transition-colors duration-200"
-                  dateFormat="MM/dd/yyy"
-                  placeholderText="Select date"
-                  showYearDropdown
-                  scrollableYearDropdown
                 />
               )}
             />

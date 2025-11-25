@@ -20,6 +20,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { getDateDuration, getDuration as calcRemaining } from "@/utils/helper";
+import { formatDate as format } from "@/utils/dateUtils";
+import { useSettingsStore } from "@/store/settingsStore";
 import ProfileAvatar from "../common/ProfileAvatar";
 import {
   Table,
@@ -71,6 +73,7 @@ const statusBadgeClasses: Record<Task["status"], string> = {
 };
 
 const TaskSection: React.FC = () => {
+  const { useEthiopianDate } = useSettingsStore();
   const router = useRouter();
   const { data: tasks, isLoading, isError } = useTasks();
   const { mutate: deleteTask } = useDeleteTask();
@@ -104,12 +107,6 @@ const TaskSection: React.FC = () => {
       prev.includes(col) ? prev.filter((c) => c !== col) : [...prev, col]
     );
 
-  const formatDateLocal = (date: string | number | Date) => {
-    if (!date) return "N/A";
-    const d = new Date(date);
-    if (isNaN(d.getTime())) return "Invalid Date";
-    return d.toLocaleDateString("en-GB");
-  };
 
   // Edit/Delete modal state
   const [showEditForm, setShowEditForm] = useState(false);
@@ -418,12 +415,12 @@ const TaskSection: React.FC = () => {
                     )}
                     {selectedColumns.includes("start_date") && (
                       <TableCell className="px-4 py-2 ">
-                        {formatDateLocal(task.start_date)}
+                        {format(task.start_date, useEthiopianDate)}
                       </TableCell>
                     )}
                     {selectedColumns.includes("end_date") && (
                       <TableCell className="px-4 py-2 ">
-                        {formatDateLocal(task.end_date)}
+                        {format(task.end_date, useEthiopianDate)}
                       </TableCell>
                     )}
                     {selectedColumns.includes("duration") && (

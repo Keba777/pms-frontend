@@ -16,6 +16,8 @@ import { useDispatches, useDeleteDispatch, useUpdateDispatch } from "@/hooks/use
 import DispatchTableSkeleton from "@/components/skeletons/DispatchTableSkeleton";
 import DispatchForm from "@/components/forms/resource/DispatchForm";
 import EditDispatchForm from "@/components/forms/resource/EditDispatchForm"; // Assuming the path is correct
+import { formatDate as format } from "@/utils/dateUtils";
+import { useSettingsStore } from "@/store/settingsStore";
 
 const columnOptions: Record<string, string> = {
   refNumber: "Ref No.",
@@ -34,6 +36,7 @@ const columnOptions: Record<string, string> = {
 };
 
 const DispatchesPage: React.FC = () => {
+  const { useEthiopianDate } = useSettingsStore();
   const { data: dispatches = [], isLoading, error } = useDispatches();
   const { mutate: deleteDispatch } = useDeleteDispatch();
   const { mutate: updateDispatch } = useUpdateDispatch();
@@ -122,12 +125,12 @@ const DispatchesPage: React.FC = () => {
     {
       header: "Dispatched Date",
       accessor: (d: any) =>
-        d.dispatchedDate ? new Date(d.dispatchedDate).toLocaleDateString() : "N/A",
+        d.dispatchedDate ? format(d.dispatchedDate, useEthiopianDate) : "N/A",
     },
     {
       header: "Est. Arrival",
       accessor: (d: any) =>
-        d.estArrivalTime ? new Date(d.estArrivalTime).toLocaleDateString() : "N/A",
+        d.estArrivalTime ? format(d.estArrivalTime, useEthiopianDate) : "N/A",
     },
     { header: "Departure", accessor: (d: any) => d.depatureSite?.name || "N/A" },
     { header: "Arrival", accessor: (d: any) => d.arrivalSite?.name || "N/A" },
@@ -304,12 +307,12 @@ const DispatchesPage: React.FC = () => {
                   )}
                   {selectedColumns.includes("dispatchedDate") && (
                     <td className="px-4 py-2">
-                      {d.dispatchedDate ? new Date(d.dispatchedDate).toLocaleDateString() : "N/A"}
+                      {d.dispatchedDate ? format(d.dispatchedDate, useEthiopianDate) : "N/A"}
                     </td>
                   )}
                   {selectedColumns.includes("estArrivalTime") && (
                     <td className="px-4 py-2">
-                      {d.estArrivalTime ? new Date(d.estArrivalTime).toLocaleDateString() : "N/A"}
+                      {d.estArrivalTime ? format(d.estArrivalTime, useEthiopianDate) : "N/A"}
                     </td>
                   )}
                   {selectedColumns.includes("depatureSite") && (

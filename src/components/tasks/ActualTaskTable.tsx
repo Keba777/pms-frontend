@@ -21,6 +21,8 @@ import ConfirmModal from "@/components/common/ui/ConfirmModal";
 import ProfileAvatar from "@/components/common/ProfileAvatar";
 import SearchInput from "../common/ui/SearchInput";
 import GenericDownloads from "@/components/common/GenericDownloads";
+import { formatDate as format } from "@/utils/dateUtils";
+import { useSettingsStore } from "@/store/settingsStore";
 
 const defaultActuals: TaskActuals = {
   start_date: null,
@@ -37,6 +39,7 @@ interface ExtendedTask extends Task {
 }
 
 const ActualTaskTable: React.FC = () => {
+  const { useEthiopianDate } = useSettingsStore();
   const {
     data: tasks,
     isLoading: loadingTasks,
@@ -356,8 +359,7 @@ const ActualTaskTable: React.FC = () => {
         valueGetter: (params: any) => {
           const d = params.data.actuals?.start_date;
           if (!d) return "";
-          const dt = new Date(d);
-          return isNaN(dt.getTime()) ? "" : dt.toLocaleDateString();
+          return format(d, useEthiopianDate);
         },
         valueSetter: (params: any) => {
           params.data.actuals.start_date = params.newValue || null;
@@ -376,8 +378,7 @@ const ActualTaskTable: React.FC = () => {
         valueGetter: (params: any) => {
           const d = params.data.actuals?.end_date;
           if (!d) return "";
-          const dt = new Date(d);
-          return isNaN(dt.getTime()) ? "" : dt.toLocaleDateString();
+          return format(d, useEthiopianDate);
         },
         valueSetter: (params: any) => {
           params.data.actuals.end_date = params.newValue || null;

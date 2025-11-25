@@ -3,10 +3,11 @@
 import React from "react";
 import { useForm, Controller } from "react-hook-form";
 import Select from "react-select";
-import DatePicker from "react-datepicker";
+import EtDatePicker from "habesha-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { UpdateTodoInput } from "@/types/todo";
 import { User } from "@/types/user";
+import { useSettingsStore } from "@/store/settingsStore";
 
 interface EditTodoFormProps {
   onSubmit: (data: UpdateTodoInput) => void;
@@ -21,6 +22,7 @@ const EditTodoForm: React.FC<EditTodoFormProps> = ({
   todo,
   users,
 }) => {
+  const { useEthiopianDate } = useSettingsStore();
   const {
     register,
     handleSubmit,
@@ -222,13 +224,10 @@ const EditTodoForm: React.FC<EditTodoFormProps> = ({
               name="target"
               control={control}
               render={({ field }) => (
-                <DatePicker
-                  selected={field.value ? new Date(field.value) : null}
+                <EtDatePicker
+                  value={field.value ? new Date(field.value) : null}
                   onChange={(date) => field.onChange(date)}
                   className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
-                  dateFormat="MM/dd/yyyy"
-                  showYearDropdown
-                  scrollableYearDropdown
                 />
               )}
             />
@@ -244,13 +243,10 @@ const EditTodoForm: React.FC<EditTodoFormProps> = ({
               control={control}
               rules={{ required: "Due date is required" }}
               render={({ field }) => (
-                <DatePicker
-                  selected={field.value ? new Date(field.value) : null}
+                <EtDatePicker
+                  value={field.value ? new Date(field.value) : null}
                   onChange={(date) => field.onChange(date)}
                   className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
-                  dateFormat="MM/dd/yyyy"
-                  showYearDropdown
-                  scrollableYearDropdown
                 />
               )}
             />

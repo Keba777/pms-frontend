@@ -2,7 +2,7 @@
 
 import React, { useEffect } from "react";
 import { useForm, Controller, useWatch } from "react-hook-form";
-import DatePicker from "react-datepicker";
+import DatePicker from "@/components/common/DatePicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { CreateApprovalInput } from "@/types/approval";
 import { useCreateApproval, useApprovalHistory } from "@/hooks/useApprovals";
@@ -10,6 +10,8 @@ import { useDepartments } from "@/hooks/useDepartments";
 import { useAuthStore } from "@/store/authStore";
 import { useUsers } from "@/hooks/useUsers";
 import Select from "react-select";
+import { useSettingsStore } from "@/store/settingsStore";
+import { normalizeDatePickerValue } from "@/utils/datePicker";
 
 interface ApprovalFormProps {
   requestId: string;
@@ -22,6 +24,7 @@ const ApprovalForm: React.FC<ApprovalFormProps> = ({
   departmentId,
   onClose,
 }) => {
+  const { useEthiopianDate } = useSettingsStore();
   const user = useAuthStore((state) => state.user);
   const now = new Date();
 
@@ -159,15 +162,19 @@ const ApprovalForm: React.FC<ApprovalFormProps> = ({
           <Controller
             name="approvedAt"
             control={control}
-            render={({ field }) => (
-              <DatePicker
-                selected={field.value}
-                onChange={field.onChange}
-                className="w-full px-3 py-2 border rounded-md"
-                showTimeSelect
-                dateFormat="Pp"
-              />
-            )}
+            render={({ field }) => {
+              const pickerValue = field.value ? new Date(field.value) : null;
+              return (
+                <DatePicker
+                  value={pickerValue}
+                  onChange={(value) =>
+                    field.onChange(normalizeDatePickerValue(value))
+                  }
+                  className="w-full px-3 py-2 border rounded-md"
+                  dateFormat="Pp"
+                />
+              );
+            }}
           />
         </div>
       </div>

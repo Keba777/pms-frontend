@@ -2,327 +2,156 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { ChevronDown } from "lucide-react";
-import { Task, UpdateTaskInput, CreateTaskInput } from "@/types/task";
-import TaskForm from "../forms/TaskForm";
-import EditTaskForm from "../forms/EditTaskForm";
-import ManageTaskForm from "../forms/ManageTaskForm";
-import ConfirmModal from "../common/ui/ConfirmModal";
-import GenericDownloads, { Column } from "../common/GenericDownloads";
-import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
-import { useDeleteTask, useUpdateTask } from "@/hooks/useTasks";
-import { useUsers } from "@/hooks/useUsers";
 import Link from "next/link";
+import { toast } from "react-toastify";
+import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
+
+import { Project, UpdateProjectInput } from "@/types/project";
 import { formatDate, getDateDuration } from "@/utils/dateUtils";
-import { FilterField, GenericFilter } from "../common/GenericFilter";
-import GenericImport, { ImportColumn } from "@/components/common/GenericImport";
-import { useCreateTask } from "@/hooks/useTasks";
+
+import ProjectTableSkeleton from "./ProjectTableSkeleton";
+import ConfirmModal from "../common/ui/ConfirmModal";
+import EditProjectForm from "../forms/EditProjectForm";
+import ManageProjectForm from "../forms/ManageProjectForm";
+
+import { useDeleteProject, useUpdateProject } from "@/hooks/useProjects";
+import { useUsers } from "@/hooks/useUsers";
+import { Task } from "@/types/task";
+import SearchInput from "../common/ui/SearchInput";
 import { useSettingsStore } from "@/store/settingsStore";
 
-interface TaskTableProps {
-  tasks: Task[];
-  projectTitle?: string;
-  projectId?: string;
+interface ProjectTableProps {
+  projects: Project[];
+  isLoading?: boolean;
+  isError?: boolean;
 }
 
-// Define filter interface
-interface TaskFilters {
-  taskName?: string;
-  status?: string;
-  priority?: string;
-}
-
-const statusBadgeClasses: Record<Task["status"], string> = {
-  "Not Started": "bg-gray-100 text-gray-800",
-  Started: "bg-blue-100 text-blue-800",
-  InProgress: "bg-yellow-100 text-yellow-800",
-  Onhold: "bg-amber-100 text-amber-800",
-  Canceled: "bg-red-100 text-red-800",
-  Completed: "bg-green-100 text-green-800",
-};
-
-const priorityBadgeClasses: Record<Task["priority"], string> = {
+const priorityBadgeClasses: Record<Project["priority"], string> = {
   Critical: "bg-red-100 text-red-800",
   High: "bg-orange-100 text-orange-800",
   Medium: "bg-yellow-100 text-yellow-800",
   Low: "bg-green-100 text-green-800",
 };
-
-/**
- * Narrowed local type so we guarantee `id: string` when passing to forms
- * Use `any` for progressUpdates here to avoid importing ProgressUpdateItem.
- * Replace `any` with the real ProgressUpdateItem[] type if you want stricter typing.
- */
-type UpdatableTaskWithId = UpdateTaskInput & {
-  id: string;
-  name?: string;
-  progressUpdates?: any[] | null;
+const statusBadgeClasses: Record<Project["status"], string> = {
+  "Not Started": "bg-gray-100 text-gray-800",
+  Started: "bg-blue-100 text-blue-800",
+  InProgress: "bg-yellow-100 text-yellow-800",
+  Canceled: "bg-red-100 text-red-800",
+  Onhold: "bg-amber-100 text-amber-800",
+  Completed: "bg-green-100 text-green-800",
 };
 
-export default function TaskTable({ tasks, projectId }: TaskTableProps) {
-  const { useEthiopianDate } = useSettingsStore();
+const columnOptions: Record<string, string> = {
+  no: "No",
+  title: "PROJECTS",
+  priority: "Priority",
+  start_date: "Start Date",
+  end_date: "End Date",
+  duration: "Duration",
+  remaining: "Remaining",
+  status: "Status",
+  action: "Action",
+};
+
+const ProjectTable: React.FC<ProjectTableProps> = ({
+  projects,
+  isLoading = false,
+  isError = false,
+}) => {
   const router = useRouter();
-  const { mutate: deleteTask } = useDeleteTask();
-  const { mutate: updateTask } = useUpdateTask();
+  const { useEthiopianDate } = useSettingsStore();
+
   const { data: users } = useUsers();
-  const { mutateAsync: createTaskAsync } = useCreateTask(() => {});
+  const { mutate: deleteProject } = useDeleteProject();
+  const { mutate: updateProject } = useUpdateProject();
 
-  // Modals & forms
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [showEditForm, setShowEditForm] = useState(false);
-  const [taskToEdit, setTaskToEdit] = useState<UpdatableTaskWithId | null>(null);
-  const [showManageForm, setShowManageForm] = useState(false);
-  const [taskToManage, setTaskToManage] = useState<UpdatableTaskWithId | null>(null);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
-
-  // Per-row dropdown
-  const [dropdownTaskId, setDropdownTaskId] = useState<string | null>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Columns customization
-  const columnOptions: Record<string, string> = {
-    no: "No",
-    task_name: "Task",
-    priority: "Priority",
-    start_date: "Start Date",
-    end_date: "End Date",
-    duration: "Duration",
-    remaining: "Remaining",
-    budget: "Budget",
-    progress: "Progress",
-    status: "Status",
-    actions: "Actions",
-  };
-  const [selectedColumns, setSelectedColumns] = useState<string[]>(
-    Object.keys(columnOptions)
-  );
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedColumns, setSelectedColumns] = useState<string[]>([
+    "no",
+    "title",
+    "priority",
+    "start_date",
+    "end_date",
+    "duration",
+    "remaining",
+    "status",
+    "action",
+  ]);
   const [showColumnMenu, setShowColumnMenu] = useState(false);
+
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
+    null
+  );
+
+  // Edit modal
+  // Guarantee `id: string` exists in the state so it can be passed to forms that require it
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [projectToEdit, setProjectToEdit] =
+    useState<UpdateProjectInput & { id: string } | null>(null);
+
+  // Manage modal
+  const [showManageForm, setShowManageForm] = useState(false);
+  const [projectToManage, setProjectToManage] =
+    useState<UpdateProjectInput & { id: string } | null>(null);
+
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const [filters, setFilters] = useState<TaskFilters>({});
-  const [filteredTasks, setFilteredTasks] = useState<Task[]>(tasks);
-
-  // Filter configuration
-  const filterFields: FilterField[] = [
-    {
-      name: "taskName",
-      label: "Task Name",
-      type: "text",
-      placeholder: "Search by task name...",
-    },
-    {
-      name: "status",
-      label: "Status",
-      type: "select",
-      options: Object.keys(statusBadgeClasses).map((status) => ({
-        label: status,
-        value: status,
-      })),
-      placeholder: "Select status...",
-    },
-    {
-      name: "priority",
-      label: "Priority",
-      type: "select",
-      options: Object.keys(priorityBadgeClasses).map((priority) => ({
-        label: priority,
-        value: priority,
-      })),
-      placeholder: "Select priority...",
-    },
-  ];
-
   useEffect(() => {
-    let result = [...tasks];
-
-    if (filters.taskName) {
-      result = result.filter((t) =>
-        t.task_name
-          .toLowerCase()
-          .includes((filters.taskName ?? "").toLowerCase())
-      );
-    }
-
-    if (filters.status) {
-      result = result.filter((t) => t.status === filters.status);
-    }
-
-    if (filters.priority) {
-      result = result.filter((t) => t.priority === filters.priority);
-    }
-
-    setFilteredTasks(result);
-  }, [filters, tasks]);
-
-  // Close menus on outside click
-  useEffect(() => {
-    function onClick(e: MouseEvent) {
+    const handleOutside = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
         setShowColumnMenu(false);
       }
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(e.target as Node)
-      ) {
-        setDropdownTaskId(null);
-      }
-    }
-    document.addEventListener("mousedown", onClick);
-    return () => document.removeEventListener("mousedown", onClick);
+    };
+    document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
   }, []);
 
-  // Handlers
   const toggleColumn = (col: string) =>
     setSelectedColumns((prev) =>
       prev.includes(col) ? prev.filter((c) => c !== col) : [...prev, col]
     );
 
-  const handleDeleteClick = (taskId: string) => {
-    const task = tasks.find((t) => t.id === taskId);
-    if (task?.activities?.length) {
+  const handleDeleteClick = (projectId: string, tasks: Task[]) => {
+    if (tasks.length > 0) {
       toast.error(
-        "Cannot delete task with activities. Please delete all activities first."
+        "Cannot delete project with tasks. Please delete all tasks first."
       );
       return;
     }
-    setSelectedTaskId(taskId);
+    setSelectedProjectId(projectId);
     setIsDeleteModalOpen(true);
   };
   const handleDeleteConfirm = () => {
-    if (selectedTaskId) {
-      deleteTask(selectedTaskId, {
-        onSuccess: () => toast.success("Task deleted"),
-        onError: () => toast.error("Failed to delete"),
-      });
-    }
+    if (selectedProjectId) deleteProject(selectedProjectId);
     setIsDeleteModalOpen(false);
   };
 
-  const handleView = (id: string) => router.push(`/tasks/${id}`);
-
-  const handleEditClick = (t: Task) => {
-    const payload: UpdatableTaskWithId = {
-      ...t,
-      assignedUsers: t.assignedUsers?.map((u) => u.id) as any,
-      id: t.id,
-      name: (t as any).name ?? undefined,
-      progressUpdates: (t as any).progressUpdates ?? null,
-    };
-    setTaskToEdit(payload);
-    setShowEditForm(true);
+  const handleView = (id: string) => {
+    router.push(`/projects/${id}`);
   };
-  const handleEditSubmit = (data: UpdateTaskInput) => {
-    updateTask(data);
+
+  const handleEditSubmit = (data: UpdateProjectInput) => {
+    updateProject(data);
     setShowEditForm(false);
   };
 
-  const handleManageClick = (t: Task) => {
-    const payload: UpdatableTaskWithId = {
-      ...t,
-      assignedUsers: t.assignedUsers?.map((u) => u.id) as any,
-      id: t.id,
-      name: (t as any).name ?? undefined,
-      progressUpdates: (t as any).progressUpdates ?? null,
-    };
-    setTaskToManage(payload);
-    setShowManageForm(true);
-  };
-  const handleManageConfirm = (data: UpdateTaskInput) => {
-    updateTask(data);
+  const handleManageSubmit = (data: UpdateProjectInput) => {
+    // only progress is updated in Manage form
+    updateProject(data);
     setShowManageForm(false);
   };
 
-  // Prepare columns for download
-  const downloadColumns: Column<Task>[] = [
-    { header: "Task", accessor: "task_name" },
-    { header: "Priority", accessor: "priority" },
-    { header: "Start Date", accessor: (row) => formatDate(row.start_date, useEthiopianDate) },
-    { header: "End Date", accessor: (row) => formatDate(row.end_date, useEthiopianDate) },
-    {
-      header: "Duration",
-      accessor: (row) => getDateDuration(row.start_date, row.end_date),
-    },
-    {
-      header: "Remaining",
-      accessor: (row) =>
-        getDateDuration(new Date().toISOString(), row.end_date),
-    },
-    {
-      header: "Budget (Random)",
-      accessor: () => Math.floor(1000000 + Math.random() * 9000000).toString(),
-    },
-    { header: "Progress", accessor: (row) => `${row.progress}%` },
-    { header: "Status", accessor: "status" },
-  ];
+  const filteredProjects = projects.filter((p) =>
+    p.title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-  // Task import configuration
-  const importColumns: ImportColumn<CreateTaskInput>[] = [
-    { header: "Task", accessor: "task_name", type: "string" },
-    { header: "Priority", accessor: "priority", type: "string" },
-    { header: "Start Date", accessor: "start_date", type: "date" },
-    { header: "End Date", accessor: "end_date", type: "date" },
-    { header: "Progress", accessor: "progress", type: "number" },
-    { header: "Status", accessor: "status", type: "string" },
-  ];
-
-  const requiredAccessors: (keyof CreateTaskInput)[] = [
-    "task_name",
-    "priority",
-    "start_date",
-    "end_date",
-    "status",
-  ];
-
-  const handleTaskImport = async (data: CreateTaskInput[]) => {
-    try {
-      const validPriorities = ["Critical", "High", "Medium", "Low"];
-      const validStatuses = [
-        "Not Started",
-        "Started",
-        "InProgress",
-        "Canceled",
-        "Onhold",
-        "Completed",
-      ];
-
-      for (let i = 0; i < data.length; i++) {
-        const task = data[i];
-        if (!validPriorities.includes(task.priority)) {
-          toast.error(
-            `Invalid priority in row ${
-              i + 2
-            }. Must be one of: ${validPriorities.join(", ")}`
-          );
-          return;
-        }
-        if (!validStatuses.includes(task.status)) {
-          toast.error(
-            `Invalid status in row ${
-              i + 2
-            }. Must be one of: ${validStatuses.join(", ")}`
-          );
-          return;
-        }
-
-        task.project_id = projectId!;
-        task.description = task.description || "Imported task";
-      }
-
-      await Promise.all(data.map((task) => createTaskAsync(task)));
-      toast.success("Tasks imported and created successfully!");
-    } catch (error) {
-      toast.error("Error importing and creating tasks");
-      console.error("Import error:", error);
-    }
-  };
-
-  const handleError = (error: string) => {
-    toast.error(error);
-  };
+  if (isLoading) return <ProjectTableSkeleton />;
+  if (isError) return <div>Error loading projects</div>;
 
   return (
-    <div className="ml-3 space-y-4">
+    <div>
       <style>
         {`
           .truncate-ellipsis {
@@ -332,24 +161,9 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
           }
         `}
       </style>
-      <div>
-        <div className="flex justify-end mb-4">
-          <GenericImport<CreateTaskInput>
-            expectedColumns={importColumns}
-            requiredAccessors={requiredAccessors}
-            onImport={handleTaskImport}
-            title="Tasks"
-            onError={handleError}
-          />
-        </div>
-        <GenericDownloads
-          data={filteredTasks}
-          title="Tasks"
-          columns={downloadColumns}
-        />
-      </div>
+      <h2 className="text-3xl font-semibold mb-4 mt-6">Available Projects</h2>
 
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-4">
         <div ref={menuRef} className="relative">
           <button
             onClick={() => setShowColumnMenu((v) => !v)}
@@ -358,7 +172,7 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
             Customize Columns <ChevronDown className="w-4 h-4" />
           </button>
           {showColumnMenu && (
-            <div className="absolute right-0 mt-1 w-48 bg-white border rounded shadow z-10">
+            <div className="absolute right-0 mt-1 w-40 bg-white border rounded shadow z-10">
               {Object.entries(columnOptions).map(([key, label]) => (
                 <label
                   key={key}
@@ -376,258 +190,209 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
             </div>
           )}
         </div>
-        <GenericFilter
-          fields={filterFields}
-          onFilterChange={(values) => setFilters(values as TaskFilters)}
+
+        <SearchInput
+          value={searchTerm}
+          onChange={setSearchTerm}
+          placeholder="Search projects..."
         />
       </div>
 
-      {/* Modals */}
-      {showCreateForm && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <TaskForm
-              onClose={() => setShowCreateForm(false)}
-              defaultProjectId={projectId}
-            />
-          </div>
-        </div>
-      )}
-      {showEditForm && taskToEdit && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <EditTaskForm
-              onClose={() => setShowEditForm(false)}
-              onSubmit={handleEditSubmit}
-              task={taskToEdit}
-              users={users}
-            />
-          </div>
-        </div>
-      )}
-      {showManageForm && taskToManage && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            {/* Removed onSubmit prop to match ManageTaskForm's prop types */}
-            <ManageTaskForm onClose={() => setShowManageForm(false)} task={taskToManage} />
-          </div>
-        </div>
-      )}
-
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold text-gray-800">
-          {projectId ? "Project Tasks" : "All Tasks"}
-        </h2>
-        <button
-          onClick={() => setShowCreateForm(true)}
-          className="px-4 py-2 bg-teal-700 text-white rounded hover:bg-teal-800"
-        >
-          Create Task
-        </button>
-      </div>
-
-      {/* Table */}
       <div className="overflow-x-auto">
         <table className="min-w-full border border-gray-200 divide-y divide-gray-200 table-auto">
-          <thead className="bg-teal-700">
+          <thead className="bg-cyan-700">
             <tr>
               {selectedColumns.includes("no") && (
-                <th className="border px-4 py-3 text-left text-sm font-medium text-gray-50 w-16 truncate-ellipsis">
+                <th className="px-5 py-3 text-left text-sm font-medium text-white w-16 truncate-ellipsis">
                   No
                 </th>
               )}
-              {selectedColumns.includes("task_name") && (
-                <th className="border px-4 py-3 text-left text-sm font-medium text-gray-50 min-w-[200px]">
-                  Task
+              {selectedColumns.includes("title") && (
+                <th className="px-5 py-3 text-left text-sm font-medium text-white min-w-[200px]">
+                  PROJECTS
                 </th>
               )}
               {selectedColumns.includes("priority") && (
-                <th className="border px-4 py-3 text-left text-sm font-medium text-gray-50 w-24 truncate-ellipsis">
+                <th className="px-5 py-3 text-left text-sm font-medium text-white w-24 truncate-ellipsis">
                   Priority
                 </th>
               )}
               {selectedColumns.includes("start_date") && (
-                <th className="border px-4 py-3 text-left text-sm font-medium text-gray-50 w-28 truncate-ellipsis">
+                <th className="px-5 py-3 text-left text-sm font-medium text-white w-28 truncate-ellipsis">
                   Start Date
                 </th>
               )}
               {selectedColumns.includes("end_date") && (
-                <th className="border px-4 py-3 text-left text-sm font-medium text-gray-50 w-28 truncate-ellipsis">
+                <th className="px-5 py-3 text-left text-sm font-medium text-white w-28 truncate-ellipsis">
                   End Date
                 </th>
               )}
               {selectedColumns.includes("duration") && (
-                <th className="border px-4 py-3 text-left text-sm font-medium text-gray-50 w-24 truncate-ellipsis">
+                <th className="px-5 py-3 text-left text-sm font-medium text-white w-24 truncate-ellipsis">
                   Duration
                 </th>
               )}
               {selectedColumns.includes("remaining") && (
-                <th className="border px-4 py-3 text-left text-sm font-medium text-gray-50 w-24 truncate-ellipsis">
+                <th className="px-5 py-3 text-left text-sm font-medium text-white w-24 truncate-ellipsis">
                   Remaining
                 </th>
               )}
-              {selectedColumns.includes("budget") && (
-                <th className="border px-4 py-3 text-left text-sm font-medium text-gray-50 w-24 truncate-ellipsis">
-                  Budget
-                </th>
-              )}
-              {selectedColumns.includes("progress") && (
-                <th className="border px-4 py-3 text-left text-sm font-medium text-gray-50 w-20 truncate-ellipsis">
-                  Progress
-                </th>
-              )}
               {selectedColumns.includes("status") && (
-                <th className="border px-4 py-3 text-left text-sm font-medium text-gray-50 w-28 truncate-ellipsis">
+                <th className="px-5 py-3 text-left text-sm font-medium text-white w-28 truncate-ellipsis">
                   Status
                 </th>
               )}
-              {selectedColumns.includes("actions") && (
-                <th className="border px-4 py-3 text-left text-sm font-medium text-gray-50 w-32 truncate-ellipsis">
-                  Actions
+              {selectedColumns.includes("action") && (
+                <th className="px-5 py-3 text-left text-sm font-medium text-white w-32 truncate-ellipsis">
+                  Action
                 </th>
               )}
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {filteredTasks.length > 0 ? (
-              filteredTasks.map((task, idx) => {
-                const duration = getDateDuration(
-                  task.start_date,
-                  task.end_date
-                );
+            {filteredProjects.length > 0 ? (
+              filteredProjects.map((project, idx) => {
                 const remaining = getDateDuration(
                   new Date().toISOString(),
-                  task.end_date
-                );
-                const randomBudget = Math.floor(
-                  1000000 + Math.random() * 9000000
+                  project.end_date
                 );
                 return (
-                  <tr key={task.id} className="hover:bg-gray-50 relative">
+                  <tr key={project.id} className="hover:bg-gray-50">
                     {selectedColumns.includes("no") && (
-                      <td className="border px-4 py-2 w-16 truncate-ellipsis">
+                      <td className="px-5 py-2 w-16 truncate-ellipsis">
                         {idx + 1}
                       </td>
                     )}
-                    {selectedColumns.includes("task_name") && (
-                      <td className="border border-gray-200 px-4 py-2 font-medium min-w-[200px]">
-                        <Link href={`/master-schedule/task/${task.id}`}>
-                          {task.task_name}
+                    {selectedColumns.includes("title") && (
+                      <td className="px-5 py-2 font-medium text-blue-600 hover:underline min-w-[200px]">
+                        <Link href={`/master-schedule/project/${project.id}`}>
+                          {project.title}
                         </Link>
                       </td>
                     )}
                     {selectedColumns.includes("priority") && (
-                      <td className="border px-4 py-2 w-24 truncate-ellipsis">
+                      <td className="px-5 py-2 w-24 truncate-ellipsis">
                         <span
                           className={`px-2 py-1 rounded-full text-sm font-medium ${
-                            priorityBadgeClasses[task.priority]
+                            priorityBadgeClasses[project.priority]
                           }`}
                         >
-                          {task.priority}
+                          {project.priority}
                         </span>
                       </td>
                     )}
                     {selectedColumns.includes("start_date") && (
-                      <td className="border px-4 py-2 w-28 truncate-ellipsis">
-                        {formatDate(task.start_date, useEthiopianDate)}
+                      <td className="px-5 py-2 w-28 truncate-ellipsis">
+                        {formatDate(project.start_date, useEthiopianDate)}
                       </td>
                     )}
                     {selectedColumns.includes("end_date") && (
-                      <td className="border px-4 py-2 w-28 truncate-ellipsis">
-                        {formatDate(task.end_date, useEthiopianDate)}
+                      <td className="px-5 py-2 w-28 truncate-ellipsis">
+                        {formatDate(project.end_date, useEthiopianDate)}
                       </td>
                     )}
                     {selectedColumns.includes("duration") && (
-                      <td className="border px-4 py-2 w-24 truncate-ellipsis">
-                        {duration}
+                      <td className="px-5 py-2 w-24 truncate-ellipsis">
+                        {getDateDuration(project.start_date, project.end_date)}
                       </td>
                     )}
                     {selectedColumns.includes("remaining") && (
-                      <td className="border px-4 py-2 w-24 truncate-ellipsis">
+                      <td className="px-5 py-2 w-24 truncate-ellipsis">
                         {remaining}
                       </td>
                     )}
-                    {selectedColumns.includes("budget") && (
-                      <td className="border px-4 py-2 w-24 truncate-ellipsis">
-                        {randomBudget}
-                      </td>
-                    )}
-                    {selectedColumns.includes("progress") && (
-                      <td className="border px-4 py-2 w-20 truncate-ellipsis">
-                        {task.progress}%
-                      </td>
-                    )}
                     {selectedColumns.includes("status") && (
-                      <td className="border px-4 py-2 w-28 truncate-ellipsis">
+                      <td className="px-5 py-2 w-28 truncate-ellipsis">
                         <span
                           className={`px-2 py-1 rounded-full text-sm font-medium ${
-                            statusBadgeClasses[task.status]
+                            statusBadgeClasses[project.status]
                           }`}
                         >
-                          {task.status}
+                          {project.status}
                         </span>
                       </td>
                     )}
-                    {selectedColumns.includes("actions") && (
-                      <td className="border px-4 py-2 w-32">
-                        <div className="relative">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setDropdownTaskId(
-                                dropdownTaskId === task.id ? null : task.id
-                              );
-                            }}
-                            className="flex items-center justify-between gap-1 px-3 py-1 bg-teal-700 text-white rounded w-full"
-                          >
-                            Actions
-                            <ChevronDown className="w-4 h-4" />
-                          </button>
-                          {dropdownTaskId === task.id && (
-                            <div
-                              ref={dropdownRef}
-                              className="absolute left-0 top-full mt-1 w-full bg-white border rounded shadow-lg z-50"
-                            >
-                              <button
-                                onClick={() => {
-                                  setDropdownTaskId(null);
-                                  handleView(task.id);
-                                }}
-                                className="w-full text-left px-3 py-2 hover:bg-gray-100"
-                              >
-                                View
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setDropdownTaskId(null);
-                                  handleEditClick(task);
-                                }}
-                                className="w-full text-left px-3 py-2 hover:bg-gray-100"
-                              >
-                                Edit
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setDropdownTaskId(null);
-                                  handleDeleteClick(task.id);
-                                }}
-                                className="w-full text-left px-3 py-2 text-red-600 hover:bg-gray-100"
-                              >
-                                Delete
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setDropdownTaskId(null);
-                                  handleManageClick(task);
-                                }}
-                                className="w-full text-left px-3 py-2 hover:bg-gray-100"
-                              >
-                                Manage
-                              </button>
-                            </div>
-                          )}
-                        </div>
+                    {selectedColumns.includes("action") && (
+                      <td className="px-5 py-2 w-32">
+                        <Menu
+                          as="div"
+                          className="relative inline-block text-left"
+                        >
+                          <MenuButton className="flex items-center gap-1 px-3 py-1 text-sm bg-cyan-700 text-white rounded hover:bg-cyan-800 w-full">
+                            Action <ChevronDown className="w-4 h-4" />
+                          </MenuButton>
+                          <MenuItems className="absolute left-0 mt-2 w-40 bg-white border divide-y divide-gray-100 rounded-md shadow-lg z-50">
+                            <MenuItem>
+                              {({ active }) => (
+                                <button
+                                  onClick={() => handleView(project.id)}
+                                  className={`w-full text-left px-3 py-2 text-sm ${
+                                    active ? "bg-gray-100" : ""
+                                  }`}
+                                >
+                                  View
+                                </button>
+                              )}
+                            </MenuItem>
+                            <MenuItem>
+                              {({ active }) => (
+                                <button
+                                  onClick={() => {
+                                    setProjectToEdit({
+                                      ...project,
+                                      members: project.members?.map(
+                                        (m) => m.id
+                                      ),
+                                    } as UpdateProjectInput & { id: string });
+                                    setShowEditForm(true);
+                                  }}
+                                  className={`w-full text-left px-3 py-2 text-sm ${
+                                    active ? "bg-gray-100" : ""
+                                  }`}
+                                >
+                                  Edit
+                                </button>
+                              )}
+                            </MenuItem>
+                            <MenuItem>
+                              {({ active }) => (
+                                <button
+                                  onClick={() =>
+                                    handleDeleteClick(
+                                      project.id,
+                                      project.tasks || []
+                                    )
+                                  }
+                                  className={`w-full text-left px-3 py-2 text-sm text-red-600 ${
+                                    active ? "bg-gray-100" : ""
+                                  }`}
+                                >
+                                  Delete
+                                </button>
+                              )}
+                            </MenuItem>
+                            <MenuItem>
+                              {({ active }) => (
+                                <button
+                                  onClick={() => {
+                                    setProjectToManage({
+                                      ...project,
+                                      members: project.members?.map(
+                                        (m) => m.id
+                                      ),
+                                    } as UpdateProjectInput & { id: string });
+                                    setShowManageForm(true);
+                                  }}
+                                  className={`w-full text-left px-3 py-2 text-sm ${
+                                    active ? "bg-gray-100" : ""
+                                  }`}
+                                >
+                                  Manage
+                                </button>
+                              )}
+                            </MenuItem>
+                          </MenuItems>
+                        </Menu>
                       </td>
                     )}
                   </tr>
@@ -637,9 +402,9 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
               <tr>
                 <td
                   colSpan={selectedColumns.length}
-                  className="border px-4 py-2 text-center text-gray-500"
+                  className="px-5 py-4 text-center text-gray-500"
                 >
-                  No tasks found
+                  No projects match “{searchTerm}”
                 </td>
               </tr>
             )}
@@ -647,12 +412,12 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
         </table>
       </div>
 
-      {/* Delete confirm */}
+      {/* Delete Confirmation */}
       {isDeleteModalOpen && (
         <ConfirmModal
           isVisible={isDeleteModalOpen}
           title="Confirm Deletion"
-          message="Are you sure you want to delete this task?"
+          message="Are you sure you want to delete this project?"
           showInput={false}
           confirmText="DELETE"
           confirmButtonText="Delete"
@@ -660,6 +425,34 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
           onConfirm={handleDeleteConfirm}
         />
       )}
+
+      {/* Edit Project Modal */}
+      {showEditForm && projectToEdit && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <EditProjectForm
+              onClose={() => setShowEditForm(false)}
+              onSubmit={handleEditSubmit}
+              project={projectToEdit}
+              users={users}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Manage Progress Modal */}
+      {showManageForm && projectToManage && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <ManageProjectForm
+              onClose={() => setShowManageForm(false)}
+              project={projectToManage}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
-}
+};
+
+export default ProjectTable;

@@ -4,17 +4,19 @@
 import React from "react";
 import { useForm, Controller } from "react-hook-form";
 import Select from "react-select";
-import DatePicker from "react-datepicker";
+import EtDatePicker from "habesha-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { CreatePaymentInput } from "@/types/financial";
 import { useCreatePayment } from "@/hooks/useFinancials";
 import { useProjects } from "@/hooks/useProjects";
+import { useSettingsStore } from "@/store/settingsStore";
 
 interface PaymentFormProps {
   onClose: () => void;
 }
 
 const PaymentForm: React.FC<PaymentFormProps> = ({ onClose }) => {
+  const { useEthiopianDate } = useSettingsStore();
   const {
     register,
     handleSubmit,
@@ -129,11 +131,10 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ onClose }) => {
           control={control}
           rules={{ required: "Date is required" }}
           render={({ field }) => (
-            <DatePicker
-              selected={field.value ? new Date(field.value) : null}
+            <EtDatePicker
+              value={field.value ? new Date(field.value) : null}
               onChange={(date) => field.onChange(date)}
               className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
-              dateFormat="MM/dd/yyyy"
             />
           )}
         />

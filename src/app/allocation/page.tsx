@@ -14,6 +14,8 @@ import ApprovalForm from "@/components/forms/ApprovalForm";
 import { fetchMaterialById } from "@/hooks/useMaterials";
 import { fetchEquipmentById } from "@/hooks/useEquipments";
 import { fetchLaborById } from "@/hooks/useLabors";
+import { formatDate as format } from "@/utils/dateUtils";
+import { useSettingsStore } from "@/store/settingsStore";
 
 const RequestRow: React.FC<{
   req: Request;
@@ -115,6 +117,7 @@ const RequestRow: React.FC<{
 };
 
 const ResourceAllocationPage: React.FC = () => {
+  const { useEthiopianDate } = useSettingsStore();
   const { data: requests, isLoading, isError } = useRequests();
   const { data: approvals = [] } = useApprovals();
   const user = useAuthStore((state) => state.user);
@@ -240,7 +243,7 @@ const ResourceAllocationPage: React.FC = () => {
                         </td>
                         <td className="px-4 py-2 text-sm">
                           {h.approvedAt
-                            ? new Date(h.approvedAt).toLocaleString()
+                            ? format(h.approvedAt, useEthiopianDate)
                             : "-"}
                         </td>
                         <td className="px-4 py-2 text-sm">

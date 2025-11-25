@@ -10,7 +10,9 @@ import {
   useUpdateActivity,
 } from "@/hooks/useActivities";
 import { Activity, UpdateActivityInput } from "@/types/activity";
-import { formatDate, getDuration } from "@/utils/helper";
+import { getDuration } from "@/utils/helper";
+import { formatDate as format } from "@/utils/dateUtils";
+import { useSettingsStore } from "@/store/settingsStore";
 import EditActivityForm from "../forms/EditActivityForm";
 import ConfirmModal from "../common/ui/ConfirmModal";
 import ActivityTableSkeleton from "./ActivityTableSkeleton";
@@ -58,6 +60,7 @@ const columnOptions: Record<string, string> = {
   actions: "Actions",
 };
 const DataTableActivities: React.FC = () => {
+  const { useEthiopianDate } = useSettingsStore();
   const { data: activities = [], isLoading, error } = useActivities();
   const { mutate: deleteActivity } = useDeleteActivity();
   const { mutate: updateActivity } = useUpdateActivity();
@@ -441,12 +444,12 @@ const DataTableActivities: React.FC = () => {
                   )}
                   {selectedColumns.includes("start_date") && (
                     <td className="px-4 py-2">
-                      {formatDate(activity.start_date)}
+                      {format(activity.start_date, useEthiopianDate)}
                     </td>
                   )}
                   {selectedColumns.includes("end_date") && (
                     <td className="px-4 py-2">
-                      {formatDate(activity.end_date)}
+                      {format(activity.end_date, useEthiopianDate)}
                     </td>
                   )}
                   {selectedColumns.includes("duration") && (

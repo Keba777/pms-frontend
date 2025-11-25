@@ -11,7 +11,9 @@ import ConfirmModal from "../common/ui/ConfirmModal";
 import { useRouter } from "next/navigation";
 import { useDeleteActivity, useUpdateActivity } from "@/hooks/useActivities";
 import Link from "next/link";
-import { formatDate, getDateDuration } from "@/utils/helper";
+import { getDateDuration } from "@/utils/helper";
+import { formatDate as format } from "@/utils/dateUtils";
+import { useSettingsStore } from "@/store/settingsStore";
 import { User } from "@/types/user";
 import { useUsers } from "@/hooks/useUsers";
 
@@ -40,6 +42,7 @@ const ActivityTable: React.FC<ActivityTableProps> = ({
   taskId,
   filteredActivities,
 }) => {
+  const { useEthiopianDate } = useSettingsStore();
   // Hooks for API mutations/queries
   const { mutate: deleteActivity } = useDeleteActivity();
   const { mutate: updateActivity } = useUpdateActivity();
@@ -443,12 +446,12 @@ const ActivityTable: React.FC<ActivityTableProps> = ({
                     )}
                     {selectedColumns.includes("start_date") && (
                       <td className="border px-4 py-2 w-28 truncate-ellipsis">
-                        {formatDate(activity.start_date)}
+                        {format(activity.start_date, useEthiopianDate)}
                       </td>
                     )}
                     {selectedColumns.includes("end_date") && (
                       <td className="border px-4 py-2 w-28 truncate-ellipsis">
-                        {formatDate(activity.end_date)}
+                        {format(activity.end_date, useEthiopianDate)}
                       </td>
                     )}
                     {selectedColumns.includes("duration") && (

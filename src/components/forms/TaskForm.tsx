@@ -3,17 +3,33 @@
 import React, { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import Select from "react-select";
-import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { CreateTaskInput } from "@/types/task"; // adjust path if needed
 import { useCreateTask } from "@/hooks/useTasks"; // hook to create a task
 import { useProjects } from "@/hooks/useProjects"; // hook to fetch projects
 import { useTaskStore } from "@/store/taskStore"; // import task store
-import { formatDate } from "@/utils/helper";
+import { formatDate as format } from "@/utils/dateUtils";
+import { useSettingsStore } from "@/store/settingsStore";
 import { ArrowRight, Calendar } from "lucide-react";
 import { useUsers } from "@/hooks/useUsers";
 import { Role, User } from "@/types/user";
 import { useRoles } from "@/hooks/useRoles";
+import DatePicker from "@/components/common/DatePicker";
+import {
+  DatePickerValue,
+  normalizeDatePickerValue,
+} from "@/utils/datePicker";
+
+// Helper to safely convert form field value to Date | null for DatePicker
+const toDatePickerValue = (value: unknown): Date | null => {
+  if (!value) return null;
+  if (value instanceof Date) return value;
+  if (typeof value === "string") {
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  }
+  return null;
+};
 
 interface TaskFormProps {
   onClose: () => void; // Function to close the modal
@@ -21,6 +37,7 @@ interface TaskFormProps {
 }
 
 const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
+  const { useEthiopianDate } = useSettingsStore();
   const {
     register,
     handleSubmit,
@@ -61,16 +78,38 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
   };
 
   // Watch start_date and end_date for changes.
-  const startDate = watch("start_date");
-  const endDate = watch("end_date");
+  const startDateRaw = watch("start_date");
+  const endDateRaw = watch("end_date");
+  
+  // Safely normalize form field values to Date | null, handling all edge cases
+  const startDate = React.useMemo(() => {
+    if (!startDateRaw) return null;
+    if (startDateRaw instanceof Date) return startDateRaw;
+    if (typeof startDateRaw === "string") {
+      const parsed = new Date(startDateRaw);
+      return Number.isNaN(parsed.getTime()) ? null : parsed;
+    }
+    return null;
+  }, [startDateRaw]);
+  
+  const endDate = React.useMemo(() => {
+    if (!endDateRaw) return null;
+    if (endDateRaw instanceof Date) return endDateRaw;
+    if (typeof endDateRaw === "string") {
+      const parsed = new Date(endDateRaw);
+      return Number.isNaN(parsed.getTime()) ? null : parsed;
+    }
+    return null;
+  }, [endDateRaw]);
 
   // Calculate duration when start_date or end_date change.
   useEffect(() => {
     if (startDate && endDate) {
-      const diffTime =
-        new Date(endDate).getTime() - new Date(startDate).getTime();
+      const diffTime = endDate.getTime() - startDate.getTime();
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
       setDuration(diffDays.toString());
+    } else {
+      setDuration("");
     }
   }, [startDate, endDate]);
 
@@ -316,10 +355,10 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
               </p>
               <div className="flex items-center text-sm mt-1">
                 <Calendar size={16} className="mr-1" />
-                <span>{formatDate(lastTask.start_date)}</span>
+                <span>{format(lastTask.start_date, useEthiopianDate)}</span>
                 <ArrowRight size={16} className="mx-2" />
                 <Calendar size={16} className="mr-1" />
-                <span>{formatDate(lastTask.end_date)}</span>
+                <span>{format(lastTask.end_date, useEthiopianDate)}</span>
               </div>
             </div>
           ) : (
@@ -340,12 +379,11 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
               rules={{ required: "Start date is required" }}
               render={({ field }) => (
                 <DatePicker
-                  selected={field.value ? new Date(field.value) : null}
-                  onChange={(date) => field.onChange(date)}
+                  value={toDatePickerValue(field.value)}
+                  onChange={(value) =>
+                    field.onChange(normalizeDatePickerValue(value))
+                  }
                   className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
-                  dateFormat="MM/dd/yyyy"
-                  showYearDropdown
-                  scrollableYearDropdown
                 />
               )}
             />
@@ -381,23 +419,21 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
               rules={{ required: "End date is required" }}
               render={({ field }) => (
                 <DatePicker
-                  selected={field.value ? new Date(field.value) : null}
-                  onChange={(date) => {
-                    field.onChange(date);
-                    if (startDate && date) {
-                      const diffTime =
-                        new Date(date).getTime() -
-                        new Date(startDate).getTime();
+                  value={toDatePickerValue(field.value)}
+                  onChange={(value) => {
+                    const nextDate = normalizeDatePickerValue(value);
+                    field.onChange(nextDate);
+                    if (startDate && nextDate) {
+                      const diffTime = nextDate.getTime() - startDate.getTime();
                       const diffDays = Math.ceil(
                         diffTime / (1000 * 60 * 60 * 24)
                       );
                       setDuration(diffDays.toString());
+                    } else if (!nextDate) {
+                      setDuration("");
                     }
                   }}
                   className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
-                  dateFormat="MM/dd/yyyy"
-                  showYearDropdown
-                  scrollableYearDropdown
                 />
               )}
             />

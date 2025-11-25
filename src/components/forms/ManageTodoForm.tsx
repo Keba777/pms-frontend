@@ -16,9 +16,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import DatePicker from "react-datepicker";
+import DatePicker from "@/components/common/DatePicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { createPortal } from "react-dom";
+import { useSettingsStore } from "@/store/settingsStore";
+import { normalizeDatePickerValue } from "@/utils/datePicker";
 
 const PopperContainer: React.ComponentType<{ children?: React.ReactNode }> = ({
   children,
@@ -33,6 +35,7 @@ const ManageTodoForm: React.FC<{
   onClose: () => void;
   todo: UpdateTodoInput;
 }> = ({ onSubmit, onClose, todo }) => {
+  const { useEthiopianDate } = useSettingsStore();
   const {
     handleSubmit,
     control,
@@ -210,14 +213,15 @@ const ManageTodoForm: React.FC<{
               <TableCell>{row.id}</TableCell>
               <TableCell>
                 <DatePicker
-                  selected={row.dateTime ? new Date(row.dateTime) : null}
-                  onChange={(date: Date | null) =>
+                  value={row.dateTime ? new Date(row.dateTime) : null}
+                  onChange={(value) => {
+                    const nextDate = normalizeDatePickerValue(value);
                     updateRow(
                       row.id,
                       "dateTime",
-                      date ? date.toISOString() : ""
-                    )
-                  }
+                      nextDate ? nextDate.toISOString() : ""
+                    );
+                  }}
                   showTimeSelect
                   timeIntervals={15}
                   timeFormat="h:mm aa"
@@ -334,10 +338,11 @@ const ManageTodoForm: React.FC<{
           </Label>
           <div className="flex-1">
             <DatePicker
-              selected={approvedDate ? new Date(approvedDate) : null}
-              onChange={(date: Date | null) =>
-                setApprovedDate(date ? date.toISOString() : "")
-              }
+              value={approvedDate ? new Date(approvedDate) : null}
+              onChange={(value) => {
+                const nextDate = normalizeDatePickerValue(value);
+                setApprovedDate(nextDate ? nextDate.toISOString() : "");
+              }}
               showTimeSelect
               timeIntervals={15}
               timeFormat="h:mm aa"

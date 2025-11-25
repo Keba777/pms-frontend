@@ -17,13 +17,16 @@ import ActivityTableSkeleton from "./ActivityTableSkeleton";
 import Link from "next/link";
 import { AgGridReact } from "ag-grid-react"; 
 import "ag-grid-community/styles/ag-grid.css"; 
-import "ag-grid-community/styles/ag-theme-alpine.css"; 
+import "ag-grid-community/styles/ag-theme-alpine.css";
+import { formatDate as format } from "@/utils/dateUtils";
+import { useSettingsStore } from "@/store/settingsStore"; 
 
 interface ExtendedActivity extends Activity {
   actuals: Actuals;
 }
 
 const ActualActivityTable: React.FC = () => {
+  const { useEthiopianDate } = useSettingsStore();
   const {
     data: activities,
     isLoading: loadingAct,
@@ -334,9 +337,7 @@ const ActualActivityTable: React.FC = () => {
         valueGetter: (params: any) => {
           const date = params.data.actuals?.start_date;
           if (!date) return "";
-          // date might be ISO already
-          const d = new Date(date);
-          return isNaN(d.getTime()) ? "" : d.toLocaleDateString();
+          return format(date, useEthiopianDate);
         },
         valueSetter: (params: any) => {
           // store raw value (will be sanitized when sending)
@@ -353,8 +354,7 @@ const ActualActivityTable: React.FC = () => {
         valueGetter: (params: any) => {
           const date = params.data.actuals?.end_date;
           if (!date) return "";
-          const d = new Date(date);
-          return isNaN(d.getTime()) ? "" : d.toLocaleDateString();
+          return format(date, useEthiopianDate);
         },
         valueSetter: (params: any) => {
           params.data.actuals.end_date = params.newValue || null;

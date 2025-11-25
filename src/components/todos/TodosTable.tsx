@@ -11,6 +11,8 @@ import EditTodoForm from "../forms/EditTodoForm";
 import { useUsers } from "@/hooks/useUsers";
 import ConfirmModal from "../common/ui/ConfirmModal";
 import ManageTodoForm from "../forms/ManageTodoForm";
+import { formatDate as format } from "@/utils/dateUtils";
+import { useSettingsStore } from "@/store/settingsStore";
 
 const priorityBadgeClasses: Record<Todo["priority"], string> = {
   Urgent: "bg-red-100 text-red-800",
@@ -37,6 +39,7 @@ const TodosTable: React.FC<TodosTableProps> = ({
   selectedColumns,
   departments,
 }) => {
+  const { useEthiopianDate } = useSettingsStore();
   const router = useRouter();
   const { data: users } = useUsers();
   const { mutate: deleteTodo } = useDeleteTodo();
@@ -204,14 +207,14 @@ const TodosTable: React.FC<TodosTableProps> = ({
               {selectedColumns.includes("target") && (
                 <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
                   {todo.target
-                    ? new Date(todo.target).toLocaleDateString()
+                    ? format(todo.target, useEthiopianDate)
                     : "-"}
                 </td>
               )}
               {selectedColumns.includes("dueDate") && (
                 <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
                   {todo.dueDate
-                    ? new Date(todo.dueDate).toLocaleDateString()
+                    ? format(todo.dueDate, useEthiopianDate)
                     : "-"}
                 </td>
               )}

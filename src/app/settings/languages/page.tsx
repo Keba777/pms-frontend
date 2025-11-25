@@ -20,7 +20,7 @@ const LanguageSettings = () => {
           className="data-[state=checked]:bg-cyan-700"
         />
         <Label htmlFor="ethiopian-date" className="text-gray-700">
-          Use Ethiopian Date Format (Visual Only)
+          Use Ethiopian Date Format 
         </Label>
       </div>
       <p className="mt-2 text-sm text-gray-500">

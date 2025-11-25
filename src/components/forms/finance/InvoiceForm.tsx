@@ -4,17 +4,20 @@
 import React from "react";
 import { useForm, Controller } from "react-hook-form";
 import Select from "react-select";
-import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { CreateInvoiceInput } from "@/types/financial";
 import { useCreateInvoice } from "@/hooks/useFinancials";
 import { useProjects } from "@/hooks/useProjects";  // Assuming hook for projects
+import { useSettingsStore } from "@/store/settingsStore";
+import DatePicker from "@/components/common/DatePicker";
+import { normalizeDatePickerValue } from "@/utils/datePicker";
 
 interface InvoiceFormProps {
   onClose: () => void;
 }
 
 const InvoiceForm: React.FC<InvoiceFormProps> = ({ onClose }) => {
+  const { useEthiopianDate } = useSettingsStore();
   const {
     register,
     handleSubmit,
@@ -86,8 +89,10 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ onClose }) => {
           rules={{ required: "Due date is required" }}
           render={({ field }) => (
             <DatePicker
-              selected={field.value ? new Date(field.value) : null}
-              onChange={(date) => field.onChange(date)}
+              value={field.value ? new Date(field.value) : null}
+              onChange={(value) =>
+                field.onChange(normalizeDatePickerValue(value))
+              }
               className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
               dateFormat="MM/dd/yyyy"
             />
