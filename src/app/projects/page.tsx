@@ -12,6 +12,8 @@ import ActualProjectSection from "@/components/dashboard/ActualProjectSection";
 import GenericDownloads, { Column } from "@/components/common/GenericDownloads";
 import { useProjectStore } from "@/store/projectStore";
 import { useAuthStore } from "@/store/authStore";
+import { useSettingsStore } from "@/store/settingsStore";
+import { formatDate, getDateDuration } from "@/utils/dateUtils";
 import {
   FilterField,
   FilterValues,
@@ -29,6 +31,7 @@ const ProjectPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"planned" | "actual">("planned");
   const { data: projects } = useProjects();
   const { projects: storeProjects } = useProjectStore();
+  const { useEthiopianDate } = useSettingsStore();
 
   const hasPermission = useAuthStore((state) => state.hasPermission);
   const [filterValues, setFilterValues] = useState<FilterValues>({});
@@ -40,16 +43,53 @@ const ProjectPage: React.FC = () => {
   const canCreate = hasPermission("projects", "create");
   const canManage = hasPermission("projects", "manage");
 
+  // Planned columns
   const columns: Column<Project>[] = [
     { header: "Project Name", accessor: "title" },
     { header: "Priority", accessor: "priority" },
     { header: "Client", accessor: "client" },
-    { header: "Progress", accessor: "progress" },
+    { header: "Progress", accessor: (row) => `${row.progress ?? 0}%` },
     { header: "Budget", accessor: "budget" },
-    { header: "Start Date", accessor: "start_date" },
-    { header: "End Date", accessor: "end_date" },
+    { header: "Start Date", accessor: (row) => formatDate(row.start_date, useEthiopianDate) },
+    { header: "End Date", accessor: (row) => formatDate(row.end_date, useEthiopianDate) },
     { header: "Status", accessor: "status" },
   ];
+
+  // Actual columns - showing actuals data
+  const actualColumns: Column<Project>[] = [
+    { header: "Project Name", accessor: "title" },
+    { header: "Priority", accessor: "priority" },
+    { header: "Client", accessor: "client" },
+    { header: "Actual Budget", accessor: (row) => row.actuals?.budget ?? "N/A" },
+    { header: "Budget +/-", accessor: (row) => {
+      const actual = typeof row.actuals?.budget === "number" ? row.actuals.budget : 0;
+      const planned = row.budget || 0;
+      const diff = actual - planned;
+      return diff !== 0 ? (diff > 0 ? `+${diff}` : `${diff}`) : "0";
+    }},
+    { header: "Actual Start Date", accessor: (row) => row.actuals?.start_date ? formatDate(row.actuals.start_date, useEthiopianDate) : "N/A" },
+    { header: "Actual End Date", accessor: (row) => row.actuals?.end_date ? formatDate(row.actuals.end_date, useEthiopianDate) : "N/A" },
+    { header: "Actual Duration", accessor: (row) => {
+      if (row.actuals?.start_date && row.actuals?.end_date) {
+        return getDateDuration(row.actuals.start_date, row.actuals.end_date);
+      }
+      return "N/A";
+    }},
+    { header: "Actual Progress", accessor: (row) => `${row.actuals?.progress ?? 0}%` },
+    { header: "Actual Status", accessor: (row) => row.actuals?.status ?? "N/A" },
+  ];
+
+  // Prepare actual data - only projects with actuals or all projects
+  const actualData = projects?.map(project => ({
+    ...project,
+    actuals: project.actuals || {
+      start_date: null,
+      end_date: null,
+      progress: null,
+      status: null,
+      budget: null,
+    }
+  })) || [];
 
   const importColumns: ImportColumn<CreateProjectInput>[] = [
     { header: "Project Name", accessor: "title", type: "string" },
@@ -210,9 +250,14 @@ const ProjectPage: React.FC = () => {
           {canManage && (
             <div className="w-full md:w-auto mt-2 md:mt-0">
               <GenericDownloads
-                data={storeProjects}
-                title="Projects Export"
+                data={storeProjects || []}
+                title="Planned Projects"
                 columns={columns}
+                secondTable={{
+                  data: actualData,
+                  title: "Actual Projects",
+                  columns: actualColumns,
+                }}
               />
             </div>
           )}

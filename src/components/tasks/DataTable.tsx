@@ -9,7 +9,6 @@ import { useTaskStore } from "@/store/taskStore";
 import { getDuration } from "@/utils/helper";
 import { formatDate as format } from "@/utils/dateUtils";
 import { useSettingsStore } from "@/store/settingsStore";
-import GenericDownloads from "@/components/common/GenericDownloads";
 import { Task, UpdateTaskInput } from "@/types/task";
 import { useDeleteTask, useUpdateTask } from "@/hooks/useTasks";
 import EditTaskForm from "@/components/forms/EditTaskForm";
@@ -189,18 +188,6 @@ const DataTable: React.FC = () => {
 
   return (
     <div>
-      <div className="mt-2 mb-6 ">
-        <GenericDownloads<Task>
-          data={filteredTasks}
-          title="Task Report"
-          columns={Object.entries(columnOptions)
-            .filter(([k]) => selectedColumns.includes(k))
-            .map(([key, label]) => ({
-              header: label,
-              accessor: key as keyof Task,
-            }))}
-        />
-      </div>
       <div className="mb-5 flex space-x-4 justify-between">
         <div ref={menuRef} className="relative">
           <button

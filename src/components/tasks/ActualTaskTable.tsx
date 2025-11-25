@@ -20,7 +20,6 @@ import EditTaskForm from "@/components/forms/EditTaskForm";
 import ConfirmModal from "@/components/common/ui/ConfirmModal";
 import ProfileAvatar from "@/components/common/ProfileAvatar";
 import SearchInput from "../common/ui/SearchInput";
-import GenericDownloads from "@/components/common/GenericDownloads";
 import { formatDate as format } from "@/utils/dateUtils";
 import { useSettingsStore } from "@/store/settingsStore";
 
@@ -485,33 +484,6 @@ const ActualTaskTable: React.FC = () => {
 
   return (
     <div>
-      <div className="mt-2 mb-4">
-        <GenericDownloads<Task>
-          data={filtered}
-          title="Actual Task Report"
-          columns={Object.entries(columnOptions)
-            .filter(([k]) => selectedColumns.includes(k))
-            .map(([key, label]) => {
-              if (key === "remaining") {
-                return {
-                  header: label,
-                  accessor: (row: Task) => row.actuals?.end_date ?? row.end_date,
-                };
-              }
-              if (key === "budget") {
-                return {
-                  header: label,
-                  accessor: (row: Task) => row.actuals?.budget ?? row.budget ?? 0,
-                };
-              }
-              return {
-                header: label,
-                accessor: key as keyof Task,
-              };
-            })}
-        />
-      </div>
-
       <div className="mb-5 flex items-center justify-between">
         <div ref={menuRef} className="relative">
           <button

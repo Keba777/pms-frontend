@@ -5,23 +5,68 @@ import Link from "next/link";
 import DataTableActivities from "@/components/activities/DataTableActivities";
 import ActualActivityTable from "@/components/activities/ActualActivityTable";
 import GenericDownloads, { Column } from "@/components/common/GenericDownloads";
-import { useActivityStore } from "@/store/activityStore";
+import { useActivities } from "@/hooks/useActivities";
+import ActivityTableSkeleton from "@/components/activities/ActivityTableSkeleton";
 import { Activity } from "@/types/activity";
+import { useSettingsStore } from "@/store/settingsStore";
+import { formatDate } from "@/utils/dateUtils";
 
 const ActivitiesPage = () => {
-  const { activities } = useActivityStore();
-  const [activeTab, setActiveTab] = useState("planned"); // default to Actual
+  const { data: activities, isLoading } = useActivities();
+  const { useEthiopianDate } = useSettingsStore();
+  const [activeTab, setActiveTab] = useState<"planned" | "actual">("planned");
 
-  const columns: Column<Activity>[] = [
+  // Planned columns
+  const plannedColumns: Column<Activity>[] = [
     { header: "Activity Name", accessor: "activity_name" },
     { header: "Priority", accessor: "priority" },
     { header: "Quantity", accessor: "quantity" },
     { header: "Unit", accessor: "unit" },
-    { header: "Start Date", accessor: "start_date" },
-    { header: "End Date", accessor: "end_date" },
+    { header: "Start Date", accessor: (row) => formatDate(row.start_date, useEthiopianDate) },
+    { header: "End Date", accessor: (row) => formatDate(row.end_date, useEthiopianDate) },
     { header: "Status", accessor: "status" },
     { header: "Approval", accessor: "approvalStatus" },
   ];
+
+  // Actual columns
+  const actualColumns: Column<Activity>[] = [
+    { header: "Activity Name", accessor: "activity_name" },
+    { header: "Priority", accessor: "priority" },
+    { header: "Actual Quantity", accessor: (row) => row.actuals?.quantity ?? "N/A" },
+    { header: "Actual Unit", accessor: (row) => row.actuals?.unit ?? "N/A" },
+    { header: "Actual Start Date", accessor: (row) => row.actuals?.start_date ? formatDate(row.actuals.start_date, useEthiopianDate) : "N/A" },
+    { header: "Actual End Date", accessor: (row) => row.actuals?.end_date ? formatDate(row.actuals.end_date, useEthiopianDate) : "N/A" },
+    { header: "Actual Progress", accessor: (row) => `${row.actuals?.progress ?? 0}%` },
+    { header: "Actual Status", accessor: (row) => row.actuals?.status ?? "N/A" },
+    { header: "Actual Labor Cost", accessor: (row) => row.actuals?.labor_cost ?? "N/A" },
+    { header: "Actual Material Cost", accessor: (row) => row.actuals?.material_cost ?? "N/A" },
+    { header: "Actual Equipment Cost", accessor: (row) => row.actuals?.equipment_cost ?? "N/A" },
+    { header: "Actual Total Cost", accessor: (row) => row.actuals?.total_cost ?? "N/A" },
+  ];
+
+  // Prepare actual data
+  const actualData = activities?.map(activity => ({
+    ...activity,
+    actuals: activity.actuals || {
+      quantity: null,
+      unit: null,
+      start_date: null,
+      end_date: null,
+      progress: null,
+      status: null,
+      labor_cost: null,
+      material_cost: null,
+      equipment_cost: null,
+      total_cost: null,
+      work_force: null,
+      machinery_list: null,
+      materials_list: null,
+    }
+  })) || [];
+
+  if (isLoading) {
+    return <ActivityTableSkeleton />;
+  }
 
   return (
     <div>
@@ -41,9 +86,14 @@ const ActivitiesPage = () => {
       </div>
 
       <GenericDownloads
-        data={activities}
-        title="Activities"
-        columns={columns}
+        data={activities || []}
+        title="Planned Activities"
+        columns={plannedColumns}
+        secondTable={{
+          data: actualData,
+          title: "Actual Activities",
+          columns: actualColumns,
+        }}
       />
 
       <div className="rounded-lg border border-gray-200 mt-4">

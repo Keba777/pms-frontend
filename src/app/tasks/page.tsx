@@ -9,9 +9,15 @@ import DataTable from "@/components/tasks/DataTable";
 import ActualTaskTable from "@/components/tasks/ActualTaskTable";
 import DataTableSkeleton from "@/components/tasks/DataTableSkeleton";
 import { useTasks } from "@/hooks/useTasks";
+import GenericDownloads, { Column } from "@/components/common/GenericDownloads";
+import { Task } from "@/types/task";
+import { useSettingsStore } from "@/store/settingsStore";
+import { formatDate } from "@/utils/dateUtils";
+import { getDateDuration } from "@/utils/dateUtils";
 
 const TasksPage: React.FC = () => {
   const { data: tasks, isLoading, isError } = useTasks();
+  const { useEthiopianDate } = useSettingsStore();
   const [activeTab, setActiveTab] = useState<"planned" | "actual">("planned");
 
   // Filter counts based on task status
@@ -28,10 +34,60 @@ const TasksPage: React.FC = () => {
     }
   );
 
+  // Planned columns
+  const plannedColumns: Column<Task>[] = [
+    { header: "Task Name", accessor: "task_name" },
+    { header: "Priority", accessor: "priority" },
+    { header: "Start Date", accessor: (row) => formatDate(row.start_date, useEthiopianDate) },
+    { header: "End Date", accessor: (row) => formatDate(row.end_date, useEthiopianDate) },
+    { header: "Progress", accessor: (row) => `${row.progress ?? 0}%` },
+    { header: "Status", accessor: "status" },
+    { header: "Approval", accessor: "approvalStatus" },
+  ];
+
+  // Actual columns
+  const actualColumns: Column<Task>[] = [
+    { header: "Task Name", accessor: "task_name" },
+    { header: "Priority", accessor: "priority" },
+    { header: "Actual Start Date", accessor: (row) => row.actuals?.start_date ? formatDate(row.actuals.start_date, useEthiopianDate) : "N/A" },
+    { header: "Actual End Date", accessor: (row) => row.actuals?.end_date ? formatDate(row.actuals.end_date, useEthiopianDate) : "N/A" },
+    { header: "Actual Duration", accessor: (row) => {
+      if (row.actuals?.start_date && row.actuals?.end_date) {
+        return getDateDuration(row.actuals.start_date, row.actuals.end_date);
+      }
+      return "N/A";
+    }},
+    { header: "Actual Progress", accessor: (row) => `${row.actuals?.progress ?? 0}%` },
+    { header: "Actual Status", accessor: (row) => row.actuals?.status ?? "N/A" },
+    { header: "Actual Budget", accessor: (row) => row.actuals?.budget ?? "N/A" },
+  ];
+
+  // Prepare actual data
+  const actualData = tasks?.map(task => ({
+    ...task,
+    actuals: task.actuals || {
+      start_date: null,
+      end_date: null,
+      progress: null,
+      status: null,
+      budget: null,
+    }
+  })) || [];
+
+  if (isLoading) {
+    return <DataTableSkeleton />;
+  }
+
+  if (isError) {
+    return <div>Failed to load tasks.</div>;
+  }
+
   return (
-    <div className="mx-auto max-w-full px-4">
-      {/* Breadcrumb and Stats Cards */}
-      <BreadcrumbTasks />
+    <div className="p-4">
+      <div className="flex flex-wrap justify-between items-center mb-4 mt-4 gap-2">
+        <BreadcrumbTasks />
+      </div>
+
       <div className="flex flex-wrap -mx-2 mt-4">
         <Card
           title="Completed"
@@ -63,6 +119,17 @@ const TasksPage: React.FC = () => {
         />
       </div>
 
+      <GenericDownloads
+        data={tasks || []}
+        title="Planned Tasks"
+        columns={plannedColumns}
+        secondTable={{
+          data: actualData,
+          title: "Actual Tasks",
+          columns: actualColumns,
+        }}
+      />
+
       {/* Tabs */}
       <div className="mt-6 border-b border-gray-200">
         <nav className="-mb-px flex space-x-4">
@@ -91,11 +158,7 @@ const TasksPage: React.FC = () => {
 
       {/* Table Section */}
       <div className="mt-6 max-w-full overflow-hidden">
-        {isLoading ? (
-          <DataTableSkeleton />
-        ) : isError ? (
-          <div>Failed to load tasks.</div>
-        ) : activeTab === "planned" ? (
+        {activeTab === "planned" ? (
           <DataTable />
         ) : (
           <ActualTaskTable />
