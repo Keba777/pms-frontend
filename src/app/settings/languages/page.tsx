@@ -1,4 +1,3 @@
-// pages/settings/language.tsx or app/settings/language/page.tsx (assuming app router)
 "use client";
 
 import React from 'react';
