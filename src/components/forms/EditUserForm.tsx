@@ -47,6 +47,13 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
       role_id: user.role_id,
       status: user.status,
       responsiblities: user.responsiblities || [],
+      username: user.username,
+      gender: user.gender,
+      position: user.position,
+      terms: user.terms,
+      joiningDate: user.joiningDate,
+      estSalary: user.estSalary,
+      ot: user.ot,
       // profile_picture omitted here
     },
   });
@@ -72,6 +79,16 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
     { value: "Active", label: "Active" },
     { value: "InActive", label: "InActive" },
   ];
+  const genderOptions: Option[] = [
+    { value: "Male", label: "Male" },
+    { value: "Female", label: "Female" },
+  ];
+  const termsOptions: Option[] = [
+    { value: "Part Time", label: "Part Time" },
+    { value: "Contract", label: "Contract" },
+    { value: "Temporary", label: "Temporary" },
+    { value: "Permanent", label: "Permanent" },
+  ];
 
   // responsibilities
   const [respInput, setRespInput] = useState("");
@@ -93,6 +110,7 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
     setValue("siteId", user.siteId);
     setValue("role_id", user.role_id);
     if (user.department_id) setValue("department_id", user.department_id);
+    if (user.joiningDate) setValue("joiningDate", new Date(user.joiningDate).toISOString().split('T')[0] as any);
   }, [user, setValue]);
 
   const submit = (data: UpdateUserInput) => {
@@ -187,6 +205,101 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
             <p className="text-red-500 text-sm">{errors.last_name.message}</p>
           )}
         </div>
+      </div>
+
+      {/* Username */}
+      <div>
+        <label className="block text-sm font-medium">
+          Username <span className="text-red-500">*</span>
+        </label>
+        <input
+          {...register("username", { required: "Required" })}
+          className="w-full border px-3 py-2 rounded"
+        />
+        {errors.username && (
+          <p className="text-red-500 text-sm">{errors.username.message}</p>
+        )}
+      </div>
+
+      {/* Gender */}
+      <Controller
+        name="gender"
+        control={control}
+        rules={{ required: "Required" }}
+        render={({ field }) => (
+          <div>
+            <label className="block text-sm font-medium">
+              Gender <span className="text-red-500">*</span>
+            </label>
+            <Select
+              {...field}
+              options={genderOptions}
+              onChange={(o) => field.onChange(o?.value)}
+              value={genderOptions.find((o) => o.value === field.value) || null}
+            />
+            {errors.gender && (
+              <p className="text-red-500 text-sm">{errors.gender.message}</p>
+            )}
+          </div>
+        )}
+      />
+
+      {/* Position */}
+      <div>
+        <label className="block text-sm font-medium">Position</label>
+        <input
+          {...register("position")}
+          className="w-full border px-3 py-2 rounded"
+        />
+      </div>
+
+      {/* Terms */}
+      <Controller
+        name="terms"
+        control={control}
+        render={({ field }) => (
+          <div>
+            <label className="block text-sm font-medium">Terms</label>
+            <Select
+              {...field}
+              options={termsOptions}
+              onChange={(o) => field.onChange(o?.value)}
+              value={termsOptions.find((o) => o.value === field.value) || null}
+            />
+          </div>
+        )}
+      />
+
+      {/* Joining Date */}
+      <div>
+        <label className="block text-sm font-medium">Joining Date</label>
+        <input
+          type="date"
+          {...register("joiningDate")}
+          className="w-full border px-3 py-2 rounded"
+        />
+      </div>
+
+      {/* Est Salary */}
+      <div>
+        <label className="block text-sm font-medium">Estimated Salary</label>
+        <input
+          type="number"
+          step="0.01"
+          {...register("estSalary")}
+          className="w-full border px-3 py-2 rounded"
+        />
+      </div>
+
+      {/* OT */}
+      <div>
+        <label className="block text-sm font-medium">OT</label>
+        <input
+          type="number"
+          step="0.01"
+          {...register("ot")}
+          className="w-full border px-3 py-2 rounded"
+        />
       </div>
 
       {/* Email / Phone */}

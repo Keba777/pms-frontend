@@ -29,6 +29,7 @@ const UserForm: React.FC<UserFormProps> = ({ onClose }) => {
   } = useForm<CreateUserInput>({
     defaultValues: {
       responsiblities: [],
+      gender: 'Male',
     },
   });
 
@@ -63,6 +64,18 @@ const UserForm: React.FC<UserFormProps> = ({ onClose }) => {
   const statusOptions: SelectOption[] = [
     { value: "Active", label: "Active" },
     { value: "InActive", label: "InActive" },
+  ];
+
+  const genderOptions: SelectOption[] = [
+    { value: "Male", label: "Male" },
+    { value: "Female", label: "Female" },
+  ];
+
+  const termsOptions: SelectOption[] = [
+    { value: "Part Time", label: "Part Time" },
+    { value: "Contract", label: "Contract" },
+    { value: "Temporary", label: "Temporary" },
+    { value: "Permanent", label: "Permanent" },
   ];
 
   const [responsibilityInput, setResponsibilityInput] = useState("");
@@ -142,6 +155,114 @@ const UserForm: React.FC<UserFormProps> = ({ onClose }) => {
               {errors.last_name.message}
             </p>
           )}
+        </div>
+
+        {/* Username */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Username
+          </label>
+          <input
+            type="text"
+            {...register("username")}
+            placeholder="Enter username (optional, auto-generated if blank)"
+            className="w-full px-3 py-2 border rounded-md"
+          />
+        </div>
+
+        {/* Gender */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Gender <span className="text-red-500">*</span>
+          </label>
+          <Controller
+            name="gender"
+            control={control}
+            rules={{ required: "Gender is required" }}
+            render={({ field }) => (
+              <Select
+                options={genderOptions}
+                onChange={(opt) => field.onChange(opt?.value)}
+                value={genderOptions.find((opt) => opt.value === field.value) || null}
+              />
+            )}
+          />
+          {errors.gender && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.gender.message}
+            </p>
+          )}
+        </div>
+
+        {/* Position */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Position
+          </label>
+          <input
+            type="text"
+            {...register("position")}
+            placeholder="Enter position"
+            className="w-full px-3 py-2 border rounded-md"
+          />
+        </div>
+
+        {/* Terms */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Terms
+          </label>
+          <Controller
+            name="terms"
+            control={control}
+            render={({ field }) => (
+              <Select
+                options={termsOptions}
+                onChange={(opt) => field.onChange(opt?.value)}
+                value={termsOptions.find((opt) => opt.value === field.value) || null}
+              />
+            )}
+          />
+        </div>
+
+        {/* Joining Date */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Joining Date
+          </label>
+          <input
+            type="date"
+            {...register("joiningDate")}
+            className="w-full px-3 py-2 border rounded-md"
+          />
+        </div>
+
+        {/* Est Salary */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Estimated Salary
+          </label>
+          <input
+            type="number"
+            step="0.01"
+            {...register("estSalary")}
+            placeholder="Enter estimated salary"
+            className="w-full px-3 py-2 border rounded-md"
+          />
+        </div>
+
+        {/* OT */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            OT
+          </label>
+          <input
+            type="number"
+            step="0.01"
+            {...register("ot")}
+            placeholder="Enter OT"
+            className="w-full px-3 py-2 border rounded-md"
+          />
         </div>
 
         {/* Email & Phone */}
