@@ -2,7 +2,6 @@
 
 import React, { useEffect } from "react";
 import { useForm, Controller, useWatch } from "react-hook-form";
-import DatePicker from "@/components/common/DatePicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { CreateApprovalInput } from "@/types/approval";
 import { useCreateApproval, useApprovalHistory } from "@/hooks/useApprovals";
@@ -12,6 +11,8 @@ import { useUsers } from "@/hooks/useUsers";
 import Select from "react-select";
 import { useSettingsStore } from "@/store/settingsStore";
 import { normalizeDatePickerValue } from "@/utils/datePicker";
+import EtDatePicker from "habesha-datepicker"; 
+import ReactDatePicker from "react-datepicker";
 
 interface ApprovalFormProps {
   requestId: string;
@@ -42,13 +43,11 @@ const ApprovalForm: React.FC<ApprovalFormProps> = ({
       },
     });
 
-  // pull history data directly
   const { data: historyData } = useApprovalHistory(requestId);
   const { data: depts, isLoading: deptsLoading } = useDepartments();
   const { data: users = [] } = useUsers();
   const { mutate, isPending: isSubmitting } = useCreateApproval();
 
-  // only default history array inside effect
   useEffect(() => {
     const history = historyData || [];
     if (history.length) {
@@ -58,11 +57,11 @@ const ApprovalForm: React.FC<ApprovalFormProps> = ({
     }
   }, [historyData, setValue]);
 
-  const finalDept = useWatch({ control, name: "finalDepartment" });
-
   const onSubmit = (data: CreateApprovalInput) => {
     mutate(data, { onSuccess: onClose });
   };
+
+  const finalDept = useWatch({ control, name: "finalDepartment" });
 
   const deptOptions = depts?.map((d) => ({ value: d.id, label: d.name })) || [];
   const userOptions = users.map((u) => ({
@@ -75,7 +74,6 @@ const ApprovalForm: React.FC<ApprovalFormProps> = ({
       onSubmit={handleSubmit(onSubmit)}
       className="bg-white rounded-lg shadow-xl p-6 space-y-6"
     >
-      {/* Header */}
       <div className="flex justify-between items-center pb-4 border-b">
         <h3 className="text-lg font-semibold text-gray-800">
           Allocate Approval
@@ -92,7 +90,6 @@ const ApprovalForm: React.FC<ApprovalFormProps> = ({
       <input type="hidden" {...register("requestId")} />
       <input type="hidden" {...register("departmentId")} />
 
-      {/* Step Order & Status */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -135,7 +132,6 @@ const ApprovalForm: React.FC<ApprovalFormProps> = ({
         </div>
       </div>
 
-      {/* Approved By & At */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -162,24 +158,38 @@ const ApprovalForm: React.FC<ApprovalFormProps> = ({
           <Controller
             name="approvedAt"
             control={control}
-            render={({ field }) => {
-              const pickerValue = field.value ? new Date(field.value) : null;
-              return (
-                <DatePicker
-                  value={pickerValue}
-                  onChange={(value) =>
-                    field.onChange(normalizeDatePickerValue(value))
-                  }
-                  className="w-full px-3 py-2 border rounded-md"
-                  dateFormat="Pp"
-                />
-              );
-            }}
+            render={({ field }) => (
+              <>
+                {useEthiopianDate ? (
+                  <EtDatePicker
+                    value={field.value ? new Date(field.value) : undefined}
+                    onChange={(date: any, event?: any) => {
+                      const d = Array.isArray(date) ? date[0] : date;
+                      field.onChange(d ? d.toISOString() : undefined);
+                    }}
+                    className="w-full px-3 py-2 border rounded-md"
+                    isRange={false}
+                  />
+                ) : (
+                  <ReactDatePicker
+                    showFullMonthYearPicker
+                    showYearDropdown
+                    selected={field.value ? new Date(field.value) : undefined}
+                    onChange={(date: any, event?: any) => {
+                      const d = Array.isArray(date) ? date[0] : date;
+                      field.onChange(d ? d.toISOString() : undefined);
+                    }}
+                    placeholderText="Enter Approved At"
+                    className="w-full px-3 py-2 border rounded-md"
+                    dateFormat="Pp"
+                  />
+                )}
+              </>
+            )}
           />
         </div>
       </div>
 
-      {/* Checked By & Remarks */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -210,7 +220,6 @@ const ApprovalForm: React.FC<ApprovalFormProps> = ({
         </div>
       </div>
 
-      {/* Departments */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -262,7 +271,6 @@ const ApprovalForm: React.FC<ApprovalFormProps> = ({
         </label>
       </div>
 
-      {/* Action Buttons */}
       <div className="flex justify-end gap-4 mt-4">
         <button
           type="button"

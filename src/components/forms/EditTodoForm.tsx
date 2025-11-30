@@ -2,12 +2,13 @@
 
 import React from "react";
 import { useForm, Controller } from "react-hook-form";
-import Select from "react-select";
-import EtDatePicker from "habesha-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { UpdateTodoInput } from "@/types/todo";
 import { User } from "@/types/user";
 import { useSettingsStore } from "@/store/settingsStore";
+import Select from "react-select";
+import EtDatePicker from "habesha-datepicker"; 
+import ReactDatePicker from "react-datepicker";
 
 interface EditTodoFormProps {
   onSubmit: (data: UpdateTodoInput) => void;
@@ -85,7 +86,6 @@ const EditTodoForm: React.FC<EditTodoFormProps> = ({
       onSubmit={handleSubmit(onSubmit)}
       className="bg-white rounded-lg shadow-xl p-6 space-y-6"
     >
-      {/* Header */}
       <div className="flex justify-between items-center pb-4 border-b">
         <h3 className="text-xl font-semibold text-gray-800">Edit Todo</h3>
         <button
@@ -98,7 +98,6 @@ const EditTodoForm: React.FC<EditTodoFormProps> = ({
       </div>
 
       <div className="space-y-6">
-        {/* Task Name */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Task Name <span className="text-red-500">*</span>
@@ -114,7 +113,6 @@ const EditTodoForm: React.FC<EditTodoFormProps> = ({
           )}
         </div>
 
-        {/* Type */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Type <span className="text-red-500">*</span>
@@ -130,9 +128,7 @@ const EditTodoForm: React.FC<EditTodoFormProps> = ({
           )}
         </div>
 
-        {/* Status and Priority Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Priority */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Priority <span className="text-red-500">*</span>
@@ -161,7 +157,6 @@ const EditTodoForm: React.FC<EditTodoFormProps> = ({
               </p>
             )}
           </div>
-          {/* Status */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Status <span className="text-red-500">*</span>
@@ -192,7 +187,6 @@ const EditTodoForm: React.FC<EditTodoFormProps> = ({
           </div>
         </div>
 
-        {/* Progress */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Progress (%)
@@ -213,9 +207,7 @@ const EditTodoForm: React.FC<EditTodoFormProps> = ({
           )}
         </div>
 
-        {/* Dates Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Target Date */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Target Date
@@ -224,16 +216,35 @@ const EditTodoForm: React.FC<EditTodoFormProps> = ({
               name="target"
               control={control}
               render={({ field }) => (
-                <EtDatePicker
-                  value={field.value ? new Date(field.value) : null}
-                  onChange={(date) => field.onChange(date)}
-                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
-                />
+                <>
+                  {useEthiopianDate ? (
+                    <EtDatePicker
+                      value={field.value ? new Date(field.value) : undefined}
+                      onChange={(date: any, event?: any) => {
+                        const d = Array.isArray(date) ? date[0] : date;
+                        field.onChange(d ? d.toISOString() : undefined);
+                      }}
+                      className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
+                      isRange={false}
+                    />
+                  ) : (
+                    <ReactDatePicker
+                      showFullMonthYearPicker
+                      showYearDropdown
+                      selected={field.value ? new Date(field.value) : undefined}
+                      onChange={(date: any, event?: any) => {
+                        const d = Array.isArray(date) ? date[0] : date;
+                        field.onChange(d ? d.toISOString() : undefined);
+                      }}
+                      placeholderText="Enter Target Date"
+                      className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
+                    />
+                  )}
+                </>
               )}
             />
           </div>
 
-          {/* Due Date */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Due Date <span className="text-red-500">*</span>
@@ -243,11 +254,31 @@ const EditTodoForm: React.FC<EditTodoFormProps> = ({
               control={control}
               rules={{ required: "Due date is required" }}
               render={({ field }) => (
-                <EtDatePicker
-                  value={field.value ? new Date(field.value) : null}
-                  onChange={(date) => field.onChange(date)}
-                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
-                />
+                <>
+                  {useEthiopianDate ? (
+                    <EtDatePicker
+                      value={field.value ? new Date(field.value) : undefined}
+                      onChange={(date: any, event?: any) => {
+                        const d = Array.isArray(date) ? date[0] : date;
+                        field.onChange(d ? d.toISOString() : undefined);
+                      }}
+                      className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
+                      isRange={false}
+                    />
+                  ) : (
+                    <ReactDatePicker
+                      showFullMonthYearPicker
+                      showYearDropdown
+                      selected={field.value ? new Date(field.value) : undefined}
+                      onChange={(date: any, event?: any) => {
+                        const d = Array.isArray(date) ? date[0] : date;
+                        field.onChange(d ? d.toISOString() : undefined);
+                      }}
+                      placeholderText="Enter Due Date"
+                      className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
+                    />
+                  )}
+                </>
               )}
             />
             {errors.dueDate && (
@@ -258,7 +289,6 @@ const EditTodoForm: React.FC<EditTodoFormProps> = ({
           </div>
         </div>
 
-        {/* AssignedUsers Section */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Assigned to
@@ -284,7 +314,6 @@ const EditTodoForm: React.FC<EditTodoFormProps> = ({
           />
         </div>
 
-        {/* Remark */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Remark
@@ -297,31 +326,6 @@ const EditTodoForm: React.FC<EditTodoFormProps> = ({
           />
         </div>
 
-        {/* Remainder */}
-        {/* <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Remainder
-          </label>
-          <textarea
-            {...register("remainder")}
-            placeholder="Enter Remainder"
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-            rows={3}
-          />
-        </div> */}
-
-        {/* Attachment */}
-        {/* <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Attachment</label>
-          <input
-            type="file"
-            multiple
-            {...register("attachment")}
-            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
-          />
-        </div> */}
-
-        {/* Footer Buttons */}
         <div className="flex justify-end gap-4">
           <button
             type="button"

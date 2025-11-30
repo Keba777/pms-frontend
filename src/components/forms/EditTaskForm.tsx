@@ -4,6 +4,7 @@ import React from "react";
 import { useForm, Controller } from "react-hook-form";
 import Select from "react-select";
 import EtDatePicker from "habesha-datepicker";
+import ReactDatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { UpdateTaskInput } from "@/types/task";
 import { User } from "@/types/user";
@@ -76,7 +77,6 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({
         </button>
       </div>
 
-      {/* Task Name */}
       <div className="flex items-center space-x-4">
         <label className="w-32 text-sm font-medium text-gray-700">
           Task Name<span className="text-red-500">*</span>
@@ -91,7 +91,6 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({
         <p className="text-red-500 text-sm ml-32">{errors.task_name.message}</p>
       )}
 
-      {/* Status */}
       <div className="flex items-center space-x-4">
         <label className="w-32 text-sm font-medium text-gray-700">
           Status<span className="text-red-500">*</span>
@@ -119,7 +118,6 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({
         <p className="text-red-500 text-sm ml-32">{errors.status.message}</p>
       )}
 
-      {/* Priority */}
       <div className="flex items-center space-x-4">
         <label className="w-32 text-sm font-medium text-gray-700">
           Priority
@@ -143,7 +141,6 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({
         />
       </div>
 
-      {/* Approval Status */}
       <div className="flex items-center space-x-4">
         <label className="w-32 text-sm font-medium text-gray-700">
           Approval
@@ -167,7 +164,6 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({
         />
       </div>
 
-      {/* Start Date */}
       <div className="flex items-center space-x-4">
         <label className="w-32 text-sm font-medium text-gray-700">
           Start Date<span className="text-red-500">*</span>
@@ -177,11 +173,31 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({
           control={control}
           rules={{ required: "Start date is required" }}
           render={({ field }) => (
-            <EtDatePicker
-              value={field.value ? new Date(field.value) : null}
-              onChange={(date) => field.onChange(date)}
-              className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-            />
+            <>
+              {useEthiopianDate ? (
+                <EtDatePicker
+                  value={field.value ? new Date(field.value) : undefined}
+                  onChange={(date: any, event?: any) => {
+                    const d = Array.isArray(date) ? date[0] : date;
+                    field.onChange(d ? d.toISOString() : undefined);
+                  }}
+                  className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+                  isRange={false}
+                />
+              ) : (
+                <ReactDatePicker
+                  showFullMonthYearPicker
+                  showYearDropdown
+                  selected={field.value ? new Date(field.value) : undefined}
+                  onChange={(date: any, event?: any) => {
+                    const d = Array.isArray(date) ? date[0] : date;
+                    field.onChange(d ? d.toISOString() : undefined);
+                  }}
+                  className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+                  placeholderText="Enter Start Date"
+                />
+              )}
+            </>
           )}
         />
       </div>
@@ -191,7 +207,6 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({
         </p>
       )}
 
-      {/* End Date */}
       <div className="flex items-center space-x-4">
         <label className="w-32 text-sm font-medium text-gray-700">
           End Date<span className="text-red-500">*</span>
@@ -201,11 +216,31 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({
           control={control}
           rules={{ required: "End date is required" }}
           render={({ field }) => (
-            <EtDatePicker
-              value={field.value ? new Date(field.value) : null}
-              onChange={(date) => field.onChange(date)}
-              className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-            />
+            <>
+              {useEthiopianDate ? (
+                <EtDatePicker
+                  value={field.value ? new Date(field.value) : undefined}
+                  onChange={(date: any, event?: any) => {
+                    const d = Array.isArray(date) ? date[0] : date;
+                    field.onChange(d ? d.toISOString() : undefined);
+                  }}
+                  className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+                  isRange={false}
+                />
+              ) : (
+                <ReactDatePicker
+                  showFullMonthYearPicker
+                  showYearDropdown
+                  selected={field.value ? new Date(field.value) : undefined}
+                  onChange={(date: any, event?: any) => {
+                    const d = Array.isArray(date) ? date[0] : date;
+                    field.onChange(d ? d.toISOString() : undefined);
+                  }}
+                  className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+                  placeholderText="Enter End Date"
+                />
+              )}
+            </>
           )}
         />
       </div>
@@ -213,7 +248,6 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({
         <p className="text-red-500 text-sm ml-32">{errors.end_date.message}</p>
       )}
 
-      {/* Progress */}
       <div className="flex items-center space-x-4">
         <label className="w-32 text-sm font-medium text-gray-700">
           Progress (%)
@@ -227,7 +261,6 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({
         />
       </div>
 
-      {/* Description */}
       <div className="flex items-start space-x-4">
         <label className="w-32 text-sm font-medium text-gray-700">
           Description<span className="text-red-500">*</span>
@@ -244,7 +277,6 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({
         </p>
       )}
 
-      {/* AssignedUsers */}
       <div className="flex items-center space-x-4">
         <label className="w-32 text-sm font-medium text-gray-700">
           Assigned Users

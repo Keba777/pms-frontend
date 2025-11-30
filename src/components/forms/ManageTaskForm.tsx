@@ -15,7 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import DatePicker from "@/components/common/DatePicker";
+import ReactDatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { createPortal } from "react-dom";
 import { useUpdateTaskProgress } from "@/hooks/useTasks";
@@ -23,10 +23,7 @@ import { toast } from "react-toastify";
 import { ProgressUpdateItem } from "@/types/activity";
 import { useSettingsStore } from "@/store/settingsStore";
 import { normalizeDatePickerValue } from "@/utils/datePicker";
-/**
- * popper container matching the expected signature:
- * React.ComponentType<{ children?: React.ReactNode }>
- */
+
 const PopperContainer: React.ComponentType<{ children?: React.ReactNode }> = ({
   children,
 }) => {
@@ -34,8 +31,8 @@ const PopperContainer: React.ComponentType<{ children?: React.ReactNode }> = ({
   if (!children) return null;
   return createPortal(children, document.body);
 };
+
 type Row = {
-  // UI id separate from backend id
   uiId: string;
   backendId?: string;
   dateTime: string;
@@ -51,6 +48,7 @@ type Row = {
   userId?: string;
   isNew?: boolean;
 };
+
 const ManageTaskForm: React.FC<{
   onClose: () => void;
   task: UpdateTaskInput & { id: string; name?: string; progressUpdates?: ProgressUpdateItem[] | null };
@@ -70,10 +68,8 @@ const ManageTaskForm: React.FC<{
     return null;
   }
 
-  // Convert incoming task.progressUpdates to rows (read-only)
   useEffect(() => {
     const pu = task.progressUpdates ?? [];
-    // compute fromProgress for each entry as the previous progress value if available
     const mapped: Row[] = pu.map((item, idx) => {
       const prev = idx > 0 ? pu[idx - 1].progress ?? null : item.fromProgress ?? null;
       return {
@@ -95,20 +91,21 @@ const ManageTaskForm: React.FC<{
     });
     setRows(mapped);
   }, [task.progressUpdates]);
-  // Auto add new row on mount
+
   useEffect(() => {
     addRow();
   }, []);
-  // helpers
+
   const getProgressColor = (value: number): string => {
-    if (value <= 25) return "#EF4444"; // red-500
-    if (value <= 50) return "#F97316"; // orange-500
-    if (value <= 75) return "#EAB308"; // yellow-500
-    return "#22C55E"; // green-500
+    if (value <= 25) return "#EF4444";
+    if (value <= 50) return "#F97316";
+    if (value <= 75) return "#EAB308";
+    return "#22C55E";
   };
+
   const uniqueUiId = () => `new-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
   const addRow = (): void => {
-    // enforce single new row
     if (newRow) {
       return;
     }
@@ -129,6 +126,7 @@ const ManageTaskForm: React.FC<{
     };
     setNewRow(defaultRow);
   };
+
   const updateNewRowField = <K extends keyof Row>(field: K, value: Row[K]) => {
     if (!newRow) return;
     if (field === "progress") {
@@ -139,9 +137,11 @@ const ManageTaskForm: React.FC<{
       setNewRow({ ...newRow, [field]: value });
     }
   };
+
   const deleteNewRow = () => {
     setNewRow(null);
   };
+
   const clampProgress = () => {
     if (!newRow) return;
     let clamped = newRow.progress;
@@ -152,6 +152,7 @@ const ManageTaskForm: React.FC<{
       updateNewRowField("progress", clamped);
     }
   };
+
   const onSubmit = async () => {
     if (!newRow) {
       toast.error("Add a new progress row before submitting.");
@@ -161,7 +162,6 @@ const ManageTaskForm: React.FC<{
       toast.error("Progress must be increased.");
       return;
     }
-    // build payload matching UpdateTaskProgressPayload expected by your API
     const payload = {
       taskId: task.id,
       progress: Number(newRow.progress ?? 0),
@@ -174,13 +174,11 @@ const ManageTaskForm: React.FC<{
       approvedDate: newRow.approvedDate ? new Date(newRow.approvedDate).toISOString() : null,
       dateTime: newRow.dateTime,
       userId: newRow.userId,
-      // fromProgress can be optionally sent if the backend needs it
       fromProgress: newRow.fromProgress ?? undefined,
     } as any;
     try {
       const updatedTask = await updateProgressMutation.mutateAsync(payload);
       toast.success("Progress updated successfully.");
-      // If backend returns updated task.progressUpdates, refresh UI from it
       const updatedProgressUpdates = (updatedTask.progressUpdates ?? []) as ProgressUpdateItem[];
       const mapped: Row[] = updatedProgressUpdates.map((item, idx) => {
         const prev = idx > 0 ? updatedProgressUpdates[idx - 1].progress ?? null : item.fromProgress ?? null;
@@ -203,7 +201,6 @@ const ManageTaskForm: React.FC<{
       });
       setRows(mapped);
       setNewRow(null);
-      // also update the local form's progress value to reflect current task progress returned
       if (typeof updatedTask.progress === "number") {
         setValue("progress", updatedTask.progress);
       }
@@ -212,10 +209,9 @@ const ManageTaskForm: React.FC<{
       toast.error("Failed to update progress.");
     }
   };
-  // Render
+
   return (
     <form className="bg-white rounded-lg shadow-xl p-6 space-y-4" onSubmit={(e) => { e.preventDefault(); onSubmit(); }}>
-      {/* Ensure datepicker popper appears above all */}
       <style>{`
         .react-datepicker-popper {
           z-index: 9999 !important;
@@ -238,7 +234,6 @@ const ManageTaskForm: React.FC<{
           ×
         </Button>
       </div>
-      {/* Keep the overall task progress control (optional) */}
       <div className="flex items-center space-x-4 my-4">
         <Label className="w-32 text-sm font-medium text-gray-700">Task Progress:</Label>
         <Controller
@@ -314,7 +309,6 @@ const ManageTaskForm: React.FC<{
           </TableRow>
         </TableHeader>
         <TableBody>
-          {/* existing (read-only) rows */}
           {rows.map((row, idx) => (
             <TableRow key={row.uiId} className="bg-white even:bg-gray-100">
               <TableCell>{idx + 1}</TableCell>
@@ -329,13 +323,14 @@ const ManageTaskForm: React.FC<{
               <TableCell>{row.approvedDate ? new Date(row.approvedDate).toLocaleString() : "-"}</TableCell>
             </TableRow>
           ))}
-          {/* new editable row (only one allowed) */}
           {newRow && (
             <TableRow key={newRow.uiId} className="bg-sky-50">
               <TableCell>{rows.length + 1}</TableCell>
               <TableCell>
-                <DatePicker
-                  value={newRow.dateTime ? new Date(newRow.dateTime) : null}
+                <ReactDatePicker
+                  showFullMonthYearPicker
+                  showYearDropdown
+                  selected={newRow.dateTime ? new Date(newRow.dateTime) : null}
                   onChange={(value) => {
                     const nextDate = normalizeDatePickerValue(value);
                     updateNewRowField("dateTime", nextDate ? nextDate.toISOString() : "");
@@ -396,8 +391,10 @@ const ManageTaskForm: React.FC<{
                 />
               </TableCell>
               <TableCell>
-                <DatePicker
-                  value={newRow.approvedDate ? new Date(newRow.approvedDate) : null}
+                <ReactDatePicker
+                  showFullMonthYearPicker
+                  showYearDropdown
+                  selected={newRow.approvedDate ? new Date(newRow.approvedDate) : null}
                   onChange={(value) => {
                     const nextDate = normalizeDatePickerValue(value);
                     updateNewRowField("approvedDate", nextDate ? nextDate.toISOString() : null);

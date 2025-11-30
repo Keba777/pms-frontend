@@ -13,6 +13,7 @@ import { useCreateNotification } from "@/hooks/useNotifications";
 import { useSites } from "@/hooks/useSites";
 import { useSettingsStore } from "@/store/settingsStore";
 import EtDatePicker from "habesha-datepicker"; 
+import ReactDatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
 interface ProjectFormProps {
@@ -21,6 +22,7 @@ interface ProjectFormProps {
 
 const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
   const { useEthiopianDate } = useSettingsStore();
+  const DatePickerComponent = useEthiopianDate ? EtDatePicker : ReactDatePicker;
   const {
     register,
     handleSubmit,
@@ -42,24 +44,28 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
     setSelectedFiles(files);
   };
 
-  const startDate = watch("start_date");
-  const endDate = watch("end_date");
+  const startDateStr = watch("start_date");
+  const endDateStr = watch("end_date");
 
   useEffect(() => {
-    if (startDate instanceof Date && endDate instanceof Date) {
+    const startDate = startDateStr ? new Date(startDateStr) : null;
+    const endDate = endDateStr ? new Date(endDateStr) : null;
+    if (startDate && endDate) {
       const diffTime = endDate.getTime() - startDate.getTime();
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
       setDuration(diffDays.toString());
     }
-  }, [startDate, endDate]);
+  }, [startDateStr, endDateStr]);
 
   const handleDurationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newDuration = e.target.value;
     setDuration(newDuration);
-    if (startDate instanceof Date && newDuration && !isNaN(Number(newDuration))) {
+    const startDate = startDateStr ? new Date(startDateStr) : null;
+    if (startDate && newDuration && !isNaN(Number(newDuration))) {
       const calculatedEndDate = new Date(startDate);
       calculatedEndDate.setDate(calculatedEndDate.getDate() + Number(newDuration));
-      setValue("end_date", calculatedEndDate);
+      // end_date is stored as an ISO string in this form; cast the field name to any to satisfy setValue typing
+      setValue("end_date" as any, calculatedEndDate ? calculatedEndDate.toISOString() : undefined);
     }
   };
 
@@ -151,7 +157,6 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
       label: site.name,
     })) || [];
 
-  // Use EtDatePicker (handled by provider)
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
@@ -271,11 +276,31 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
               control={control}
               rules={{ required: "Start date is required" }}
               render={({ field }) => (
-                <EtDatePicker
-                  value={field.value ? new Date(field.value) : null}
-                  onChange={(date) => field.onChange(date)}
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-                />
+                <>
+                  {useEthiopianDate ? (
+                    <EtDatePicker
+                      value={field.value ? new Date(field.value) : undefined}
+                      onChange={(date: any, event?: any) => {
+                        const d = Array.isArray(date) ? date[0] : date;
+                        field.onChange(d ? d.toISOString() : undefined);
+                      }}
+                      className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+                      isRange={false}
+                    />
+                  ) : (
+                    <ReactDatePicker
+                      showFullMonthYearPicker
+                      showYearDropdown
+                      selected={field.value ? new Date(field.value) : undefined}
+                      onChange={(date: any, event?: any) => {
+                        const d = Array.isArray(date) ? date[0] : date;
+                        field.onChange(d ? d.toISOString() : undefined);
+                      }}
+                      placeholderText="Enter Start Date"
+                      className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+                    />
+                  )}
+                </>
               )}
             />
             {errors.start_date && (
@@ -308,20 +333,45 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
               control={control}
               rules={{ required: "End date is required" }}
               render={({ field }) => (
-                <EtDatePicker
-                  value={field.value ? new Date(field.value) : null}
-                  onChange={(date) => {
-                    field.onChange(date);
-                    if (startDate instanceof Date && date instanceof Date) {
-                      const diffTime = date.getTime() - startDate.getTime();
-                      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                      setDuration(diffDays.toString());
-                    }
-                  }}
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-                />
+                <>
+                  {useEthiopianDate ? (
+                    <EtDatePicker
+                      value={field.value ? new Date(field.value) : undefined}
+                      onChange={(date: any, event?: any) => {
+                        const d = Array.isArray(date) ? date[0] : date;
+                        field.onChange(d ? d.toISOString() : undefined);
+                        const startDate = startDateStr ? new Date(startDateStr) : null;
+                        if (startDate && d) {
+                          const diffTime = d.getTime() - startDate.getTime();
+                          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                          setDuration(diffDays.toString());
+                        }
+                      }}
+                      className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+                      isRange={false}
+                    />
+                  ) : (
+                    <ReactDatePicker
+                      showFullMonthYearPicker
+                      showYearDropdown
+                      selected={field.value ? new Date(field.value) : undefined}
+                      onChange={(date: any, event?: any) => {
+                        const d = Array.isArray(date) ? date[0] : date;
+                        field.onChange(d ? d.toISOString() : undefined);
+                        const startDate = startDateStr ? new Date(startDateStr) : null;
+                        if (startDate && d) {
+                          const diffTime = d.getTime() - startDate.getTime();
+                          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                          setDuration(diffDays.toString());
+                        }
+                      }}
+                      placeholderText="Enter End Date"
+                      className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+                    />
+                  )}
+                </>
               )}
-            />
+            />   
             {errors.end_date && (
               <p className="text-red-500 text-sm mt-1">
                 {errors.end_date.message}
@@ -446,7 +496,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
         {/* Description */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Description <span className="text-red-500">*</span>
+            Description
           </label>
           <textarea
             {...register("description")}

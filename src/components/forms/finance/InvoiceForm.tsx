@@ -1,4 +1,3 @@
-// InvoiceForm.tsx
 "use client";
 
 import React from "react";
@@ -7,10 +6,10 @@ import Select from "react-select";
 import "react-datepicker/dist/react-datepicker.css";
 import { CreateInvoiceInput } from "@/types/financial";
 import { useCreateInvoice } from "@/hooks/useFinancials";
-import { useProjects } from "@/hooks/useProjects";  // Assuming hook for projects
+import { useProjects } from "@/hooks/useProjects";
 import { useSettingsStore } from "@/store/settingsStore";
-import DatePicker from "@/components/common/DatePicker";
-import { normalizeDatePickerValue } from "@/utils/datePicker";
+import EtDatePicker from "habesha-datepicker"; 
+import ReactDatePicker from "react-datepicker";
 
 interface InvoiceFormProps {
   onClose: () => void;
@@ -61,10 +60,16 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ onClose }) => {
           rules={{ required: "Project is required" }}
           render={({ field }) => (
             <Select
+              {...field}
               options={projectOptions}
               isLoading={projectsLoading}
-              onChange={(option) => field.onChange(option?.value)}
-              value={projectOptions.find((o) => o.value === field.value)}
+              className="w-full"
+              onChange={(selectedOption) =>
+                field.onChange(selectedOption?.value)
+              }
+              value={projectOptions.find(
+                (option) => option.value === field.value
+              )}
             />
           )}
         />
@@ -88,14 +93,31 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ onClose }) => {
           control={control}
           rules={{ required: "Due date is required" }}
           render={({ field }) => (
-            <DatePicker
-              value={field.value ? new Date(field.value) : null}
-              onChange={(value) =>
-                field.onChange(normalizeDatePickerValue(value))
-              }
-              className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
-              dateFormat="MM/dd/yyyy"
-            />
+            <>
+              {useEthiopianDate ? (
+                <EtDatePicker
+                  value={field.value ? new Date(field.value) : undefined}
+                  onChange={(date: any, event?: any) => {
+                    const d = Array.isArray(date) ? date[0] : date;
+                    field.onChange(d ? d.toISOString() : undefined);
+                  }}
+                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
+                  isRange={false}
+                />
+              ) : (
+                <ReactDatePicker
+                  showFullMonthYearPicker
+                  showYearDropdown
+                  selected={field.value ? new Date(field.value) : undefined}
+                  onChange={(date: any, event?: any) => {
+                    const d = Array.isArray(date) ? date[0] : date;
+                    field.onChange(d ? d.toISOString() : undefined);
+                  }}
+                  placeholderText="Enter Due Date"
+                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
+                />
+              )}
+            </>
           )}
         />
         {errors.dueDate && <p className="text-red-500 text-sm mt-1">{errors.dueDate.message}</p>}
@@ -108,7 +130,9 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ onClose }) => {
           control={control}
           render={({ field }) => (
             <Select
+              {...field}
               options={statusOptions}
+              className="w-full"
               onChange={(option) => field.onChange(option?.value)}
               value={statusOptions.find((o) => o.value === field.value)}
             />

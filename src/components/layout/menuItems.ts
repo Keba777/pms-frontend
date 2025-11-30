@@ -302,18 +302,18 @@ const menuItems = [
         icon: Home,
         iconColor: "text-yellow-600",
       },
-      {
-        title: "Priorities",
-        link: "/priority/manage",
-        icon: ArrowUp,
-        iconColor: "text-orange-600",
-      },
-      {
-        title: "Statuses",
-        link: "/status/manage",
-        icon: Grid,
-        iconColor: "text-gray-700",
-      },
+      // {
+      //   title: "Priorities",
+      //   link: "/priority/manage",
+      //   icon: ArrowUp,
+      //   iconColor: "text-orange-600",
+      // },
+      // {
+      //   title: "Statuses",
+      //   link: "/status/manage",
+      //   icon: Grid,
+      //   iconColor: "text-gray-700",
+      // },
       {
         title: "Clients",
         link: "/clients",

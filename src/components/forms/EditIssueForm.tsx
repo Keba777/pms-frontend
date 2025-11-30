@@ -2,7 +2,6 @@
 
 import React from "react";
 import { useForm, Controller } from "react-hook-form";
-import DatePicker from "@/components/common/DatePicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { UpdateIssueInput } from "@/types/issue";
 import { useDepartments } from "@/hooks/useDepartments";
@@ -12,7 +11,9 @@ import Select from "react-select";
 import { Department } from "@/types/department";
 import { Site } from "@/types/site";
 import { User } from "@/types/user";
-import { normalizeDatePickerValue } from "@/utils/datePicker";
+import { useSettingsStore } from "@/store/settingsStore";
+import EtDatePicker from "habesha-datepicker"; 
+import ReactDatePicker from "react-datepicker";
 
 interface EditIssueFormProps {
   onSubmit: (data: UpdateIssueInput) => void;
@@ -25,6 +26,7 @@ const EditIssueForm: React.FC<EditIssueFormProps> = ({
   onClose,
   issue,
 }) => {
+  const { useEthiopianDate } = useSettingsStore();
   const {
     register,
     handleSubmit,
@@ -78,7 +80,7 @@ const EditIssueForm: React.FC<EditIssueFormProps> = ({
           className="text-3xl text-red-500 hover:text-red-600"
           onClick={onClose}
         >
-          &times;
+          ×
         </button>
       </div>
 
@@ -209,11 +211,31 @@ const EditIssueForm: React.FC<EditIssueFormProps> = ({
           name="date"
           control={control}
           render={({ field }) => (
-            <DatePicker
-              value={field.value ? new Date(field.value as unknown as string) : null}
-              onChange={(value) => field.onChange(normalizeDatePickerValue(value))}
-              className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-            />
+            <>
+              {useEthiopianDate ? (
+                <EtDatePicker
+                  value={field.value ? new Date(field.value) : undefined}
+                  onChange={(date: any, event?: any) => {
+                    const d = Array.isArray(date) ? date[0] : date;
+                    field.onChange(d ? d.toISOString() : undefined);
+                  }}
+                  className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+                  isRange={false}
+                />
+              ) : (
+                <ReactDatePicker
+                  showFullMonthYearPicker
+                  showYearDropdown
+                  selected={field.value ? new Date(field.value) : undefined}
+                  onChange={(date: any, event?: any) => {
+                    const d = Array.isArray(date) ? date[0] : date;
+                    field.onChange(d ? d.toISOString() : undefined);
+                  }}
+                  placeholderText="Enter Date"
+                  className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+                />
+              )}
+            </>
           )}
         />
       </div>

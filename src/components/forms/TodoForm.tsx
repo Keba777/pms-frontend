@@ -1,10 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
-import Select from "react-select";
-import EtDatePicker from "habesha-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
 import { CreateTodoInput } from "@/types/todo";
 import { useCreateTodo } from "@/hooks/useTodos";
 import { useTodoStore } from "@/store/todoStore";
@@ -15,6 +12,9 @@ import { useUsers } from "@/hooks/useUsers";
 import { Role, User } from "@/types/user";
 import { useRoles } from "@/hooks/useRoles";
 import { useAuthStore } from "@/store/authStore";
+import Select from "react-select";
+import EtDatePicker from "habesha-datepicker"; 
+import ReactDatePicker from "react-datepicker";
 
 interface TodoFormProps {
   onClose: () => void;
@@ -39,7 +39,6 @@ const TodoForm: React.FC<TodoFormProps> = ({ onClose }) => {
   });
 
   const { mutate: createTodo, isPending } = useCreateTodo();
-  // Retrieve todos from the store to show the last created todo
   const { todos } = useTodoStore();
   const lastTodo = todos && todos.length > 0 ? todos[todos.length - 1] : null;
   const {
@@ -58,7 +57,6 @@ const TodoForm: React.FC<TodoFormProps> = ({ onClose }) => {
 
   const onSubmit = (data: CreateTodoInput) => {
     const submitData = { ...data, departmentId };
-    console.log("Submitting todo:", submitData);
 
     if (
       !submitData.attachment ||
@@ -73,7 +71,6 @@ const TodoForm: React.FC<TodoFormProps> = ({ onClose }) => {
       },
       onError: (error) => {
         console.error("Failed to create todo:", error);
-        alert("Failed to create todo: " + error.message);
       },
     });
   };
@@ -141,7 +138,6 @@ const TodoForm: React.FC<TodoFormProps> = ({ onClose }) => {
       onSubmit={handleSubmit(onSubmit)}
       className="bg-white rounded-lg shadow-xl p-6 space-y-6"
     >
-      {/* Header */}
       <div className="flex justify-between items-center pb-4 border-b">
         <h3 className="text-xl font-semibold text-gray-800">Create Todo</h3>
         <button
@@ -154,7 +150,6 @@ const TodoForm: React.FC<TodoFormProps> = ({ onClose }) => {
       </div>
 
       <div className="space-y-6">
-        {/* Task Name */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Task Name <span className="text-red-500">*</span>
@@ -170,7 +165,6 @@ const TodoForm: React.FC<TodoFormProps> = ({ onClose }) => {
           )}
         </div>
 
-        {/* Type */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Type <span className="text-red-500">*</span>
@@ -186,9 +180,7 @@ const TodoForm: React.FC<TodoFormProps> = ({ onClose }) => {
           )}
         </div>
 
-        {/* Status and Priority Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Priority */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Priority <span className="text-red-500">*</span>
@@ -217,7 +209,6 @@ const TodoForm: React.FC<TodoFormProps> = ({ onClose }) => {
               </p>
             )}
           </div>
-          {/* Status */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Status
@@ -242,7 +233,6 @@ const TodoForm: React.FC<TodoFormProps> = ({ onClose }) => {
           </div>
         </div>
 
-        {/* Progress */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Progress (%)
@@ -263,7 +253,6 @@ const TodoForm: React.FC<TodoFormProps> = ({ onClose }) => {
           )}
         </div>
 
-        {/* Latest Todo History Card */}
         <div className="p-4 rounded-lg shadow-md bg-linear-to-r from-cyan-500 to-cyan-700 text-white">
           <h4 className="text-lg font-semibold mb-2">Latest Todo</h4>
           {lastTodo ? (
@@ -282,9 +271,7 @@ const TodoForm: React.FC<TodoFormProps> = ({ onClose }) => {
           )}
         </div>
 
-        {/* Dates Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Target Date */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Target Date
@@ -293,16 +280,35 @@ const TodoForm: React.FC<TodoFormProps> = ({ onClose }) => {
               name="target"
               control={control}
               render={({ field }) => (
-                <EtDatePicker
-                  value={field.value ? new Date(field.value) : null}
-                  onChange={(date) => field.onChange(date)}
-                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
-                />
+                <>
+                  {useEthiopianDate ? (
+                    <EtDatePicker
+                      value={field.value ? new Date(field.value) : undefined}
+                      onChange={(date: any, event?: any) => {
+                        const d = Array.isArray(date) ? date[0] : date;
+                        field.onChange(d ? d.toISOString() : undefined);
+                      }}
+                      className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
+                      isRange={false}
+                    />
+                  ) : (
+                    <ReactDatePicker
+                      showFullMonthYearPicker
+                      showYearDropdown
+                      selected={field.value ? new Date(field.value) : undefined}
+                      onChange={(date: any, event?: any) => {
+                        const d = Array.isArray(date) ? date[0] : date;
+                        field.onChange(d ? d.toISOString() : undefined);
+                      }}
+                      placeholderText="Enter Target Date"
+                      className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
+                    />
+                  )}
+                </>
               )}
             />
           </div>
 
-          {/* Due Date */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Due Date <span className="text-red-500">*</span>
@@ -312,11 +318,31 @@ const TodoForm: React.FC<TodoFormProps> = ({ onClose }) => {
               control={control}
               rules={{ required: "Due date is required" }}
               render={({ field }) => (
-                <EtDatePicker
-                  value={field.value ? new Date(field.value) : null}
-                  onChange={(date) => field.onChange(date)}
-                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
-                />
+                <>
+                  {useEthiopianDate ? (
+                    <EtDatePicker
+                      value={field.value ? new Date(field.value) : undefined}
+                      onChange={(date: any, event?: any) => {
+                        const d = Array.isArray(date) ? date[0] : date;
+                        field.onChange(d ? d.toISOString() : undefined);
+                      }}
+                      className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
+                      isRange={false}
+                    />
+                  ) : (
+                    <ReactDatePicker
+                      showFullMonthYearPicker
+                      showYearDropdown
+                      selected={field.value ? new Date(field.value) : undefined}
+                      onChange={(date: any, event?: any) => {
+                        const d = Array.isArray(date) ? date[0] : date;
+                        field.onChange(d ? d.toISOString() : undefined);
+                      }}
+                      placeholderText="Enter Due Date"
+                      className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
+                    />
+                  )}
+                </>
               )}
             />
             {errors.dueDate && (
@@ -327,7 +353,6 @@ const TodoForm: React.FC<TodoFormProps> = ({ onClose }) => {
           </div>
         </div>
 
-        {/* AssignedUsers Section */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Assigned to
@@ -380,7 +405,6 @@ const TodoForm: React.FC<TodoFormProps> = ({ onClose }) => {
           )}
         </div>
 
-        {/* Remark */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Remark
@@ -393,58 +417,25 @@ const TodoForm: React.FC<TodoFormProps> = ({ onClose }) => {
           />
         </div>
 
-        {/* Remainder */}
-        {/* <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Reminder
-          </label>
-          <input
-            type="text"
-            {...register("remainder")}
-            placeholder="Enter Reminder"
-            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
-          />
-        </div> */}
-
-        {/* Attachment - Simple file input, but handling upload is not implemented here */}
-        {/* <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Attachments
-          </label>
-          <input
-            type="file"
-            multiple
-            {...register("attachment")}
-            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
-          />
-          <p className="text-sm text-gray-500 mt-1">
-            Upload files (handling upload to get URLs would require additional
-            logic)
-          </p>
-        </div> */}
-
         <div className="mt-4">
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Attach Files
           </label>
-
           <div className="w-full border-2 border-dashed border-gray-300 rounded-md p-4 bg-gray-50 hover:border-bs-primary transition-colors duration-300">
             <input
               type="file"
               multiple
               onChange={handleFileChange}
-              className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 
-                     file:rounded-md file:border-0 
-                     file:text-sm file:font-semibold 
-                     file:bg-bs-primary file:text-white 
+              className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4
+                     file:rounded-md file:border-0
+                     file:text-sm file:font-semibold
+                     file:bg-bs-primary file:text-white
                      hover:file:bg-bs-primary/90"
             />
             <p className="mt-2 text-sm text-gray-500">
               You can select multiple files.
             </p>
           </div>
-
-          {/* File list */}
           {selectedFiles.length > 0 && (
             <div className="mt-4">
               <h4 className="text-sm font-semibold text-gray-700 mb-2">
@@ -461,7 +452,6 @@ const TodoForm: React.FC<TodoFormProps> = ({ onClose }) => {
           )}
         </div>
 
-        {/* Footer Buttons */}
         <div className="flex justify-end gap-4">
           <button
             type="button"

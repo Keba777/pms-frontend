@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
 import Select from "react-select";
-import EtDatePicker from "habesha-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { CreateActivityInput } from "@/types/activity";
 import { useCreateActivity } from "@/hooks/useActivities";
@@ -15,6 +14,8 @@ import { useActivityStore } from "@/store/activityStore";
 import { useUsers } from "@/hooks/useUsers";
 import { useRoles } from "@/hooks/useRoles";
 import { Role, User } from "@/types/user";
+import EtDatePicker from "habesha-datepicker"; 
+import ReactDatePicker from "react-datepicker";
 
 interface ActivityFormProps {
   onClose: () => void;
@@ -90,28 +91,27 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
     remove: matRemove,
   } = useFieldArray({ control, name: "materials_list" });
 
-  const startDate = watch("start_date");
-  const endDate = watch("end_date");
+  const startDateStr = watch("start_date");
+  const endDateStr = watch("end_date");
 
   useEffect(() => {
+    const startDate = startDateStr ? new Date(startDateStr) : null;
+    const endDate = endDateStr ? new Date(endDateStr) : null;
     if (startDate && endDate) {
-      const diffTime =
-        new Date(endDate).getTime() - new Date(startDate).getTime();
+      const diffTime = endDate.getTime() - startDate.getTime();
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
       setDuration(diffDays.toString());
     }
-  }, [startDate, endDate]);
+  }, [startDateStr, endDateStr]);
 
-  // Update end_date when the user changes the duration manually.
   const handleDurationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newDuration = e.target.value;
     setDuration(newDuration);
+    const startDate = startDateStr ? new Date(startDateStr) : null;
     if (startDate && newDuration && !isNaN(Number(newDuration))) {
       const calculatedEndDate = new Date(startDate);
-      calculatedEndDate.setDate(
-        calculatedEndDate.getDate() + Number(newDuration)
-      );
-      setValue("end_date", calculatedEndDate);
+      calculatedEndDate.setDate(calculatedEndDate.getDate() + Number(newDuration));
+      setValue("end_date" as any, calculatedEndDate ? calculatedEndDate.toISOString() : undefined);
     }
   };
 
@@ -130,7 +130,6 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
     createActivity(submitData, {
       onSuccess: () => {
         onClose();
-        // window.location.reload();
       },
     });
   };
@@ -190,9 +189,7 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
       </div>
 
       <div className="space-y-6">
-        {/* Required Fields */}
         <div className="grid grid-cols-1 gap-6">
-          {/* Activity Name (Required) */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Activity Name <span className="text-red-500">*</span>
@@ -212,7 +209,6 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
             )}
           </div>
 
-          {/* Latest Activity History Card */}
           <div className="p-4 rounded-lg shadow-md bg-gradient-to-r from-cyan-500 to-cyan-700 text-white">
             <h4 className="text-lg font-semibold mb-2">Latest Activity</h4>
             {lastActivity ? (
@@ -234,9 +230,7 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
             )}
           </div>
 
-          {/* Dates and Duration Section */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Start Date */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Start Date <span className="text-red-500">*</span>
@@ -246,11 +240,31 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
                 control={control}
                 rules={{ required: "Start date is required" }}
                 render={({ field }) => (
-                  <EtDatePicker
-                    value={field.value ? new Date(field.value) : null}
-                    onChange={(date) => field.onChange(date)}
-                    className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-                  />
+                  <>
+                    {useEthiopianDate ? (
+                      <EtDatePicker
+                        value={field.value ? new Date(field.value) : undefined}
+                        onChange={(date: any, event?: any) => {
+                          const d = Array.isArray(date) ? date[0] : date;
+                          field.onChange(d ? d.toISOString() : undefined);
+                        }}
+                        className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+                        isRange={false}
+                      />
+                    ) : (
+                      <ReactDatePicker
+                        showFullMonthYearPicker
+                        showYearDropdown
+                        selected={field.value ? new Date(field.value) : undefined}
+                        onChange={(date: any, event?: any) => {
+                          const d = Array.isArray(date) ? date[0] : date;
+                          field.onChange(d ? d.toISOString() : undefined);
+                        }}
+                        placeholderText="Enter Start Date"
+                        className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+                      />
+                    )}
+                  </>
                 )}
               />
               {errors.start_date && (
@@ -260,11 +274,9 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
               )}
             </div>
 
-            {/* Duration Field (Optional - Not Submitted) */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Duration (days){" "}
-                <span className="text-gray-500">(optional)</span>
+                Duration (days) <span className="text-gray-500">(optional)</span>
               </label>
               <input
                 type="number"
@@ -275,7 +287,6 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
               />
             </div>
 
-            {/* End Date */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 End Date <span className="text-red-500">*</span>
@@ -290,23 +301,43 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
                     "End date must be after start date",
                 }}
                 render={({ field }) => (
-                  <EtDatePicker
-                    value={field.value ? new Date(field.value) : null}
-                    onChange={(date) => {
-                      const dateValue = Array.isArray(date) ? date[0] : date;
-                      field.onChange(dateValue);
-                      if (startDate && dateValue) {
-                        const diffTime =
-                          new Date(dateValue).getTime() -
-                          new Date(startDate).getTime();
-                        const diffDays = Math.ceil(
-                          diffTime / (1000 * 60 * 60 * 24)
-                        );
-                        setDuration(diffDays.toString());
-                      }
-                    }}
-                    className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-                  />
+                  <>
+                    {useEthiopianDate ? (
+                      <EtDatePicker
+                        value={field.value ? new Date(field.value) : undefined}
+                        onChange={(date: any, event?: any) => {
+                          const d = Array.isArray(date) ? date[0] : date;
+                          field.onChange(d ? d.toISOString() : undefined);
+                          const startDate = startDateStr ? new Date(startDateStr) : null;
+                          if (startDate && d) {
+                            const diffTime = d.getTime() - startDate.getTime();
+                            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                            setDuration(diffDays.toString());
+                          }
+                        }}
+                        className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+                        isRange={false}
+                      />
+                    ) : (
+                      <ReactDatePicker
+                        showFullMonthYearPicker
+                        showYearDropdown
+                        selected={field.value ? new Date(field.value) : undefined}
+                        onChange={(date: any, event?: any) => {
+                          const d = Array.isArray(date) ? date[0] : date;
+                          field.onChange(d ? d.toISOString() : undefined);
+                          const startDate = startDateStr ? new Date(startDateStr) : null;
+                          if (startDate && d) {
+                            const diffTime = d.getTime() - startDate.getTime();
+                            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                            setDuration(diffDays.toString());
+                          }
+                        }}
+                        placeholderText="Enter End Date"
+                        className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+                      />
+                    )}
+                  </>
                 )}
               />
               {errors.end_date && (
@@ -318,7 +349,6 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
           </div>
         </div>
 
-        {/* AssignedUsers Section */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Assigned to
@@ -333,7 +363,6 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
                 isLoading={usersLoading}
                 className="basic-multi-select"
                 classNamePrefix="select"
-                // Only send the user ids (the role is only displayed in the label)
                 onChange={(selectedOptions) =>
                   field.onChange(selectedOptions.map((option) => option.value))
                 }
@@ -349,9 +378,7 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
           )}
         </div>
 
-        {/* Optional Fields */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Task Select (Optional unless defaultTaskId is provided) */}
           {!defaultTaskId && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -385,7 +412,6 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
           )}
         </div>
 
-        {/* Priority and Approval Status */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -411,7 +437,6 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
             />
           </div>
 
-          {/* Status (Required) */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Status <span className="text-red-500">*</span>
@@ -443,7 +468,6 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
           </div>
         </div>
 
-        {/* Unit, Quantity and Progress */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -460,7 +484,6 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
             )}
           </div>
 
-          {/* Quantity Field */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Quantity <span className="text-red-500">*</span>
@@ -481,7 +504,6 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
             )}
           </div>
 
-          {/* Progress Field */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Progress (%) <span className="text-gray-500">(0 - 100)</span>
@@ -508,7 +530,6 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
           </div>
         </div>
 
-        {/* Description Field */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Description
@@ -542,7 +563,6 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
             </p>
           </div>
 
-          {/* File list */}
           {selectedFiles.length > 0 && (
             <div className="mt-4">
               <h4 className="text-sm font-semibold text-gray-700 mb-2">
@@ -563,7 +583,6 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
           Basic Assumptions
         </h2>
 
-        {/* Labor / Machinery / Materials factors */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -642,7 +661,6 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
           </div>
         </div>
 
-        {/* Dynamic workforce */}
         <section className="mt-6">
           <h4 className="text-lg font-semibold text-gray-800 mb-4">
             Work Force
@@ -694,7 +712,6 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
           </button>
         </section>
 
-        {/* Dynamic machinery list */}
         <section className="mt-6">
           <h4 className="text-lg font-semibold text-gray-800 mb-4">
             Machinery List
@@ -750,7 +767,6 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
           </button>
         </section>
 
-        {/* Dynamic materials list */}
         <section className="mt-6">
           <h4 className="text-lg font-semibold text-gray-800 mb-4">
             Materials List
@@ -796,7 +812,6 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
           </button>
         </section>
 
-        {/* Checked by */}
         <div className="grid grid-cols-1 md:gap-6 mt-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -817,17 +832,36 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
               control={control}
               name="checked_by_date"
               render={({ field }) => (
-                <EtDatePicker
-                  value={field.value ? new Date(field.value) : null}
-                  onChange={field.onChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary focus:border-bs-primary transition-colors duration-200"
-                />
+                <>
+                  {useEthiopianDate ? (
+                    <EtDatePicker
+                      value={field.value ? new Date(field.value) : undefined}
+                      onChange={(date: any, event?: any) => {
+                        const d = Array.isArray(date) ? date[0] : date;
+                        field.onChange(d ? d.toISOString() : undefined);
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary focus:border-bs-primary transition-colors duration-200"
+                      isRange={false}
+                    />
+                  ) : (
+                    <ReactDatePicker
+                      showFullMonthYearPicker
+                      showYearDropdown
+                      selected={field.value ? new Date(field.value) : undefined}
+                      onChange={(date: any, event?: any) => {
+                        const d = Array.isArray(date) ? date[0] : date;
+                        field.onChange(d ? d.toISOString() : undefined);
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary focus:border-bs-primary transition-colors duration-200"
+                      placeholderText="Enter Checked By Date"
+                    />
+                  )}
+                </>
               )}
             />
           </div>
         </div>
 
-        {/* Form Actions */}
         <div className="flex justify-end gap-4 pt-6 border-t">
           <button
             type="button"

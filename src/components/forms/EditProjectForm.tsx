@@ -4,6 +4,8 @@ import React from "react";
 import { useForm, Controller } from "react-hook-form";
 import Select from "react-select";
 import EtDatePicker from "habesha-datepicker";
+import ReactDatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import { Info } from "lucide-react";
 import { UpdateProjectInput } from "@/types/project";
 import { User } from "@/types/user";
@@ -192,25 +194,39 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Starts At <span className="text-red-500">*</span>
             </label>
-            <Controller
-              name="start_date"
-              control={control}
-              rules={{ required: "Start date is required" }}
-              render={({ field }) => (
-                <EtDatePicker
-                  value={field.value ? new Date(field.value) : null}
-                  onChange={(date) => field.onChange(date)}
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-                />
-              )}
-            />
-            {errors.start_date && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.start_date.message}
-              </p>
+          <Controller
+            name="start_date"
+            control={control}
+            rules={{ required: "Start date is required" }}
+            render={({ field }) => (
+              <div>
+                {useEthiopianDate ? (
+                  <EtDatePicker
+                    value={field.value ? new Date(field.value) : undefined}
+                    onChange={((date: Date | null | [Date | null, Date | null] | null, _event?: any) =>
+                      field.onChange(Array.isArray(date) ? (date[0] ? date[0].toISOString() : undefined) : date ? date.toISOString() : undefined)) as any}
+                    className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+                    isRange={false}
+                  />
+                ) : (
+                  <ReactDatePicker
+                    showFullMonthYearPicker
+                    showYearDropdown
+                    selected={field.value ? new Date(field.value) : undefined}
+                    onChange={((date: Date | null | [Date | null, Date | null] | null, _event?: any) =>
+                      field.onChange(Array.isArray(date) ? (date[0] ? date[0].toISOString() : undefined) : date ? date.toISOString() : undefined)) as any}
+                    className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+                    placeholderText="Enter Start Date"
+                  />
+                )}
+              </div>
             )}
-          </div>
-
+          />
+          {errors.start_date && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.start_date?.message}
+            </p>
+          )}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Ends At <span className="text-red-500">*</span>
@@ -220,11 +236,27 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
               control={control}
               rules={{ required: "End date is required" }}
               render={({ field }) => (
-                <EtDatePicker
-                  value={field.value ? new Date(field.value) : null}
-                  onChange={(date) => field.onChange(date)}
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-                />
+                <div>
+                  {useEthiopianDate ? (
+                    <EtDatePicker
+                      value={field.value ? new Date(field.value) : undefined}
+                      onChange={((date: Date | null | [Date | null, Date | null] | null, _event?: any) =>
+                        field.onChange(Array.isArray(date) ? (date[0] ? date[0].toISOString() : undefined) : date ? date.toISOString() : undefined)) as any}
+                      className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+                      isRange={false}
+                    />
+                  ) : (
+                    <ReactDatePicker
+                      showFullMonthYearPicker
+                      showYearDropdown
+                      selected={field.value ? new Date(field.value) : undefined}
+                      onChange={((date: Date | null | [Date | null, Date | null] | null, _event?: any) =>
+                        field.onChange(Array.isArray(date) ? (date[0] ? date[0].toISOString() : undefined) : date ? date.toISOString() : undefined)) as any}
+                      className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+                      placeholderText="Enter End Date"
+                    />
+                  )}
+                </div>
               )}
             />
             {errors.end_date && (
@@ -344,6 +376,7 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
             Update
           </button>
         </div>
+      </div>
       </div>
     </form>
   );

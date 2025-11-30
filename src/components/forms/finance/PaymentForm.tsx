@@ -1,15 +1,15 @@
-// PaymentForm.tsx
 "use client";
 
 import React from "react";
 import { useForm, Controller } from "react-hook-form";
 import Select from "react-select";
-import EtDatePicker from "habesha-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { CreatePaymentInput } from "@/types/financial";
 import { useCreatePayment } from "@/hooks/useFinancials";
 import { useProjects } from "@/hooks/useProjects";
 import { useSettingsStore } from "@/store/settingsStore";
+import EtDatePicker from "habesha-datepicker"; 
+import ReactDatePicker from "react-datepicker";
 
 interface PaymentFormProps {
   onClose: () => void;
@@ -73,10 +73,16 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ onClose }) => {
           rules={{ required: "Project is required" }}
           render={({ field }) => (
             <Select
+              {...field}
               options={projectOptions}
               isLoading={projectsLoading}
-              onChange={(option) => field.onChange(option?.value)}
-              value={projectOptions.find((o) => o.value === field.value)}
+              className="w-full"
+              onChange={(selectedOption) =>
+                field.onChange(selectedOption?.value)
+              }
+              value={projectOptions.find(
+                (option) => option.value === field.value
+              )}
             />
           )}
         />
@@ -111,9 +117,15 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ onClose }) => {
           rules={{ required: "Method is required" }}
           render={({ field }) => (
             <Select
+              {...field}
               options={methodOptions}
-              onChange={(option) => field.onChange(option?.value)}
-              value={methodOptions.find((o) => o.value === field.value)}
+              className="w-full"
+              onChange={(selectedOption) =>
+                field.onChange(selectedOption?.value)
+              }
+              value={methodOptions.find(
+                (option) => option.value === field.value
+              )}
             />
           )}
         />
@@ -131,11 +143,31 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ onClose }) => {
           control={control}
           rules={{ required: "Date is required" }}
           render={({ field }) => (
-            <EtDatePicker
-              value={field.value ? new Date(field.value) : null}
-              onChange={(date) => field.onChange(date)}
-              className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
-            />
+            <>
+              {useEthiopianDate ? (
+                <EtDatePicker
+                  value={field.value ? new Date(field.value) : undefined}
+                  onChange={(date: any, event?: any) => {
+                    const d = Array.isArray(date) ? date[0] : date;
+                    field.onChange(d ? d.toISOString() : undefined);
+                  }}
+                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
+                  isRange={false}
+                />
+              ) : (
+                <ReactDatePicker
+                  showFullMonthYearPicker
+                  showYearDropdown
+                  selected={field.value ? new Date(field.value) : undefined}
+                  onChange={(date: any, event?: any) => {
+                    const d = Array.isArray(date) ? date[0] : date;
+                    field.onChange(d ? d.toISOString() : undefined);
+                  }}
+                  placeholderText="Enter Date"
+                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
+                />
+              )}
+            </>
           )}
         />
         {errors.date && (
@@ -144,18 +176,8 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ onClose }) => {
       </div>
 
       <div className="flex justify-end gap-4">
-        <button
-          type="button"
-          onClick={onClose}
-          className="px-4 py-2 border rounded-md hover:bg-gray-50"
-        >
-          Close
-        </button>
-        <button
-          type="submit"
-          disabled={isPending}
-          className="px-4 py-2 bg-cyan-700 text-white rounded-md hover:bg-cyan-800"
-        >
+        <button type="button" onClick={onClose} className="px-4 py-2 border rounded-md hover:bg-gray-50">Close</button>
+        <button type="submit" disabled={isPending} className="px-4 py-2 bg-cyan-700 text-white rounded-md hover:bg-cyan-800">
           {isPending ? "Creating..." : "Create"}
         </button>
       </div>

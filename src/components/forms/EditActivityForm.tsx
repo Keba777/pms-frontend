@@ -4,6 +4,7 @@ import React from "react";
 import { useForm, Controller } from "react-hook-form";
 import Select from "react-select";
 import EtDatePicker from "habesha-datepicker";
+import ReactDatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { UpdateActivityInput } from "@/types/activity";
 import { Role, User } from "@/types/user";
@@ -81,7 +82,6 @@ const EditActivityForm: React.FC<{
         </button>
       </div>
 
-      {/* Activity Name */}
       <div className="flex items-center space-x-4">
         <label className="w-32 text-sm font-medium text-gray-700">
           Activity Name<span className="text-red-500">*</span>
@@ -100,7 +100,6 @@ const EditActivityForm: React.FC<{
         </p>
       )}
 
-      {/* Priority */}
       <div className="flex items-center space-x-4">
         <label className="w-32 text-sm font-medium text-gray-700">
           Priority<span className="text-red-500">*</span>
@@ -128,7 +127,6 @@ const EditActivityForm: React.FC<{
         <p className="text-red-500 text-sm ml-32">{errors.priority.message}</p>
       )}
 
-      {/* Unit */}
       <div className="flex items-center space-x-4">
         <label className="w-32 text-sm font-medium text-gray-700">
           Unit<span className="text-red-500">*</span>
@@ -143,7 +141,6 @@ const EditActivityForm: React.FC<{
         <p className="text-red-500 text-sm ml-32">{errors.unit.message}</p>
       )}
 
-      {/* Quantity */}
       <div className="flex items-center space-x-4">
         <label className="w-32 text-sm font-medium text-gray-700">
           Quantity
@@ -158,7 +155,6 @@ const EditActivityForm: React.FC<{
         <p className="text-red-500 text-sm ml-32">{errors.quantity.message}</p>
       )}
 
-      {/* AssignedUsers */}
       <div className="flex items-center space-x-4">
         <label className="w-32 text-sm font-medium text-gray-700">
           Assigned Users
@@ -183,7 +179,6 @@ const EditActivityForm: React.FC<{
         />
       </div>
 
-      {/* Start Date */}
       <div className="flex items-center space-x-4">
         <label className="w-32 text-sm font-medium text-gray-700">
           Start Date<span className="text-red-500">*</span>
@@ -193,11 +188,31 @@ const EditActivityForm: React.FC<{
           control={control}
           rules={{ required: "Start date is required" }}
           render={({ field }) => (
-            <EtDatePicker
-              value={field.value ? new Date(field.value) : null}
-              onChange={(date) => field.onChange(date)}
-              className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-            />
+            <>
+              {useEthiopianDate ? (
+                <EtDatePicker
+                  value={field.value ? new Date(field.value) : undefined}
+                  onChange={(date: any, event?: any) => {
+                    const d = Array.isArray(date) ? date[0] : date;
+                    field.onChange(d ? d.toISOString() : undefined);
+                  }}
+                  className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+                  isRange={false}
+                />
+              ) : (
+                <ReactDatePicker
+                  showFullMonthYearPicker
+                  showYearDropdown
+                  selected={field.value ? new Date(field.value) : undefined}
+                  onChange={(date: any, event?: any) => {
+                    const d = Array.isArray(date) ? date[0] : date;
+                    field.onChange(d ? d.toISOString() : undefined);
+                  }}
+                  className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+                  placeholderText="Enter Start Date"
+                />
+              )}
+            </>
           )}
         />
       </div>
@@ -207,7 +222,6 @@ const EditActivityForm: React.FC<{
         </p>
       )}
 
-      {/* End Date */}
       <div className="flex items-center space-x-4">
         <label className="w-32 text-sm font-medium text-gray-700">
           End Date<span className="text-red-500">*</span>
@@ -217,11 +231,31 @@ const EditActivityForm: React.FC<{
           control={control}
           rules={{ required: "End date is required" }}
           render={({ field }) => (
-            <EtDatePicker
-              value={field.value ? new Date(field.value) : null}
-              onChange={(date) => field.onChange(date)}
-              className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-            />
+            <>
+              {useEthiopianDate ? (
+                <EtDatePicker
+                  value={field.value ? new Date(field.value) : undefined}
+                  onChange={(date: any, event?: any) => {
+                    const d = Array.isArray(date) ? date[0] : date;
+                    field.onChange(d ? d.toISOString() : undefined);
+                  }}
+                  className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+                  isRange={false}
+                />
+              ) : (
+                <ReactDatePicker
+                  showFullMonthYearPicker
+                  showYearDropdown
+                  selected={field.value ? new Date(field.value) : undefined}
+                  onChange={(date: any, event?: any) => {
+                    const d = Array.isArray(date) ? date[0] : date;
+                    field.onChange(d ? d.toISOString() : undefined);
+                  }}
+                  className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+                  placeholderText="Enter End Date"
+                />
+              )}
+            </>
           )}
         />
       </div>
@@ -229,32 +263,19 @@ const EditActivityForm: React.FC<{
         <p className="text-red-500 text-sm ml-32">{errors.end_date.message}</p>
       )}
 
-      {/* Progress */}
-      {/* <div className="flex items-center space-x-4">
+      <div className="flex items-center space-x-4">
         <label className="w-32 text-sm font-medium text-gray-700">
           Progress (%):
         </label>
-        <Controller
-          name="progress"
-          control={control}
-          defaultValue={activity.progress ?? 0}
-          render={({ field }) => (
-            <div className="flex-1 flex items-center space-x-2">
-              <input
-                type="range"
-                min={0}
-                max={100}
-                {...field}
-                className="flex-1"
-                onChange={(e) => field.onChange(parseInt(e.target.value, 10))}
-              />
-              <span className="w-12 text-right">{field.value}%</span>
-            </div>
-          )}
+        <input
+          type="number"
+          min="0"
+          max="100"
+          {...register("progress")}
+          className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
         />
-      </div> */}
+      </div>
 
-      {/* Status */}
       <div className="flex items-center space-x-4">
         <label className="w-32 text-sm font-medium text-gray-700">
           Status<span className="text-red-500">*</span>
@@ -282,7 +303,6 @@ const EditActivityForm: React.FC<{
         <p className="text-red-500 text-sm ml-32">{errors.status.message}</p>
       )}
 
-      {/* Approval Status */}
       <div className="flex items-center space-x-4">
         <label className="w-32 text-sm font-medium text-gray-700">
           Approval<span className="text-red-500">*</span>
@@ -312,7 +332,6 @@ const EditActivityForm: React.FC<{
         </p>
       )}
 
-      {/* Description */}
       <div className="flex items-start space-x-4">
         <label className="w-32 text-sm font-medium text-gray-700">
           Description<span className="text-red-500">*</span>

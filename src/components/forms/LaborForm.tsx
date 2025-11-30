@@ -4,9 +4,10 @@ import React, { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { CreateLaborInput } from "@/types/labor";
 import { useCreateLabor } from "@/hooks/useLabors";
-import EtDatePicker from "habesha-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { useSettingsStore } from "@/store/settingsStore";
+import EtDatePicker from "habesha-datepicker"; 
+import ReactDatePicker from "react-datepicker";
 
 interface LaborFormProps {
   siteId: string;
@@ -32,7 +33,6 @@ const LaborForm: React.FC<LaborFormProps> = ({ siteId, onClose }) => {
     setSelectedFiles(files);
   };
 
-  // Auto-calculate totalAmount = minQuantity * estimatedHours * rate
   const minQuantity = watch("minQuantity") ?? 0;
   const estimatedHours = watch("estimatedHours") ?? 0;
   const rate = watch("rate") ?? 0;
@@ -42,7 +42,6 @@ const LaborForm: React.FC<LaborFormProps> = ({ siteId, onClose }) => {
     setValue("totalAmount", total);
   }, [minQuantity, estimatedHours, rate, setValue]);
 
-  // Auto-calculate total_time = estimatedHours if not explicitly set
   useEffect(
     () => setValue("totalTime", Number(estimatedHours)),
     [estimatedHours, setValue]
@@ -54,7 +53,6 @@ const LaborForm: React.FC<LaborFormProps> = ({ siteId, onClose }) => {
       {
         onSuccess: () => {
           onClose();
-          window.location.reload();
         },
       }
     );
@@ -65,7 +63,6 @@ const LaborForm: React.FC<LaborFormProps> = ({ siteId, onClose }) => {
       onSubmit={handleSubmit(onSubmit)}
       className="bg-white rounded-lg shadow-xl p-6 space-y-6"
     >
-      {/* Header */}
       <div className="flex justify-between items-center pb-4 border-b">
         <h3 className="text-lg font-semibold text-gray-800">Create Labor</h3>
         <button
@@ -73,14 +70,13 @@ const LaborForm: React.FC<LaborFormProps> = ({ siteId, onClose }) => {
           className="text-3xl text-red-500 hover:text-red-600"
           onClick={onClose}
         >
-          ×
+          &times;
         </button>
       </div>
 
       <div className="space-y-4">
-        {/* 1. Role */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
             Role <span className="text-red-500">*</span>
           </label>
           <input
@@ -94,9 +90,8 @@ const LaborForm: React.FC<LaborFormProps> = ({ siteId, onClose }) => {
           )}
         </div>
 
-        {/* 2. Unit */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
             Unit <span className="text-red-500">*</span>
           </label>
           <input
@@ -110,9 +105,8 @@ const LaborForm: React.FC<LaborFormProps> = ({ siteId, onClose }) => {
           )}
         </div>
 
-        {/* 3. Quantity */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
             Quantity
           </label>
           <input
@@ -123,10 +117,9 @@ const LaborForm: React.FC<LaborFormProps> = ({ siteId, onClose }) => {
           />
         </div>
 
-        {/* 4. Min Quantity, 5. Estimated Hours, 6. Rate, 7. Overtime Rate */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Min Quantity <span className="text-red-500">*</span>
             </label>
             <input
@@ -145,7 +138,7 @@ const LaborForm: React.FC<LaborFormProps> = ({ siteId, onClose }) => {
             )}
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Estimated Hours <span className="text-red-500">*</span>
             </label>
             <input
@@ -164,7 +157,7 @@ const LaborForm: React.FC<LaborFormProps> = ({ siteId, onClose }) => {
             )}
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Rate <span className="text-red-500">*</span>
             </label>
             <div className="flex">
@@ -186,7 +179,7 @@ const LaborForm: React.FC<LaborFormProps> = ({ siteId, onClose }) => {
             )}
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Overtime Rate
             </label>
             <div className="flex">
@@ -203,9 +196,8 @@ const LaborForm: React.FC<LaborFormProps> = ({ siteId, onClose }) => {
           </div>
         </div>
 
-        {/* 8. Total Amount (read-only) */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
             Total Amount
           </label>
           <div className="flex">
@@ -221,9 +213,8 @@ const LaborForm: React.FC<LaborFormProps> = ({ siteId, onClose }) => {
           </div>
         </div>
 
-        {/* 9. Skill Level */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
             Skill Level
           </label>
           <input
@@ -234,10 +225,9 @@ const LaborForm: React.FC<LaborFormProps> = ({ siteId, onClose }) => {
           />
         </div>
 
-        {/* 10. Allocation Status & 11. Status */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Allocation Status
             </label>
             <select
@@ -251,7 +241,7 @@ const LaborForm: React.FC<LaborFormProps> = ({ siteId, onClose }) => {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Status
             </label>
             <select
@@ -265,139 +255,134 @@ const LaborForm: React.FC<LaborFormProps> = ({ siteId, onClose }) => {
           </div>
         </div>
 
-        {/* New Fields: Utilization Factor, Total Time, Starting Date, Due Date, Shifting Date */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Utilization Factor
-            </label>
-            <input
-              type="number"
-              step="0.01"
-              {...register("utilization_factor", { valueAsNumber: true })}
-              placeholder="Enter Utilization Factor (optional)"
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Total Time
-            </label>
-            <input
-              type="number"
-              step="0.01"
-              {...register("totalTime", { valueAsNumber: true })}
-              readOnly
-              className="w-full px-3 py-2 bg-gray-100 border rounded-md focus:outline-none"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Starting Date
             </label>
             <Controller
               name="startingDate"
               control={control}
               render={({ field }) => (
-                <EtDatePicker
-                  value={field.value ? new Date(field.value) : null}
-                  onChange={field.onChange}
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-                />
+                <>
+                  {useEthiopianDate ? (
+                    <EtDatePicker
+                      value={field.value ? new Date(field.value) : undefined}
+                      onChange={(date: any, event?: any) => {
+                        const d = Array.isArray(date) ? date[0] : date;
+                        field.onChange(d ? d.toISOString() : undefined);
+                      }}
+                      className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+                      isRange={false}
+                    />
+                  ) : (
+                    <ReactDatePicker
+                      showFullMonthYearPicker
+                      showYearDropdown
+                      selected={field.value ? new Date(field.value) : undefined}
+                      onChange={(date: any, event?: any) => {
+                        const d = Array.isArray(date) ? date[0] : date;
+                        field.onChange(d ? d.toISOString() : undefined);
+                      }}
+                      placeholderText="Enter Starting Date"
+                      className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+                    />
+                  )}
+                </>
               )}
             />
           </div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Due Date
             </label>
             <Controller
               name="dueDate"
               control={control}
               render={({ field }) => (
-                <EtDatePicker
-                  value={field.value ? new Date(field.value) : null}
-                  onChange={field.onChange}
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-                />
-              )}
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Shifting Date
-            </label>
-            <Controller
-              name="shiftingDate"
-              control={control}
-              render={({ field }) => (
-                <EtDatePicker
-                  value={field.value ? new Date(field.value) : null}
-                  onChange={field.onChange}
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-                />
+                <>
+                  {useEthiopianDate ? (
+                    <EtDatePicker
+                      value={field.value ? new Date(field.value) : undefined}
+                      onChange={(date: any, event?: any) => {
+                        const d = Array.isArray(date) ? date[0] : date;
+                        field.onChange(d ? d.toISOString() : undefined);
+                      }}
+                      className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+                      isRange={false}
+                    />
+                  ) : (
+                    <ReactDatePicker
+                      showFullMonthYearPicker
+                      showYearDropdown
+                      selected={field.value ? new Date(field.value) : undefined}
+                      onChange={(date: any, event?: any) => {
+                        const d = Array.isArray(date) ? date[0] : date;
+                        field.onChange(d ? d.toISOString() : undefined);
+                      }}
+                      placeholderText="Enter Due Date"
+                      className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+                    />
+                  )}
+                </>
               )}
             />
           </div>
         </div>
-      </div>
 
-      <div className="mt-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Attach Files
-        </label>
+        <div className="mt-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Attach Files
+          </label>
 
-        <div className="w-full border-2 border-dashed border-gray-300 rounded-md p-4 bg-gray-50 hover:border-bs-primary transition-colors duration-300">
-          <input
-            type="file"
-            multiple
-            onChange={handleFileChange}
-            className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 
+          <div className="w-full border-2 border-dashed border-gray-300 rounded-md p-4 bg-gray-50 hover:border-bs-primary transition-colors duration-300">
+            <input
+              type="file"
+              multiple
+              onChange={handleFileChange}
+              className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 
                      file:rounded-md file:border-0 
                      file:text-sm file:font-semibold 
                      file:bg-bs-primary file:text-white 
                      hover:file:bg-bs-primary/90"
-          />
-          <p className="mt-2 text-sm text-gray-500">
-            You can select multiple files.
-          </p>
+            />
+            <p className="mt-2 text-sm text-gray-500">
+              You can select multiple files.
+            </p>
+          </div>
+
+          {selectedFiles.length > 0 && (
+            <div className="mt-4">
+              <h4 className="text-sm font-semibold text-gray-700 mb-2">
+                Files Selected:
+              </h4>
+              <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+                {selectedFiles.map((file, index) => (
+                  <li key={index}>
+                    {file.name} ({(file.size / 1024).toFixed(2)} KB)
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
 
-        {/* File list */}
-        {selectedFiles.length > 0 && (
-          <div className="mt-4">
-            <h4 className="text-sm font-semibold text-gray-700 mb-2">
-              Files Selected:
-            </h4>
-            <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
-              {selectedFiles.map((file, index) => (
-                <li key={index}>
-                  {file.name} ({(file.size / 1024).toFixed(2)} KB)
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </div>
-
-      {/* Footer Buttons */}
-      <div className="flex justify-end gap-4 pt-4 border-t">
-        <button
-          type="button"
-          className="px-4 py-2 border rounded-md hover:bg-gray-50"
-          onClick={onClose}
-        >
-          Close
-        </button>
-        <button
-          type="submit"
-          className="px-4 py-2 bg-bs-primary text-white rounded-md hover:bg-bs-primary"
-          disabled={isPending}
-        >
-          {isPending ? "Saving..." : "Save"}
-        </button>
+        <div className="flex justify-end gap-4 pt-4 border-t">
+          <button
+            type="button"
+            className="px-4 py-2 border rounded-md hover:bg-gray-50"
+            onClick={onClose}
+          >
+            Close
+          </button>
+          <button
+            type="submit"
+            className="px-4 py-2 bg-bs-primary text-white rounded-md hover:bg-bs-primary"
+            disabled={isPending}
+          >
+            {isPending ? "Saving..." : "Save"}
+          </button>
+        </div>
       </div>
     </form>
   );

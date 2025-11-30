@@ -4,36 +4,22 @@ import React, { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import Select from "react-select";
 import "react-datepicker/dist/react-datepicker.css";
-import { CreateTaskInput } from "@/types/task"; // adjust path if needed
-import { useCreateTask } from "@/hooks/useTasks"; // hook to create a task
-import { useProjects } from "@/hooks/useProjects"; // hook to fetch projects
-import { useTaskStore } from "@/store/taskStore"; // import task store
+import { CreateTaskInput } from "@/types/task"; 
+import { useCreateTask } from "@/hooks/useTasks"; 
+import { useProjects } from "@/hooks/useProjects"; 
+import { useTaskStore } from "@/store/taskStore"; 
 import { formatDate as format } from "@/utils/dateUtils";
 import { useSettingsStore } from "@/store/settingsStore";
 import { ArrowRight, Calendar } from "lucide-react";
 import { useUsers } from "@/hooks/useUsers";
 import { Role, User } from "@/types/user";
 import { useRoles } from "@/hooks/useRoles";
-import DatePicker from "@/components/common/DatePicker";
-import {
-  DatePickerValue,
-  normalizeDatePickerValue,
-} from "@/utils/datePicker";
-
-// Helper to safely convert form field value to Date | null for DatePicker
-const toDatePickerValue = (value: unknown): Date | null => {
-  if (!value) return null;
-  if (value instanceof Date) return value;
-  if (typeof value === "string") {
-    const parsed = new Date(value);
-    return Number.isNaN(parsed.getTime()) ? null : parsed;
-  }
-  return null;
-};
+import EtDatePicker from "habesha-datepicker"; 
+import ReactDatePicker from "react-datepicker";
 
 interface TaskFormProps {
-  onClose: () => void; // Function to close the modal
-  defaultProjectId?: string; // Optional default project ID
+  onClose: () => void;
+  defaultProjectId?: string;
 }
 
 const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
@@ -42,8 +28,8 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
     register,
     handleSubmit,
     control,
-    watch,
     setValue,
+    watch,
     formState: { errors },
   } = useForm<CreateTaskInput>({
     defaultValues: {
@@ -58,7 +44,6 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
     error: projectsError,
   } = useProjects();
 
-  // Retrieve tasks from the store to show the last created task
   const { tasks } = useTaskStore();
   const lastTask = tasks && tasks.length > 0 ? tasks[tasks.length - 1] : null;
   const {
@@ -68,7 +53,6 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
   } = useUsers();
   const { data: roles } = useRoles();
 
-  // Local state for duration (in days). This field is for display/calculation only.
   const [duration, setDuration] = useState<string>("");
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
@@ -77,33 +61,12 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
     setSelectedFiles(files);
   };
 
-  // Watch start_date and end_date for changes.
-  const startDateRaw = watch("start_date");
-  const endDateRaw = watch("end_date");
-  
-  // Safely normalize form field values to Date | null, handling all edge cases
-  const startDate = React.useMemo(() => {
-    if (!startDateRaw) return null;
-    if (startDateRaw instanceof Date) return startDateRaw;
-    if (typeof startDateRaw === "string") {
-      const parsed = new Date(startDateRaw);
-      return Number.isNaN(parsed.getTime()) ? null : parsed;
-    }
-    return null;
-  }, [startDateRaw]);
-  
-  const endDate = React.useMemo(() => {
-    if (!endDateRaw) return null;
-    if (endDateRaw instanceof Date) return endDateRaw;
-    if (typeof endDateRaw === "string") {
-      const parsed = new Date(endDateRaw);
-      return Number.isNaN(parsed.getTime()) ? null : parsed;
-    }
-    return null;
-  }, [endDateRaw]);
+  const startDateStr = watch("start_date");
+  const endDateStr = watch("end_date");
 
-  // Calculate duration when start_date or end_date change.
   useEffect(() => {
+    const startDate = startDateStr ? new Date(startDateStr) : null;
+    const endDate = endDateStr ? new Date(endDateStr) : null;
     if (startDate && endDate) {
       const diffTime = endDate.getTime() - startDate.getTime();
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -111,37 +74,31 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
     } else {
       setDuration("");
     }
-  }, [startDate, endDate]);
+  }, [startDateStr, endDateStr]);
 
-  // When the user types in the duration field, update the end_date automatically.
   const handleDurationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newDuration = e.target.value;
     setDuration(newDuration);
-    // If a valid start date exists and duration is a valid number, update the end_date.
+    const startDate = startDateStr ? new Date(startDateStr) : null;
     if (startDate && newDuration && !isNaN(Number(newDuration))) {
       const calculatedEndDate = new Date(startDate);
-      calculatedEndDate.setDate(
-        calculatedEndDate.getDate() + Number(newDuration)
-      );
+      calculatedEndDate.setDate(calculatedEndDate.getDate() + Number(newDuration));
       setValue("end_date", calculatedEndDate);
     }
   };
 
   const onSubmit = (data: CreateTaskInput) => {
-    // If defaultProjectId is provided, use it regardless of form selection.
     const submitData = defaultProjectId
       ? { ...data, project_id: defaultProjectId }
       : data;
 
     createTask(submitData, {
       onSuccess: () => {
-        onClose(); // Close the modal on success
-        // window.location.reload();
+        onClose();
       },
     });
   };
 
-  // Options for status and priority
   const statusOptions = [
     {
       value: "Not Started",
@@ -194,7 +151,6 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
     },
   ];
 
-  // Map fetched projects to options for the select.
   const projectOptions =
     projects?.map((project) => ({
       value: project.id,
@@ -222,7 +178,6 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
       onSubmit={handleSubmit(onSubmit)}
       className="bg-white rounded-lg shadow-xl p-6 space-y-6"
     >
-      {/* Header */}
       <div className="flex justify-between items-center pb-4 border-b">
         <h3 className="text-xl font-semibold text-gray-800">Create Task</h3>
         <button
@@ -235,7 +190,6 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
       </div>
 
       <div className="space-y-6">
-        {/* Task Name */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Task Name <span className="text-red-500">*</span>
@@ -253,7 +207,6 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
           )}
         </div>
 
-        {/* Project Select - Only show if no defaultProjectId provided */}
         {!defaultProjectId && (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -288,9 +241,7 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
           </div>
         )}
 
-        {/* Status and Priority Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Priority */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Priority
@@ -313,7 +264,6 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
               )}
             />
           </div>
-          {/* Status */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Status <span className="text-red-500">*</span>
@@ -344,7 +294,6 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
           </div>
         </div>
 
-        {/* Latest Task History Card */}
         <div className="p-4 rounded-lg shadow-md bg-gradient-to-r from-cyan-500 to-cyan-700 text-white">
           <h4 className="text-lg font-semibold mb-2">Latest Task</h4>
           {lastTask ? (
@@ -366,9 +315,7 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
           )}
         </div>
 
-        {/* Dates Section with Duration */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Start Date */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Starts At <span className="text-red-500">*</span>
@@ -378,13 +325,31 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
               control={control}
               rules={{ required: "Start date is required" }}
               render={({ field }) => (
-                <DatePicker
-                  value={toDatePickerValue(field.value)}
-                  onChange={(value) =>
-                    field.onChange(normalizeDatePickerValue(value))
-                  }
-                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
-                />
+                <>
+                  {useEthiopianDate ? (
+                    <EtDatePicker
+                      value={field.value ? new Date(field.value) : undefined}
+                      onChange={(date: any, event?: any) => {
+                        const d = Array.isArray(date) ? date[0] : date;
+                        field.onChange(d ? d.toISOString() : undefined);
+                      }}
+                      className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
+                      isRange={false}
+                    />
+                  ) : (
+                    <ReactDatePicker
+                      showFullMonthYearPicker
+                      showYearDropdown
+                      selected={field.value ? new Date(field.value) : undefined}
+                      onChange={(date: any, event?: any) => {
+                        const d = Array.isArray(date) ? date[0] : date;
+                        field.onChange(d ? d.toISOString() : undefined);
+                      }}
+                      placeholderText="Enter Start Date"
+                      className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
+                    />
+                  )}
+                </>
               )}
             />
             {errors.start_date && (
@@ -394,7 +359,6 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
             )}
           </div>
 
-          {/* Duration Field (Optional - Not Submitted) */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Duration (days) <span className="text-gray-500">(optional)</span>
@@ -408,7 +372,6 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
             />
           </div>
 
-          {/* End Date */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Ends At <span className="text-red-500">*</span>
@@ -418,23 +381,43 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
               control={control}
               rules={{ required: "End date is required" }}
               render={({ field }) => (
-                <DatePicker
-                  value={toDatePickerValue(field.value)}
-                  onChange={(value) => {
-                    const nextDate = normalizeDatePickerValue(value);
-                    field.onChange(nextDate);
-                    if (startDate && nextDate) {
-                      const diffTime = nextDate.getTime() - startDate.getTime();
-                      const diffDays = Math.ceil(
-                        diffTime / (1000 * 60 * 60 * 24)
-                      );
-                      setDuration(diffDays.toString());
-                    } else if (!nextDate) {
-                      setDuration("");
-                    }
-                  }}
-                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
-                />
+                <>
+                  {useEthiopianDate ? (
+                    <EtDatePicker
+                      value={field.value ? new Date(field.value) : undefined}
+                      onChange={(date: any, event?: any) => {
+                        const d = Array.isArray(date) ? date[0] : date;
+                        field.onChange(d ? d.toISOString() : undefined);
+                        const startDate = startDateStr ? new Date(startDateStr) : null;
+                        if (startDate && d) {
+                          const diffTime = d.getTime() - startDate.getTime();
+                          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                          setDuration(diffDays.toString());
+                        }
+                      }}
+                      className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
+                      isRange={false}
+                    />
+                  ) : (
+                    <ReactDatePicker
+                      showFullMonthYearPicker
+                      showYearDropdown
+                      selected={field.value ? new Date(field.value) : undefined}
+                      onChange={(date: any, event?: any) => {
+                        const d = Array.isArray(date) ? date[0] : date;
+                        field.onChange(d ? d.toISOString() : undefined);
+                        const startDate = startDateStr ? new Date(startDateStr) : null;
+                        if (startDate && d) {
+                          const diffTime = d.getTime() - startDate.getTime();
+                          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                          setDuration(diffDays.toString());
+                        }
+                      }}
+                      placeholderText="Enter End Date"
+                      className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
+                    />
+                  )}
+                </>
               )}
             />
             {errors.end_date && (
@@ -445,7 +428,6 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
           </div>
         </div>
 
-        {/* AssignedUsers Section */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Assigned to
@@ -460,7 +442,6 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
                 isLoading={usersLoading}
                 className="basic-multi-select"
                 classNamePrefix="select"
-                // Only send the user ids (the role is only displayed in the label)
                 onChange={(selectedOptions) =>
                   field.onChange(selectedOptions.map((option) => option.value))
                 }
@@ -476,13 +457,12 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
           )}
         </div>
 
-        {/* Description */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Description <span className="text-red-500">*</span>
           </label>
           <textarea
-            {...register("description")}
+            {...register("description", { required: "Description is required" })}
             placeholder="Please Enter Description"
             className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
             rows={5}
@@ -515,7 +495,6 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
             </p>
           </div>
 
-          {/* File list */}
           {selectedFiles.length > 0 && (
             <div className="mt-4">
               <h4 className="text-sm font-semibold text-gray-700 mb-2">
@@ -532,7 +511,6 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
           )}
         </div>
 
-        {/* Footer Buttons */}
         <div className="flex justify-end gap-4">
           <button
             type="button"

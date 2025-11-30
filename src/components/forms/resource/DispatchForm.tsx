@@ -14,11 +14,8 @@ import { useApprovals } from "@/hooks/useApprovals";
 import { useSites } from "@/hooks/useSites";
 import { Approval } from "@/types/approval";
 import { Site } from "@/types/site";
-import DatePicker from "@/components/common/DatePicker";
-import {
-  normalizeDatePickerValue,
-  DatePickerValue,
-} from "@/utils/datePicker";
+import EtDatePicker from "habesha-datepicker"; 
+import ReactDatePicker from "react-datepicker";
 
 interface DispatchFormProps {
   onClose: () => void;
@@ -33,18 +30,13 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onClose }) => {
     watch,
     setValue,
     formState: { errors },
-  } = useForm<
-    CreateDispatchInput & {
-      status: "Pending" | "In Transit" | "Delivered" | "Cancelled";
-    }
-  >({
+  } = useForm<CreateDispatchInput>({
     defaultValues: {
       status: "Pending",
     },
   });
 
   const { mutate: createDispatch, isPending } = useCreateDispatch();
-  // Retrieve dispatches from the store to show the last created dispatch
   const { dispatches } = useDispatchStore();
   const lastDispatch =
     dispatches && dispatches.length > 0
@@ -63,12 +55,12 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onClose }) => {
 
   const [duration, setDuration] = useState<string>("");
 
-  const dispatchedDateValue = watch("dispatchedDate") as DatePickerValue;
-  const estArrivalTimeValue = watch("estArrivalTime") as DatePickerValue;
-  const dispatchedDate = normalizeDatePickerValue(dispatchedDateValue);
-  const estArrivalTime = normalizeDatePickerValue(estArrivalTimeValue);
+  const dispatchedDateStr = watch("dispatchedDate");
+  const estArrivalTimeStr = watch("estArrivalTime");
 
   useEffect(() => {
+    const dispatchedDate = dispatchedDateStr ? new Date(dispatchedDateStr) : null;
+    const estArrivalTime = estArrivalTimeStr ? new Date(estArrivalTimeStr) : null;
     if (dispatchedDate && estArrivalTime) {
       const diffTime = estArrivalTime.getTime() - dispatchedDate.getTime();
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -76,62 +68,35 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onClose }) => {
     } else {
       setDuration("");
     }
-  }, [dispatchedDateValue, estArrivalTimeValue]);
+  }, [dispatchedDateStr, estArrivalTimeStr]);
 
-  // When the user types in the duration field, update the estArrivalTime automatically.
   const handleDurationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newDuration = e.target.value;
     setDuration(newDuration);
-    // If a valid dispatched date exists and duration is a valid number, update the estArrivalTime.
+    const dispatchedDate = dispatchedDateStr ? new Date(dispatchedDateStr) : null;
     if (dispatchedDate && newDuration && !isNaN(Number(newDuration))) {
       const calculatedArrivalTime = new Date(dispatchedDate);
-      calculatedArrivalTime.setDate(
-        calculatedArrivalTime.getDate() + Number(newDuration)
-      );
-      setValue("estArrivalTime", calculatedArrivalTime);
+      calculatedArrivalTime.setDate(calculatedArrivalTime.getDate() + Number(newDuration));
+      setValue("estArrivalTime" as any, calculatedArrivalTime ? calculatedArrivalTime.toISOString() : undefined);
     }
   };
 
-  const onSubmit = (
-    data: CreateDispatchInput & {
-      status: "Pending" | "In Transit" | "Delivered" | "Cancelled";
-    }
-  ) => {
-    const submitData = { ...data };
-    console.log("Submitting dispatch:", submitData);
-
-    createDispatch(submitData, {
+  const onSubmit = (data: CreateDispatchInput) => {
+    createDispatch(data, {
       onSuccess: () => {
         onClose();
       },
       onError: (error) => {
         console.error("Failed to create dispatch:", error);
-        alert("Failed to create dispatch: " + error.message);
       },
     });
   };
 
   const statusOptions = [
-    {
-      value: "Pending",
-      label: "Pending",
-      className: "bg-bs-warning-100 text-bs-warning",
-    },
-    {
-      value: "In Transit",
-      label: "In Transit",
-      className: "bg-bs-secondary-100 text-bs-secondary",
-    },
-    {
-      value: "Delivered",
-      label: "Delivered",
-      className: "bg-bs-success-100 text-bs-success",
-    },
-    {
-      value: "Cancelled",
-      label: "Cancelled",
-      className: "bg-bs-danger-100 text-bs-danger",
-    },
+    { value: "Pending", label: "Pending" },
+    { value: "In Transit", label: "In Transit" },
+    { value: "Delivered", label: "Delivered" },
+    { value: "Cancelled", label: "Cancelled" },
   ];
 
   const dispatchedByOptions = [
@@ -142,9 +107,7 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onClose }) => {
   const approvalOptions =
     approvals?.map((approval: Approval) => ({
       value: approval.id,
-      label: approval.approvedByUser
-        ? `${approval.request?.activity?.activity_name}`
-        : `${approval.id}`, 
+      label: approval.request?.activity?.activity_name || `${approval.id}`, 
     })) || [];
 
   const siteOptions =
@@ -158,7 +121,6 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onClose }) => {
       onSubmit={handleSubmit(onSubmit)}
       className="bg-white rounded-lg shadow-xl p-6 space-y-6"
     >
-      {/* Header */}
       <div className="flex justify-between items-center pb-4 border-b">
         <h3 className="text-xl font-semibold text-gray-800">Create Dispatch</h3>
         <button
@@ -171,7 +133,6 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onClose }) => {
       </div>
 
       <div className="space-y-6">
-        {/* Approval */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Activity <span className="text-red-500">*</span>
@@ -205,7 +166,6 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onClose }) => {
           )}
         </div>
 
-        {/* Ref Number */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Reference Number
@@ -218,7 +178,6 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onClose }) => {
           />
         </div>
 
-        {/* Total Transport Cost */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Total Transport Cost <span className="text-red-500">*</span>
@@ -239,9 +198,7 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onClose }) => {
           )}
         </div>
 
-        {/* Status and Dispatched By Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Status */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Status
@@ -264,7 +221,6 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onClose }) => {
               )}
             />
           </div>
-          {/* Dispatched By */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Dispatched By
@@ -289,7 +245,6 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onClose }) => {
           </div>
         </div>
 
-        {/* Latest Dispatch History Card */}
         <div className="p-4 rounded-lg shadow-md bg-gradient-to-r from-cyan-500 to-cyan-700 text-white">
           <h4 className="text-lg font-semibold mb-2">Latest Dispatch</h4>
           {lastDispatch ? (
@@ -311,9 +266,7 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onClose }) => {
           )}
         </div>
 
-        {/* Dates Section with Duration */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Dispatched Date */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Dispatched Date <span className="text-red-500">*</span>
@@ -323,13 +276,31 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onClose }) => {
               control={control}
               rules={{ required: "Dispatched date is required" }}
               render={({ field }) => (
-                <DatePicker
-                  value={field.value ? new Date(field.value) : null}
-                  onChange={(value) =>
-                    field.onChange(normalizeDatePickerValue(value))
-                  }
-                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
-                />
+                <>
+                  {useEthiopianDate ? (
+                    <EtDatePicker
+                      value={field.value ? new Date(field.value) : undefined}
+                      onChange={(date: any, event?: any) => {
+                        const d = Array.isArray(date) ? date[0] : date;
+                        field.onChange(d ? d.toISOString() : undefined);
+                      }}
+                      className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
+                      isRange={false}
+                    />
+                  ) : (
+                    <ReactDatePicker
+                      showFullMonthYearPicker
+                      showYearDropdown
+                      selected={field.value ? new Date(field.value) : undefined}
+                      onChange={(date: any, event?: any) => {
+                        const d = Array.isArray(date) ? date[0] : date;
+                        field.onChange(d ? d.toISOString() : undefined);
+                      }}
+                      placeholderText="Enter Dispatched Date"
+                      className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
+                    />
+                  )}
+                </>
               )}
             />
             {errors.dispatchedDate && (
@@ -339,7 +310,6 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onClose }) => {
             )}
           </div>
 
-          {/* Duration Field (Optional - Not Submitted) */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Duration (days) <span className="text-gray-500">(optional)</span>
@@ -353,7 +323,6 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onClose }) => {
             />
           </div>
 
-          {/* Estimated Arrival Time */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Estimated Arrival Time <span className="text-red-500">*</span>
@@ -363,22 +332,43 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onClose }) => {
               control={control}
               rules={{ required: "Estimated arrival time is required" }}
               render={({ field }) => (
-                <DatePicker
-                  value={field.value ? new Date(field.value) : null}
-                  onChange={(value) => {
-                    const nextDate = normalizeDatePickerValue(value);
-                    field.onChange(nextDate);
-                    if (dispatchedDate && nextDate) {
-                      const diffTime =
-                        nextDate.getTime() - dispatchedDate.getTime();
-                      const diffDays = Math.ceil(
-                        diffTime / (1000 * 60 * 60 * 24)
-                      );
-                      setDuration(diffDays.toString());
-                    }
-                  }}
-                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
-                />
+                <>
+                  {useEthiopianDate ? (
+                    <EtDatePicker
+                      value={field.value ? new Date(field.value) : undefined}
+                      onChange={(date: any, event?: any) => {
+                        const d = Array.isArray(date) ? date[0] : date;
+                        field.onChange(d ? d.toISOString() : undefined);
+                        const dispatchedDate = dispatchedDateStr ? new Date(dispatchedDateStr) : null;
+                        if (dispatchedDate && d) {
+                          const diffTime = d.getTime() - dispatchedDate.getTime();
+                          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                          setDuration(diffDays.toString());
+                        }
+                      }}
+                      className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
+                      isRange={false}
+                    />
+                  ) : (
+                    <ReactDatePicker
+                      showFullMonthYearPicker
+                      showYearDropdown
+                      selected={field.value ? new Date(field.value) : undefined}
+                      onChange={(date: any, event?: any) => {
+                        const d = Array.isArray(date) ? date[0] : date;
+                        field.onChange(d ? d.toISOString() : undefined);
+                        const dispatchedDate = dispatchedDateStr ? new Date(dispatchedDateStr) : null;
+                        if (dispatchedDate && d) {
+                          const diffTime = d.getTime() - dispatchedDate.getTime();
+                          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                          setDuration(diffDays.toString());
+                        }
+                      }}
+                      placeholderText="Enter Estimated Arrival Time"
+                      className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
+                    />
+                  )}
+                </>
               )}
             />
             {errors.estArrivalTime && (
@@ -389,9 +379,7 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onClose }) => {
           </div>
         </div>
 
-        {/* Sites Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Departure Site */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Departure Site <span className="text-red-500">*</span>
@@ -425,7 +413,6 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onClose }) => {
             )}
           </div>
 
-          {/* Arrival Site */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Arrival Site <span className="text-red-500">*</span>
@@ -460,7 +447,6 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onClose }) => {
           </div>
         </div>
 
-        {/* Driver Name */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Driver Name
@@ -473,7 +459,6 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onClose }) => {
           />
         </div>
 
-        {/* Vehicle Number */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Vehicle Number
@@ -486,7 +471,6 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onClose }) => {
           />
         </div>
 
-        {/* Vehicle Type */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Vehicle Type
@@ -499,7 +483,6 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onClose }) => {
           />
         </div>
 
-        {/* Remarks */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Remarks
@@ -512,7 +495,6 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onClose }) => {
           />
         </div>
 
-        {/* Footer Buttons */}
         <div className="flex justify-end gap-4">
           <button
             type="button"

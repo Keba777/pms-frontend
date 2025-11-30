@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import Select from "react-select";
-import EtDatePicker from "habesha-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { UpdateDispatchInput } from "@/types/dispatch";
 import { useApprovals } from "@/hooks/useApprovals";
@@ -11,6 +10,8 @@ import { useSites } from "@/hooks/useSites";
 import { Approval } from "@/types/approval";
 import { Site } from "@/types/site";
 import { useSettingsStore } from "@/store/settingsStore";
+import EtDatePicker from "habesha-datepicker"; 
+import ReactDatePicker from "react-datepicker";
 
 interface EditDispatchFormProps {
   onSubmit: (data: UpdateDispatchInput) => void;
@@ -31,7 +32,7 @@ const EditDispatchForm: React.FC<EditDispatchFormProps> = ({
     watch,
     setValue,
     formState: { errors },
-  } = useForm<UpdateDispatchInput & { status?: "Pending" | "In Transit" | "Delivered" | "Cancelled" }>({
+  } = useForm<UpdateDispatchInput>({
     defaultValues: dispatch,
   });
 
@@ -48,35 +49,31 @@ const EditDispatchForm: React.FC<EditDispatchFormProps> = ({
 
   const [duration, setDuration] = useState<string>("");
 
-  const dispatchedDate = watch("dispatchedDate");
-  const estArrivalTime = watch("estArrivalTime");
+  const dispatchedDateStr = watch("dispatchedDate");
+  const estArrivalTimeStr = watch("estArrivalTime");
 
   useEffect(() => {
+    const dispatchedDate = dispatchedDateStr ? new Date(dispatchedDateStr) : null;
+    const estArrivalTime = estArrivalTimeStr ? new Date(estArrivalTimeStr) : null;
     if (dispatchedDate && estArrivalTime) {
-      const diffTime =
-        new Date(estArrivalTime).getTime() - new Date(dispatchedDate).getTime();
+      const diffTime = estArrivalTime.getTime() - dispatchedDate.getTime();
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
       setDuration(diffDays.toString());
     }
-  }, [dispatchedDate, estArrivalTime]);
+  }, [dispatchedDateStr, estArrivalTimeStr]);
 
-  // When the user types in the duration field, update the estArrivalTime automatically.
   const handleDurationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newDuration = e.target.value;
     setDuration(newDuration);
-    // If a valid dispatched date exists and duration is a valid number, update the estArrivalTime.
+    const dispatchedDate = dispatchedDateStr ? new Date(dispatchedDateStr) : null;
     if (dispatchedDate && newDuration && !isNaN(Number(newDuration))) {
       const calculatedArrivalTime = new Date(dispatchedDate);
-      calculatedArrivalTime.setDate(
-        calculatedArrivalTime.getDate() + Number(newDuration)
-      );
-      setValue("estArrivalTime", calculatedArrivalTime);
+      calculatedArrivalTime.setDate(calculatedArrivalTime.getDate() + Number(newDuration));
+      setValue("estArrivalTime", calculatedArrivalTime ? calculatedArrivalTime : undefined);
     }
   };
 
-  const submitHandler = (
-    data: UpdateDispatchInput & { status?: "Pending" | "In Transit" | "Delivered" | "Cancelled" }
-  ) => {
+  const onSubmitHandler = (data: UpdateDispatchInput) => {
     onSubmit(data);
   };
 
@@ -106,7 +103,7 @@ const EditDispatchForm: React.FC<EditDispatchFormProps> = ({
 
   return (
     <form
-      onSubmit={handleSubmit(submitHandler)}
+      onSubmit={handleSubmit(onSubmitHandler)}
       className="bg-white rounded-lg shadow-xl p-6 space-y-4"
     >
       <div className="flex justify-between items-center border-b pb-2 mb-4">
@@ -120,11 +117,8 @@ const EditDispatchForm: React.FC<EditDispatchFormProps> = ({
         </button>
       </div>
 
-      {/* Approval */}
       <div className="flex items-center space-x-4">
-        <label className="w-32 text-sm font-medium text-gray-700">
-          Activity
-        </label>
+        <label className="w-32 text-sm font-medium text-gray-700">Activity</label>
         <Controller
           name="approvalId"
           control={control}
@@ -133,22 +127,15 @@ const EditDispatchForm: React.FC<EditDispatchFormProps> = ({
               {...field}
               options={approvalOptions}
               className="flex-1"
-              onChange={(selectedOption) =>
-                field.onChange(selectedOption?.value)
-              }
-              value={approvalOptions.find(
-                (option) => option.value === field.value
-              )}
+              onChange={(selectedOption) => field.onChange(selectedOption?.value)}
+              value={approvalOptions.find(option => option.value === field.value)}
             />
           )}
         />
       </div>
 
-      {/* Ref Number */}
       <div className="flex items-center space-x-4">
-        <label className="w-32 text-sm font-medium text-gray-700">
-          Ref Number
-        </label>
+        <label className="w-32 text-sm font-medium text-gray-700">Ref Number</label>
         <input
           type="text"
           {...register("refNumber")}
@@ -156,11 +143,8 @@ const EditDispatchForm: React.FC<EditDispatchFormProps> = ({
         />
       </div>
 
-      {/* Total Transport Cost */}
       <div className="flex items-center space-x-4">
-        <label className="w-32 text-sm font-medium text-gray-700">
-          Total Transport Cost
-        </label>
+        <label className="w-32 text-sm font-medium text-gray-700">Total Transport Cost</label>
         <input
           type="number"
           {...register("totalTransportCost", { valueAsNumber: true })}
@@ -168,7 +152,6 @@ const EditDispatchForm: React.FC<EditDispatchFormProps> = ({
         />
       </div>
 
-      {/* Status */}
       <div className="flex items-center space-x-4">
         <label className="w-32 text-sm font-medium text-gray-700">
           Status
@@ -192,11 +175,8 @@ const EditDispatchForm: React.FC<EditDispatchFormProps> = ({
         />
       </div>
 
-      {/* Dispatched By */}
       <div className="flex items-center space-x-4">
-        <label className="w-32 text-sm font-medium text-gray-700">
-          Dispatched By
-        </label>
+        <label className="w-32 text-sm font-medium text-gray-700">Dispatched By</label>
         <Controller
           name="dispatchedBy"
           control={control}
@@ -205,40 +185,50 @@ const EditDispatchForm: React.FC<EditDispatchFormProps> = ({
               {...field}
               options={dispatchedByOptions}
               className="flex-1"
-              onChange={(selectedOption) =>
-                field.onChange(selectedOption?.value)
-              }
-              value={dispatchedByOptions.find(
-                (option) => option.value === field.value
-              )}
+              onChange={(selectedOption) => field.onChange(selectedOption?.value)}
+              value={dispatchedByOptions.find(option => option.value === field.value)}
             />
           )}
         />
       </div>
 
-      {/* Dispatched Date */}
       <div className="flex items-center space-x-4">
-        <label className="w-32 text-sm font-medium text-gray-700">
-          Dispatched Date
-        </label>
+        <label className="w-32 text-sm font-medium text-gray-700">Dispatched Date</label>
         <Controller
           name="dispatchedDate"
           control={control}
           render={({ field }) => (
-            <EtDatePicker
-              value={field.value ? new Date(field.value) : null}
-              onChange={(date) => field.onChange(date)}
-              className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-            />
+            <>
+              {useEthiopianDate ? (
+                <EtDatePicker
+                  value={field.value ? new Date(field.value) : undefined}
+                  onChange={(date: any, event?: any) => {
+                    const d = Array.isArray(date) ? date[0] : date;
+                    field.onChange(d ? d.toISOString() : undefined);
+                  }}
+                  className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+                  isRange={false}
+                />
+              ) : (
+                <ReactDatePicker
+                  showFullMonthYearPicker
+                  showYearDropdown
+                  selected={field.value ? new Date(field.value) : undefined}
+                  onChange={(date: any, event?: any) => {
+                    const d = Array.isArray(date) ? date[0] : date;
+                    field.onChange(d ? d.toISOString() : undefined);
+                  }}
+                  placeholderText="Enter Dispatched Date"
+                  className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+                />
+              )}
+            </>
           )}
         />
       </div>
 
-      {/* Duration (not submitted) */}
       <div className="flex items-center space-x-4">
-        <label className="w-32 text-sm font-medium text-gray-700">
-          Duration (days)
-        </label>
+        <label className="w-32 text-sm font-medium text-gray-700">Duration (days)</label>
         <input
           type="number"
           value={duration}
@@ -247,29 +237,43 @@ const EditDispatchForm: React.FC<EditDispatchFormProps> = ({
         />
       </div>
 
-      {/* Estimated Arrival Time */}
       <div className="flex items-center space-x-4">
-        <label className="w-32 text-sm font-medium text-gray-700">
-          Est. Arrival Time
-        </label>
+        <label className="w-32 text-sm font-medium text-gray-700">Est. Arrival Time</label>
         <Controller
           name="estArrivalTime"
           control={control}
           render={({ field }) => (
-            <EtDatePicker
-              value={field.value ? new Date(field.value) : null}
-              onChange={(date) => field.onChange(date)}
-              className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-            />
+            <>
+              {useEthiopianDate ? (
+                <EtDatePicker
+                  value={field.value ? new Date(field.value) : undefined}
+                  onChange={(date: any, event?: any) => {
+                    const d = Array.isArray(date) ? date[0] : date;
+                    field.onChange(d ? d.toISOString() : undefined);
+                  }}
+                  className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+                  isRange={false}
+                />
+              ) : (
+                <ReactDatePicker
+                  showFullMonthYearPicker
+                  showYearDropdown
+                  selected={field.value ? new Date(field.value) : undefined}
+                  onChange={(date: any, event?: any) => {
+                    const d = Array.isArray(date) ? date[0] : date;
+                    field.onChange(d ? d.toISOString() : undefined);
+                  }}
+                  placeholderText="Enter Est. Arrival Time"
+                  className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+                />
+              )}
+            </>
           )}
         />
       </div>
 
-      {/* Departure Site */}
       <div className="flex items-center space-x-4">
-        <label className="w-32 text-sm font-medium text-gray-700">
-          Departure Site
-        </label>
+        <label className="w-32 text-sm font-medium text-gray-700">Departure Site</label>
         <Controller
           name="depatureSiteId"
           control={control}
@@ -278,22 +282,15 @@ const EditDispatchForm: React.FC<EditDispatchFormProps> = ({
               {...field}
               options={siteOptions}
               className="flex-1"
-              onChange={(selectedOption) =>
-                field.onChange(selectedOption?.value)
-              }
-              value={siteOptions.find(
-                (option) => option.value === field.value
-              )}
+              onChange={(selectedOption) => field.onChange(selectedOption?.value)}
+              value={siteOptions.find(option => option.value === field.value)}
             />
           )}
         />
       </div>
 
-      {/* Arrival Site */}
       <div className="flex items-center space-x-4">
-        <label className="w-32 text-sm font-medium text-gray-700">
-          Arrival Site
-        </label>
+        <label className="w-32 text-sm font-medium text-gray-700">Arrival Site</label>
         <Controller
           name="arrivalSiteId"
           control={control}
@@ -302,22 +299,15 @@ const EditDispatchForm: React.FC<EditDispatchFormProps> = ({
               {...field}
               options={siteOptions}
               className="flex-1"
-              onChange={(selectedOption) =>
-                field.onChange(selectedOption?.value)
-              }
-              value={siteOptions.find(
-                (option) => option.value === field.value
-              )}
+              onChange={(selectedOption) => field.onChange(selectedOption?.value)}
+              value={siteOptions.find(option => option.value === field.value)}
             />
           )}
         />
       </div>
 
-      {/* Driver Name */}
       <div className="flex items-center space-x-4">
-        <label className="w-32 text-sm font-medium text-gray-700">
-          Driver Name
-        </label>
+        <label className="w-32 text-sm font-medium text-gray-700">Driver Name</label>
         <input
           type="text"
           {...register("driverName")}
@@ -325,11 +315,8 @@ const EditDispatchForm: React.FC<EditDispatchFormProps> = ({
         />
       </div>
 
-      {/* Vehicle Number */}
       <div className="flex items-center space-x-4">
-        <label className="w-32 text-sm font-medium text-gray-700">
-          Vehicle Number
-        </label>
+        <label className="w-32 text-sm font-medium text-gray-700">Vehicle Number</label>
         <input
           type="text"
           {...register("vehicleNumber")}
@@ -337,11 +324,8 @@ const EditDispatchForm: React.FC<EditDispatchFormProps> = ({
         />
       </div>
 
-      {/* Vehicle Type */}
       <div className="flex items-center space-x-4">
-        <label className="w-32 text-sm font-medium text-gray-700">
-          Vehicle Type
-        </label>
+        <label className="w-32 text-sm font-medium text-gray-700">Vehicle Type</label>
         <input
           type="text"
           {...register("vehicleType")}
@@ -349,11 +333,8 @@ const EditDispatchForm: React.FC<EditDispatchFormProps> = ({
         />
       </div>
 
-      {/* Remarks */}
       <div className="flex items-start space-x-4">
-        <label className="w-32 text-sm font-medium text-gray-700">
-          Remarks
-        </label>
+        <label className="w-32 text-sm font-medium text-gray-700">Remarks</label>
         <textarea
           {...register("remarks")}
           rows={3}

@@ -1,14 +1,14 @@
-// EditInvoiceForm.tsx
 "use client";
 
 import React from "react";
 import { useForm, Controller } from "react-hook-form";
 import Select from "react-select";
-import EtDatePicker from "habesha-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { UpdateInvoiceInput } from "@/types/financial";
-import { useProjects } from "@/hooks/useProjects";  // Assuming hook for projects
+import { useProjects } from "@/hooks/useProjects";
 import { useSettingsStore } from "@/store/settingsStore";
+import EtDatePicker from "habesha-datepicker"; 
+import ReactDatePicker from "react-datepicker";
 
 interface EditInvoiceFormProps {
   onSubmit: (data: UpdateInvoiceInput) => void;
@@ -51,6 +51,7 @@ const EditInvoiceForm: React.FC<EditInvoiceFormProps> = ({ onSubmit, onClose, in
           control={control}
           render={({ field }) => (
             <Select
+              {...field}
               options={projectOptions}
               className="flex-1"
               onChange={(option) => field.onChange(option?.value)}
@@ -75,11 +76,31 @@ const EditInvoiceForm: React.FC<EditInvoiceFormProps> = ({ onSubmit, onClose, in
           name="dueDate"
           control={control}
           render={({ field }) => (
-            <EtDatePicker
-              value={field.value ? new Date(field.value) : null}
-              onChange={(date) => field.onChange(date)}
-              className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-            />
+            <>
+              {useEthiopianDate ? (
+                <EtDatePicker
+                  value={field.value ? new Date(field.value) : undefined}
+                  onChange={(date: any, event?: any) => {
+                    const d = Array.isArray(date) ? date[0] : date;
+                    field.onChange(d ? d.toISOString() : undefined);
+                  }}
+                  className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+                  isRange={false}
+                />
+              ) : (
+                <ReactDatePicker
+                  showFullMonthYearPicker
+                  showYearDropdown
+                  selected={field.value ? new Date(field.value) : undefined}
+                  onChange={(date: any, event?: any) => {
+                    const d = Array.isArray(date) ? date[0] : date;
+                    field.onChange(d ? d.toISOString() : undefined);
+                  }}
+                  placeholderText="Enter Due Date"
+                  className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+                />
+              )}
+            </>
           )}
         />
       </div>
@@ -91,6 +112,7 @@ const EditInvoiceForm: React.FC<EditInvoiceFormProps> = ({ onSubmit, onClose, in
           control={control}
           render={({ field }) => (
             <Select
+              {...field}
               options={statusOptions}
               className="flex-1"
               onChange={(option) => field.onChange(option?.value)}

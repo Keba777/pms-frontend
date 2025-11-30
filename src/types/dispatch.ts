@@ -34,6 +34,7 @@ export interface CreateDispatchInput {
     vehicleNumber?: string;
     vehicleType?: string;
     dispatchedBy?: "Plane" | "Truck";
+    status?: "Pending" | "In Transit" | "Delivered" | "Cancelled";
 }
 
 export interface UpdateDispatchInput {
@@ -50,4 +51,5 @@ export interface UpdateDispatchInput {
     vehicleNumber?: string;
     vehicleType?: string;
     dispatchedBy?: "Plane" | "Truck";
+    status?: "Pending" | "In Transit" | "Delivered" | "Cancelled";
 }

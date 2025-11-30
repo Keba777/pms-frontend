@@ -15,7 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import DatePicker from "@/components/common/DatePicker";
+import ReactDatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { createPortal } from "react-dom";
 import { useUpdateProjectProgress } from "@/hooks/useProjects";
@@ -327,8 +327,10 @@ const ManageProjectForm: React.FC<{
             <TableRow key={newRow.uiId} className="bg-sky-50">
               <TableCell>{rows.length + 1}</TableCell>
               <TableCell>
-                <DatePicker
-                  value={newRow.dateTime ? new Date(newRow.dateTime) : null}
+                <ReactDatePicker
+                  showFullMonthYearPicker
+                  showYearDropdown
+                  selected={newRow.dateTime ? new Date(newRow.dateTime) : null}
                   onChange={(value) => {
                     const nextDate = normalizeDatePickerValue(value);
                     updateNewRowField("dateTime", nextDate ? nextDate.toISOString() : "");
@@ -389,8 +391,10 @@ const ManageProjectForm: React.FC<{
                 />
               </TableCell>
               <TableCell>
-                <DatePicker
-                  value={newRow.approvedDate ? new Date(newRow.approvedDate) : null}
+                <ReactDatePicker
+                  showFullMonthYearPicker
+                  showYearDropdown
+                  selected={newRow.approvedDate ? new Date(newRow.approvedDate) : null}
                   onChange={(value) => {
                     const nextDate = normalizeDatePickerValue(value);
                     updateNewRowField("approvedDate", nextDate ? nextDate.toISOString() : null);

@@ -1,7 +1,6 @@
 import { useApprovals } from "@/hooks/useApprovals";
 import { useSites } from "@/hooks/useSites";
 import Select from "react-select";
-import EtDatePicker from "habesha-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { Approval } from "@/types/approval";
 import { Site } from "@/types/site";
@@ -9,6 +8,8 @@ import { CreateRequestDeliveryInput } from "@/types/requestDelivery";
 import { Controller, useForm } from "react-hook-form";
 import { useCreateRequestDelivery } from "@/hooks/useRequestDeliveries";
 import { useSettingsStore } from "@/store/settingsStore";
+import EtDatePicker from "habesha-datepicker"; 
+import ReactDatePicker from "react-datepicker";
 
 const RequestDeliveryForm: React.FC<{ onClose: () => void }> = ({
   onClose,
@@ -32,7 +33,6 @@ const RequestDeliveryForm: React.FC<{ onClose: () => void }> = ({
       status: "Pending",
     },
   });
-
   const { mutate: createRequestDelivery, isPending } =
     useCreateRequestDelivery();
   const {
@@ -45,7 +45,6 @@ const RequestDeliveryForm: React.FC<{ onClose: () => void }> = ({
     isLoading: sitesLoading,
     error: sitesError,
   } = useSites();
-
   const onSubmit = (data: CreateRequestDeliveryInput) => {
     console.log("Submitting request delivery:", data);
     createRequestDelivery(data, {
@@ -58,31 +57,26 @@ const RequestDeliveryForm: React.FC<{ onClose: () => void }> = ({
       },
     });
   };
-
   const approvalOptions =
     approvals?.map((approval: Approval) => ({
       value: approval.id,
-      label: approval.request?.activity?.activity_name || approval.id,
+      label: approval.request?.activity?.activity_name || `${approval.id}`,
     })) || [];
-
   const siteOptions =
     sites?.map((site: Site) => ({
       value: site.id,
       label: site.name || `Site ${site.id}`,
     })) || [];
-
   const statusOptions = [
     { value: "Pending", label: "Pending" },
     { value: "Delivered", label: "Delivered" },
     { value: "Cancelled", label: "Cancelled" },
   ];
-
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
       className="bg-white rounded-lg shadow-xl p-6 space-y-6 max-w-md"
     >
-      {/* Header */}
       <div className="flex justify-between items-center pb-4 border-b">
         <h3 className="text-xl font-semibold text-gray-800">
           Create Request Delivery
@@ -95,9 +89,7 @@ const RequestDeliveryForm: React.FC<{ onClose: () => void }> = ({
           &times;
         </button>
       </div>
-
       <div className="space-y-6">
-        {/* Approval (Activity) */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Activity <span className="text-red-500">*</span>
@@ -131,8 +123,6 @@ const RequestDeliveryForm: React.FC<{ onClose: () => void }> = ({
             <p className="text-red-500 text-sm mt-1">Error loading approvals</p>
           )}
         </div>
-
-        {/* Ref Number */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Reference Number
@@ -144,8 +134,6 @@ const RequestDeliveryForm: React.FC<{ onClose: () => void }> = ({
             className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
           />
         </div>
-
-        {/* Received Quantity */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Received Quantity <span className="text-red-500">*</span>
@@ -165,8 +153,6 @@ const RequestDeliveryForm: React.FC<{ onClose: () => void }> = ({
             </p>
           )}
         </div>
-
-        {/* Delivered By */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Delivered By <span className="text-red-500">*</span>
@@ -185,8 +171,6 @@ const RequestDeliveryForm: React.FC<{ onClose: () => void }> = ({
             </p>
           )}
         </div>
-
-        {/* Received By */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Received By <span className="text-red-500">*</span>
@@ -205,8 +189,6 @@ const RequestDeliveryForm: React.FC<{ onClose: () => void }> = ({
             </p>
           )}
         </div>
-
-        {/* Delivery Date */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Delivery Date <span className="text-red-500">*</span>
@@ -216,11 +198,31 @@ const RequestDeliveryForm: React.FC<{ onClose: () => void }> = ({
             control={control}
             rules={{ required: "Delivery date is required" }}
             render={({ field }) => (
-              <EtDatePicker
-                value={field.value ? new Date(field.value) : null}
-                onChange={(date) => field.onChange(date)}
-                className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
-              />
+              <>
+                {useEthiopianDate ? (
+                  <EtDatePicker
+                    value={field.value ? new Date(field.value) : undefined}
+                    onChange={(date: any, event?: any) => {
+                      const d = Array.isArray(date) ? date[0] : date;
+                      field.onChange(d ? d.toISOString() : undefined);
+                    }}
+                    className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
+                    isRange={false}
+                  />
+                ) : (
+                  <ReactDatePicker
+                    showFullMonthYearPicker
+                    showYearDropdown
+                    selected={field.value ? new Date(field.value) : undefined}
+                    onChange={(date: any, event?: any) => {
+                      const d = Array.isArray(date) ? date[0] : date;
+                      field.onChange(d ? d.toISOString() : undefined);
+                    }}
+                    placeholderText="Enter Delivery Date"
+                    className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
+                  />
+                )}
+              </>
             )}
           />
           {errors.deliveryDate && (
@@ -229,8 +231,6 @@ const RequestDeliveryForm: React.FC<{ onClose: () => void }> = ({
             </p>
           )}
         </div>
-
-        {/* Site */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Site <span className="text-red-500">*</span>
@@ -262,8 +262,6 @@ const RequestDeliveryForm: React.FC<{ onClose: () => void }> = ({
             <p className="text-red-500 text-sm mt-1">Error loading sites</p>
           )}
         </div>
-
-        {/* Remarks */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Remarks
@@ -275,8 +273,6 @@ const RequestDeliveryForm: React.FC<{ onClose: () => void }> = ({
             rows={3}
           />
         </div>
-
-        {/* Status */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Status <span className="text-red-500">*</span>
@@ -304,8 +300,6 @@ const RequestDeliveryForm: React.FC<{ onClose: () => void }> = ({
             <p className="text-red-500 text-sm mt-1">{errors.status.message}</p>
           )}
         </div>
-
-        {/* Footer Buttons */}
         <div className="flex justify-end gap-4">
           <button
             type="button"
