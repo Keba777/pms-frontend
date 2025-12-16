@@ -381,11 +381,10 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
         <Controller
           name="role_id"
           control={control}
-          rules={{ required: "Required" }}
           render={({ field }) => (
             <div>
               <label className="block text-sm font-medium">
-                Role <span className="text-red-500">*</span>
+                Role
               </label>
               <Select
                 {...field}

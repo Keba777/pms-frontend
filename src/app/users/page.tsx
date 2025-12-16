@@ -279,8 +279,6 @@ const UsersPage = () => {
     "last_name",
     "email",
     "phone",
-    "role_name",
-    "site_name",
   ];
 
   const handleImport = async (rows: ImportUserRow[]) => {
@@ -296,11 +294,15 @@ const UsersPage = () => {
     const formData = new FormData();
 
     const usersJson = rows.map((r, index) => {
-      const roleId = roleMap.get(r.role_name.trim().toLowerCase());
-      if (!roleId) throw new Error(`Row ${index + 2}: Role "${r.role_name}" not found`);
-
-      const siteId = siteMap.get(r.site_name.trim().toLowerCase());
-      if (!siteId) throw new Error(`Row ${index + 2}: Site "${r.site_name}" not found`);
+      let roleId = r.role_name ? roleMap.get(r.role_name.trim().toLowerCase()) : undefined;
+      // If no role name provided, we rely on backend default 'User'. 
+      // If role name provided but not found, throw error? or fallback? User said "if the Role name is empty please make it to User by default".
+      // implying if provided but wrong, it might still error, but if empty, it's fine.
+      // But if provided and not found, maybe we should error.
+      if (r.role_name && !roleId) throw new Error(`Row ${index + 2}: Role "${r.role_name}" not found`);
+      
+      const siteId = r.site_name ? siteMap.get(r.site_name.trim().toLowerCase()) : undefined;
+      if (r.site_name && !siteId) throw new Error(`Row ${index + 2}: Site "${r.site_name}" not found`);
 
       const departmentId = r.department_name
         ? deptMap.get(r.department_name.trim().toLowerCase()) || undefined

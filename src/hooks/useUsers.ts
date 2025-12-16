@@ -34,7 +34,27 @@ const fetchUserById = async (id: string): Promise<User | null> => {
 };
 
 // Create a new user
-const createUser = async (data: Omit<User, "id">): Promise<User> => {
+// Create a new user (supports FormData or JSON)
+const createUser = async (data: Omit<User, "id"> | FormData): Promise<User> => {
+    // If it's already FormData, just send it
+    if (data instanceof FormData) {
+        const response = await apiClient.post<ApiResponse<User>>("/users", data, {
+            headers: { "Content-Type": "multipart/form-data" },
+        });
+        return response.data.data;
+    }
+
+    // Otherwise treat as JSON (unless we want to force FormData conversion here too? 
+    // Usually easier to construct FormData in the component if we have files, 
+    // OR we helper here. Let's assume component sends FormData if file exists, 
+    // or we can handle mixed object here.
+    // Given the types, let's keep it simple: if Component sends object with file, we convert?
+    // But Omit<User, "id"> doesn't easily describe a File object property in "profile_picture" 
+    // because User type says string.
+    // The component usually has a local type like CreateUserInput which has profile_picture?: string | File.
+    // Let's accept any/generic for flexibility or update types properly.
+    
+    // For now, let's allow the caller to pass FormData.
     const response = await apiClient.post<ApiResponse<User>>("/users", data);
     return response.data.data;
 };

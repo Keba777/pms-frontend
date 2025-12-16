@@ -7,7 +7,8 @@ import { useSites } from "@/hooks/useSites";
 import { useDepartments } from "@/hooks/useDepartments";
 import { useRoles } from "@/hooks/useRoles";
 import { CreateUserInput } from "@/types/user";
-import { useRegister } from "@/hooks/useAuth";
+import { useCreateUser } from "@/hooks/useUsers";
+import Image from "next/image";
 
 interface UserFormProps {
   onClose: () => void;
@@ -33,7 +34,18 @@ const UserForm: React.FC<UserFormProps> = ({ onClose }) => {
     },
   });
 
-  const { mutate: createUser, isPending } = useRegister();
+  const { mutate: createUser, isPending } = useCreateUser();
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files ? e.target.files[0] : null;
+    if (file) {
+        setSelectedFile(file);
+        setPreviewUrl(URL.createObjectURL(file));
+    }
+  };
+
   const {
     data: sites,
     isLoading: sitesLoading,
@@ -59,7 +71,7 @@ const UserForm: React.FC<UserFormProps> = ({ onClose }) => {
   const roleOptions: SelectOption[] =
     roles
       ?.filter((role) => role.id !== undefined)
-      .map((role) => ({ value: role.name as string, label: role.name })) || [];
+      .map((role) => ({ value: role.id as string, label: role.name })) || [];
 
   const statusOptions: SelectOption[] = [
     { value: "Active", label: "Active" },
@@ -96,10 +108,83 @@ const UserForm: React.FC<UserFormProps> = ({ onClose }) => {
   };
 
   const onSubmit = (data: CreateUserInput) => {
-    createUser(data, {
-      onSuccess: () => {
+    const formData = new FormData();
+    // Append all fields to FormData
+    // Since CreateUserInput structure is flat (mostly), we iterate.
+    // However, react-hook-form data might differ slightly from FormData structure needed by backend if array/nested.
+    
+    // Manual mapping to be safe or iteration
+    formData.append("first_name", data.first_name);
+    formData.append("last_name", data.last_name);
+    formData.append("email", data.email);
+    formData.append("password", data.password);
+    formData.append("phone", data.phone);
+    if (data.username) formData.append("username", data.username);
+    if (data.gender) formData.append("gender", data.gender);
+    if (data.position) formData.append("position", data.position);
+    if (data.terms) formData.append("terms", data.terms);
+    if (data.joiningDate) formData.append("joiningDate", data.joiningDate.toString()); // check format
+    if (data.estSalary) formData.append("estSalary", data.estSalary.toString());
+    if (data.ot) formData.append("ot", data.ot.toString());
+    
+    // Optional fields
+    // NOTE: Backend expects role_id for "role_id" column, but frontend was sending "role_name"? 
+    // UserForm used "role_name" in hook form previously? 
+    // Looking at controller: req.body has role_id. 
+    // Looking at previous UserForm: name="role_name" in Controller but value was mapped to role.name?
+    // Wait, previous UserForm hook used "useRegister" which targeted /auth/register? 
+    // And auth/register calls createUser using req.body. 
+    // Let's check UserForm previous code: 
+    //   roleOptions map role.name as value. 
+    //   Controller name="role_name".
+    //   But CreateUserInput type has role_name: string.
+    //   Backend createUser controller expects role_id OR we added logic to default if missing.
+    //   Actually the backend createUser expects "role_id". 
+    //   If the old usage was sending role_name, maybe the backend was finding it by name?
+    //   Let's check backend createUser again... it extracts `role_id`.
+    //   So sending `role_name` might have been failing or I missed where it was converted.
+    //   Ah, wait, `useRegister` calls `/auth/register`. 
+    //   The UserForm uses `useRegister`. 
+    //   Let's assume we should send `role_id` if we have it, or `role_name` if the backend supports it.
+    //   My backend update only touched defaults.
+    //   The `roleOptions` currently use `role.name` as value. 
+    //   I should probably switch to sending `role_id` if the backend expects it.
+    //   The backend `createUser` controller extracts `role_id`. 
+    //   So if I send `role_name` it will be undefined in `role_id` var unless I map it.
+    //   BUT I added default logic: if `role_id` is missing, default to User.
+    //   So if I send nothing/empty, it defaults. 
+    //   So making it optional works perfectly.
+    //   If the user selects a role, we should probably send the ID to be safe, or ensure validation passes.
+    //   Current UserForm options: `value: role.name`. 
+    //   I will change this to `value: role.id` to be correct, and name the field `role_id`?
+    //   Or if I simply omit it, it defaults.
+    
+    // Let's stick to previous behavior but allow optional.
+    // If I select a role, I want it to work. 
+    // I will change role options to use ID as value, and key to role_id.
+    
+    if (data.role_name) {
+         formData.append("role_id", data.role_name); 
+    }
+
+    if (data.siteId) formData.append("siteId", data.siteId);
+    if (data.department_id) formData.append("department_id", data.department_id);
+    if (data.status) formData.append("status", data.status);
+    
+    if (data.responsiblities) {
+        data.responsiblities.forEach(r => formData.append("responsibilities[]", r));
+    }
+
+    if (selectedFile) {
+        formData.append("profile_picture", selectedFile);
+    }
+
+    // Call createUser with FormData (cast to any or overload in hook)
+    // My updated hook accepts FormData.
+    createUser(formData as any, {
+      onSuccess: (user) => {
         onClose();
-        window.location.reload();
+        // window.location.reload(); // React query should handle invalidation
       },
     });
   };
@@ -137,6 +222,28 @@ const UserForm: React.FC<UserFormProps> = ({ onClose }) => {
               {errors.first_name.message}
             </p>
           )}
+        </div>
+
+        {/* Profile Picture */}
+        <div>
+           <label className="block text-sm font-medium text-gray-700 mb-1">
+             Profile Picture
+           </label>
+           {previewUrl && (
+              <Image
+                src={previewUrl}
+                alt="Preview"
+                width={80}
+                height={80}
+                className="rounded-full mb-2 object-cover"
+              />
+            )}
+           <input
+             type="file"
+             accept="image/*"
+             onChange={handleFileChange}
+             className="w-full px-3 py-2 border rounded-md"
+           />
         </div>
 
         {/* Last Name */}
@@ -323,12 +430,12 @@ const UserForm: React.FC<UserFormProps> = ({ onClose }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Site <span className="text-red-500">*</span>
+              Site
             </label>
             <Controller
               name="siteId"
               control={control}
-              rules={{ required: "Site is required" }}
+              // rules={{ required: "Site is required" }} // Made Optional
               render={({ field }) => (
                 <Select
                   options={siteOptions}
@@ -379,12 +486,12 @@ const UserForm: React.FC<UserFormProps> = ({ onClose }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Role <span className="text-red-500">*</span>
+              Role
             </label>
             <Controller
-              name="role_name"
+              name="role_name" // We are using this field key but value will be ID now
               control={control}
-              rules={{ required: "Role is required" }}
+              // rules={{ required: "Role is required" }} // Made Optional
               render={({ field }) => (
                 <Select
                   options={roleOptions}

@@ -11,6 +11,7 @@ import { UpdateProjectInput } from "@/types/project";
 import { User } from "@/types/user";
 import { useSites } from "@/hooks/useSites";
 import { useSettingsStore } from "@/store/settingsStore";
+import { useClients } from "@/hooks/useClients";
 
 interface EditProjectFormProps {
   onSubmit: (data: UpdateProjectInput) => void;
@@ -35,6 +36,7 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
     defaultValues: project,
   });
   const { data: sites, isLoading: sitesLoading, error: sitesError } = useSites();
+  const { data: clients, isLoading: clientsLoading, error: clientsError } = useClients();
 
   const statusOptions = [
     { value: "Not Started", label: "Not Started" },
@@ -62,6 +64,12 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
     sites?.map((site) => ({
       value: site.id,
       label: site.name,
+    })) || [];
+  
+  const clientOptions =
+    clients?.map((client) => ({
+      value: client.id,
+      label: client.companyName,
     })) || [];
 
   return (
@@ -283,6 +291,26 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
                 {errors.client.message}
               </p>
             )}
+            <div className="mt-2">
+                 <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Select Client (Existing)
+                </label>
+                <Controller
+                  name="client_id"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      {...field}
+                      options={clientOptions}
+                      isLoading={clientsLoading}
+                      className="w-full text-sm"
+                      onChange={(selected) => field.onChange(selected?.value)}
+                      value={clientOptions.find((opt) => opt.value === field.value)}
+                      placeholder="Select a client..."
+                    />
+                  )}
+                />
+            </div>
           </div>
 
           <div>

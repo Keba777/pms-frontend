@@ -326,7 +326,7 @@ const EquipmentsPage = () => {
       {showForm && canCreate && (
         <div className="modal-overlay fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="modal-content bg-white rounded-lg shadow-xl p-6">
-            <EquipmentForm siteId={siteId} onClose={() => setShowForm(false)} />
+            <EquipmentForm siteId={siteId as string} onClose={() => setShowForm(false)} />
           </div>
         </div>
       )}

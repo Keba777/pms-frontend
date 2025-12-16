@@ -12,6 +12,7 @@ import { User } from "@/types/user";
 import { useCreateNotification } from "@/hooks/useNotifications";
 import { useSites } from "@/hooks/useSites";
 import { useSettingsStore } from "@/store/settingsStore";
+import { useClients } from "@/hooks/useClients";
 import EtDatePicker from "habesha-datepicker"; 
 import ReactDatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -36,6 +37,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
   const { mutate: createNotification } = useCreateNotification();
   const { data: users, isLoading: usersLoading, error: usersError } = useUsers();
   const { data: sites, isLoading: sitesLoading, error: sitesError } = useSites();
+  const { data: clients, isLoading: clientsLoading } = useClients();
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [duration, setDuration] = useState<string>("");
 
@@ -155,6 +157,12 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
     sites?.map((site) => ({
       value: site.id!,
       label: site.name,
+    })) || [];
+
+  const clientOptions =
+    clients?.map((client) => ({
+      value: client.id,
+      label: client.companyName,
     })) || [];
 
   return (
@@ -397,6 +405,30 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
                 {errors.client.message}
               </p>
             )}
+             <div className="mt-2">
+                 <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Select Client (Existing)
+                </label>
+                <Controller
+                  name="client_id"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      {...field}
+                      options={clientOptions}
+                      isLoading={clientsLoading}
+                      className="w-full text-sm"
+                      onChange={(selected) => {
+                          field.onChange(selected?.value);
+                          // Optional: Auto-fill the "Client" text field if selecting an existing one
+                          if (selected) setValue("client", selected.label);
+                      }}
+                      value={clientOptions.find((opt) => opt.value === field.value)}
+                      placeholder="Select a client..."
+                    />
+                  )}
+                />
+            </div>
           </div>
 
           <div>

@@ -1,309 +1,224 @@
 "use client";
 
 import React, { useState } from "react";
-import { ChevronDown } from "lucide-react";
-import { useProjects } from "@/hooks/useProjects";
-import { Project } from "@/types/project";
-import { Button } from "@/components/ui/button";
-import { formatDate as format, getDateDuration } from "@/utils/dateUtils";
-import { useSettingsStore } from "@/store/settingsStore";
-import { Input } from "@/components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import GenericDownloads, { Column } from "@/components/common/GenericDownloads";
-import { useProjectStore } from "@/store/projectStore";
-import { useAuthStore } from "@/store/authStore";
-import {
-  FilterField,
-  FilterValues,
-  GenericFilter,
-  Option,
-} from "@/components/common/GenericFilter";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
+import { useClients, useDeleteClient } from "@/hooks/useClients";
+import { IClient } from "@/types/client";
+import ClientForm from "@/components/forms/ClientForm";
+import EditClientForm from "@/components/forms/EditClientForm";
+import ConfirmModal from "@/components/common/ui/ConfirmModal";
 import Link from "next/link";
+import { PlusIcon, ChevronDown, Edit2 } from "lucide-react";
+import { Menu, MenuButton, MenuItems, MenuItem } from "@headlessui/react";
 
-const ClientsPage: React.FC = () => {
-  const { useEthiopianDate } = useSettingsStore();
-  const { data: projects, isLoading, isError } = useProjects();
-  const { projects: storeProjects } = useProjectStore();
+const ClientsPage = () => {
+    const { data: clients = [], isLoading, isError } = useClients();
+    const { mutate: deleteClient } = useDeleteClient();
 
-  const hasPermission = useAuthStore((state) => state.hasPermission);
-  const [filterValues, setFilterValues] = useState<FilterValues>({});
-  const [fromDate, setFromDate] = useState<Date | null>(null);
-  const [toDate, setToDate] = useState<Date | null>(null);
+    const [showCreateForm, setShowCreateForm] = useState(false);
+    const [showEditForm, setShowEditForm] = useState(false);
+    const [clientToEdit, setClientToEdit] = useState<IClient | null>(null);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
 
-  const canManage = hasPermission("projects", "manage");
+    const handleDeleteClick = (id: string) => {
+        setSelectedClientId(id);
+        setIsDeleteModalOpen(true);
+    };
 
-  const columnOptions = [
-    { value: "id", label: "ID" },
-    { value: "client", label: "Client Name" },
-    { value: "title", label: "Project Name" },
-    { value: "site", label: "Site" },
-    { value: "start_date", label: "Start Date" },
-    { value: "end_date", label: "End Date" },
-    { value: "duration", label: "Duration" },
-  ];
-
-  const [selectedColumns, setSelectedColumns] = useState<string[]>(
-    columnOptions.map((col) => col.value)
-  );
-  const [searchTerm, setSearchTerm] = useState<string>("");
-
-  const toggleColumn = (col: string) => {
-    setSelectedColumns((prev) =>
-      prev.includes(col) ? prev.filter((c) => c !== col) : [...prev, col]
-    );
-  };
-
-  const columns: Column<Project>[] = [
-    { header: "Client Name", accessor: "client" },
-    { header: "Project Name", accessor: "title" },
-    { header: "Site", accessor: "site" },
-    { header: "Start Date", accessor: "start_date" },
-    { header: "End Date", accessor: "end_date" },
-  ];
-
-  const statusOptions: Option<string>[] = [
-    { label: "Not Started", value: "Not Started" },
-    { label: "Started", value: "Started" },
-    { label: "InProgress", value: "InProgress" },
-    { label: "Canceled", value: "Canceled" },
-    { label: "Onhold", value: "Onhold" },
-    { label: "Completed", value: "Completed" },
-  ];
-
-  const filterFields: FilterField<string>[] = [
-    {
-      name: "title",
-      label: "Project Name",
-      type: "text",
-      placeholder: "Search by project name…",
-    },
-    {
-      name: "client",
-      label: "Client Name",
-      type: "text",
-      placeholder: "Search by client…",
-    },
-    {
-      name: "status",
-      label: "All Statuses",
-      type: "select",
-      options: statusOptions,
-    },
-  ];
-
-  const filtered =
-    projects?.filter(
-      (p) =>
-        p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.site?.name?.toLowerCase().includes(searchTerm.toLowerCase())
-    ) || [];
-
-  if (isLoading)
-    return (
-      <div className="text-center py-8 text-gray-600">Loading clients...</div>
-    );
-  if (isError)
-    return (
-      <div className="text-center py-8 text-red-600">
-        Error loading clients.
-      </div>
-    );
-
-  const finalFiltered = filtered.filter((project) => {
-    return (
-      Object.entries(filterValues).every(([key, value]) => {
-        if (!value) return true;
-        if (key === "status") {
-          return project.status === value;
+    const handleConfirmDelete = () => {
+        if (selectedClientId) {
+            deleteClient(selectedClientId);
+            setIsDeleteModalOpen(false);
         }
-        if (key === "title" || key === "client") {
-          return project[key]
-            ?.toLowerCase()
-            .includes((value as string).toLowerCase());
-        }
-        return true;
-      }) &&
-      (fromDate ? new Date(project.start_date) >= fromDate : true) &&
-      (toDate ? new Date(project.end_date) <= toDate : true)
-    );
-  });
+    };
 
-  return (
-    <div className="p-4">
-      <div className="flex flex-wrap justify-between items-center mb-4 mt-4 gap-2">
-        <nav className="hidden md:block" aria-label="breadcrumb">
-          <ol className="flex space-x-2 text-sm sm:text-base">
-            <li>
-              <Link href="/" className="text-blue-600 hover:underline">
-                Home
-              </Link>
-            </li>
-            <li className="text-gray-500">/</li>
-            <li className="text-gray-900 font-semibold">Clients</li>
-          </ol>
-        </nav>
+    const handleEditClick = (client: IClient) => {
+        setClientToEdit(client);
+        setShowEditForm(true);
+    };
 
-        {/* Button group */}
-        <div className="flex flex-wrap gap-2 items-center w-full md:w-auto">
-          {/* GenericDownloads: full width on small, inline on md+ */}
-          {canManage && (
-            <div className="w-full md:w-auto mt-2 md:mt-0">
-              <GenericDownloads
-                data={storeProjects}
-                title="Clients Export"
-                columns={columns}
-              />
-            </div>
-          )}
-        </div>
-      </div>
+    if (isLoading) {
+        return <div className="p-8 text-center">Loading clients...</div>;
+    }
 
-      <div className="flex flex-col sm:flex-row gap-2">
-        <GenericFilter fields={filterFields} onFilterChange={setFilterValues} />
-        <DatePicker
-          selected={fromDate}
-          onChange={setFromDate}
-          placeholderText="From Date"
-          className="rounded border border-gray-300 p-2 focus:outline-none focus:border-blue-500 w-full sm:w-auto"
-          dateFormat="yyyy-MM-dd"
-        />
-        <DatePicker
-          selected={toDate}
-          onChange={setToDate}
-          placeholderText="To Date"
-          className="rounded border border-gray-300 p-2 focus:outline-none focus:border-blue-500 w-full sm:w-auto"
-          dateFormat="yyyy-MM-dd"
-        />
-      </div>
+    if (isError) {
+        return <div className="p-8 text-center text-red-500">Failed to load clients.</div>;
+    }
 
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="outline" className="w-full sm:w-auto">
-              Customize Columns <ChevronDown className="ml-2 h-4 w-4" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-64">
-            <div className="space-y-2">
-              {columnOptions.map((col) => (
-                <div key={col.value} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={col.value}
-                    checked={selectedColumns.includes(col.value)}
-                    onCheckedChange={() => toggleColumn(col.value)}
-                  />
-                  <label htmlFor={col.value} className="">
-                    {col.label}
-                  </label>
-                </div>
-              ))}
-            </div>
-          </PopoverContent>
-        </Popover>
-        <Input
-          placeholder="Search clients/projects..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full sm:w-64"
-        />
-      </div>
+    return (
+        <div className="p-4 space-y-6">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-4">
+                <nav aria-label="breadcrumb">
+                    <ol className="flex space-x-2">
+                        <li><Link href="/" className="text-blue-600 hover:underline">Home</Link></li>
+                        <li className="text-gray-500">/</li>
+                        <li className="text-gray-900 font-semibold">Clients</li>
+                    </ol>
+                </nav>
 
-      <div className="overflow-x-auto rounded-md border mt-4">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-cyan-700 hover:bg-cyan-700">
-              {columnOptions
-                .filter((col) => selectedColumns.includes(col.value))
-                .map((col) => (
-                  <TableHead
-                    key={col.value}
-                    className="text-gray-50 font-medium px-4 py-4"
-                  >
-                    {col.label}
-                  </TableHead>
-                ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {finalFiltered.length > 0 ? (
-              finalFiltered.map((project, idx) => {
-                const duration = getDateDuration(
-                  project.start_date,
-                  project.end_date
-                );
-                return (
-                  <TableRow key={project.id} className="hover:bg-gray-50">
-                    {selectedColumns.includes("id") && (
-                      <TableCell className="px-4 py-2">{idx + 1}</TableCell>
-                    )}
-                    {selectedColumns.includes("client") && (
-                      <TableCell className="px-4 py-2 font-medium">
-                        {project.client}
-                      </TableCell>
-                    )}
-                    {selectedColumns.includes("title") && (
-                      <TableCell className="px-4 py-2">
-                        <Link
-                          href={`/projects/${project.id}`}
-                          className="text-cyan-700 hover:underline font-medium"
-                        >
-                          {project.title}
-                        </Link>
-                      </TableCell>
-                    )}
-
-                    {selectedColumns.includes("site") && (
-                      <TableCell className="px-4 py-2">
-                        {project.projectSite?.name || "N/A"}
-                      </TableCell>
-                    )}
-                    {selectedColumns.includes("start_date") && (
-                      <TableCell className="px-4 py-2">
-                        {format(project.start_date, useEthiopianDate)}
-                      </TableCell>
-                    )}
-                    {selectedColumns.includes("end_date") && (
-                      <TableCell className="px-4 py-2">
-                        {format(project.end_date, useEthiopianDate)}
-                      </TableCell>
-                    )}
-                    {selectedColumns.includes("duration") && (
-                      <TableCell className="px-4 py-2">{duration}</TableCell>
-                    )}
-                  </TableRow>
-                );
-              })
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={selectedColumns.length}
-                  className="text-center py-8 text-gray-500"
+                <button
+                    className="bg-cyan-700 hover:bg-cyan-800 text-white font-bold py-2 px-3 rounded text-sm flex items-center gap-2"
+                    onClick={() => setShowCreateForm(true)}
                 >
-                  No clients/projects found
-                </TableCell>
-              </TableRow>
+                    <PlusIcon className="w-4 h-4" /> Add Client
+                </button>
+            </div>
+
+            {/* Table */}
+            <div className="overflow-x-auto shadow-md sm:rounded-lg">
+                <table className="min-w-full text-sm text-left text-gray-500">
+                    <thead className="text-xs text-white uppercase bg-cyan-700">
+                        <tr>
+                            <th scope="col" className="px-6 py-3">Company Name</th>
+                            <th scope="col" className="px-6 py-3">Responsible Person</th>
+                            <th scope="col" className="px-6 py-3">Description</th>
+                            <th scope="col" className="px-6 py-3">Status</th>
+                            <th scope="col" className="px-6 py-3">Projects Info</th>
+                            <th scope="col" className="px-6 py-3">Attachments</th>
+                            <th scope="col" className="px-6 py-3 text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {clients.length === 0 ? (
+                            <tr className="bg-white border-b">
+                                <td colSpan={7} className="px-6 py-4 text-center">
+                                    No clients found.
+                                </td>
+                            </tr>
+                        ) : (
+                            clients.map((client) => (
+                                <tr key={client.id} className="bg-white border-b hover:bg-gray-50">
+                                    <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
+                                        {client.companyName}
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        {client.responsiblePerson || "-"}
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <div className="truncate max-w-xs" title={client.description}>
+                                            {client.description || "-"}
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <span className={`px-2 py-1 rounded-full text-xs ${client.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                            {client.status}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4 min-w-[300px]">
+                                        {client.projects && client.projects.length > 0 ? (
+                                            <div className="space-y-2">
+                                                {client.projects.map((project) => (
+                                                    <div key={project.id} className="p-2 bg-gray-50 rounded border text-xs">
+                                                        <div className="font-semibold text-cyan-700 mb-1 line-clamp-1" title={project.title}>{project.title}</div>
+                                                        <div className="grid grid-cols-2 gap-x-2 gap-y-1">
+                                                            <div><span className="text-gray-500">Start:</span> {project.start_date ? new Date(project.start_date).toLocaleDateString() : "-"}</div>
+                                                            <div><span className="text-gray-500">Due:</span> {project.end_date ? new Date(project.end_date).toLocaleDateString() : "-"}</div>
+                                                            <div><span className="text-gray-500">Site:</span> {(project as any).projectSite?.name || "-"}</div>
+                                                            <div><span className="text-gray-500">Rem:</span> {getRemainingDays(project.end_date)}d</div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <span className="text-gray-400">No projects</span>
+                                        )}
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        {client.attachments && client.attachments.length > 0 ? (
+                                             <div className="flex flex-col gap-1">
+                                                 {client.attachments.map((att, idx) => (
+                                                     <a key={idx} href={att} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline text-xs truncate max-w-[150px]">
+                                                         Attachment {idx + 1}
+                                                     </a>
+                                                 ))}
+                                             </div>
+                                        ) : "-"}
+                                    </td>
+                                    <td className="px-6 py-4 text-center">
+                                       <Menu as="div" className="relative inline-block text-left">
+                                            <MenuButton className="inline-flex justify-center w-full px-2 py-1 text-sm font-medium text-white bg-cyan-700 rounded-md hover:bg-cyan-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75">
+                                                Action <ChevronDown className="w-4 h-4 ml-2 -mr-1" aria-hidden="true" />
+                                            </MenuButton>
+                                            <MenuItems className="absolute right-0 w-32 mt-2 origin-top-right bg-white divide-y divide-gray-100 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-10">
+                                                <div className="px-1 py-1">
+                                                    <MenuItem>
+                                                        {({ active }) => (
+                                                            <button
+                                                                onClick={() => handleEditClick(client)}
+                                                                className={`${
+                                                                    active ? 'bg-cyan-700 text-white' : 'text-gray-900'
+                                                                } group flex rounded-md items-center w-full px-2 py-2 text-sm`}
+                                                            >
+                                                                <Edit2 className="w-4 h-4 mr-2" />
+                                                                Edit
+                                                            </button>
+                                                        )}
+                                                    </MenuItem>
+                                                    <MenuItem>
+                                                        {({ active }) => (
+                                                            <button
+                                                                onClick={() => handleDeleteClick(client.id)}
+                                                                className={`${
+                                                                    active ? 'bg-red-500 text-white' : 'text-gray-900'
+                                                                } group flex rounded-md items-center w-full px-2 py-2 text-sm`}
+                                                            >
+                                                                Delete
+                                                            </button>
+                                                        )}
+                                                    </MenuItem>
+                                                </div>
+                                            </MenuItems>
+                                        </Menu>
+                                    </td>
+                                </tr>
+                            ))
+                        )}
+                    </tbody>
+                </table>
+            </div>
+
+            {/* Modals */}
+            {showCreateForm && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                    <div className="w-full max-w-lg mx-4">
+                        <ClientForm onClose={() => setShowCreateForm(false)} />
+                    </div>
+                </div>
             )}
-          </TableBody>
-        </Table>
-      </div>
-    </div>
-  );
+
+            {showEditForm && clientToEdit && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                    <div className="w-full max-w-lg mx-4">
+                        <EditClientForm client={clientToEdit} onClose={() => setShowEditForm(false)} />
+                    </div>
+                </div>
+            )}
+
+            {isDeleteModalOpen && (
+                <ConfirmModal
+                    isVisible={isDeleteModalOpen}
+                    title="Delete Client"
+                    message="Are you sure you want to delete this client? This action cannot be undone."
+                    confirmText="DELETE"
+                    confirmButtonText="Delete"
+                    onClose={() => setIsDeleteModalOpen(false)}
+                    onConfirm={handleConfirmDelete}
+                    showInput={false}
+                />
+            )}
+        </div>
+    );
 };
+
+// Helper to calculate remaining days
+function getRemainingDays(endDate: string | Date | undefined): number | string {
+    if (!endDate) return "-";
+    const end = new Date(endDate);
+    const now = new Date();
+    const diffTime = end.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+}
 
 export default ClientsPage;

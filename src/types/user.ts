@@ -17,7 +17,7 @@ export interface User {
     profile_picture?: string;
     department_id?: string;
     department?: Department
-    siteId: string;
+    siteId?: string;
     site?: Site
     responsiblities?: string[]
     access?: "Low Access" | "Full Access" | "Average Access";
@@ -41,11 +41,11 @@ export interface CreateUserInput {
     phone: string;
     email: string;
     password: string;
-    profile_picture?: string;
+    profile_picture?: string | File;
     department_id?: string;
     status?: "Active" | "InActive";
-    role_name: string;
-    siteId: string;
+    role_name?: string;
+    siteId?: string;
     responsiblities?: string[]
     access?: "Low Access" | "Full Access" | "Average Access";
     username?: string;
