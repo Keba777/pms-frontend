@@ -1,0 +1,30 @@
+services:
+  pms-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pms-frontend
+    restart: unless-stopped
+    ports:
+      - "3030:3030"
+    environment:
+      # Next.js public environment variables
+      - NEXT_PUBLIC_BASE_URL=${NEXT_PUBLIC_BASE_URL:-https://api.nilepms.com/api/v1/}
+      - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL:-https://vthmfslnljycsovfuclj.supabase.co}
+      - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY:-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0aG1mc2xubGp5Y3NvdmZ1Y2xqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIzMDI0NzQsImV4cCI6MjA1Nzg3ODQ3NH0.EMe8y3qzLjT0yG3NGUke8xagGO6FmNKeG1nuOSl_D44}
+      - PORT=3030
+      - HOSTNAME=0.0.0.0
+    env_file:
+      - .env
+    networks:
+      - pms-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3030/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  pms-network:
+    driver: bridge
