@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from "react";
 import { ChevronDown, Plus } from "lucide-react";
 import { useEquipments } from "@/hooks/useEquipments";
-import { useCreateEquipment } from "@/hooks/useEquipments"; 
+import { useCreateEquipment } from "@/hooks/useEquipments";
 import { useSites } from "@/hooks/useSites";
 import Link from "next/link";
 import {
@@ -25,11 +25,9 @@ import { Badge } from "@/components/ui/badge";
 import EquipmentForm from "@/components/forms/EquipmentForm";
 import { getDuration } from "@/utils/helper";
 import { formatDate as format } from "@/utils/dateUtils";
-import { useSettingsStore } from "@/store/settingsStore";
 import { toast } from "react-toastify";
 
 const EquipmentsPage = () => {
-  const { useEthiopianDate } = useSettingsStore();
   const { user } = useAuthStore();
   const hasPermission = useAuthStore((state) => state.hasPermission);
   const siteId = user!.siteId;
@@ -44,7 +42,7 @@ const EquipmentsPage = () => {
   const [showForm, setShowForm] = useState(false);
   const [filterValues, setFilterValues] = useState<FilterValues>({});
 
-  const { mutateAsync: createEquipmentAsync } = useCreateEquipment(() => {});
+  const { mutateAsync: createEquipmentAsync } = useCreateEquipment(() => { });
 
   const canCreate = hasPermission("equipments", "create");
   const canManage = hasPermission("equipments", "manage");
@@ -248,8 +246,7 @@ const EquipmentsPage = () => {
         }
         if (equipment.status && !validStatuses.includes(equipment.status)) {
           toast.error(
-            `Invalid status in row ${
-              i + 2
+            `Invalid status in row ${i + 2
             }. Must be one of: ${validStatuses.join(", ")}`
           );
           return;
@@ -459,21 +456,20 @@ const EquipmentsPage = () => {
                     </td>
                     <td className="px-4 py-2 border border-gray-200">
                       {eq.startingDate
-                        ? format(eq.startingDate, useEthiopianDate)
+                        ? format(eq.startingDate)
                         : "-"}
                     </td>
                     <td className="px-4 py-2 border border-gray-200">
                       {eq.dueDate
-                        ? format(eq.dueDate, useEthiopianDate)
+                        ? format(eq.dueDate)
                         : "-"}
                     </td>
                     <td className="px-4 py-2 border border-gray-200">
                       <Badge
-                        className={`${
-                          isAvailable
+                        className={`${isAvailable
                             ? "bg-green-500 hover:bg-green-600"
                             : "bg-red-500 hover:bg-red-600"
-                        } text-white`}
+                          } text-white`}
                       >
                         {eq.status}
                       </Badge>
@@ -490,9 +486,8 @@ const EquipmentsPage = () => {
                           <MenuItem>
                             {({ active }) => (
                               <button
-                                className={`${
-                                  active ? "bg-gray-100" : ""
-                                } w-full text-left px-3 py-2 text-sm text-gray-700`}
+                                className={`${active ? "bg-gray-100" : ""
+                                  } w-full text-left px-3 py-2 text-sm text-gray-700`}
                               >
                                 View
                               </button>
@@ -501,9 +496,8 @@ const EquipmentsPage = () => {
                           <MenuItem>
                             {({ active }) => (
                               <button
-                                className={`${
-                                  active ? "bg-gray-100" : ""
-                                } w-full text-left px-3 py-2 text-sm text-gray-700`}
+                                className={`${active ? "bg-gray-100" : ""
+                                  } w-full text-left px-3 py-2 text-sm text-gray-700`}
                               >
                                 Edit
                               </button>
@@ -512,9 +506,8 @@ const EquipmentsPage = () => {
                           <MenuItem>
                             {({ active }) => (
                               <button
-                                className={`${
-                                  active ? "bg-gray-100" : ""
-                                } w-full text-left px-3 py-2 text-sm text-red-600`}
+                                className={`${active ? "bg-gray-100" : ""
+                                  } w-full text-left px-3 py-2 text-sm text-red-600`}
                               >
                                 Delete
                               </button>
@@ -524,9 +517,8 @@ const EquipmentsPage = () => {
                             {({ active }) => (
                               <button
                                 onClick={() => console.log("Manage clicked")}
-                                className={`${
-                                  active ? "bg-gray-100" : ""
-                                } w-full text-left px-3 py-2 text-sm text-gray-700`}
+                                className={`${active ? "bg-gray-100" : ""
+                                  } w-full text-left px-3 py-2 text-sm text-gray-700`}
                               >
                                 Manage
                               </button>

@@ -21,7 +21,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { getDateDuration, getDuration as calcRemaining } from "@/utils/helper";
 import { formatDate as format } from "@/utils/dateUtils";
-import { useSettingsStore } from "@/store/settingsStore";
 import ProfileAvatar from "../common/ProfileAvatar";
 import {
   Table,
@@ -73,7 +72,7 @@ const statusBadgeClasses: Record<Task["status"], string> = {
 };
 
 const TaskSection: React.FC = () => {
-  const { useEthiopianDate } = useSettingsStore();
+
   const router = useRouter();
   const { data: tasks, isLoading, isError } = useTasks();
   const { mutate: deleteTask } = useDeleteTask();
@@ -400,9 +399,8 @@ const TaskSection: React.FC = () => {
                     {selectedColumns.includes("priority") && (
                       <TableCell className="px-4 py-2">
                         <span
-                          className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
-                            priorityBadgeClasses[task.priority]
-                          }`}
+                          className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${priorityBadgeClasses[task.priority]
+                            }`}
                         >
                           {task.priority}
                         </span>
@@ -415,12 +413,12 @@ const TaskSection: React.FC = () => {
                     )}
                     {selectedColumns.includes("start_date") && (
                       <TableCell className="px-4 py-2 ">
-                        {format(task.start_date, useEthiopianDate)}
+                        {format(task.start_date)}
                       </TableCell>
                     )}
                     {selectedColumns.includes("end_date") && (
                       <TableCell className="px-4 py-2 ">
-                        {format(task.end_date, useEthiopianDate)}
+                        {format(task.end_date)}
                       </TableCell>
                     )}
                     {selectedColumns.includes("duration") && (
@@ -432,9 +430,8 @@ const TaskSection: React.FC = () => {
                     {selectedColumns.includes("status") && (
                       <TableCell className="px-4 py-2">
                         <span
-                          className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
-                            statusBadgeClasses[task.status]
-                          }`}
+                          className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${statusBadgeClasses[task.status]
+                            }`}
                         >
                           {task.status}
                         </span>

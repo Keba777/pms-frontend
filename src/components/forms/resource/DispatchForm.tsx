@@ -8,13 +8,11 @@ import { CreateDispatchInput } from "@/types/dispatch";
 import { useCreateDispatch } from "@/hooks/useDispatches";
 import { useDispatchStore } from "@/store/dispatchStore";
 import { formatDate as format } from "@/utils/dateUtils";
-import { useSettingsStore } from "@/store/settingsStore";
 import { ArrowRight, Calendar } from "lucide-react";
 import { useApprovals } from "@/hooks/useApprovals";
 import { useSites } from "@/hooks/useSites";
 import { Approval } from "@/types/approval";
 import { Site } from "@/types/site";
-import EtDatePicker from "habesha-datepicker"; 
 import ReactDatePicker from "react-datepicker";
 
 interface DispatchFormProps {
@@ -22,7 +20,6 @@ interface DispatchFormProps {
 }
 
 const DispatchForm: React.FC<DispatchFormProps> = ({ onClose }) => {
-  const { useEthiopianDate } = useSettingsStore();
   const {
     register,
     handleSubmit,
@@ -107,7 +104,7 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onClose }) => {
   const approvalOptions =
     approvals?.map((approval: Approval) => ({
       value: approval.id,
-      label: approval.request?.activity?.activity_name || `${approval.id}`, 
+      label: approval.request?.activity?.activity_name || `${approval.id}`,
     })) || [];
 
   const siteOptions =
@@ -255,10 +252,10 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onClose }) => {
               </p>
               <div className="flex items-center text-sm mt-1">
                 <Calendar size={16} className="mr-1" />
-                <span>{format(lastDispatch.dispatchedDate, useEthiopianDate)}</span>
+                <span>{format(lastDispatch.dispatchedDate)}</span>
                 <ArrowRight size={16} className="mx-2" />
                 <Calendar size={16} className="mr-1" />
-                <span>{format(lastDispatch.estArrivalTime, useEthiopianDate)}</span>
+                <span>{format(lastDispatch.estArrivalTime)}</span>
               </div>
             </div>
           ) : (
@@ -277,29 +274,17 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onClose }) => {
               rules={{ required: "Dispatched date is required" }}
               render={({ field }) => (
                 <>
-                  {useEthiopianDate ? (
-                    <EtDatePicker
-                      value={field.value ? new Date(field.value) : undefined}
-                      onChange={(date: any, event?: any) => {
-                        const d = Array.isArray(date) ? date[0] : date;
-                        field.onChange(d ? d.toISOString() : undefined);
-                      }}
-                      className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
-                      isRange={false}
-                    />
-                  ) : (
-                    <ReactDatePicker
-                      showFullMonthYearPicker
-                      showYearDropdown
-                      selected={field.value ? new Date(field.value) : undefined}
-                      onChange={(date: any, event?: any) => {
-                        const d = Array.isArray(date) ? date[0] : date;
-                        field.onChange(d ? d.toISOString() : undefined);
-                      }}
-                      placeholderText="Enter Dispatched Date"
-                      className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
-                    />
-                  )}
+                  <ReactDatePicker
+                    showFullMonthYearPicker
+                    showYearDropdown
+                    selected={field.value ? new Date(field.value) : undefined}
+                    onChange={(date: any, event?: any) => {
+                      const d = Array.isArray(date) ? date[0] : date;
+                      field.onChange(d ? d.toISOString() : undefined);
+                    }}
+                    placeholderText="Enter Dispatched Date"
+                    className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
+                  />
                 </>
               )}
             />
@@ -333,41 +318,23 @@ const DispatchForm: React.FC<DispatchFormProps> = ({ onClose }) => {
               rules={{ required: "Estimated arrival time is required" }}
               render={({ field }) => (
                 <>
-                  {useEthiopianDate ? (
-                    <EtDatePicker
-                      value={field.value ? new Date(field.value) : undefined}
-                      onChange={(date: any, event?: any) => {
-                        const d = Array.isArray(date) ? date[0] : date;
-                        field.onChange(d ? d.toISOString() : undefined);
-                        const dispatchedDate = dispatchedDateStr ? new Date(dispatchedDateStr) : null;
-                        if (dispatchedDate && d) {
-                          const diffTime = d.getTime() - dispatchedDate.getTime();
-                          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                          setDuration(diffDays.toString());
-                        }
-                      }}
-                      className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
-                      isRange={false}
-                    />
-                  ) : (
-                    <ReactDatePicker
-                      showFullMonthYearPicker
-                      showYearDropdown
-                      selected={field.value ? new Date(field.value) : undefined}
-                      onChange={(date: any, event?: any) => {
-                        const d = Array.isArray(date) ? date[0] : date;
-                        field.onChange(d ? d.toISOString() : undefined);
-                        const dispatchedDate = dispatchedDateStr ? new Date(dispatchedDateStr) : null;
-                        if (dispatchedDate && d) {
-                          const diffTime = d.getTime() - dispatchedDate.getTime();
-                          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                          setDuration(diffDays.toString());
-                        }
-                      }}
-                      placeholderText="Enter Estimated Arrival Time"
-                      className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
-                    />
-                  )}
+                  <ReactDatePicker
+                    showFullMonthYearPicker
+                    showYearDropdown
+                    selected={field.value ? new Date(field.value) : undefined}
+                    onChange={(date: any, event?: any) => {
+                      const d = Array.isArray(date) ? date[0] : date;
+                      field.onChange(d ? d.toISOString() : undefined);
+                      const dispatchedDate = dispatchedDateStr ? new Date(dispatchedDateStr) : null;
+                      if (dispatchedDate && d) {
+                        const diffTime = d.getTime() - dispatchedDate.getTime();
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                        setDuration(diffDays.toString());
+                      }
+                    }}
+                    placeholderText="Enter Estimated Arrival Time"
+                    className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
+                  />
                 </>
               )}
             />

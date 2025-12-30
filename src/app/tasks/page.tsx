@@ -11,13 +11,12 @@ import DataTableSkeleton from "@/components/tasks/DataTableSkeleton";
 import { useTasks } from "@/hooks/useTasks";
 import GenericDownloads, { Column } from "@/components/common/GenericDownloads";
 import { Task } from "@/types/task";
-import { useSettingsStore } from "@/store/settingsStore";
 import { formatDate } from "@/utils/dateUtils";
+
 import { getDateDuration } from "@/utils/dateUtils";
 
 const TasksPage: React.FC = () => {
   const { data: tasks, isLoading, isError } = useTasks();
-  const { useEthiopianDate } = useSettingsStore();
   const [activeTab, setActiveTab] = useState<"planned" | "actual">("planned");
 
   // Filter counts based on task status
@@ -38,8 +37,8 @@ const TasksPage: React.FC = () => {
   const plannedColumns: Column<Task>[] = [
     { header: "Task Name", accessor: "task_name" },
     { header: "Priority", accessor: "priority" },
-    { header: "Start Date", accessor: (row) => formatDate(row.start_date, useEthiopianDate) },
-    { header: "End Date", accessor: (row) => formatDate(row.end_date, useEthiopianDate) },
+    { header: "Start Date", accessor: (row) => formatDate(row.start_date) },
+    { header: "End Date", accessor: (row) => formatDate(row.end_date) },
     { header: "Progress", accessor: (row) => `${row.progress ?? 0}%` },
     { header: "Status", accessor: "status" },
     { header: "Approval", accessor: "approvalStatus" },
@@ -49,14 +48,16 @@ const TasksPage: React.FC = () => {
   const actualColumns: Column<Task>[] = [
     { header: "Task Name", accessor: "task_name" },
     { header: "Priority", accessor: "priority" },
-    { header: "Actual Start Date", accessor: (row) => row.actuals?.start_date ? formatDate(row.actuals.start_date, useEthiopianDate) : "N/A" },
-    { header: "Actual End Date", accessor: (row) => row.actuals?.end_date ? formatDate(row.actuals.end_date, useEthiopianDate) : "N/A" },
-    { header: "Actual Duration", accessor: (row) => {
-      if (row.actuals?.start_date && row.actuals?.end_date) {
-        return getDateDuration(row.actuals.start_date, row.actuals.end_date);
+    { header: "Actual Start Date", accessor: (row) => row.actuals?.start_date ? formatDate(row.actuals.start_date) : "N/A" },
+    { header: "Actual End Date", accessor: (row) => row.actuals?.end_date ? formatDate(row.actuals.end_date) : "N/A" },
+    {
+      header: "Actual Duration", accessor: (row) => {
+        if (row.actuals?.start_date && row.actuals?.end_date) {
+          return getDateDuration(row.actuals.start_date, row.actuals.end_date);
+        }
+        return "N/A";
       }
-      return "N/A";
-    }},
+    },
     { header: "Actual Progress", accessor: (row) => `${row.actuals?.progress ?? 0}%` },
     { header: "Actual Status", accessor: (row) => row.actuals?.status ?? "N/A" },
     { header: "Actual Budget", accessor: (row) => row.actuals?.budget ?? "N/A" },
@@ -135,21 +136,19 @@ const TasksPage: React.FC = () => {
         <nav className="-mb-px flex space-x-4">
           <button
             onClick={() => setActiveTab("planned")}
-            className={`px-4 py-2 text-sm font-medium ${
-              activeTab === "planned"
-                ? "border-b-2 border-emerald-600 text-emerald-600"
-                : "text-gray-600 hover:text-gray-800"
-            }`}
+            className={`px-4 py-2 text-sm font-medium ${activeTab === "planned"
+              ? "border-b-2 border-emerald-600 text-emerald-600"
+              : "text-gray-600 hover:text-gray-800"
+              }`}
           >
             Planned
           </button>
           <button
             onClick={() => setActiveTab("actual")}
-            className={`px-4 py-2 text-sm font-medium ${
-              activeTab === "actual"
-                ? "border-b-2 border-emerald-600 text-emerald-600"
-                : "text-gray-600 hover:text-gray-800"
-            }`}
+            className={`px-4 py-2 text-sm font-medium ${activeTab === "actual"
+              ? "border-b-2 border-emerald-600 text-emerald-600"
+              : "text-gray-600 hover:text-gray-800"
+              }`}
           >
             Actual
           </button>

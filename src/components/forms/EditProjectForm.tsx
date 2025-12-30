@@ -3,14 +3,12 @@
 import React from "react";
 import { useForm, Controller } from "react-hook-form";
 import Select from "react-select";
-import EtDatePicker from "habesha-datepicker";
 import ReactDatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { Info } from "lucide-react";
 import { UpdateProjectInput } from "@/types/project";
 import { User } from "@/types/user";
 import { useSites } from "@/hooks/useSites";
-import { useSettingsStore } from "@/store/settingsStore";
 import { useClients } from "@/hooks/useClients";
 
 interface EditProjectFormProps {
@@ -26,7 +24,7 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
   project,
   users,
 }) => {
-  const { useEthiopianDate } = useSettingsStore();
+
   const {
     register,
     handleSubmit,
@@ -65,7 +63,7 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
       value: site.id,
       label: site.name,
     })) || [];
-  
+
   const clientOptions =
     clients?.map((client) => ({
       value: client.id,
@@ -202,21 +200,12 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Starts At <span className="text-red-500">*</span>
             </label>
-          <Controller
-            name="start_date"
-            control={control}
-            rules={{ required: "Start date is required" }}
-            render={({ field }) => (
-              <div>
-                {useEthiopianDate ? (
-                  <EtDatePicker
-                    value={field.value ? new Date(field.value) : undefined}
-                    onChange={((date: Date | null | [Date | null, Date | null] | null, _event?: any) =>
-                      field.onChange(Array.isArray(date) ? (date[0] ? date[0].toISOString() : undefined) : date ? date.toISOString() : undefined)) as any}
-                    className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-                    isRange={false}
-                  />
-                ) : (
+            <Controller
+              name="start_date"
+              control={control}
+              rules={{ required: "Start date is required" }}
+              render={({ field }) => (
+                <div>
                   <ReactDatePicker
                     showFullMonthYearPicker
                     showYearDropdown
@@ -226,34 +215,24 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
                     className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
                     placeholderText="Enter Start Date"
                   />
-                )}
-              </div>
+                </div>
+              )}
+            />
+            {errors.start_date && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.start_date?.message}
+              </p>
             )}
-          />
-          {errors.start_date && (
-            <p className="text-red-500 text-sm mt-1">
-              {errors.start_date?.message}
-            </p>
-          )}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Ends At <span className="text-red-500">*</span>
-            </label>
-            <Controller
-              name="end_date"
-              control={control}
-              rules={{ required: "End date is required" }}
-              render={({ field }) => (
-                <div>
-                  {useEthiopianDate ? (
-                    <EtDatePicker
-                      value={field.value ? new Date(field.value) : undefined}
-                      onChange={((date: Date | null | [Date | null, Date | null] | null, _event?: any) =>
-                        field.onChange(Array.isArray(date) ? (date[0] ? date[0].toISOString() : undefined) : date ? date.toISOString() : undefined)) as any}
-                      className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-                      isRange={false}
-                    />
-                  ) : (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Ends At <span className="text-red-500">*</span>
+              </label>
+              <Controller
+                name="end_date"
+                control={control}
+                rules={{ required: "End date is required" }}
+                render={({ field }) => (
+                  <div>
                     <ReactDatePicker
                       showFullMonthYearPicker
                       showYearDropdown
@@ -263,36 +242,35 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
                       className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
                       placeholderText="Enter End Date"
                     />
-                  )}
-                </div>
+                  </div>
+                )}
+              />
+              {errors.end_date && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.end_date.message}
+                </p>
               )}
-            />
-            {errors.end_date && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.end_date.message}
-              </p>
-            )}
+            </div>
           </div>
-        </div>
 
-        {/* Client and Site Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Client
-            </label>
-            <input
-              type="text"
-              {...register("client", { required: "Client is required" })}
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-            />
-            {errors.client && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.client.message}
-              </p>
-            )}
-            <div className="mt-2">
-                 <label className="block text-sm font-medium text-gray-700 mb-2">
+          {/* Client and Site Section */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Client
+              </label>
+              <input
+                type="text"
+                {...register("client", { required: "Client is required" })}
+                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+              />
+              {errors.client && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.client.message}
+                </p>
+              )}
+              <div className="mt-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Select Client (Existing)
                 </label>
                 <Controller
@@ -310,101 +288,101 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
                     />
                   )}
                 />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Site <span className="text-red-500">*</span>
+                <Info className="inline ml-1 text-bs-primary h-4 w-4" />
+              </label>
+              <Controller
+                name="site_id"
+                control={control}
+                rules={{ required: "Site is required" }}
+                render={({ field }) => (
+                  <Select
+                    {...field}
+                    options={siteOptions}
+                    isLoading={sitesLoading}
+                    className="w-full text-sm"
+                    onChange={(selected) => field.onChange(selected?.value)}
+                    value={siteOptions.find(
+                      (option) => option.value === field.value
+                    )}
+                  />
+                )}
+              />
+              {errors.site_id && (
+                <p className="text-red-500 text-sm mt-1">{errors.site_id.message}</p>
+              )}
+              {sitesError && (
+                <p className="text-red-500 text-sm mt-1">Error loading sites</p>
+              )}
             </div>
           </div>
 
+          {/* Members Section */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Site <span className="text-red-500">*</span>
-              <Info className="inline ml-1 text-bs-primary h-4 w-4" />
+              Select Members
             </label>
             <Controller
-              name="site_id"
+              name="members"
               control={control}
-              rules={{ required: "Site is required" }}
               render={({ field }) => (
                 <Select
-                  {...field}
-                  options={siteOptions}
-                  isLoading={sitesLoading}
-                  className="w-full text-sm"
-                  onChange={(selected) => field.onChange(selected?.value)}
-                  value={siteOptions.find(
-                    (option) => option.value === field.value
+                  isMulti
+                  options={memberOptions}
+                  className="basic-multi-select"
+                  classNamePrefix="select"
+                  onChange={(selectedOptions) =>
+                    field.onChange(selectedOptions.map((option) => option.value))
+                  }
+                  value={memberOptions.filter((option) =>
+                    field.value?.includes(option.value)
                   )}
                 />
               )}
             />
-            {errors.site_id && (
-              <p className="text-red-500 text-sm mt-1">{errors.site_id.message}</p>
-            )}
-            {sitesError && (
-              <p className="text-red-500 text-sm mt-1">Error loading sites</p>
+          </div>
+
+          {/* Description */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Description <span className="text-red-500">*</span>
+            </label>
+            <textarea
+              {...register("description", {
+                required: "Description is required",
+              })}
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+              rows={5}
+            />
+            {errors.description && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.description.message}
+              </p>
             )}
           </div>
-        </div>
 
-        {/* Members Section */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Select Members
-          </label>
-          <Controller
-            name="members"
-            control={control}
-            render={({ field }) => (
-              <Select
-                isMulti
-                options={memberOptions}
-                className="basic-multi-select"
-                classNamePrefix="select"
-                onChange={(selectedOptions) =>
-                  field.onChange(selectedOptions.map((option) => option.value))
-                }
-                value={memberOptions.filter((option) =>
-                  field.value?.includes(option.value)
-                )}
-              />
-            )}
-          />
+          {/* Footer Buttons */}
+          <div className="flex justify-end gap-4">
+            <button
+              type="button"
+              className="px-4 py-2 border rounded-md hover:bg-gray-50"
+              onClick={onClose}
+            >
+              Close
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 bg-bs-primary text-white rounded-md hover:bg-bs-primary"
+            >
+              Update
+            </button>
+          </div>
         </div>
-
-        {/* Description */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Description <span className="text-red-500">*</span>
-          </label>
-          <textarea
-            {...register("description", {
-              required: "Description is required",
-            })}
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-            rows={5}
-          />
-          {errors.description && (
-            <p className="text-red-500 text-sm mt-1">
-              {errors.description.message}
-            </p>
-          )}
-        </div>
-
-        {/* Footer Buttons */}
-        <div className="flex justify-end gap-4">
-          <button
-            type="button"
-            className="px-4 py-2 border rounded-md hover:bg-gray-50"
-            onClick={onClose}
-          >
-            Close
-          </button>
-          <button
-            type="submit"
-            className="px-4 py-2 bg-bs-primary text-white rounded-md hover:bg-bs-primary"
-          >
-            Update
-          </button>
-        </div>
-      </div>
       </div>
     </form>
   );

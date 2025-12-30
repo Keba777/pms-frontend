@@ -9,10 +9,8 @@ import { useDepartments } from "@/hooks/useDepartments";
 import { useAuthStore } from "@/store/authStore";
 import { useUsers } from "@/hooks/useUsers";
 import Select from "react-select";
-import { useSettingsStore } from "@/store/settingsStore";
-import { normalizeDatePickerValue } from "@/utils/datePicker";
-import EtDatePicker from "habesha-datepicker"; 
 import ReactDatePicker from "react-datepicker";
+import { normalizeDatePickerValue } from "@/utils/datePicker";
 
 interface ApprovalFormProps {
   requestId: string;
@@ -25,7 +23,7 @@ const ApprovalForm: React.FC<ApprovalFormProps> = ({
   departmentId,
   onClose,
 }) => {
-  const { useEthiopianDate } = useSettingsStore();
+
   const user = useAuthStore((state) => state.user);
   const now = new Date();
 
@@ -160,30 +158,18 @@ const ApprovalForm: React.FC<ApprovalFormProps> = ({
             control={control}
             render={({ field }) => (
               <>
-                {useEthiopianDate ? (
-                  <EtDatePicker
-                    value={field.value ? new Date(field.value) : undefined}
-                    onChange={(date: any, event?: any) => {
-                      const d = Array.isArray(date) ? date[0] : date;
-                      field.onChange(d ? d.toISOString() : undefined);
-                    }}
-                    className="w-full px-3 py-2 border rounded-md"
-                    isRange={false}
-                  />
-                ) : (
-                  <ReactDatePicker
-                    showFullMonthYearPicker
-                    showYearDropdown
-                    selected={field.value ? new Date(field.value) : undefined}
-                    onChange={(date: any, event?: any) => {
-                      const d = Array.isArray(date) ? date[0] : date;
-                      field.onChange(d ? d.toISOString() : undefined);
-                    }}
-                    placeholderText="Enter Approved At"
-                    className="w-full px-3 py-2 border rounded-md"
-                    dateFormat="Pp"
-                  />
-                )}
+                <ReactDatePicker
+                  showFullMonthYearPicker
+                  showYearDropdown
+                  selected={field.value ? new Date(field.value) : undefined}
+                  onChange={(date: any, event?: any) => {
+                    const d = Array.isArray(date) ? date[0] : date;
+                    field.onChange(d ? d.toISOString() : undefined);
+                  }}
+                  placeholderText="Enter Approved At"
+                  className="w-full px-3 py-2 border rounded-md"
+                  dateFormat="Pp"
+                />
               </>
             )}
           />

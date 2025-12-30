@@ -6,14 +6,12 @@ import { CreateTodoInput } from "@/types/todo";
 import { useCreateTodo } from "@/hooks/useTodos";
 import { useTodoStore } from "@/store/todoStore";
 import { formatDate as format } from "@/utils/dateUtils";
-import { useSettingsStore } from "@/store/settingsStore";
 import { Calendar } from "lucide-react";
 import { useUsers } from "@/hooks/useUsers";
 import { Role, User } from "@/types/user";
 import { useRoles } from "@/hooks/useRoles";
 import { useAuthStore } from "@/store/authStore";
 import Select from "react-select";
-import EtDatePicker from "habesha-datepicker"; 
 import ReactDatePicker from "react-datepicker";
 
 interface TodoFormProps {
@@ -21,7 +19,6 @@ interface TodoFormProps {
 }
 
 const TodoForm: React.FC<TodoFormProps> = ({ onClose }) => {
-  const { useEthiopianDate } = useSettingsStore();
   const { user } = useAuthStore();
   const departmentId = user!.department_id!;
 
@@ -263,7 +260,7 @@ const TodoForm: React.FC<TodoFormProps> = ({ onClose }) => {
               </p>
               <div className="flex items-center text-sm mt-1">
                 <Calendar size={16} className="mr-1" />
-                <span>{format(lastTodo.target, useEthiopianDate)}</span>
+                <span>{format(lastTodo.target)}</span>
               </div>
             </div>
           ) : (
@@ -281,29 +278,17 @@ const TodoForm: React.FC<TodoFormProps> = ({ onClose }) => {
               control={control}
               render={({ field }) => (
                 <>
-                  {useEthiopianDate ? (
-                    <EtDatePicker
-                      value={field.value ? new Date(field.value) : undefined}
-                      onChange={(date: any, event?: any) => {
-                        const d = Array.isArray(date) ? date[0] : date;
-                        field.onChange(d ? d.toISOString() : undefined);
-                      }}
-                      className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
-                      isRange={false}
-                    />
-                  ) : (
-                    <ReactDatePicker
-                      showFullMonthYearPicker
-                      showYearDropdown
-                      selected={field.value ? new Date(field.value) : undefined}
-                      onChange={(date: any, event?: any) => {
-                        const d = Array.isArray(date) ? date[0] : date;
-                        field.onChange(d ? d.toISOString() : undefined);
-                      }}
-                      placeholderText="Enter Target Date"
-                      className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
-                    />
-                  )}
+                  <ReactDatePicker
+                    showFullMonthYearPicker
+                    showYearDropdown
+                    selected={field.value ? new Date(field.value) : undefined}
+                    onChange={(date: any, event?: any) => {
+                      const d = Array.isArray(date) ? date[0] : date;
+                      field.onChange(d ? d.toISOString() : undefined);
+                    }}
+                    placeholderText="Enter Target Date"
+                    className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
+                  />
                 </>
               )}
             />
@@ -319,29 +304,17 @@ const TodoForm: React.FC<TodoFormProps> = ({ onClose }) => {
               rules={{ required: "Due date is required" }}
               render={({ field }) => (
                 <>
-                  {useEthiopianDate ? (
-                    <EtDatePicker
-                      value={field.value ? new Date(field.value) : undefined}
-                      onChange={(date: any, event?: any) => {
-                        const d = Array.isArray(date) ? date[0] : date;
-                        field.onChange(d ? d.toISOString() : undefined);
-                      }}
-                      className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
-                      isRange={false}
-                    />
-                  ) : (
-                    <ReactDatePicker
-                      showFullMonthYearPicker
-                      showYearDropdown
-                      selected={field.value ? new Date(field.value) : undefined}
-                      onChange={(date: any, event?: any) => {
-                        const d = Array.isArray(date) ? date[0] : date;
-                        field.onChange(d ? d.toISOString() : undefined);
-                      }}
-                      placeholderText="Enter Due Date"
-                      className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
-                    />
-                  )}
+                  <ReactDatePicker
+                    showFullMonthYearPicker
+                    showYearDropdown
+                    selected={field.value ? new Date(field.value) : undefined}
+                    onChange={(date: any, event?: any) => {
+                      const d = Array.isArray(date) ? date[0] : date;
+                      field.onChange(d ? d.toISOString() : undefined);
+                    }}
+                    placeholderText="Enter Due Date"
+                    className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
+                  />
                 </>
               )}
             />

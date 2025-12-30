@@ -13,7 +13,6 @@ import { useDeleteActivity, useUpdateActivity } from "@/hooks/useActivities";
 import Link from "next/link";
 import { getDateDuration } from "@/utils/helper";
 import { formatDate as format } from "@/utils/dateUtils";
-import { useSettingsStore } from "@/store/settingsStore";
 import { User } from "@/types/user";
 import { useUsers } from "@/hooks/useUsers";
 
@@ -42,7 +41,7 @@ const ActivityTable: React.FC<ActivityTableProps> = ({
   taskId,
   filteredActivities,
 }) => {
-  const { useEthiopianDate } = useSettingsStore();
+
   // Hooks for API mutations/queries
   const { mutate: deleteActivity } = useDeleteActivity();
   const { mutate: updateActivity } = useUpdateActivity();
@@ -426,9 +425,8 @@ const ActivityTable: React.FC<ActivityTableProps> = ({
                     {selectedColumns.includes("priority") && (
                       <td className="border px-4 py-2 w-24 truncate-ellipsis">
                         <span
-                          className={`px-2 py-1 rounded-full text-sm font-medium ${
-                            priorityBadgeClasses[activity.priority]
-                          }`}
+                          className={`px-2 py-1 rounded-full text-sm font-medium ${priorityBadgeClasses[activity.priority]
+                            }`}
                         >
                           {activity.priority}
                         </span>
@@ -446,12 +444,12 @@ const ActivityTable: React.FC<ActivityTableProps> = ({
                     )}
                     {selectedColumns.includes("start_date") && (
                       <td className="border px-4 py-2 w-28 truncate-ellipsis">
-                        {format(activity.start_date, useEthiopianDate)}
+                        {format(activity.start_date)}
                       </td>
                     )}
                     {selectedColumns.includes("end_date") && (
                       <td className="border px-4 py-2 w-28 truncate-ellipsis">
-                        {format(activity.end_date, useEthiopianDate)}
+                        {format(activity.end_date)}
                       </td>
                     )}
                     {selectedColumns.includes("duration") && (
@@ -504,9 +502,8 @@ const ActivityTable: React.FC<ActivityTableProps> = ({
                     {selectedColumns.includes("status") && (
                       <td className="border px-4 py-2 w-28 truncate-ellipsis">
                         <span
-                          className={`px-2 py-1 rounded-full text-sm font-medium ${
-                            statusBadgeClasses[activity.status]
-                          }`}
+                          className={`px-2 py-1 rounded-full text-sm font-medium ${statusBadgeClasses[activity.status]
+                            }`}
                         >
                           {activity.status}
                         </span>

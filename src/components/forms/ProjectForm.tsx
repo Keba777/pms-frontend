@@ -11,9 +11,7 @@ import { useUsers } from "@/hooks/useUsers";
 import { User } from "@/types/user";
 import { useCreateNotification } from "@/hooks/useNotifications";
 import { useSites } from "@/hooks/useSites";
-import { useSettingsStore } from "@/store/settingsStore";
 import { useClients } from "@/hooks/useClients";
-import EtDatePicker from "habesha-datepicker"; 
 import ReactDatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -22,8 +20,6 @@ interface ProjectFormProps {
 }
 
 const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
-  const { useEthiopianDate } = useSettingsStore();
-  const DatePickerComponent = useEthiopianDate ? EtDatePicker : ReactDatePicker;
   const {
     register,
     handleSubmit,
@@ -285,29 +281,17 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
               rules={{ required: "Start date is required" }}
               render={({ field }) => (
                 <>
-                  {useEthiopianDate ? (
-                    <EtDatePicker
-                      value={field.value ? new Date(field.value) : undefined}
-                      onChange={(date: any, event?: any) => {
-                        const d = Array.isArray(date) ? date[0] : date;
-                        field.onChange(d ? d.toISOString() : undefined);
-                      }}
-                      className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-                      isRange={false}
-                    />
-                  ) : (
-                    <ReactDatePicker
-                      showFullMonthYearPicker
-                      showYearDropdown
-                      selected={field.value ? new Date(field.value) : undefined}
-                      onChange={(date: any, event?: any) => {
-                        const d = Array.isArray(date) ? date[0] : date;
-                        field.onChange(d ? d.toISOString() : undefined);
-                      }}
-                      placeholderText="Enter Start Date"
-                      className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-                    />
-                  )}
+                  <ReactDatePicker
+                    showFullMonthYearPicker
+                    showYearDropdown
+                    selected={field.value ? new Date(field.value) : undefined}
+                    onChange={(date: any, event?: any) => {
+                      const d = Array.isArray(date) ? date[0] : date;
+                      field.onChange(d ? d.toISOString() : undefined);
+                    }}
+                    placeholderText="Enter Start Date"
+                    className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+                  />
                 </>
               )}
             />
@@ -342,44 +326,26 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
               rules={{ required: "End date is required" }}
               render={({ field }) => (
                 <>
-                  {useEthiopianDate ? (
-                    <EtDatePicker
-                      value={field.value ? new Date(field.value) : undefined}
-                      onChange={(date: any, event?: any) => {
-                        const d = Array.isArray(date) ? date[0] : date;
-                        field.onChange(d ? d.toISOString() : undefined);
-                        const startDate = startDateStr ? new Date(startDateStr) : null;
-                        if (startDate && d) {
-                          const diffTime = d.getTime() - startDate.getTime();
-                          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                          setDuration(diffDays.toString());
-                        }
-                      }}
-                      className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-                      isRange={false}
-                    />
-                  ) : (
-                    <ReactDatePicker
-                      showFullMonthYearPicker
-                      showYearDropdown
-                      selected={field.value ? new Date(field.value) : undefined}
-                      onChange={(date: any, event?: any) => {
-                        const d = Array.isArray(date) ? date[0] : date;
-                        field.onChange(d ? d.toISOString() : undefined);
-                        const startDate = startDateStr ? new Date(startDateStr) : null;
-                        if (startDate && d) {
-                          const diffTime = d.getTime() - startDate.getTime();
-                          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                          setDuration(diffDays.toString());
-                        }
-                      }}
-                      placeholderText="Enter End Date"
-                      className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-                    />
-                  )}
+                  <ReactDatePicker
+                    showFullMonthYearPicker
+                    showYearDropdown
+                    selected={field.value ? new Date(field.value) : undefined}
+                    onChange={(date: any, event?: any) => {
+                      const d = Array.isArray(date) ? date[0] : date;
+                      field.onChange(d ? d.toISOString() : undefined);
+                      const startDate = startDateStr ? new Date(startDateStr) : null;
+                      if (startDate && d) {
+                        const diffTime = d.getTime() - startDate.getTime();
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                        setDuration(diffDays.toString());
+                      }
+                    }}
+                    placeholderText="Enter End Date"
+                    className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+                  />
                 </>
               )}
-            />   
+            />
             {errors.end_date && (
               <p className="text-red-500 text-sm mt-1">
                 {errors.end_date.message}
@@ -405,29 +371,29 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
                 {errors.client.message}
               </p>
             )}
-             <div className="mt-2">
-                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Select Client (Existing)
-                </label>
-                <Controller
-                  name="client_id"
-                  control={control}
-                  render={({ field }) => (
-                    <Select
-                      {...field}
-                      options={clientOptions}
-                      isLoading={clientsLoading}
-                      className="w-full text-sm"
-                      onChange={(selected) => {
-                          field.onChange(selected?.value);
-                          // Optional: Auto-fill the "Client" text field if selecting an existing one
-                          if (selected) setValue("client", selected.label);
-                      }}
-                      value={clientOptions.find((opt) => opt.value === field.value)}
-                      placeholder="Select a client..."
-                    />
-                  )}
-                />
+            <div className="mt-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Select Client (Existing)
+              </label>
+              <Controller
+                name="client_id"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    {...field}
+                    options={clientOptions}
+                    isLoading={clientsLoading}
+                    className="w-full text-sm"
+                    onChange={(selected) => {
+                      field.onChange(selected?.value);
+                      // Optional: Auto-fill the "Client" text field if selecting an existing one
+                      if (selected) setValue("client", selected.label);
+                    }}
+                    value={clientOptions.find((opt) => opt.value === field.value)}
+                    placeholder="Select a client..."
+                  />
+                )}
+              />
             </div>
           </div>
 

@@ -9,7 +9,6 @@ import { useDeleteInvoice, useUpdateInvoice } from "@/hooks/useFinancials";
 import EditInvoiceForm from "../forms/finance/EditInvoiceForm";
 import ConfirmModal from "../common/ui/ConfirmModal";
 import { formatDate as format } from "@/utils/dateUtils";
-import { useSettingsStore } from "@/store/settingsStore";
 
 const statusBadgeClasses: Record<Invoice["status"], string> = {
   "Pending": "bg-yellow-100 text-yellow-800",
@@ -26,7 +25,7 @@ const InvoicesTable: React.FC<InvoicesTableProps> = ({
   filteredInvoices,
   selectedColumns,
 }) => {
-  const { useEthiopianDate } = useSettingsStore();
+
   const router = useRouter();
   const { mutate: deleteInvoice } = useDeleteInvoice();
   const { mutate: updateInvoice } = useUpdateInvoice();
@@ -111,16 +110,15 @@ const InvoicesTable: React.FC<InvoicesTableProps> = ({
               {selectedColumns.includes("dueDate") && (
                 <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
                   {invoice.dueDate
-                    ? format(invoice.dueDate, useEthiopianDate)
+                    ? format(invoice.dueDate)
                     : "-"}
                 </td>
               )}
               {selectedColumns.includes("status") && (
                 <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
                   <span
-                    className={`px-2 py-1 rounded-full text-sm font-medium ${
-                      statusBadgeClasses[invoice.status]
-                    }`}
+                    className={`px-2 py-1 rounded-full text-sm font-medium ${statusBadgeClasses[invoice.status]
+                      }`}
                   >
                     {invoice.status}
                   </span>
@@ -137,9 +135,8 @@ const InvoicesTable: React.FC<InvoicesTableProps> = ({
                         {({ active }) => (
                           <button
                             onClick={() => handleView(invoice.id)}
-                            className={`w-full text-left px-3 py-2 text-sm ${
-                              active ? "bg-gray-100" : ""
-                            }`}
+                            className={`w-full text-left px-3 py-2 text-sm ${active ? "bg-gray-100" : ""
+                              }`}
                           >
                             View
                           </button>
@@ -152,9 +149,8 @@ const InvoicesTable: React.FC<InvoicesTableProps> = ({
                               setInvoiceToEdit(invoice);
                               setShowEditForm(true);
                             }}
-                            className={`w-full text-left px-3 py-2 text-sm ${
-                              active ? "bg-gray-100" : ""
-                            }`}
+                            className={`w-full text-left px-3 py-2 text-sm ${active ? "bg-gray-100" : ""
+                              }`}
                           >
                             Edit
                           </button>
@@ -164,9 +160,8 @@ const InvoicesTable: React.FC<InvoicesTableProps> = ({
                         {({ active }) => (
                           <button
                             onClick={() => handleDeleteClick(invoice.id)}
-                            className={`w-full text-left px-3 py-2 text-sm text-red-600 ${
-                              active ? "bg-gray-100" : ""
-                            }`}
+                            className={`w-full text-left px-3 py-2 text-sm text-red-600 ${active ? "bg-gray-100" : ""
+                              }`}
                           >
                             Delete
                           </button>

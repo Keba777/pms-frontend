@@ -17,7 +17,6 @@ import DispatchTableSkeleton from "@/components/skeletons/DispatchTableSkeleton"
 import DispatchForm from "@/components/forms/resource/DispatchForm";
 import EditDispatchForm from "@/components/forms/resource/EditDispatchForm"; // Assuming the path is correct
 import { formatDate as format } from "@/utils/dateUtils";
-import { useSettingsStore } from "@/store/settingsStore";
 
 const columnOptions: Record<string, string> = {
   refNumber: "Ref No.",
@@ -36,7 +35,6 @@ const columnOptions: Record<string, string> = {
 };
 
 const DispatchesPage: React.FC = () => {
-  const { useEthiopianDate } = useSettingsStore();
   const { data: dispatches = [], isLoading, error } = useDispatches();
   const { mutate: deleteDispatch } = useDeleteDispatch();
   const { mutate: updateDispatch } = useUpdateDispatch();
@@ -125,12 +123,12 @@ const DispatchesPage: React.FC = () => {
     {
       header: "Dispatched Date",
       accessor: (d: any) =>
-        d.dispatchedDate ? format(d.dispatchedDate, useEthiopianDate) : "N/A",
+        d.dispatchedDate ? format(d.dispatchedDate) : "N/A",
     },
     {
       header: "Est. Arrival",
       accessor: (d: any) =>
-        d.estArrivalTime ? format(d.estArrivalTime, useEthiopianDate) : "N/A",
+        d.estArrivalTime ? format(d.estArrivalTime) : "N/A",
     },
     { header: "Departure", accessor: (d: any) => d.depatureSite?.name || "N/A" },
     { header: "Arrival", accessor: (d: any) => d.arrivalSite?.name || "N/A" },
@@ -291,15 +289,14 @@ const DispatchesPage: React.FC = () => {
                   {selectedColumns.includes("status") && (
                     <td className="px-4 py-2">
                       <span
-                        className={`badge px-2 py-1 rounded ${
-                          d.status === "Delivered"
-                            ? "text-green-600"
-                            : d.status === "In Transit"
+                        className={`badge px-2 py-1 rounded ${d.status === "Delivered"
+                          ? "text-green-600"
+                          : d.status === "In Transit"
                             ? "text-blue-500"
                             : d.status === "Pending"
-                            ? "text-yellow-500"
-                            : "text-red-500"
-                        }`}
+                              ? "text-yellow-500"
+                              : "text-red-500"
+                          }`}
                       >
                         {d.status}
                       </span>
@@ -307,12 +304,12 @@ const DispatchesPage: React.FC = () => {
                   )}
                   {selectedColumns.includes("dispatchedDate") && (
                     <td className="px-4 py-2">
-                      {d.dispatchedDate ? format(d.dispatchedDate, useEthiopianDate) : "N/A"}
+                      {d.dispatchedDate ? format(d.dispatchedDate) : "N/A"}
                     </td>
                   )}
                   {selectedColumns.includes("estArrivalTime") && (
                     <td className="px-4 py-2">
-                      {d.estArrivalTime ? format(d.estArrivalTime, useEthiopianDate) : "N/A"}
+                      {d.estArrivalTime ? format(d.estArrivalTime) : "N/A"}
                     </td>
                   )}
                   {selectedColumns.includes("depatureSite") && (
@@ -342,9 +339,8 @@ const DispatchesPage: React.FC = () => {
                             {({ active }) => (
                               <button
                                 onClick={() => handleView(d.id.toString())}
-                                className={`block w-full px-4 py-2 text-left ${
-                                  active ? "bg-blue-100" : ""
-                                }`}
+                                className={`block w-full px-4 py-2 text-left ${active ? "bg-blue-100" : ""
+                                  }`}
                               >
                                 View
                               </button>
@@ -354,9 +350,8 @@ const DispatchesPage: React.FC = () => {
                             {({ active }) => (
                               <button
                                 onClick={() => handleEditClick(d)}
-                                className={`block w-full px-4 py-2 text-left ${
-                                  active ? "bg-blue-100" : ""
-                                }`}
+                                className={`block w-full px-4 py-2 text-left ${active ? "bg-blue-100" : ""
+                                  }`}
                               >
                                 Edit
                               </button>
@@ -369,9 +364,8 @@ const DispatchesPage: React.FC = () => {
                                   setSelectedDispatchId(d.id.toString());
                                   setIsDeleteModalOpen(true);
                                 }}
-                                className={`block w-full px-4 py-2 text-left ${
-                                  active ? "bg-blue-100" : ""
-                                }`}
+                                className={`block w-full px-4 py-2 text-left ${active ? "bg-blue-100" : ""
+                                  }`}
                               >
                                 Delete
                               </button>

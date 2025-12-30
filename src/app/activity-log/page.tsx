@@ -23,10 +23,8 @@ import { Slider } from "@/components/ui/slider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDate as format } from "@/utils/dateUtils";
-import { useSettingsStore } from "@/store/settingsStore";
 
 const LogTable = ({ updates }: { updates: ProgressUpdateItem[] }) => {
-  const { useEthiopianDate } = useSettingsStore();
   const { data: users } = useUsers();
 
   return (
@@ -50,7 +48,7 @@ const LogTable = ({ updates }: { updates: ProgressUpdateItem[] }) => {
               key={update.id || index}
               className="even:bg-gray-100 hover:bg-gray-300"
             >
-              <TableCell>{format(update.dateTime, useEthiopianDate)}</TableCell>
+              <TableCell>{format(update.dateTime)}</TableCell>
               <TableCell>
                 {update.fromProgress !== undefined
                   ? `${update.fromProgress}%`
@@ -60,7 +58,7 @@ const LogTable = ({ updates }: { updates: ProgressUpdateItem[] }) => {
               <TableCell>{update.status || "N/A"}</TableCell>
               <TableCell>{update.checkedBy || "N/A"}</TableCell>
               <TableCell>{update.approvedBy || "N/A"}</TableCell>
-              <TableCell>{update.approvedDate ? format(update.approvedDate, useEthiopianDate) : "N/A"}</TableCell>
+              <TableCell>{update.approvedDate ? format(update.approvedDate) : "N/A"}</TableCell>
               <TableCell>
                 {users?.find((u) => u.id === update.userId)?.first_name ||
                   update.userId ||
@@ -155,7 +153,7 @@ const ActivityLogPage = () => {
               </p>
 
               {selectedProject.progressUpdates &&
-              selectedProject.progressUpdates.length > 0 ? (
+                selectedProject.progressUpdates.length > 0 ? (
                 <LogTable updates={selectedProject.progressUpdates} />
               ) : (
                 <p className="text-gray-500">
@@ -210,7 +208,7 @@ const ActivityLogPage = () => {
               </p>
 
               {selectedTask.progressUpdates &&
-              selectedTask.progressUpdates.length > 0 ? (
+                selectedTask.progressUpdates.length > 0 ? (
                 <LogTable updates={selectedTask.progressUpdates} />
               ) : (
                 <p className="text-gray-500">
@@ -265,7 +263,7 @@ const ActivityLogPage = () => {
               </p>
 
               {selectedActivity.progressUpdates &&
-              selectedActivity.progressUpdates.length > 0 ? (
+                selectedActivity.progressUpdates.length > 0 ? (
                 <LogTable updates={selectedActivity.progressUpdates} />
               ) : (
                 <p className="text-gray-500">

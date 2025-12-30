@@ -12,7 +12,6 @@ import ActualProjectSection from "@/components/dashboard/ActualProjectSection";
 import GenericDownloads, { Column } from "@/components/common/GenericDownloads";
 import { useProjectStore } from "@/store/projectStore";
 import { useAuthStore } from "@/store/authStore";
-import { useSettingsStore } from "@/store/settingsStore";
 import { formatDate, getDateDuration } from "@/utils/dateUtils";
 import {
   FilterField,
@@ -31,14 +30,13 @@ const ProjectPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"planned" | "actual">("planned");
   const { data: projects } = useProjects();
   const { projects: storeProjects } = useProjectStore();
-  const { useEthiopianDate } = useSettingsStore();
 
   const hasPermission = useAuthStore((state) => state.hasPermission);
   const [filterValues, setFilterValues] = useState<FilterValues>({});
   const [fromDate, setFromDate] = useState<Date | null>(null);
   const [toDate, setToDate] = useState<Date | null>(null);
 
-  const { mutateAsync: createProjectAsync } = useCreateProject(() => {});
+  const { mutateAsync: createProjectAsync } = useCreateProject(() => { });
 
   const canCreate = hasPermission("projects", "create");
   const canManage = hasPermission("projects", "manage");
@@ -50,8 +48,8 @@ const ProjectPage: React.FC = () => {
     { header: "Client", accessor: "client" },
     { header: "Progress", accessor: (row) => `${row.progress ?? 0}%` },
     { header: "Budget", accessor: "budget" },
-    { header: "Start Date", accessor: (row) => formatDate(row.start_date, useEthiopianDate) },
-    { header: "End Date", accessor: (row) => formatDate(row.end_date, useEthiopianDate) },
+    { header: "Start Date", accessor: (row) => formatDate(row.start_date) },
+    { header: "End Date", accessor: (row) => formatDate(row.end_date) },
     { header: "Status", accessor: "status" },
   ];
 
@@ -61,20 +59,24 @@ const ProjectPage: React.FC = () => {
     { header: "Priority", accessor: "priority" },
     { header: "Client", accessor: "client" },
     { header: "Actual Budget", accessor: (row) => row.actuals?.budget ?? "N/A" },
-    { header: "Budget +/-", accessor: (row) => {
-      const actual = typeof row.actuals?.budget === "number" ? row.actuals.budget : 0;
-      const planned = row.budget || 0;
-      const diff = actual - planned;
-      return diff !== 0 ? (diff > 0 ? `+${diff}` : `${diff}`) : "0";
-    }},
-    { header: "Actual Start Date", accessor: (row) => row.actuals?.start_date ? formatDate(row.actuals.start_date, useEthiopianDate) : "N/A" },
-    { header: "Actual End Date", accessor: (row) => row.actuals?.end_date ? formatDate(row.actuals.end_date, useEthiopianDate) : "N/A" },
-    { header: "Actual Duration", accessor: (row) => {
-      if (row.actuals?.start_date && row.actuals?.end_date) {
-        return getDateDuration(row.actuals.start_date, row.actuals.end_date);
+    {
+      header: "Budget +/-", accessor: (row) => {
+        const actual = typeof row.actuals?.budget === "number" ? row.actuals.budget : 0;
+        const planned = row.budget || 0;
+        const diff = actual - planned;
+        return diff !== 0 ? (diff > 0 ? `+${diff}` : `${diff}`) : "0";
       }
-      return "N/A";
-    }},
+    },
+    { header: "Actual Start Date", accessor: (row) => row.actuals?.start_date ? formatDate(row.actuals.start_date) : "N/A" },
+    { header: "Actual End Date", accessor: (row) => row.actuals?.end_date ? formatDate(row.actuals.end_date) : "N/A" },
+    {
+      header: "Actual Duration", accessor: (row) => {
+        if (row.actuals?.start_date && row.actuals?.end_date) {
+          return getDateDuration(row.actuals.start_date, row.actuals.end_date);
+        }
+        return "N/A";
+      }
+    },
     { header: "Actual Progress", accessor: (row) => `${row.actuals?.progress ?? 0}%` },
     { header: "Actual Status", accessor: (row) => row.actuals?.status ?? "N/A" },
   ];
@@ -180,16 +182,14 @@ const ProjectPage: React.FC = () => {
         const project = data[i];
         if (!validPriorities.includes(project.priority)) {
           toast.error(
-            `Invalid priority in row ${
-              i + 2
+            `Invalid priority in row ${i + 2
             }. Must be one of: ${validPriorities.join(", ")}`
           );
           return;
         }
         if (!validStatuses.includes(project.status)) {
           toast.error(
-            `Invalid status in row ${
-              i + 2
+            `Invalid status in row ${i + 2
             }. Must be one of: ${validStatuses.join(", ")}`
           );
           return;
@@ -307,21 +307,19 @@ const ProjectPage: React.FC = () => {
       <div className="mt-4">
         <div className="border-b flex space-x-4">
           <button
-            className={`py-2 px-4 -mb-px border-b-2 font-medium ${
-              activeTab === "planned"
+            className={`py-2 px-4 -mb-px border-b-2 font-medium ${activeTab === "planned"
                 ? "border-cyan-700 text-cyan-700"
                 : "border-transparent text-gray-500 hover:text-gray-700"
-            }`}
+              }`}
             onClick={() => setActiveTab("planned")}
           >
             Planned
           </button>
           <button
-            className={`py-2 px-4 -mb-px border-b-2 font-medium ${
-              activeTab === "actual"
+            className={`py-2 px-4 -mb-px border-b-2 font-medium ${activeTab === "actual"
                 ? "border-cyan-700 text-cyan-700"
                 : "border-transparent text-gray-500 hover:text-gray-700"
-            }`}
+              }`}
             onClick={() => setActiveTab("actual")}
           >
             Actual

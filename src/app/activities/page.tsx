@@ -8,12 +8,10 @@ import GenericDownloads, { Column } from "@/components/common/GenericDownloads";
 import { useActivities } from "@/hooks/useActivities";
 import ActivityTableSkeleton from "@/components/activities/ActivityTableSkeleton";
 import { Activity } from "@/types/activity";
-import { useSettingsStore } from "@/store/settingsStore";
 import { formatDate } from "@/utils/dateUtils";
 
 const ActivitiesPage = () => {
   const { data: activities, isLoading } = useActivities();
-  const { useEthiopianDate } = useSettingsStore();
   const [activeTab, setActiveTab] = useState<"planned" | "actual">("planned");
 
   // Planned columns
@@ -22,8 +20,8 @@ const ActivitiesPage = () => {
     { header: "Priority", accessor: "priority" },
     { header: "Quantity", accessor: "quantity" },
     { header: "Unit", accessor: "unit" },
-    { header: "Start Date", accessor: (row) => formatDate(row.start_date, useEthiopianDate) },
-    { header: "End Date", accessor: (row) => formatDate(row.end_date, useEthiopianDate) },
+    { header: "Start Date", accessor: (row) => formatDate(row.start_date) },
+    { header: "End Date", accessor: (row) => formatDate(row.end_date) },
     { header: "Status", accessor: "status" },
     { header: "Approval", accessor: "approvalStatus" },
   ];
@@ -34,8 +32,8 @@ const ActivitiesPage = () => {
     { header: "Priority", accessor: "priority" },
     { header: "Actual Quantity", accessor: (row) => row.actuals?.quantity ?? "N/A" },
     { header: "Actual Unit", accessor: (row) => row.actuals?.unit ?? "N/A" },
-    { header: "Actual Start Date", accessor: (row) => row.actuals?.start_date ? formatDate(row.actuals.start_date, useEthiopianDate) : "N/A" },
-    { header: "Actual End Date", accessor: (row) => row.actuals?.end_date ? formatDate(row.actuals.end_date, useEthiopianDate) : "N/A" },
+    { header: "Actual Start Date", accessor: (row) => row.actuals?.start_date ? formatDate(row.actuals.start_date) : "N/A" },
+    { header: "Actual End Date", accessor: (row) => row.actuals?.end_date ? formatDate(row.actuals.end_date) : "N/A" },
     { header: "Actual Progress", accessor: (row) => `${row.actuals?.progress ?? 0}%` },
     { header: "Actual Status", accessor: (row) => row.actuals?.status ?? "N/A" },
     { header: "Actual Labor Cost", accessor: (row) => row.actuals?.labor_cost ?? "N/A" },
@@ -101,21 +99,19 @@ const ActivitiesPage = () => {
         <div className="flex space-x-4  mb-4 p-3">
           <button
             onClick={() => setActiveTab("planned")}
-            className={`py-2 px-4 focus:outline-none ${
-              activeTab === "planned"
+            className={`py-2 px-4 focus:outline-none ${activeTab === "planned"
                 ? "border-b-2 border-blue-500 font-medium"
                 : "text-gray-600"
-            }`}
+              }`}
           >
             Planned
           </button>
           <button
             onClick={() => setActiveTab("actual")}
-            className={`py-2 px-4 focus:outline-none ${
-              activeTab === "actual"
+            className={`py-2 px-4 focus:outline-none ${activeTab === "actual"
                 ? "border-b-2 border-blue-500 font-medium"
                 : "text-gray-600"
-            }`}
+              }`}
           >
             Actual
           </button>

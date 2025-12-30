@@ -15,7 +15,6 @@ import { useUsers } from "@/hooks/useUsers";
 import Link from "next/link";
 import { getDateDuration } from "@/utils/helper";
 import { formatDate as format } from "@/utils/dateUtils";
-import { useSettingsStore } from "@/store/settingsStore";
 import { FilterField, GenericFilter } from "../common/GenericFilter";
 import GenericImport, { ImportColumn } from "@/components/common/GenericImport";
 import { useCreateTask } from "@/hooks/useTasks";
@@ -61,12 +60,12 @@ type UpdatableTaskWithId = UpdateTaskInput & {
 };
 
 export default function TaskTable({ tasks, projectId }: TaskTableProps) {
-  const { useEthiopianDate } = useSettingsStore();
+
   const router = useRouter();
   const { mutate: deleteTask } = useDeleteTask();
   const { mutate: updateTask } = useUpdateTask();
   const { data: users } = useUsers();
-  const { mutateAsync: createTaskAsync } = useCreateTask(() => {});
+  const { mutateAsync: createTaskAsync } = useCreateTask(() => { });
 
   // Modals & forms
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -238,8 +237,8 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
   const downloadColumns: Column<Task>[] = [
     { header: "Task", accessor: "task_name" },
     { header: "Priority", accessor: "priority" },
-    { header: "Start Date", accessor: (row) => format(row.start_date, useEthiopianDate) },
-    { header: "End Date", accessor: (row) => format(row.end_date, useEthiopianDate) },
+    { header: "Start Date", accessor: (row) => format(row.start_date) },
+    { header: "End Date", accessor: (row) => format(row.end_date) },
     {
       header: "Duration",
       accessor: (row) => getDateDuration(row.start_date, row.end_date),
@@ -291,16 +290,14 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
         const task = data[i];
         if (!validPriorities.includes(task.priority)) {
           toast.error(
-            `Invalid priority in row ${
-              i + 2
+            `Invalid priority in row ${i + 2
             }. Must be one of: ${validPriorities.join(", ")}`
           );
           return;
         }
         if (!validStatuses.includes(task.status)) {
           toast.error(
-            `Invalid status in row ${
-              i + 2
+            `Invalid status in row ${i + 2
             }. Must be one of: ${validStatuses.join(", ")}`
           );
           return;
@@ -521,9 +518,8 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
                     {selectedColumns.includes("priority") && (
                       <td className="border px-4 py-2 w-24 truncate-ellipsis">
                         <span
-                          className={`px-2 py-1 rounded-full text-sm font-medium ${
-                            priorityBadgeClasses[task.priority]
-                          }`}
+                          className={`px-2 py-1 rounded-full text-sm font-medium ${priorityBadgeClasses[task.priority]
+                            }`}
                         >
                           {task.priority}
                         </span>
@@ -531,12 +527,12 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
                     )}
                     {selectedColumns.includes("start_date") && (
                       <td className="border px-4 py-2 w-28 truncate-ellipsis">
-                        {format(task.start_date, useEthiopianDate)}
+                        {format(task.start_date)}
                       </td>
                     )}
                     {selectedColumns.includes("end_date") && (
                       <td className="border px-4 py-2 w-28 truncate-ellipsis">
-                        {format(task.end_date, useEthiopianDate)}
+                        {format(task.end_date)}
                       </td>
                     )}
                     {selectedColumns.includes("duration") && (
@@ -562,9 +558,8 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
                     {selectedColumns.includes("status") && (
                       <td className="border px-4 py-2 w-28 truncate-ellipsis">
                         <span
-                          className={`px-2 py-1 rounded-full text-sm font-medium ${
-                            statusBadgeClasses[task.status]
-                          }`}
+                          className={`px-2 py-1 rounded-full text-sm font-medium ${statusBadgeClasses[task.status]
+                            }`}
                         >
                           {task.status}
                         </span>

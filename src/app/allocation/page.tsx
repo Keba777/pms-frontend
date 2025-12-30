@@ -15,7 +15,6 @@ import { fetchMaterialById } from "@/hooks/useMaterials";
 import { fetchEquipmentById } from "@/hooks/useEquipments";
 import { fetchLaborById } from "@/hooks/useLabors";
 import { formatDate as format } from "@/utils/dateUtils";
-import { useSettingsStore } from "@/store/settingsStore";
 
 const RequestRow: React.FC<{
   req: Request;
@@ -104,9 +103,8 @@ const RequestRow: React.FC<{
       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
         <button
           onClick={() => onAllocate(req.id)}
-          className={`px-4 py-2 bg-cyan-700 text-white rounded-2xl hover:bg-cyan-800 transition ${
-            allocated ? "opacity-50 cursor-not-allowed" : ""
-          }`}
+          className={`px-4 py-2 bg-cyan-700 text-white rounded-2xl hover:bg-cyan-800 transition ${allocated ? "opacity-50 cursor-not-allowed" : ""
+            }`}
           disabled={allocated}
         >
           {allocated ? "Allocated" : "Allocate"}
@@ -117,7 +115,6 @@ const RequestRow: React.FC<{
 };
 
 const ResourceAllocationPage: React.FC = () => {
-  const { useEthiopianDate } = useSettingsStore();
   const { data: requests, isLoading, isError } = useRequests();
   const { data: approvals = [] } = useApprovals();
   const user = useAuthStore((state) => state.user);
@@ -243,7 +240,7 @@ const ResourceAllocationPage: React.FC = () => {
                         </td>
                         <td className="px-4 py-2 text-sm">
                           {h.approvedAt
-                            ? format(h.approvedAt, useEthiopianDate)
+                            ? format(h.approvedAt)
                             : "-"}
                         </td>
                         <td className="px-4 py-2 text-sm">

@@ -11,7 +11,6 @@ import Link from "next/link";
 import { Labor, CreateLaborInput, LooseLaborInput } from "@/types/labor";
 import { getDuration } from "@/utils/helper";
 import { formatDate as format } from "@/utils/dateUtils";
-import { useSettingsStore } from "@/store/settingsStore";
 import LaborForm from "@/components/forms/LaborInformationForm";
 import { useAuthStore } from "@/store/authStore";
 import GenericDownloads, { Column } from "@/components/common/GenericDownloads";
@@ -39,7 +38,6 @@ interface ImportLaborRow extends LooseLaborInput {
 }
 
 const LaborsPage = () => {
-  const { useEthiopianDate } = useSettingsStore();
   const { user } = useAuthStore();
   const hasPermission = useAuthStore((state) => state.hasPermission);
   const siteId = user!.siteId;
@@ -53,7 +51,7 @@ const LaborsPage = () => {
   const [toDate, setToDate] = useState<Date | null>(null);
   const [uploading, setUploading] = useState(false);
 
-  const { mutateAsync: createLaborAsync } = useCreateLabor(() => {});
+  const { mutateAsync: createLaborAsync } = useCreateLabor(() => { });
   const { mutateAsync: importLabors } = useImportLabors();
 
   const canCreate = hasPermission("labors", "create");
@@ -603,12 +601,12 @@ const LaborsPage = () => {
                     </td>
                     <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
                       {info.startsAt
-                        ? format(info.startsAt, useEthiopianDate)
+                        ? format(info.startsAt)
                         : "-"}
                     </td>
                     <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
                       {info.endsAt
-                        ? format(info.endsAt, useEthiopianDate)
+                        ? format(info.endsAt)
                         : "-"}
                     </td>
                     <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">

@@ -14,14 +14,13 @@ import {
 import { Project } from "@/types/project";
 import { useRoles } from "@/hooks/useRoles";
 import { formatDate as format, getDateDuration, getDuration } from "@/utils/dateUtils";
-import { useSettingsStore } from "@/store/settingsStore";
 
 export interface ProjectCardProps {
   project: Project;
 }
 
 const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
-  const { useEthiopianDate } = useSettingsStore();
+
   const [showTasksModal, setShowTasksModal] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState({ x: 0, y: 0 });
@@ -147,11 +146,10 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
             Status
           </label>
           <span
-            className={`px-2 py-1 rounded ${
-              project.status === "InProgress"
+            className={`px-2 py-1 rounded ${project.status === "InProgress"
                 ? "bg-green-500 text-white"
                 : "bg-gray-800 text-white"
-            }`}
+              }`}
           >
             {project.status}
           </span>
@@ -161,15 +159,14 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
             Priority
           </label>
           <span
-            className={`px-2 py-1 rounded ${
-              project.priority === "Critical"
+            className={`px-2 py-1 rounded ${project.priority === "Critical"
                 ? "bg-red-500 text-white"
                 : project.priority === "High"
-                ? "bg-orange-500 text-white"
-                : project.priority === "Medium"
-                ? "bg-yellow-500 text-gray-900"
-                : "bg-green-500 text-white"
-            }`}
+                  ? "bg-orange-500 text-white"
+                  : project.priority === "Medium"
+                    ? "bg-yellow-500 text-gray-900"
+                    : "bg-green-500 text-white"
+              }`}
           >
             {project.priority}
           </span>
@@ -229,14 +226,14 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
       <div className="mt-4 flex flex-wrap text-xs text-gray-600">
         <div className="w-full md:w-1/3 flex items-center mb-1 md:mb-0">
           <Calendar size={12} className="mr-1 text-green-500" />
-          Starts: {format(project.start_date, useEthiopianDate)}
+          Starts: {format(project.start_date)}
         </div>
         <div className="w-full md:w-1/3 flex items-center justify-center mb-1 md:mb-0">
           Duration: <span className="ml-1 text-green-500">{duration}</span>
         </div>
         <div className="w-full md:w-1/3 flex items-center justify-end">
           <Calendar size={12} className="mr-1 text-red-500" />
-          Ends: {format(project.end_date, useEthiopianDate)}
+          Ends: {format(project.end_date)}
         </div>
       </div>
 

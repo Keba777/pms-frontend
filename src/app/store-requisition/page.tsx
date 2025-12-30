@@ -15,7 +15,6 @@ import { useStoreRequisitions, useDeleteStoreRequisition, useUpdateStoreRequisit
 import StoreRequisitionForm from "@/components/forms/resource/StoreRequisitionForm";
 import EditStoreRequisitionForm from "@/components/forms/resource/EditStoreRequisitionForm";
 import { formatDate as format } from "@/utils/dateUtils";
-import { useSettingsStore } from "@/store/settingsStore";
 
 const columnOptions: Record<string, string> = {
   no: "No",
@@ -29,7 +28,6 @@ const columnOptions: Record<string, string> = {
 };
 
 const StoreRequisitionsPage: React.FC = () => {
-  const { useEthiopianDate } = useSettingsStore();
   const { data: requisitions = [], isLoading, error } = useStoreRequisitions();
   const { mutate: deleteStoreRequisition } = useDeleteStoreRequisition();
   const { mutate: updateStoreRequisition } = useUpdateStoreRequisition();
@@ -106,12 +104,12 @@ const StoreRequisitionsPage: React.FC = () => {
     {
       header: "Created At",
       accessor: (r: any) =>
-        r.createdAt ? format(r.createdAt, useEthiopianDate) : "N/A",
+        r.createdAt ? format(r.createdAt) : "N/A",
     },
     {
       header: "Updated At",
       accessor: (r: any) =>
-        r.updatedAt ? format(r.updatedAt, useEthiopianDate) : "N/A",
+        r.updatedAt ? format(r.updatedAt) : "N/A",
     },
   ];
 
@@ -259,12 +257,12 @@ const StoreRequisitionsPage: React.FC = () => {
                   )}
                   {selectedColumns.includes("createdAt") && (
                     <td className="px-4 py-2 whitespace-nowrap">
-                      {r.createdAt ? format(r.createdAt, useEthiopianDate) : "N/A"}
+                      {r.createdAt ? format(r.createdAt) : "N/A"}
                     </td>
                   )}
                   {selectedColumns.includes("updatedAt") && (
                     <td className="px-4 py-2 whitespace-nowrap">
-                      {r.updatedAt ? format(r.updatedAt, useEthiopianDate) : "N/A"}
+                      {r.updatedAt ? format(r.updatedAt) : "N/A"}
                     </td>
                   )}
                   {selectedColumns.includes("actions") && (
@@ -278,9 +276,8 @@ const StoreRequisitionsPage: React.FC = () => {
                             {({ active }) => (
                               <button
                                 onClick={() => handleView(r.id.toString())}
-                                className={`block w-full px-4 py-2 text-left ${
-                                  active ? "bg-blue-100" : ""
-                                }`}
+                                className={`block w-full px-4 py-2 text-left ${active ? "bg-blue-100" : ""
+                                  }`}
                               >
                                 View
                               </button>
@@ -290,9 +287,8 @@ const StoreRequisitionsPage: React.FC = () => {
                             {({ active }) => (
                               <button
                                 onClick={() => handleEditClick(r)}
-                                className={`block w-full px-4 py-2 text-left ${
-                                  active ? "bg-blue-100" : ""
-                                }`}
+                                className={`block w-full px-4 py-2 text-left ${active ? "bg-blue-100" : ""
+                                  }`}
                               >
                                 Edit
                               </button>
@@ -305,9 +301,8 @@ const StoreRequisitionsPage: React.FC = () => {
                                   setSelectedRequisitionId(r.id.toString());
                                   setIsDeleteModalOpen(true);
                                 }}
-                                className={`block w-full px-4 py-2 text-left ${
-                                  active ? "bg-blue-100" : ""
-                                }`}
+                                className={`block w-full px-4 py-2 text-left ${active ? "bg-blue-100" : ""
+                                  }`}
                               >
                                 Delete
                               </button>

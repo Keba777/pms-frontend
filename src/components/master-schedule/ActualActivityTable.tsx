@@ -13,13 +13,12 @@ import {
 import { UpdateActivityInput, Activity, Actuals } from "@/types/activity";
 import EditActivityForm from "../forms/EditActivityForm";
 import ConfirmModal from "../common/ui/ConfirmModal";
-import ActivityTableSkeleton from "../activities/ActivityTableSkeleton"; 
+import ActivityTableSkeleton from "../activities/ActivityTableSkeleton";
 import Link from "next/link";
 import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import { formatDate as format } from "@/utils/dateUtils";
-import { useSettingsStore } from "@/store/settingsStore";
 
 interface ActualActivityTableProps {
   taskId?: string; // made optional
@@ -30,7 +29,7 @@ interface ExtendedActivity extends Activity {
 }
 
 const ActualActivityTable: React.FC<ActualActivityTableProps> = ({ taskId }) => {
-  const { useEthiopianDate } = useSettingsStore();
+
   const {
     data: activities,
     isLoading: loadingAct,
@@ -140,7 +139,7 @@ const ActualActivityTable: React.FC<ActualActivityTableProps> = ({ taskId }) => 
     setSelectedActivityId(id);
     setIsDeleteModalOpen(true);
   };
-  
+
   const confirmDelete = () => {
     if (selectedActivityId) deleteActivity(selectedActivityId);
     setIsDeleteModalOpen(false);
@@ -186,9 +185,8 @@ const ActualActivityTable: React.FC<ActualActivityTableProps> = ({ taskId }) => 
           <MenuItem>
             {({ active }) => (
               <button
-                className={`block w-full px-4 py-2 text-left ${
-                  active ? "bg-blue-100" : ""
-                }`}
+                className={`block w-full px-4 py-2 text-left ${active ? "bg-blue-100" : ""
+                  }`}
                 onClick={() => router.push(`/activities/${params.data.id}`)}
               >
                 Quick View
@@ -198,9 +196,8 @@ const ActualActivityTable: React.FC<ActualActivityTableProps> = ({ taskId }) => 
           <MenuItem>
             {({ active }) => (
               <button
-                className={`block w-full px-4 py-2 text-left ${
-                  active ? "bg-blue-100" : ""
-                }`}
+                className={`block w-full px-4 py-2 text-left ${active ? "bg-blue-100" : ""
+                  }`}
                 onClick={() => handleEditClick(params.data)}
               >
                 Update
@@ -210,9 +207,8 @@ const ActualActivityTable: React.FC<ActualActivityTableProps> = ({ taskId }) => 
           <MenuItem>
             {({ active }) => (
               <button
-                className={`block w-full px-4 py-2 text-left ${
-                  active ? "bg-blue-100" : ""
-                }`}
+                className={`block w-full px-4 py-2 text-left ${active ? "bg-blue-100" : ""
+                  }`}
                 onClick={() => handleDeleteClick(params.data.id)}
               >
                 Delete
@@ -345,7 +341,7 @@ const ActualActivityTable: React.FC<ActualActivityTableProps> = ({ taskId }) => 
         valueGetter: (params: any) => {
           const date = params.data.actuals?.start_date;
           if (!date) return "";
-          return format(date, useEthiopianDate);
+          return format(date);
         },
         valueSetter: (params: any) => {
           params.data.actuals.start_date = params.newValue || null;
@@ -361,7 +357,7 @@ const ActualActivityTable: React.FC<ActualActivityTableProps> = ({ taskId }) => 
         valueGetter: (params: any) => {
           const date = params.data.actuals?.end_date;
           if (!date) return "";
-          return format(date, useEthiopianDate);
+          return format(date);
         },
         valueSetter: (params: any) => {
           params.data.actuals.end_date = params.newValue || null;
@@ -379,7 +375,7 @@ const ActualActivityTable: React.FC<ActualActivityTableProps> = ({ taskId }) => 
           if (!start || !end) return "";
           const diff = Math.ceil(
             (new Date(end).getTime() - new Date(start).getTime()) /
-              (1000 * 3600 * 24)
+            (1000 * 3600 * 24)
           );
           return isNaN(diff) ? "" : diff;
         },

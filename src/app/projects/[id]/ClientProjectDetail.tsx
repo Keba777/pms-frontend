@@ -15,9 +15,6 @@ import FilesTab from "@/components/projects/FilesTab";
 import NotificationTab from "@/components/projects/NotificationTab";
 import ActivityLogTab from "@/components/projects/ActivityLogTab";
 import ActualTaskTable from "@/components/master-schedule/ActualTaskTable";
-import { useSettingsStore } from "@/store/settingsStore";
-
-// ✅ Use shadcn/ui Tabs
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 interface ClientProjectDetailProps {
@@ -27,7 +24,6 @@ interface ClientProjectDetailProps {
 export default function ClientProjectDetail({
   projectId,
 }: ClientProjectDetailProps) {
-  const { useEthiopianDate } = useSettingsStore();
   const router = useRouter();
   const [showCreateForm, setShowCreateForm] = useState(false);
 
@@ -142,10 +138,10 @@ export default function ClientProjectDetail({
               Priority: {project.priority}
             </span>
             <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-medium">
-              Start: {formatDate(project.start_date, useEthiopianDate)}
+              Start: {formatDate(project.start_date)}
             </span>
             <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">
-              End: {formatDate(project.end_date, useEthiopianDate)}
+              End: {formatDate(project.end_date)}
             </span>
             {duration && (
               <span className="bg-gray-200 text-gray-800 px-3 py-1 rounded-full text-sm font-medium">
@@ -179,7 +175,7 @@ export default function ClientProjectDetail({
         </TabsList>
 
         <TabsContent value="discussion" className="p-4 sm:p-6 border rounded-lg shadow bg-white">
-          <DiscussionTab type="project" referenceId={projectId}/>
+          <DiscussionTab type="project" referenceId={projectId} />
         </TabsContent>
         <TabsContent value="issue" className="p-4 sm:p-6 border rounded-lg shadow bg-white">
           <IssueTab projectId={projectId} />
@@ -188,7 +184,7 @@ export default function ClientProjectDetail({
           <FilesTab type="project" referenceId={projectId} />
         </TabsContent>
         <TabsContent value="notification" className="p-4 sm:p-6 border rounded-lg shadow bg-white">
-          <NotificationTab type="project" referenceId={projectId}/>
+          <NotificationTab type="project" referenceId={projectId} />
         </TabsContent>
         <TabsContent value="activityLog" className="p-4 sm:p-6 border rounded-lg shadow bg-white">
           <ActivityLogTab type="project" referenceId={projectId} />

@@ -1,18 +1,11 @@
-import { ComponentProps, ComponentType, ReactNode } from "react";
-import EtDatePicker from "habesha-datepicker";
+import { ComponentProps, ComponentType } from "react";
+import ReactDatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
-export type ExtendedDatePickerProps = ComponentProps<typeof EtDatePicker> & {
-  showTimeSelect?: boolean;
-  timeIntervals?: number;
-  timeFormat?: string;
-  dateFormat?: string;
-  placeholderText?: string;
+export type ExtendedDatePickerProps = ComponentProps<typeof ReactDatePicker> & {
   className?: string;
-  popperContainer?: ComponentType<{ children?: ReactNode }>;
-  popperPlacement?: string;
 };
 
-const DatePicker = EtDatePicker as ComponentType<ExtendedDatePickerProps>;
+const DatePicker = ReactDatePicker as any;
 
 export default DatePicker;
-

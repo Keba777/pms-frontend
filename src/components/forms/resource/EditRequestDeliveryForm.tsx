@@ -3,14 +3,13 @@
 import React from "react";
 import { useForm, Controller } from "react-hook-form";
 import Select from "react-select";
-import EtDatePicker from "habesha-datepicker";
+import ReactDatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { UpdateRequestDeliveryInput } from "@/types/requestDelivery";
 import { useApprovals } from "@/hooks/useApprovals";
 import { useSites } from "@/hooks/useSites";
 import { Approval } from "@/types/approval";
 import { Site } from "@/types/site";
-import { useSettingsStore } from "@/store/settingsStore";
 
 interface EditRequestDeliveryFormProps {
   onSubmit: (data: UpdateRequestDeliveryInput) => void;
@@ -23,7 +22,7 @@ const EditRequestDeliveryForm: React.FC<EditRequestDeliveryFormProps> = ({
   onClose,
   requestDelivery,
 }) => {
-  const { useEthiopianDate } = useSettingsStore();
+
   const {
     register,
     handleSubmit,
@@ -143,10 +142,16 @@ const EditRequestDeliveryForm: React.FC<EditRequestDeliveryFormProps> = ({
           name="deliveryDate"
           control={control}
           render={({ field }) => (
-            <EtDatePicker
-              value={field.value ? new Date(field.value) : null}
-              onChange={(date) => field.onChange(date)}
+            <ReactDatePicker
+              showFullMonthYearPicker
+              showYearDropdown
+              selected={field.value ? new Date(field.value) : undefined}
+              onChange={(date: any, event?: any) => {
+                const d = Array.isArray(date) ? date[0] : date;
+                field.onChange(d ? d.toISOString() : undefined);
+              }}
               className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+              placeholderText="Enter Delivery Date"
             />
           )}
         />

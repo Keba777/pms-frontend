@@ -5,9 +5,7 @@ import { useForm, Controller } from "react-hook-form";
 import "react-datepicker/dist/react-datepicker.css";
 import { UpdateTodoInput } from "@/types/todo";
 import { User } from "@/types/user";
-import { useSettingsStore } from "@/store/settingsStore";
 import Select from "react-select";
-import EtDatePicker from "habesha-datepicker"; 
 import ReactDatePicker from "react-datepicker";
 
 interface EditTodoFormProps {
@@ -23,7 +21,7 @@ const EditTodoForm: React.FC<EditTodoFormProps> = ({
   todo,
   users,
 }) => {
-  const { useEthiopianDate } = useSettingsStore();
+
   const {
     register,
     handleSubmit,
@@ -217,29 +215,17 @@ const EditTodoForm: React.FC<EditTodoFormProps> = ({
               control={control}
               render={({ field }) => (
                 <>
-                  {useEthiopianDate ? (
-                    <EtDatePicker
-                      value={field.value ? new Date(field.value) : undefined}
-                      onChange={(date: any, event?: any) => {
-                        const d = Array.isArray(date) ? date[0] : date;
-                        field.onChange(d ? d.toISOString() : undefined);
-                      }}
-                      className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
-                      isRange={false}
-                    />
-                  ) : (
-                    <ReactDatePicker
-                      showFullMonthYearPicker
-                      showYearDropdown
-                      selected={field.value ? new Date(field.value) : undefined}
-                      onChange={(date: any, event?: any) => {
-                        const d = Array.isArray(date) ? date[0] : date;
-                        field.onChange(d ? d.toISOString() : undefined);
-                      }}
-                      placeholderText="Enter Target Date"
-                      className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
-                    />
-                  )}
+                  <ReactDatePicker
+                    showFullMonthYearPicker
+                    showYearDropdown
+                    selected={field.value ? new Date(field.value) : undefined}
+                    onChange={(date: any, event?: any) => {
+                      const d = Array.isArray(date) ? date[0] : date;
+                      field.onChange(d ? d.toISOString() : undefined);
+                    }}
+                    placeholderText="Enter Target Date"
+                    className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
+                  />
                 </>
               )}
             />
@@ -255,29 +241,17 @@ const EditTodoForm: React.FC<EditTodoFormProps> = ({
               rules={{ required: "Due date is required" }}
               render={({ field }) => (
                 <>
-                  {useEthiopianDate ? (
-                    <EtDatePicker
-                      value={field.value ? new Date(field.value) : undefined}
-                      onChange={(date: any, event?: any) => {
-                        const d = Array.isArray(date) ? date[0] : date;
-                        field.onChange(d ? d.toISOString() : undefined);
-                      }}
-                      className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
-                      isRange={false}
-                    />
-                  ) : (
-                    <ReactDatePicker
-                      showFullMonthYearPicker
-                      showYearDropdown
-                      selected={field.value ? new Date(field.value) : undefined}
-                      onChange={(date: any, event?: any) => {
-                        const d = Array.isArray(date) ? date[0] : date;
-                        field.onChange(d ? d.toISOString() : undefined);
-                      }}
-                      placeholderText="Enter Due Date"
-                      className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
-                    />
-                  )}
+                  <ReactDatePicker
+                    showFullMonthYearPicker
+                    showYearDropdown
+                    selected={field.value ? new Date(field.value) : undefined}
+                    onChange={(date: any, event?: any) => {
+                      const d = Array.isArray(date) ? date[0] : date;
+                      field.onChange(d ? d.toISOString() : undefined);
+                    }}
+                    placeholderText="Enter Due Date"
+                    className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
+                  />
                 </>
               )}
             />

@@ -21,7 +21,6 @@ import { createPortal } from "react-dom";
 import { useUpdateTaskProgress } from "@/hooks/useTasks";
 import { toast } from "react-toastify";
 import { ProgressUpdateItem } from "@/types/activity";
-import { useSettingsStore } from "@/store/settingsStore";
 import { normalizeDatePickerValue } from "@/utils/datePicker";
 
 const PopperContainer: React.ComponentType<{ children?: React.ReactNode }> = ({
@@ -53,7 +52,6 @@ const ManageTaskForm: React.FC<{
   onClose: () => void;
   task: UpdateTaskInput & { id: string; name?: string; progressUpdates?: ProgressUpdateItem[] | null };
 }> = ({ onClose, task }) => {
-  const { useEthiopianDate } = useSettingsStore();
   const { handleSubmit, control, setValue } = useForm<UpdateTaskInput>({
     defaultValues: task,
   });

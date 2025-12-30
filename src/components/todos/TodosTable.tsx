@@ -12,7 +12,6 @@ import { useUsers } from "@/hooks/useUsers";
 import ConfirmModal from "../common/ui/ConfirmModal";
 import ManageTodoForm from "../forms/ManageTodoForm";
 import { formatDate as format } from "@/utils/dateUtils";
-import { useSettingsStore } from "@/store/settingsStore";
 
 const priorityBadgeClasses: Record<Todo["priority"], string> = {
   Urgent: "bg-red-100 text-red-800",
@@ -39,7 +38,7 @@ const TodosTable: React.FC<TodosTableProps> = ({
   selectedColumns,
   departments,
 }) => {
-  const { useEthiopianDate } = useSettingsStore();
+
   const router = useRouter();
   const { data: users } = useUsers();
   const { mutate: deleteTodo } = useDeleteTodo();
@@ -178,9 +177,8 @@ const TodosTable: React.FC<TodosTableProps> = ({
               {selectedColumns.includes("priority") && (
                 <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
                   <span
-                    className={`px-2 py-1 rounded-full text-sm font-medium ${
-                      priorityBadgeClasses[todo.priority]
-                    }`}
+                    className={`px-2 py-1 rounded-full text-sm font-medium ${priorityBadgeClasses[todo.priority]
+                      }`}
                   >
                     {todo.priority || "-"}
                   </span>
@@ -188,7 +186,7 @@ const TodosTable: React.FC<TodosTableProps> = ({
               )}
               {selectedColumns.includes("assignedBy") && (
                 <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
-                  { `${todo.assignedBy?.first_name} ${todo.assignedBy?.last_name}` || "-"}
+                  {`${todo.assignedBy?.first_name} ${todo.assignedBy?.last_name}` || "-"}
                 </td>
               )}
               {selectedColumns.includes("assignedUsers") && (
@@ -207,14 +205,14 @@ const TodosTable: React.FC<TodosTableProps> = ({
               {selectedColumns.includes("target") && (
                 <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
                   {todo.target
-                    ? format(todo.target, useEthiopianDate)
+                    ? format(todo.target)
                     : "-"}
                 </td>
               )}
               {selectedColumns.includes("dueDate") && (
                 <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
                   {todo.dueDate
-                    ? format(todo.dueDate, useEthiopianDate)
+                    ? format(todo.dueDate)
                     : "-"}
                 </td>
               )}
@@ -234,9 +232,8 @@ const TodosTable: React.FC<TodosTableProps> = ({
               {selectedColumns.includes("status") && (
                 <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
                   <span
-                    className={`px-2 py-1 rounded-full text-sm font-medium ${
-                      statusBadgeClasses[todo.status]
-                    }`}
+                    className={`px-2 py-1 rounded-full text-sm font-medium ${statusBadgeClasses[todo.status]
+                      }`}
                   >
                     {todo.status}
                   </span>
@@ -258,9 +255,8 @@ const TodosTable: React.FC<TodosTableProps> = ({
                         {({ active }) => (
                           <button
                             onClick={() => handleView(todo.id)}
-                            className={`w-full text-left px-3 py-2 text-sm ${
-                              active ? "bg-gray-100" : ""
-                            }`}
+                            className={`w-full text-left px-3 py-2 text-sm ${active ? "bg-gray-100" : ""
+                              }`}
                           >
                             View
                           </button>
@@ -278,9 +274,8 @@ const TodosTable: React.FC<TodosTableProps> = ({
                               });
                               setShowEditForm(true);
                             }}
-                            className={`w-full text-left px-3 py-2 text-sm ${
-                              active ? "bg-gray-100" : ""
-                            }`}
+                            className={`w-full text-left px-3 py-2 text-sm ${active ? "bg-gray-100" : ""
+                              }`}
                           >
                             Edit
                           </button>
@@ -290,9 +285,8 @@ const TodosTable: React.FC<TodosTableProps> = ({
                         {({ active }) => (
                           <button
                             onClick={() => handleDeleteClick(todo.id)}
-                            className={`w-full text-left px-3 py-2 text-sm text-red-600 ${
-                              active ? "bg-gray-100" : ""
-                            }`}
+                            className={`w-full text-left px-3 py-2 text-sm text-red-600 ${active ? "bg-gray-100" : ""
+                              }`}
                           >
                             Delete
                           </button>
@@ -304,9 +298,8 @@ const TodosTable: React.FC<TodosTableProps> = ({
                             onClick={() => {
                               handleManageClick(todo);
                             }}
-                            className={`w-full text-left px-3 py-2 text-sm ${
-                              active ? "bg-gray-100" : ""
-                            }`}
+                            className={`w-full text-left px-3 py-2 text-sm ${active ? "bg-gray-100" : ""
+                              }`}
                           >
                             Manage
                           </button>

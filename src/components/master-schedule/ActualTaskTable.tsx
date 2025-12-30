@@ -24,7 +24,6 @@ import SearchInput from "../common/ui/SearchInput";
 import ProfileAvatar from "../common/ProfileAvatar";
 import { toast } from "react-toastify";
 import { formatDate as format } from "@/utils/dateUtils";
-import { useSettingsStore } from "@/store/settingsStore";
 
 interface ActualTaskTableProps {
   tasks: Task[];
@@ -46,7 +45,7 @@ export default function ActualTaskTable({
   tasks,
   projectId,
 }: ActualTaskTableProps) {
-  const { useEthiopianDate } = useSettingsStore();
+
   const router = useRouter();
   const gridRef = useRef<AgGridReact | null>(null);
 
@@ -97,7 +96,7 @@ export default function ActualTaskTable({
         const d = Math.ceil(
           (new Date(actuals.end_date).getTime() -
             new Date(actuals.start_date).getTime()) /
-            (1000 * 3600 * 24)
+          (1000 * 3600 * 24)
         );
         duration = isNaN(d) ? "" : d;
       }
@@ -105,7 +104,7 @@ export default function ActualTaskTable({
       if (actuals.end_date) {
         const r = Math.ceil(
           (new Date(actuals.end_date).getTime() - Date.now()) /
-            (1000 * 3600 * 24)
+          (1000 * 3600 * 24)
         );
         remaining = isNaN(r) ? "" : r;
       }
@@ -238,9 +237,8 @@ export default function ActualTaskTable({
           <MenuItem>
             {({ active }) => (
               <button
-                className={`block w-full px-3 py-2 text-left ${
-                  active ? "bg-blue-50" : ""
-                }`}
+                className={`block w-full px-3 py-2 text-left ${active ? "bg-blue-50" : ""
+                  }`}
                 onClick={() => handleView(d.id)}
               >
                 View
@@ -250,9 +248,8 @@ export default function ActualTaskTable({
           <MenuItem>
             {({ active }) => (
               <button
-                className={`block w-full px-3 py-2 text-left ${
-                  active ? "bg-blue-50" : ""
-                }`}
+                className={`block w-full px-3 py-2 text-left ${active ? "bg-blue-50" : ""
+                  }`}
                 onClick={() => handleEditClick(d)}
               >
                 Edit
@@ -262,9 +259,8 @@ export default function ActualTaskTable({
           <MenuItem>
             {({ active }) => (
               <button
-                className={`block w-full px-3 py-2 text-left text-red-600 ${
-                  active ? "bg-red-50" : ""
-                }`}
+                className={`block w-full px-3 py-2 text-left text-red-600 ${active ? "bg-red-50" : ""
+                  }`}
                 onClick={() => handleDeleteClick(d.id)}
               >
                 Delete
@@ -274,9 +270,8 @@ export default function ActualTaskTable({
           <MenuItem>
             {({ active }) => (
               <button
-                className={`block w-full px-3 py-2 text-left ${
-                  active ? "bg-blue-50" : ""
-                }`}
+                className={`block w-full px-3 py-2 text-left ${active ? "bg-blue-50" : ""
+                  }`}
                 onClick={() => handleManageClick(d)}
               >
                 Manage
@@ -356,7 +351,7 @@ export default function ActualTaskTable({
         valueGetter: (params: any) => {
           const d = params.data.actuals?.start_date;
           if (!d) return "";
-          return format(d, useEthiopianDate);
+          return format(d);
         },
         valueSetter: (params: any) => {
           params.data.actuals.start_date = params.newValue || null;
@@ -373,7 +368,7 @@ export default function ActualTaskTable({
         valueGetter: (params: any) => {
           const d = params.data.actuals?.end_date;
           if (!d) return "";
-          return format(d, useEthiopianDate);
+          return format(d);
         },
         valueSetter: (params: any) => {
           params.data.actuals.end_date = params.newValue || null;
@@ -481,14 +476,14 @@ export default function ActualTaskTable({
       header: "Start Date",
       accessor: (r) =>
         r.actuals?.start_date
-          ? format(r.actuals.start_date, useEthiopianDate)
+          ? format(r.actuals.start_date)
           : "",
     },
     {
       header: "End Date",
       accessor: (r) =>
         r.actuals?.end_date
-          ? format(r.actuals.end_date, useEthiopianDate)
+          ? format(r.actuals.end_date)
           : "",
     },
     {

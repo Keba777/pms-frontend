@@ -7,7 +7,6 @@ import { ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useIssues, useUpdateIssue, useDeleteIssue } from "@/hooks/useIssues";
 import { formatDate as format } from "@/utils/dateUtils";
-import { useSettingsStore } from "@/store/settingsStore";
 import { useSites } from "@/hooks/useSites";
 import { useDepartments } from "@/hooks/useDepartments";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
@@ -50,7 +49,6 @@ const columnOptions: Record<string, string> = {
 };
 
 const IssuesPage = () => {
-  const { useEthiopianDate } = useSettingsStore();
   const router = useRouter();
   const {
     data: issues,
@@ -436,7 +434,7 @@ const IssuesPage = () => {
                   {selectedColumns.includes("date") && (
                     <td className="px-4 py-2 border border-gray-200">
                       {issue.date
-                        ? format(issue.date, useEthiopianDate)
+                        ? format(issue.date)
                         : "-"}
                     </td>
                   )}
@@ -458,9 +456,8 @@ const IssuesPage = () => {
                   {selectedColumns.includes("priority") && (
                     <td className="px-4 py-2 border border-gray-200">
                       <span
-                        className={`px-2 py-1 rounded-full text-sm font-medium ${
-                          priorityBadgeClasses[issue.priority]
-                        }`}
+                        className={`px-2 py-1 rounded-full text-sm font-medium ${priorityBadgeClasses[issue.priority]
+                          }`}
                       >
                         {issue.priority || "-"}
                       </span>
@@ -490,9 +487,8 @@ const IssuesPage = () => {
                   {selectedColumns.includes("status") && (
                     <td className="px-4 py-2 border border-gray-200">
                       <span
-                        className={`px-2 py-1 rounded-full text-sm font-medium ${
-                          statusBadgeClasses[issue.status]
-                        }`}
+                        className={`px-2 py-1 rounded-full text-sm font-medium ${statusBadgeClasses[issue.status]
+                          }`}
                       >
                         {issue.status}
                       </span>
@@ -512,9 +508,8 @@ const IssuesPage = () => {
                             {({ active }) => (
                               <button
                                 onClick={() => handleView(issue.id)}
-                                className={`${
-                                  active ? "bg-gray-100" : ""
-                                } w-full text-left px-3 py-2 text-sm text-gray-700`}
+                                className={`${active ? "bg-gray-100" : ""
+                                  } w-full text-left px-3 py-2 text-sm text-gray-700`}
                               >
                                 View
                               </button>
@@ -524,9 +519,8 @@ const IssuesPage = () => {
                             {({ active }) => (
                               <button
                                 onClick={() => handleEditClick(issue)}
-                                className={`${
-                                  active ? "bg-gray-100" : ""
-                                } w-full text-left px-3 py-2 text-sm text-gray-700`}
+                                className={`${active ? "bg-gray-100" : ""
+                                  } w-full text-left px-3 py-2 text-sm text-gray-700`}
                               >
                                 Edit
                               </button>
@@ -539,9 +533,8 @@ const IssuesPage = () => {
                                   setSelectedIssueId(issue.id);
                                   setIsDeleteModalOpen(true);
                                 }}
-                                className={`${
-                                  active ? "bg-gray-100" : ""
-                                } w-full text-left px-3 py-2 text-sm text-red-600`}
+                                className={`${active ? "bg-gray-100" : ""
+                                  } w-full text-left px-3 py-2 text-sm text-red-600`}
                               >
                                 Delete
                               </button>

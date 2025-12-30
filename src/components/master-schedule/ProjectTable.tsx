@@ -19,7 +19,6 @@ import { useDeleteProject, useUpdateProject } from "@/hooks/useProjects";
 import { useUsers } from "@/hooks/useUsers";
 import { Task } from "@/types/task";
 import SearchInput from "../common/ui/SearchInput";
-import { useSettingsStore } from "@/store/settingsStore";
 
 interface ProjectTableProps {
   projects: Project[];
@@ -60,7 +59,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
   isError = false,
 }) => {
   const router = useRouter();
-  const { useEthiopianDate } = useSettingsStore();
+
 
   const { data: users } = useUsers();
   const { mutate: deleteProject } = useDeleteProject();
@@ -273,9 +272,8 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                     {selectedColumns.includes("priority") && (
                       <td className="px-5 py-2 w-24 truncate-ellipsis">
                         <span
-                          className={`px-2 py-1 rounded-full text-sm font-medium ${
-                            priorityBadgeClasses[project.priority]
-                          }`}
+                          className={`px-2 py-1 rounded-full text-sm font-medium ${priorityBadgeClasses[project.priority]
+                            }`}
                         >
                           {project.priority}
                         </span>
@@ -283,12 +281,12 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                     )}
                     {selectedColumns.includes("start_date") && (
                       <td className="px-5 py-2 w-28 truncate-ellipsis">
-                        {formatDate(project.start_date, useEthiopianDate)}
+                        {formatDate(project.start_date)}
                       </td>
                     )}
                     {selectedColumns.includes("end_date") && (
                       <td className="px-5 py-2 w-28 truncate-ellipsis">
-                        {formatDate(project.end_date, useEthiopianDate)}
+                        {formatDate(project.end_date)}
                       </td>
                     )}
                     {selectedColumns.includes("duration") && (
@@ -304,9 +302,8 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                     {selectedColumns.includes("status") && (
                       <td className="px-5 py-2 w-28 truncate-ellipsis">
                         <span
-                          className={`px-2 py-1 rounded-full text-sm font-medium ${
-                            statusBadgeClasses[project.status]
-                          }`}
+                          className={`px-2 py-1 rounded-full text-sm font-medium ${statusBadgeClasses[project.status]
+                            }`}
                         >
                           {project.status}
                         </span>
@@ -326,9 +323,8 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                               {({ active }) => (
                                 <button
                                   onClick={() => handleView(project.id)}
-                                  className={`w-full text-left px-3 py-2 text-sm ${
-                                    active ? "bg-gray-100" : ""
-                                  }`}
+                                  className={`w-full text-left px-3 py-2 text-sm ${active ? "bg-gray-100" : ""
+                                    }`}
                                 >
                                   View
                                 </button>
@@ -346,9 +342,8 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                                     } as UpdateProjectInput & { id: string });
                                     setShowEditForm(true);
                                   }}
-                                  className={`w-full text-left px-3 py-2 text-sm ${
-                                    active ? "bg-gray-100" : ""
-                                  }`}
+                                  className={`w-full text-left px-3 py-2 text-sm ${active ? "bg-gray-100" : ""
+                                    }`}
                                 >
                                   Edit
                                 </button>
@@ -363,9 +358,8 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                                       project.tasks || []
                                     )
                                   }
-                                  className={`w-full text-left px-3 py-2 text-sm text-red-600 ${
-                                    active ? "bg-gray-100" : ""
-                                  }`}
+                                  className={`w-full text-left px-3 py-2 text-sm text-red-600 ${active ? "bg-gray-100" : ""
+                                    }`}
                                 >
                                   Delete
                                 </button>
@@ -383,9 +377,8 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                                     } as UpdateProjectInput & { id: string });
                                     setShowManageForm(true);
                                   }}
-                                  className={`w-full text-left px-3 py-2 text-sm ${
-                                    active ? "bg-gray-100" : ""
-                                  }`}
+                                  className={`w-full text-left px-3 py-2 text-sm ${active ? "bg-gray-100" : ""
+                                    }`}
                                 >
                                   Manage
                                 </button>

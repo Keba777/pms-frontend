@@ -9,12 +9,10 @@ import { useCreateActivity } from "@/hooks/useActivities";
 import { useTasks } from "@/hooks/useTasks";
 import { ArrowRight, Calendar } from "lucide-react";
 import { formatDate as format } from "@/utils/dateUtils";
-import { useSettingsStore } from "@/store/settingsStore";
 import { useActivityStore } from "@/store/activityStore";
 import { useUsers } from "@/hooks/useUsers";
 import { useRoles } from "@/hooks/useRoles";
 import { Role, User } from "@/types/user";
-import EtDatePicker from "habesha-datepicker"; 
 import ReactDatePicker from "react-datepicker";
 
 interface ActivityFormProps {
@@ -26,7 +24,6 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
   onClose,
   defaultTaskId,
 }) => {
-  const { useEthiopianDate } = useSettingsStore();
   const {
     register,
     handleSubmit,
@@ -39,8 +36,8 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
       task_id: defaultTaskId || undefined,
       priority: "Medium",
       status: "Not Started",
-      approvalStatus: "Approved", 
-      progress: 0, 
+      approvalStatus: "Approved",
+      progress: 0,
       labor_index_factor: null,
       labor_utilization_factor: null,
       labor_working_hours_per_day: null,
@@ -219,10 +216,10 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
                 </p>
                 <div className="flex items-center text-sm mt-1">
                   <Calendar size={16} className="mr-1" />
-                  <span>{format(lastActivity.start_date, useEthiopianDate)}</span>
+                  <span>{format(lastActivity.start_date)}</span>
                   <ArrowRight size={16} className="mx-2" />
                   <Calendar size={16} className="mr-1" />
-                  <span>{format(lastActivity.end_date, useEthiopianDate)}</span>
+                  <span>{format(lastActivity.end_date)}</span>
                 </div>
               </div>
             ) : (
@@ -241,29 +238,17 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
                 rules={{ required: "Start date is required" }}
                 render={({ field }) => (
                   <>
-                    {useEthiopianDate ? (
-                      <EtDatePicker
-                        value={field.value ? new Date(field.value) : undefined}
-                        onChange={(date: any, event?: any) => {
-                          const d = Array.isArray(date) ? date[0] : date;
-                          field.onChange(d ? d.toISOString() : undefined);
-                        }}
-                        className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-                        isRange={false}
-                      />
-                    ) : (
-                      <ReactDatePicker
-                        showFullMonthYearPicker
-                        showYearDropdown
-                        selected={field.value ? new Date(field.value) : undefined}
-                        onChange={(date: any, event?: any) => {
-                          const d = Array.isArray(date) ? date[0] : date;
-                          field.onChange(d ? d.toISOString() : undefined);
-                        }}
-                        placeholderText="Enter Start Date"
-                        className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-                      />
-                    )}
+                    <ReactDatePicker
+                      showFullMonthYearPicker
+                      showYearDropdown
+                      selected={field.value ? new Date(field.value) : undefined}
+                      onChange={(date: any, event?: any) => {
+                        const d = Array.isArray(date) ? date[0] : date;
+                        field.onChange(d ? d.toISOString() : undefined);
+                      }}
+                      placeholderText="Enter Start Date"
+                      className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+                    />
                   </>
                 )}
               />
@@ -302,41 +287,23 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
                 }}
                 render={({ field }) => (
                   <>
-                    {useEthiopianDate ? (
-                      <EtDatePicker
-                        value={field.value ? new Date(field.value) : undefined}
-                        onChange={(date: any, event?: any) => {
-                          const d = Array.isArray(date) ? date[0] : date;
-                          field.onChange(d ? d.toISOString() : undefined);
-                          const startDate = startDateStr ? new Date(startDateStr) : null;
-                          if (startDate && d) {
-                            const diffTime = d.getTime() - startDate.getTime();
-                            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                            setDuration(diffDays.toString());
-                          }
-                        }}
-                        className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-                        isRange={false}
-                      />
-                    ) : (
-                      <ReactDatePicker
-                        showFullMonthYearPicker
-                        showYearDropdown
-                        selected={field.value ? new Date(field.value) : undefined}
-                        onChange={(date: any, event?: any) => {
-                          const d = Array.isArray(date) ? date[0] : date;
-                          field.onChange(d ? d.toISOString() : undefined);
-                          const startDate = startDateStr ? new Date(startDateStr) : null;
-                          if (startDate && d) {
-                            const diffTime = d.getTime() - startDate.getTime();
-                            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                            setDuration(diffDays.toString());
-                          }
-                        }}
-                        placeholderText="Enter End Date"
-                        className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-                      />
-                    )}
+                    <ReactDatePicker
+                      showFullMonthYearPicker
+                      showYearDropdown
+                      selected={field.value ? new Date(field.value) : undefined}
+                      onChange={(date: any, event?: any) => {
+                        const d = Array.isArray(date) ? date[0] : date;
+                        field.onChange(d ? d.toISOString() : undefined);
+                        const startDate = startDateStr ? new Date(startDateStr) : null;
+                        if (startDate && d) {
+                          const diffTime = d.getTime() - startDate.getTime();
+                          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                          setDuration(diffDays.toString());
+                        }
+                      }}
+                      placeholderText="Enter End Date"
+                      className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+                    />
                   </>
                 )}
               />
@@ -833,29 +800,17 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
               name="checked_by_date"
               render={({ field }) => (
                 <>
-                  {useEthiopianDate ? (
-                    <EtDatePicker
-                      value={field.value ? new Date(field.value) : undefined}
-                      onChange={(date: any, event?: any) => {
-                        const d = Array.isArray(date) ? date[0] : date;
-                        field.onChange(d ? d.toISOString() : undefined);
-                      }}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary focus:border-bs-primary transition-colors duration-200"
-                      isRange={false}
-                    />
-                  ) : (
-                    <ReactDatePicker
-                      showFullMonthYearPicker
-                      showYearDropdown
-                      selected={field.value ? new Date(field.value) : undefined}
-                      onChange={(date: any, event?: any) => {
-                        const d = Array.isArray(date) ? date[0] : date;
-                        field.onChange(d ? d.toISOString() : undefined);
-                      }}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary focus:border-bs-primary transition-colors duration-200"
-                      placeholderText="Enter Checked By Date"
-                    />
-                  )}
+                  <ReactDatePicker
+                    showFullMonthYearPicker
+                    showYearDropdown
+                    selected={field.value ? new Date(field.value) : undefined}
+                    onChange={(date: any, event?: any) => {
+                      const d = Array.isArray(date) ? date[0] : date;
+                      field.onChange(d ? d.toISOString() : undefined);
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary focus:border-bs-primary transition-colors duration-200"
+                    placeholderText="Enter Checked By Date"
+                  />
                 </>
               )}
             />

@@ -3,13 +3,11 @@
 import React from "react";
 import { useForm, Controller } from "react-hook-form";
 import Select from "react-select";
-import EtDatePicker from "habesha-datepicker";
 import ReactDatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { UpdateActivityInput } from "@/types/activity";
 import { Role, User } from "@/types/user";
 import { useRoles } from "@/hooks/useRoles";
-import { useSettingsStore } from "@/store/settingsStore";
 
 const EditActivityForm: React.FC<{
   onSubmit: (data: UpdateActivityInput) => void;
@@ -17,7 +15,7 @@ const EditActivityForm: React.FC<{
   activity: UpdateActivityInput;
   users?: User[];
 }> = ({ onSubmit, onClose, activity, users }) => {
-  const { useEthiopianDate } = useSettingsStore();
+
   const {
     register,
     handleSubmit,
@@ -189,29 +187,17 @@ const EditActivityForm: React.FC<{
           rules={{ required: "Start date is required" }}
           render={({ field }) => (
             <>
-              {useEthiopianDate ? (
-                <EtDatePicker
-                  value={field.value ? new Date(field.value) : undefined}
-                  onChange={(date: any, event?: any) => {
-                    const d = Array.isArray(date) ? date[0] : date;
-                    field.onChange(d ? d.toISOString() : undefined);
-                  }}
-                  className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-                  isRange={false}
-                />
-              ) : (
-                <ReactDatePicker
-                  showFullMonthYearPicker
-                  showYearDropdown
-                  selected={field.value ? new Date(field.value) : undefined}
-                  onChange={(date: any, event?: any) => {
-                    const d = Array.isArray(date) ? date[0] : date;
-                    field.onChange(d ? d.toISOString() : undefined);
-                  }}
-                  className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-                  placeholderText="Enter Start Date"
-                />
-              )}
+              <ReactDatePicker
+                showFullMonthYearPicker
+                showYearDropdown
+                selected={field.value ? new Date(field.value) : undefined}
+                onChange={(date: any, event?: any) => {
+                  const d = Array.isArray(date) ? date[0] : date;
+                  field.onChange(d ? d.toISOString() : undefined);
+                }}
+                className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+                placeholderText="Enter Start Date"
+              />
             </>
           )}
         />
@@ -232,29 +218,17 @@ const EditActivityForm: React.FC<{
           rules={{ required: "End date is required" }}
           render={({ field }) => (
             <>
-              {useEthiopianDate ? (
-                <EtDatePicker
-                  value={field.value ? new Date(field.value) : undefined}
-                  onChange={(date: any, event?: any) => {
-                    const d = Array.isArray(date) ? date[0] : date;
-                    field.onChange(d ? d.toISOString() : undefined);
-                  }}
-                  className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-                  isRange={false}
-                />
-              ) : (
-                <ReactDatePicker
-                  showFullMonthYearPicker
-                  showYearDropdown
-                  selected={field.value ? new Date(field.value) : undefined}
-                  onChange={(date: any, event?: any) => {
-                    const d = Array.isArray(date) ? date[0] : date;
-                    field.onChange(d ? d.toISOString() : undefined);
-                  }}
-                  className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-                  placeholderText="Enter End Date"
-                />
-              )}
+              <ReactDatePicker
+                showFullMonthYearPicker
+                showYearDropdown
+                selected={field.value ? new Date(field.value) : undefined}
+                onChange={(date: any, event?: any) => {
+                  const d = Array.isArray(date) ? date[0] : date;
+                  field.onChange(d ? d.toISOString() : undefined);
+                }}
+                className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+                placeholderText="Enter End Date"
+              />
             </>
           )}
         />

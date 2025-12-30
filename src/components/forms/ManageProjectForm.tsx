@@ -21,7 +21,6 @@ import { createPortal } from "react-dom";
 import { useUpdateProjectProgress } from "@/hooks/useProjects";
 import { toast } from "react-toastify";
 import { ProgressUpdateItem } from "@/types/activity";
-import { useSettingsStore } from "@/store/settingsStore";
 import { normalizeDatePickerValue } from "@/utils/datePicker";
 /**
  * popper container matching the expected signature:
@@ -55,7 +54,6 @@ const ManageProjectForm: React.FC<{
   onClose: () => void;
   project: UpdateProjectInput & { id: string; name?: string; progressUpdates?: ProgressUpdateItem[] | null };
 }> = ({ onClose, project }) => {
-  const { useEthiopianDate } = useSettingsStore();
   const { handleSubmit, control, setValue } = useForm<UpdateProjectInput>({
     defaultValues: project,
   });

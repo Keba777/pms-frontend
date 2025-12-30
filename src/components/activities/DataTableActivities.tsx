@@ -12,7 +12,6 @@ import {
 import { Activity, UpdateActivityInput } from "@/types/activity";
 import { getDuration } from "@/utils/helper";
 import { formatDate as format } from "@/utils/dateUtils";
-import { useSettingsStore } from "@/store/settingsStore";
 import EditActivityForm from "../forms/EditActivityForm";
 import ConfirmModal from "../common/ui/ConfirmModal";
 import ActivityTableSkeleton from "./ActivityTableSkeleton";
@@ -60,7 +59,6 @@ const columnOptions: Record<string, string> = {
   actions: "Actions",
 };
 const DataTableActivities: React.FC = () => {
-  const { useEthiopianDate } = useSettingsStore();
   const { data: activities = [], isLoading, error } = useActivities();
   const { mutate: deleteActivity } = useDeleteActivity();
   const { mutate: updateActivity } = useUpdateActivity();
@@ -339,13 +337,13 @@ const DataTableActivities: React.FC = () => {
               {(selectedColumns.includes("materials") ||
                 selectedColumns.includes("equipments") ||
                 selectedColumns.includes("labors")) && (
-                <th
-                  colSpan={3}
-                  className="px-4 py-3 text-center border-b border-b-gray-400 text-sm font-medium text-gray-50"
-                >
-                  Resource Cost
-                </th>
-              )}
+                  <th
+                    colSpan={3}
+                    className="px-4 py-3 text-center border-b border-b-gray-400 text-sm font-medium text-gray-50"
+                  >
+                    Resource Cost
+                  </th>
+                )}
               {selectedColumns.includes("request") && (
                 <th
                   rowSpan={2}
@@ -428,9 +426,8 @@ const DataTableActivities: React.FC = () => {
                   {selectedColumns.includes("priority") && (
                     <td className="px-4 py-2">
                       <span
-                        className={`px-2 py-1 rounded-full text-sm font-medium ${
-                          priorityBadgeClasses[activity.priority]
-                        }`}
+                        className={`px-2 py-1 rounded-full text-sm font-medium ${priorityBadgeClasses[activity.priority]
+                          }`}
                       >
                         {activity.priority}
                       </span>
@@ -444,12 +441,12 @@ const DataTableActivities: React.FC = () => {
                   )}
                   {selectedColumns.includes("start_date") && (
                     <td className="px-4 py-2">
-                      {format(activity.start_date, useEthiopianDate)}
+                      {format(activity.start_date)}
                     </td>
                   )}
                   {selectedColumns.includes("end_date") && (
                     <td className="px-4 py-2">
-                      {format(activity.end_date, useEthiopianDate)}
+                      {format(activity.end_date)}
                     </td>
                   )}
                   {selectedColumns.includes("duration") && (
@@ -508,9 +505,8 @@ const DataTableActivities: React.FC = () => {
                   {selectedColumns.includes("status") && (
                     <td className="px-4 py-2">
                       <span
-                        className={`px-2 py-1 rounded-full text-sm font-medium ${
-                          statusBadgeClasses[activity.status]
-                        }`}
+                        className={`px-2 py-1 rounded-full text-sm font-medium ${statusBadgeClasses[activity.status]
+                          }`}
                       >
                         {activity.status}
                       </span>
@@ -529,9 +525,8 @@ const DataTableActivities: React.FC = () => {
                           <MenuItem>
                             {({ active }) => (
                               <button
-                                className={`block w-full px-4 py-2 text-left ${
-                                  active ? "bg-blue-100" : ""
-                                }`}
+                                className={`block w-full px-4 py-2 text-left ${active ? "bg-blue-100" : ""
+                                  }`}
                                 onClick={() => handleViewActivity(activity.id)}
                               >
                                 Quick View
@@ -541,9 +536,8 @@ const DataTableActivities: React.FC = () => {
                           <MenuItem>
                             {({ active }) => (
                               <button
-                                className={`block w-full px-4 py-2 text-left ${
-                                  active ? "bg-blue-100" : ""
-                                }`}
+                                className={`block w-full px-4 py-2 text-left ${active ? "bg-blue-100" : ""
+                                  }`}
                                 onClick={() =>
                                   handleEditClick({
                                     ...activity,
@@ -560,9 +554,8 @@ const DataTableActivities: React.FC = () => {
                           <MenuItem>
                             {({ active }) => (
                               <button
-                                className={`block w-full px-4 py-2 text-left ${
-                                  active ? "bg-blue-100" : ""
-                                }`}
+                                className={`block w-full px-4 py-2 text-left ${active ? "bg-blue-100" : ""
+                                  }`}
                                 onClick={() =>
                                   handleDeleteActivityClick(activity.id)
                                 }
@@ -574,9 +567,8 @@ const DataTableActivities: React.FC = () => {
                           <MenuItem>
                             {({ active }) => (
                               <button
-                                className={`block w-full px-4 py-2 text-left ${
-                                  active ? "bg-blue-100" : ""
-                                }`}
+                                className={`block w-full px-4 py-2 text-left ${active ? "bg-blue-100" : ""
+                                  }`}
                                 onClick={() =>
                                   handleManageClick({
                                     ...activity,

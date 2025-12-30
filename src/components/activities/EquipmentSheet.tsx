@@ -27,10 +27,8 @@ import ConfirmModal from "../common/ui/ConfirmModal";
 import CreateEquipmentTimesheetForm from "../forms/timesheet/CreateEquipmentTimesheetForm";
 import EditEquipmentTimesheetForm from "../forms/timesheet/EditEquipmentTimesheetForm";
 import { formatDate as format } from "@/utils/dateUtils";
-import { useSettingsStore } from "@/store/settingsStore";
 
 export const EquipmentSheet: React.FC = () => {
-  const { useEthiopianDate } = useSettingsStore();
   const {
     data: equipmentTimesheets,
     isLoading: isLoadingTimes,
@@ -223,7 +221,7 @@ export const EquipmentSheet: React.FC = () => {
                   <TableCell className="px-5 py-2">{idx + 1}</TableCell>
                   <TableCell className="px-5 py-2">{equipmentName}</TableCell>
                   <TableCell className="px-5 py-2">
-                    {format(row.date, useEthiopianDate)}
+                    {format(row.date)}
                   </TableCell>
                   <TableCell className="px-5 py-2">{row.morningIn}</TableCell>
                   <TableCell className="px-5 py-2">{row.morningOut}</TableCell>
@@ -260,9 +258,8 @@ export const EquipmentSheet: React.FC = () => {
                           {({ active }) => (
                             <button
                               onClick={() => handleOpenModal("view", row)}
-                              className={`w-full text-left px-3 py-2 text-sm ${
-                                active ? "bg-gray-100" : ""
-                              }`}
+                              className={`w-full text-left px-3 py-2 text-sm ${active ? "bg-gray-100" : ""
+                                }`}
                             >
                               View
                             </button>
@@ -272,9 +269,8 @@ export const EquipmentSheet: React.FC = () => {
                           {({ active }) => (
                             <button
                               onClick={() => handleOpenModal("edit", row)}
-                              className={`w-full text-left px-3 py-2 text-sm ${
-                                active ? "bg-gray-100" : ""
-                              }`}
+                              className={`w-full text-left px-3 py-2 text-sm ${active ? "bg-gray-100" : ""
+                                }`}
                             >
                               Edit
                             </button>
@@ -284,9 +280,8 @@ export const EquipmentSheet: React.FC = () => {
                           {({ active }) => (
                             <button
                               onClick={() => handleDeleteClick(row)}
-                              className={`w-full text-left px-3 py-2 text-sm text-red-600 ${
-                                active ? "bg-gray-100" : ""
-                              }`}
+                              className={`w-full text-left px-3 py-2 text-sm text-red-600 ${active ? "bg-gray-100" : ""
+                                }`}
                             >
                               Delete
                             </button>

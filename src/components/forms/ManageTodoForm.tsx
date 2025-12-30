@@ -19,7 +19,6 @@ import {
 import DatePicker from "@/components/common/DatePicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { createPortal } from "react-dom";
-import { useSettingsStore } from "@/store/settingsStore";
 import { normalizeDatePickerValue } from "@/utils/datePicker";
 
 const PopperContainer: React.ComponentType<{ children?: React.ReactNode }> = ({
@@ -35,7 +34,7 @@ const ManageTodoForm: React.FC<{
   onClose: () => void;
   todo: UpdateTodoInput;
 }> = ({ onSubmit, onClose, todo }) => {
-  const { useEthiopianDate } = useSettingsStore();
+
   const {
     handleSubmit,
     control,
@@ -137,9 +136,8 @@ const ManageTodoForm: React.FC<{
                     {...field}
                     className="w-full h-1 rounded-lg appearance-none cursor-pointer"
                     style={{
-                      background: `linear-gradient(to right, ${color} ${
-                        field.value ?? 0
-                      }%, #E5E7EB ${field.value ?? 0}%)`,
+                      background: `linear-gradient(to right, ${color} ${field.value ?? 0
+                        }%, #E5E7EB ${field.value ?? 0}%)`,
                     }}
                     onChange={(e) => field.onChange(+e.target.value)}
                   />
@@ -213,8 +211,8 @@ const ManageTodoForm: React.FC<{
               <TableCell>{row.id}</TableCell>
               <TableCell>
                 <DatePicker
-                  value={row.dateTime ? new Date(row.dateTime) : null}
-                  onChange={(value) => {
+                  selected={row.dateTime ? new Date(row.dateTime) : null}
+                  onChange={(value: Date | null) => {
                     const nextDate = normalizeDatePickerValue(value);
                     updateRow(
                       row.id,
@@ -338,8 +336,8 @@ const ManageTodoForm: React.FC<{
           </Label>
           <div className="flex-1">
             <DatePicker
-              value={approvedDate ? new Date(approvedDate) : null}
-              onChange={(value) => {
+              selected={approvedDate ? new Date(approvedDate) : null}
+              onChange={(value: Date | null) => {
                 const nextDate = normalizeDatePickerValue(value);
                 setApprovedDate(nextDate ? nextDate.toISOString() : "");
               }}

@@ -7,8 +7,6 @@ import "react-datepicker/dist/react-datepicker.css";
 import { CreateInvoiceInput } from "@/types/financial";
 import { useCreateInvoice } from "@/hooks/useFinancials";
 import { useProjects } from "@/hooks/useProjects";
-import { useSettingsStore } from "@/store/settingsStore";
-import EtDatePicker from "habesha-datepicker"; 
 import ReactDatePicker from "react-datepicker";
 
 interface InvoiceFormProps {
@@ -16,7 +14,6 @@ interface InvoiceFormProps {
 }
 
 const InvoiceForm: React.FC<InvoiceFormProps> = ({ onClose }) => {
-  const { useEthiopianDate } = useSettingsStore();
   const {
     register,
     handleSubmit,
@@ -94,29 +91,17 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ onClose }) => {
           rules={{ required: "Due date is required" }}
           render={({ field }) => (
             <>
-              {useEthiopianDate ? (
-                <EtDatePicker
-                  value={field.value ? new Date(field.value) : undefined}
-                  onChange={(date: any, event?: any) => {
-                    const d = Array.isArray(date) ? date[0] : date;
-                    field.onChange(d ? d.toISOString() : undefined);
-                  }}
-                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
-                  isRange={false}
-                />
-              ) : (
-                <ReactDatePicker
-                  showFullMonthYearPicker
-                  showYearDropdown
-                  selected={field.value ? new Date(field.value) : undefined}
-                  onChange={(date: any, event?: any) => {
-                    const d = Array.isArray(date) ? date[0] : date;
-                    field.onChange(d ? d.toISOString() : undefined);
-                  }}
-                  placeholderText="Enter Due Date"
-                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
-                />
-              )}
+              <ReactDatePicker
+                showFullMonthYearPicker
+                showYearDropdown
+                selected={field.value ? new Date(field.value) : undefined}
+                onChange={(date: any, event?: any) => {
+                  const d = Array.isArray(date) ? date[0] : date;
+                  field.onChange(d ? d.toISOString() : undefined);
+                }}
+                placeholderText="Enter Due Date"
+                className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
+              />
             </>
           )}
         />

@@ -46,7 +46,6 @@ import {
 } from "@/components/ui/popover";
 import { ProgressUpdateItem } from "@/types/activity";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useSettingsStore } from "@/store/settingsStore";
 
 const priorityBadgeClasses: Record<Project["priority"], string> = {
   Critical: "bg-red-100 text-red-800",
@@ -65,7 +64,6 @@ const statusBadgeClasses: Record<Project["status"], string> = {
 };
 
 const ProjectSection: React.FC = () => {
-  const { useEthiopianDate } = useSettingsStore();
   const router = useRouter();
   const { data: projects, isLoading, isError } = useProjects();
   const { data: users } = useUsers();
@@ -108,10 +106,10 @@ const ProjectSection: React.FC = () => {
   const [showManageForm, setShowManageForm] = useState(false);
   const [projectToManage, setProjectToManage] = useState<
     | (UpdateProjectInput & {
-        id: string;
-        name?: string;
-        progressUpdates?: ProgressUpdateItem[] | null;
-      })
+      id: string;
+      name?: string;
+      progressUpdates?: ProgressUpdateItem[] | null;
+    })
     | null
   >(null);
   // Delete state
@@ -319,9 +317,8 @@ const ProjectSection: React.FC = () => {
                     {selectedColumns.includes("status") && (
                       <TableCell className="px-4 py-2">
                         <span
-                          className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
-                            statusBadgeClasses[project.status]
-                          }`}
+                          className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${statusBadgeClasses[project.status]
+                            }`}
                         >
                           {project.status}
                         </span>
@@ -330,9 +327,8 @@ const ProjectSection: React.FC = () => {
                     {selectedColumns.includes("priority") && (
                       <TableCell className="px-4 py-2">
                         <span
-                          className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
-                            priorityBadgeClasses[project.priority]
-                          }`}
+                          className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${priorityBadgeClasses[project.priority]
+                            }`}
                         >
                           {project.priority}
                         </span>
@@ -345,12 +341,12 @@ const ProjectSection: React.FC = () => {
                     )}
                     {selectedColumns.includes("start_date") && (
                       <TableCell className="px-4 py-2 ">
-                        {format(project.start_date, useEthiopianDate)}
+                        {format(project.start_date)}
                       </TableCell>
                     )}
                     {selectedColumns.includes("end_date") && (
                       <TableCell className="px-4 py-2 ">
-                        {format(project.end_date, useEthiopianDate)}
+                        {format(project.end_date)}
                       </TableCell>
                     )}
                     {selectedColumns.includes("duration") && (

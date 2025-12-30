@@ -12,10 +12,8 @@ import { useIssue } from "@/hooks/useIssues"; // Assuming a hook to fetch single
 import { useSites } from "@/hooks/useSites";
 import { useDepartments } from "@/hooks/useDepartments";
 import { formatDate as format } from "@/utils/dateUtils";
-import { useSettingsStore } from "@/store/settingsStore";
 
 const IssueDetailsPage = () => {
-  const { useEthiopianDate } = useSettingsStore();
   const params = useParams();
   const id = params.id as string;
   const router = useRouter();
@@ -132,7 +130,7 @@ const IssueDetailsPage = () => {
               Issue Information
             </h3>
             <div className="space-y-1 sm:space-y-2 text-xs sm:text-sm text-gray-700">
-              <p className="flex items-center gap-1"><Calendar className="h-4 w-4 text-cyan-700" /><span className="font-medium ml-1">Date:</span> {format(issue.date, useEthiopianDate)}</p>
+              <p className="flex items-center gap-1"><Calendar className="h-4 w-4 text-cyan-700" /><span className="font-medium ml-1">Date:</span> {format(issue.date)}</p>
               <p className="flex items-center gap-1"><AlertCircle className="h-4 w-4 text-cyan-700" /><span className="font-medium ml-1">Type:</span> {issue.issueType}</p>
               <Badge className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-sm font-medium ${getPriorityColor(issue.priority)}`}>
                 {issue.priority}
@@ -192,8 +190,8 @@ const IssueDetailsPage = () => {
               Timestamps
             </h3>
             <div className="space-y-1 sm:space-y-2 text-xs sm:text-sm text-gray-700">
-              <p className="flex items-center gap-1"><Clock className="h-4 w-4 text-cyan-700" /><span className="font-medium ml-1">Created At:</span> {format(issue.createdAt, useEthiopianDate)}</p>
-              <p className="flex items-center gap-1"><Clock className="h-4 w-4 text-cyan-700" /><span className="font-medium ml-1">Updated At:</span> {format(issue.updatedAt, useEthiopianDate)}</p>
+              <p className="flex items-center gap-1"><Clock className="h-4 w-4 text-cyan-700" /><span className="font-medium ml-1">Created At:</span> {format(issue.createdAt)}</p>
+              <p className="flex items-center gap-1"><Clock className="h-4 w-4 text-cyan-700" /><span className="font-medium ml-1">Updated At:</span> {format(issue.updatedAt)}</p>
             </div>
           </section>
         </CardContent>

@@ -15,18 +15,16 @@ import EditActivityForm from "../forms/EditActivityForm";
 import ConfirmModal from "../common/ui/ConfirmModal";
 import ActivityTableSkeleton from "./ActivityTableSkeleton";
 import Link from "next/link";
-import { AgGridReact } from "ag-grid-react"; 
-import "ag-grid-community/styles/ag-grid.css"; 
+import { AgGridReact } from "ag-grid-react";
+import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import { formatDate as format } from "@/utils/dateUtils";
-import { useSettingsStore } from "@/store/settingsStore"; 
 
 interface ExtendedActivity extends Activity {
   actuals: Actuals;
 }
 
 const ActualActivityTable: React.FC = () => {
-  const { useEthiopianDate } = useSettingsStore();
   const {
     data: activities,
     isLoading: loadingAct,
@@ -34,7 +32,7 @@ const ActualActivityTable: React.FC = () => {
   } = useActivities();
   const { mutate: deleteActivity } = useDeleteActivity();
   const { mutate: updateActivity } = useUpdateActivity();
-  const { mutate: updateActivityActuals } = useUpdateActivityActuals(); 
+  const { mutate: updateActivityActuals } = useUpdateActivityActuals();
   const router = useRouter();
   const gridRef = useRef<AgGridReact>(null);
 
@@ -174,9 +172,8 @@ const ActualActivityTable: React.FC = () => {
           <MenuItem>
             {({ active }) => (
               <button
-                className={`block w-full px-4 py-2 text-left ${
-                  active ? "bg-blue-100" : ""
-                }`}
+                className={`block w-full px-4 py-2 text-left ${active ? "bg-blue-100" : ""
+                  }`}
                 onClick={() => router.push(`/activities/${params.data.id}`)}
               >
                 Quick View
@@ -186,9 +183,8 @@ const ActualActivityTable: React.FC = () => {
           <MenuItem>
             {({ active }) => (
               <button
-                className={`block w-full px-4 py-2 text-left ${
-                  active ? "bg-blue-100" : ""
-                }`}
+                className={`block w-full px-4 py-2 text-left ${active ? "bg-blue-100" : ""
+                  }`}
                 onClick={() => handleEditClick(params.data)}
               >
                 Update
@@ -198,9 +194,8 @@ const ActualActivityTable: React.FC = () => {
           <MenuItem>
             {({ active }) => (
               <button
-                className={`block w-full px-4 py-2 text-left ${
-                  active ? "bg-blue-100" : ""
-                }`}
+                className={`block w-full px-4 py-2 text-left ${active ? "bg-blue-100" : ""
+                  }`}
                 onClick={() => handleDeleteClick(params.data.id)}
               >
                 Delete
@@ -337,7 +332,7 @@ const ActualActivityTable: React.FC = () => {
         valueGetter: (params: any) => {
           const date = params.data.actuals?.start_date;
           if (!date) return "";
-          return format(date, useEthiopianDate);
+          return format(date);
         },
         valueSetter: (params: any) => {
           // store raw value (will be sanitized when sending)
@@ -354,7 +349,7 @@ const ActualActivityTable: React.FC = () => {
         valueGetter: (params: any) => {
           const date = params.data.actuals?.end_date;
           if (!date) return "";
-          return format(date, useEthiopianDate);
+          return format(date);
         },
         valueSetter: (params: any) => {
           params.data.actuals.end_date = params.newValue || null;
@@ -372,7 +367,7 @@ const ActualActivityTable: React.FC = () => {
           if (!start || !end) return "";
           const diff = Math.ceil(
             (new Date(end).getTime() - new Date(start).getTime()) /
-              (1000 * 3600 * 24)
+            (1000 * 3600 * 24)
           );
           return isNaN(diff) ? "" : diff;
         },

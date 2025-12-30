@@ -29,10 +29,10 @@ import {
   getDuration as calcRemaining,
 } from "@/utils/dateUtils";
 import { toast } from "react-toastify";
-import { useSettingsStore } from "@/store/settingsStore";
+
 
 const ActualProjectSection: React.FC = () => {
-  const { useEthiopianDate } = useSettingsStore();
+
   const router = useRouter();
   const { data: projects, isLoading, isError } = useProjects();
   const { data: users } = useUsers();
@@ -217,9 +217,8 @@ const ActualProjectSection: React.FC = () => {
             {({ active }) => (
               <button
                 onClick={() => handleEditClick(params.data)}
-                className={`block w-full px-4 py-2 text-left ${
-                  active ? "bg-blue-100" : ""
-                }`}
+                className={`block w-full px-4 py-2 text-left ${active ? "bg-blue-100" : ""
+                  }`}
               >
                 <FaEdit className="inline mr-2" /> Edit
               </button>
@@ -229,9 +228,8 @@ const ActualProjectSection: React.FC = () => {
             {({ active }) => (
               <button
                 onClick={() => handleDeleteProjectClick(params.data.id)}
-                className={`block w-full px-4 py-2 text-left ${
-                  active ? "bg-blue-100" : ""
-                }`}
+                className={`block w-full px-4 py-2 text-left ${active ? "bg-blue-100" : ""
+                  }`}
               >
                 <FaTrash className="inline mr-2" /> Delete
               </button>
@@ -241,9 +239,8 @@ const ActualProjectSection: React.FC = () => {
             {({ active }) => (
               <button
                 onClick={() => handleViewProject(params.data.id)}
-                className={`block w-full px-4 py-2 text-left ${
-                  active ? "bg-blue-100" : ""
-                }`}
+                className={`block w-full px-4 py-2 text-left ${active ? "bg-blue-100" : ""
+                  }`}
               >
                 <FaEye className="inline mr-2" /> Quick View
               </button>
@@ -253,9 +250,8 @@ const ActualProjectSection: React.FC = () => {
             {({ active }) => (
               <button
                 onClick={() => handleManageClick(params.data)}
-                className={`block w-full px-4 py-2 text-left ${
-                  active ? "bg-blue-100" : ""
-                }`}
+                className={`block w-full px-4 py-2 text-left ${active ? "bg-blue-100" : ""
+                  }`}
               >
                 <FaTasks className="inline mr-2" /> Manage
               </button>
@@ -371,7 +367,7 @@ const ActualProjectSection: React.FC = () => {
           const date = params.data.actuals?.start_date;
           if (!date) return "";
           const d = new Date(date);
-          return isNaN(d.getTime()) ? "" : formatDate(date, useEthiopianDate);
+          return isNaN(d.getTime()) ? "" : formatDate(date);
         },
         valueSetter: (params: any) => {
           params.data.actuals.start_date = params.newValue || null;
@@ -388,7 +384,7 @@ const ActualProjectSection: React.FC = () => {
           const date = params.data.actuals?.end_date;
           if (!date) return "";
           const d = new Date(date);
-          return isNaN(d.getTime()) ? "" : formatDate(date, useEthiopianDate);
+          return isNaN(d.getTime()) ? "" : formatDate(date);
         },
         valueSetter: (params: any) => {
           params.data.actuals.end_date = params.newValue || null;
@@ -461,7 +457,7 @@ const ActualProjectSection: React.FC = () => {
       },
     ];
     return allDefs;
-  }, [selectedColumns, useEthiopianDate]);
+  }, [selectedColumns]);
 
   if (isLoading) return <div>Loading projects…</div>;
   if (isError) return <div>Error loading projects.</div>;

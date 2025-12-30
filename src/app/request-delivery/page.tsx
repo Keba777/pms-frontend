@@ -21,7 +21,6 @@ import RequestDeliveryTableSkeleton from "@/components/skeletons/RequestDelivery
 import RequestDeliveryForm from "@/components/forms/RequestDeliverForm";
 import EditRequestDeliveryForm from "@/components/forms/resource/EditRequestDeliveryForm";
 import { formatDate as format } from "@/utils/dateUtils";
-import { useSettingsStore } from "@/store/settingsStore"; 
 
 const columnOptions: Record<string, string> = {
   no: "No",
@@ -37,7 +36,6 @@ const columnOptions: Record<string, string> = {
 };
 
 const RequestDeliveryPage: React.FC = () => {
-  const { useEthiopianDate } = useSettingsStore();
   const router = useRouter();
   const { data: deliveries = [], isLoading, error } = useRequestDeliveries();
   const { mutate: deleteDelivery } = useDeleteRequestDelivery();
@@ -122,7 +120,7 @@ const RequestDeliveryPage: React.FC = () => {
     {
       header: "Delivery Date",
       accessor: (d: any) =>
-        d.deliveryDate ? format(d.deliveryDate, useEthiopianDate) : "N/A",
+        d.deliveryDate ? format(d.deliveryDate) : "N/A",
     },
     { header: "Qty Received", accessor: (d: any) => d.recievedQuantity || 0 },
     { header: "Site", accessor: (d: any) => d.site?.name || "N/A" },
@@ -273,13 +271,12 @@ const RequestDeliveryPage: React.FC = () => {
                   {selectedColumns.includes("status") && (
                     <td className="px-4 py-2">
                       <span
-                        className={`badge px-2 py-1 rounded ${
-                          d.status === "Delivered"
-                            ? "text-green-600"
-                            : d.status === "Pending"
+                        className={`badge px-2 py-1 rounded ${d.status === "Delivered"
+                          ? "text-green-600"
+                          : d.status === "Pending"
                             ? "text-yellow-500"
                             : "text-red-500"
-                        }`}
+                          }`}
                       >
                         {d.status}
                       </span>
@@ -287,7 +284,7 @@ const RequestDeliveryPage: React.FC = () => {
                   )}
                   {selectedColumns.includes("deliveryDate") && (
                     <td className="px-4 py-2">
-                      {d.deliveryDate ? format(d.deliveryDate, useEthiopianDate) : "N/A"}
+                      {d.deliveryDate ? format(d.deliveryDate) : "N/A"}
                     </td>
                   )}
                   {selectedColumns.includes("recievedQuantity") && (
@@ -310,9 +307,8 @@ const RequestDeliveryPage: React.FC = () => {
                             {({ active }) => (
                               <button
                                 onClick={() => handleView(d.id)}
-                                className={`block w-full px-4 py-2 text-left ${
-                                  active ? "bg-blue-100" : ""
-                                }`}
+                                className={`block w-full px-4 py-2 text-left ${active ? "bg-blue-100" : ""
+                                  }`}
                               >
                                 View
                               </button>
@@ -322,9 +318,8 @@ const RequestDeliveryPage: React.FC = () => {
                             {({ active }) => (
                               <button
                                 onClick={() => handleEditClick(d)}
-                                className={`block w-full px-4 py-2 text-left ${
-                                  active ? "bg-blue-100" : ""
-                                }`}
+                                className={`block w-full px-4 py-2 text-left ${active ? "bg-blue-100" : ""
+                                  }`}
                               >
                                 Edit
                               </button>
@@ -337,9 +332,8 @@ const RequestDeliveryPage: React.FC = () => {
                                   setSelectedId(d.id);
                                   setIsDeleteModalOpen(true);
                                 }}
-                                className={`block w-full px-4 py-2 text-left ${
-                                  active ? "bg-blue-100" : ""
-                                }`}
+                                className={`block w-full px-4 py-2 text-left ${active ? "bg-blue-100" : ""
+                                  }`}
                               >
                                 Delete
                               </button>

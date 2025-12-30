@@ -1,16 +1,8 @@
 import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {
+const nextConfig = {
   /* config options here */
   output: "standalone",
-  eslint: {
-    // Ignore ESLint errors during production builds
-    ignoreDuringBuilds: true,
-  },
-  typescript: {
-    // Also ignore TypeScript errors during builds (optional, but recommended for now)
-    ignoreBuildErrors: true,
-  },
   images: {
     remotePatterns: [
       {
@@ -31,6 +23,8 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-};
+} as any;
 
 export default nextConfig;
+
+

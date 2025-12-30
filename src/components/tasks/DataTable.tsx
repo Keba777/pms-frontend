@@ -8,7 +8,6 @@ import { useRouter } from "next/navigation";
 import { useTaskStore } from "@/store/taskStore";
 import { getDuration } from "@/utils/helper";
 import { formatDate as format } from "@/utils/dateUtils";
-import { useSettingsStore } from "@/store/settingsStore";
 import { Task, UpdateTaskInput } from "@/types/task";
 import { useDeleteTask, useUpdateTask } from "@/hooks/useTasks";
 import EditTaskForm from "@/components/forms/EditTaskForm";
@@ -26,7 +25,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
 const DataTable: React.FC = () => {
-  const { useEthiopianDate } = useSettingsStore();
+
   const tasks = useTaskStore((state) => state.tasks) as Task[];
   const isLoading = !tasks;
   const error = !tasks ? "Error fetching tasks." : null;
@@ -323,19 +322,18 @@ const DataTable: React.FC = () => {
                   {selectedColumns.includes("priority") && (
                     <td className="px-4 py-2">
                       <span
-                        className={`px-2 py-1 rounded-full text-sm font-medium ${
-                          priorityBadgeClasses[task.priority]
-                        }`}
+                        className={`px-2 py-1 rounded-full text-sm font-medium ${priorityBadgeClasses[task.priority]
+                          }`}
                       >
                         {task.priority}
                       </span>
                     </td>
                   )}
                   {selectedColumns.includes("start_date") && (
-                    <td className="px-4 py-2">{format(task.start_date, useEthiopianDate)}</td>
+                    <td className="px-4 py-2">{format(task.start_date)}</td>
                   )}
                   {selectedColumns.includes("end_date") && (
-                    <td className="px-4 py-2">{format(task.end_date, useEthiopianDate)}</td>
+                    <td className="px-4 py-2">{format(task.end_date)}</td>
                   )}
                   {selectedColumns.includes("duration") && (
                     <td className="px-4 py-2">
@@ -359,9 +357,8 @@ const DataTable: React.FC = () => {
                   {selectedColumns.includes("status") && (
                     <td className="px-4 py-2">
                       <span
-                        className={`px-2 py-1 rounded-full text-sm font-medium ${
-                          statusBadgeClasses[task.status]
-                        }`}
+                        className={`px-2 py-1 rounded-full text-sm font-medium ${statusBadgeClasses[task.status]
+                          }`}
                       >
                         {task.status}
                       </span>
@@ -383,9 +380,8 @@ const DataTable: React.FC = () => {
                           <MenuItem>
                             {({ active }) => (
                               <button
-                                className={`block w-full px-4 py-2 text-left ${
-                                  active ? "bg-blue-100" : ""
-                                }`}
+                                className={`block w-full px-4 py-2 text-left ${active ? "bg-blue-100" : ""
+                                  }`}
                                 onClick={() =>
                                   handleUpdateTask({
                                     ...task,
@@ -402,9 +398,8 @@ const DataTable: React.FC = () => {
                           <MenuItem>
                             {({ active }) => (
                               <button
-                                className={`block w-full px-4 py-2 text-left ${
-                                  active ? "bg-blue-100" : ""
-                                }`}
+                                className={`block w-full px-4 py-2 text-left ${active ? "bg-blue-100" : ""
+                                  }`}
                                 onClick={() => handleDeleteTaskClick(task.id)}
                               >
                                 Delete
@@ -414,9 +409,8 @@ const DataTable: React.FC = () => {
                           <MenuItem>
                             {({ active }) => (
                               <button
-                                className={`block w-full px-4 py-2 text-left ${
-                                  active ? "bg-blue-100" : ""
-                                }`}
+                                className={`block w-full px-4 py-2 text-left ${active ? "bg-blue-100" : ""
+                                  }`}
                                 onClick={() => handleViewTask(task.id)}
                               >
                                 Quick View
@@ -426,9 +420,8 @@ const DataTable: React.FC = () => {
                           <MenuItem>
                             {({ active }) => (
                               <button
-                                className={`block w-full px-4 py-2 text-left ${
-                                  active ? "bg-blue-100" : ""
-                                }`}
+                                className={`block w-full px-4 py-2 text-left ${active ? "bg-blue-100" : ""
+                                  }`}
                                 onClick={() => handleManageClick(task)}
                               >
                                 Manage

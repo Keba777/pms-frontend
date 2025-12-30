@@ -27,10 +27,8 @@ import ConfirmModal from "../common/ui/ConfirmModal";
 import CreateMaterialSheetForm from "../forms/timesheet/CreateMaterialSheetForm";
 import EditMaterialSheetForm from "../forms/timesheet/EditMaterialSheetForm";
 import { formatDate as format } from "@/utils/dateUtils";
-import { useSettingsStore } from "@/store/settingsStore";
 
 export const MaterialSheet: React.FC = () => {
-  const { useEthiopianDate } = useSettingsStore();
   const {
     data: materialSheets,
     isLoading: sheetsLoading,
@@ -185,7 +183,7 @@ export const MaterialSheet: React.FC = () => {
                     {mat?.item || row.materialId}
                   </TableCell>
                   <TableCell className="px-5 py-2">
-                    {format(row.date, useEthiopianDate)}
+                    {format(row.date)}
                   </TableCell>
                   <TableCell className="px-5 py-2">{row.receivedQty}</TableCell>
                   <TableCell className="px-5 py-2">{row.utilizedQty}</TableCell>
@@ -205,9 +203,8 @@ export const MaterialSheet: React.FC = () => {
                           {({ active }) => (
                             <button
                               onClick={() => handleOpenModal("view", row)}
-                              className={`w-full text-left px-3 py-2 text-sm ${
-                                active ? "bg-gray-100" : ""
-                              }`}
+                              className={`w-full text-left px-3 py-2 text-sm ${active ? "bg-gray-100" : ""
+                                }`}
                             >
                               View
                             </button>
@@ -217,9 +214,8 @@ export const MaterialSheet: React.FC = () => {
                           {({ active }) => (
                             <button
                               onClick={() => handleOpenModal("edit", row)}
-                              className={`w-full text-left px-3 py-2 text-sm ${
-                                active ? "bg-gray-100" : ""
-                              }`}
+                              className={`w-full text-left px-3 py-2 text-sm ${active ? "bg-gray-100" : ""
+                                }`}
                             >
                               Edit
                             </button>
@@ -229,9 +225,8 @@ export const MaterialSheet: React.FC = () => {
                           {({ active }) => (
                             <button
                               onClick={() => handleDeleteClick(row)}
-                              className={`w-full text-left px-3 py-2 text-sm text-red-600 ${
-                                active ? "bg-gray-100" : ""
-                              }`}
+                              className={`w-full text-left px-3 py-2 text-sm text-red-600 ${active ? "bg-gray-100" : ""
+                                }`}
                             >
                               Delete
                             </button>

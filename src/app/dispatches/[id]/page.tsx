@@ -8,10 +8,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, Calendar, Truck, User, DollarSign, MapPin, Clipboard, Clock, Hash, Plane } from "lucide-react";
 import { useDispatch } from "@/hooks/useDispatches";
 import { formatDate as format } from "@/utils/dateUtils";
-import { useSettingsStore } from "@/store/settingsStore";
 
 const DispatchDetailsPage = () => {
-  const { useEthiopianDate } = useSettingsStore();
   const params = useParams();
   const id = params.id as string;
   const router = useRouter();
@@ -135,8 +133,8 @@ const DispatchDetailsPage = () => {
               Timeline
             </h3>
             <div className="space-y-1 sm:space-y-2 text-xs sm:text-sm text-gray-700">
-              <p className="flex items-center gap-1"><Clock className="h-4 w-4 text-cyan-700" /><span className="font-medium ml-1">Dispatched Date:</span> {format(dispatch.dispatchedDate, useEthiopianDate)}</p>
-              <p className="flex items-center gap-1"><Clock className="h-4 w-4 text-cyan-700" /><span className="font-medium ml-1">Estimated Arrival:</span> {format(dispatch.estArrivalTime, useEthiopianDate)}</p>
+              <p className="flex items-center gap-1"><Clock className="h-4 w-4 text-cyan-700" /><span className="font-medium ml-1">Dispatched Date:</span> {format(dispatch.dispatchedDate)}</p>
+              <p className="flex items-center gap-1"><Clock className="h-4 w-4 text-cyan-700" /><span className="font-medium ml-1">Estimated Arrival:</span> {format(dispatch.estArrivalTime)}</p>
             </div>
           </section>
 
