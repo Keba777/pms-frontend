@@ -22,7 +22,7 @@ import LoadingSkeleton from "./loading";
 import { CreateRequestInput } from "@/types/request";
 import { formatDate } from "@/utils/helper";
 
-interface ClientActivityResourcesPageProps {
+export default function ActivityResourcesPage() {
   activityId: string;
 }
 
