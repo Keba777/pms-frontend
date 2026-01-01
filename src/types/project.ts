@@ -28,7 +28,7 @@ export interface Project {
   start_date: Date;
   end_date: Date;
   budget: number;
-  client: string;
+  budget: number;
   client_id?: string;
   clientInfo?: IClient;
   site_id?: string;
@@ -42,6 +42,7 @@ export interface Project {
   tasks?: Task[];
   actuals?: ProjectActuals | null;
   progressUpdates?: ProgressUpdateItem[] | null;
+  attachments?: string[];
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -54,13 +55,13 @@ export interface CreateProjectInput {
   end_date: Date;
   budget: number;
   progress?: number;
-  client: string;
   client_id?: string;
   site_id?: string;
   status: ProjectStatus;
   members?: string[];
   actuals?: ProjectActuals | null;
   progressUpdates?: ProgressUpdateItem[] | null;
+  attachments?: File[];
 }
 
 export interface UpdateProjectInput {
@@ -71,7 +72,6 @@ export interface UpdateProjectInput {
   start_date?: Date;
   end_date?: Date;
   budget?: number;
-  client?: string;
   client_id?: string;
   site_id?: string;
   progress?: number;
@@ -80,4 +80,6 @@ export interface UpdateProjectInput {
   members?: string[];
   actuals?: ProjectActuals | null;
   progressUpdates?: ProgressUpdateItem[] | null;
+  existingAttachments?: string[];
+  attachments?: File[];
 }

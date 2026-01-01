@@ -76,6 +76,7 @@ const ProjectSection: React.FC = () => {
     { value: "title", label: "Project" },
     { value: "members", label: "Assigned To" },
     { value: "client", label: "Client" },
+    { value: "site", label: "Site" },
     { value: "status", label: "Status" },
     { value: "priority", label: "Priority" },
     { value: "progress", label: "Progress" },
@@ -217,7 +218,8 @@ const ProjectSection: React.FC = () => {
     projects?.filter(
       (p) =>
         p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.client.toLowerCase().includes(searchTerm.toLowerCase())
+        p.clientInfo?.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.projectSite?.name.toLowerCase().includes(searchTerm.toLowerCase())
     ) || [];
 
   return (
@@ -314,7 +316,12 @@ const ProjectSection: React.FC = () => {
                     )}
                     {selectedColumns.includes("client") && (
                       <TableCell className="px-4 py-2 ">
-                        {project.client}
+                        {project.clientInfo?.companyName || "-"}
+                      </TableCell>
+                    )}
+                    {selectedColumns.includes("site") && (
+                      <TableCell className="px-4 py-2 ">
+                        {project.projectSite?.name || "-"}
                       </TableCell>
                     )}
                     {selectedColumns.includes("status") && (

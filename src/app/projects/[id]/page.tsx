@@ -145,6 +145,71 @@ export default function ProjectPage() {
               </span>
             )}
           </div>
+
+          <div className="mt-4 border-t pt-2">
+            <h3 className="text-sm font-semibold text-gray-700 mb-2">Attachments</h3>
+            {project.attachments && project.attachments.length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mt-2">
+                {project.attachments.map((url, index) => {
+                  const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(url);
+                  const isVideo = /\.(mp4|webm|ogg)$/i.test(url);
+                  const isPDF = /\.pdf$/i.test(url);
+                  const fileName = url.split("/").pop();
+
+                  return (
+                    <div
+                      key={index}
+                      className="border rounded-lg p-2 bg-gray-50 flex flex-col items-center shadow-sm hover:shadow-md transition-shadow"
+                    >
+                      {isImage ? (
+                        <a
+                          href={url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full h-32 flex items-center justify-center bg-gray-200 rounded overflow-hidden mb-2"
+                        >
+                          <img
+                            src={url}
+                            alt={fileName}
+                            className="object-cover w-full h-full"
+                          />
+                        </a>
+                      ) : isVideo ? (
+                        <div className="w-full h-32 bg-black rounded mb-2 flex items-center justify-center overflow-hidden">
+                          <video src={url} controls className="w-full h-full" />
+                        </div>
+                      ) : (
+                        <a
+                          href={url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full h-32 flex items-center justify-center bg-gray-200 rounded mb-2 hover:bg-gray-300 transition-colors"
+                        >
+                          <span className="text-4xl opacity-70">
+                            {isPDF ? "📄" : "📎"}
+                          </span>
+                        </a>
+                      )}
+
+                      <div className="w-full text-center px-1">
+                        <a
+                          href={url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-blue-600 hover:text-blue-800 hover:underline block truncate"
+                          title={fileName}
+                        >
+                          {fileName}
+                        </a>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500 italic">No attachments.</p>
+            )}
+          </div>
         </div>
       </div>
 

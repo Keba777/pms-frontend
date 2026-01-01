@@ -37,14 +37,23 @@ const fetchProjectById = async (id: string): Promise<Project | null> => {
   }
 };
 
-const createProject = async (data: CreateProjectInput): Promise<Project> => {
+const createProject = async (data: CreateProjectInput | FormData): Promise<Project> => {
   const response = await apiClient.post<ApiResponse<Project>>("/projects", data);
   return response.data.data;
 };
 
-const updateProject = async (data: UpdateProjectInput): Promise<Project> => {
+const updateProject = async (data: UpdateProjectInput | FormData): Promise<Project> => {
+  let id: string | undefined;
+  if (data instanceof FormData) {
+    id = data.get('id') as string;
+  } else {
+    id = data.id;
+  }
+
+  if (!id) throw new Error("Project ID is required for update");
+
   const response = await apiClient.put<ApiResponse<Project>>(
-    `/projects/${data.id}`,
+    `/projects/${id}`,
     data
   );
   return response.data.data;

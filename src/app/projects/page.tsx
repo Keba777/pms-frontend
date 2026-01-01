@@ -45,7 +45,8 @@ const ProjectPage: React.FC = () => {
   const columns: Column<Project>[] = [
     { header: "Project Name", accessor: "title" },
     { header: "Priority", accessor: "priority" },
-    { header: "Client", accessor: "client" },
+    { header: "Client", accessor: (row) => row.clientInfo?.companyName || "N/A" },
+    { header: "Site", accessor: (row) => row.projectSite?.name || "N/A" },
     { header: "Progress", accessor: (row) => `${row.progress ?? 0}%` },
     { header: "Budget", accessor: "budget" },
     { header: "Start Date", accessor: (row) => formatDate(row.start_date) },
@@ -57,7 +58,8 @@ const ProjectPage: React.FC = () => {
   const actualColumns: Column<Project>[] = [
     { header: "Project Name", accessor: "title" },
     { header: "Priority", accessor: "priority" },
-    { header: "Client", accessor: "client" },
+    { header: "Client", accessor: (row) => row.clientInfo?.companyName || "N/A" },
+    { header: "Site", accessor: (row) => row.projectSite?.name || "N/A" },
     { header: "Actual Budget", accessor: (row) => row.actuals?.budget ?? "N/A" },
     {
       header: "Budget +/-", accessor: (row) => {
@@ -307,8 +309,8 @@ const ProjectPage: React.FC = () => {
         <div className="border-b flex items-center overflow-x-auto no-scrollbar">
           <button
             className={`py-3 px-6 -mb-px border-b-2 font-medium transition-colors whitespace-nowrap ${activeTab === "planned"
-                ? "border-cyan-700 text-cyan-700"
-                : "border-transparent text-gray-500 hover:text-gray-700"
+              ? "border-cyan-700 text-cyan-700"
+              : "border-transparent text-gray-500 hover:text-gray-700"
               }`}
             onClick={() => setActiveTab("planned")}
           >
@@ -316,8 +318,8 @@ const ProjectPage: React.FC = () => {
           </button>
           <button
             className={`py-3 px-6 -mb-px border-b-2 font-medium transition-colors whitespace-nowrap ${activeTab === "actual"
-                ? "border-cyan-700 text-cyan-700"
-                : "border-transparent text-gray-500 hover:text-gray-700"
+              ? "border-cyan-700 text-cyan-700"
+              : "border-transparent text-gray-500 hover:text-gray-700"
               }`}
             onClick={() => setActiveTab("actual")}
           >

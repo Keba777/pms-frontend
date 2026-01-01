@@ -206,16 +206,30 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
           </ul>
         </div>
         <div>
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Client:</p>
-          {project.client ? (
-            <span className="bg-blue-50 text-blue-700 text-[11px] font-bold px-2 py-0.5 rounded-full border border-blue-200">
-              <Link href={`/clients/${project.client}`}>{project.client}</Link>
-            </span>
-          ) : (
-            <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-[11px]">
-              Not Assigned
-            </span>
-          )}
+          <div className="mb-3">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Client:</p>
+            {project.clientInfo ? (
+              <span className="bg-blue-50 text-blue-700 text-[11px] font-bold px-2 py-0.5 rounded-full border border-blue-200">
+                <Link href={`/clients/${project.client_id}`}>{project.clientInfo.companyName}</Link>
+              </span>
+            ) : (
+              <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-[11px]">
+                Not Assigned
+              </span>
+            )}
+          </div>
+          <div>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Site:</p>
+            {project.projectSite ? (
+              <span className="bg-indigo-50 text-indigo-700 text-[11px] font-bold px-2 py-0.5 rounded-full border border-indigo-200">
+                {project.projectSite.name}
+              </span>
+            ) : (
+              <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-[11px]">
+                No Site
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
