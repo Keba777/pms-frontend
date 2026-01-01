@@ -28,7 +28,6 @@ export interface Project {
   start_date: Date;
   end_date: Date;
   budget: number;
-  budget: number;
   client_id?: string;
   clientInfo?: IClient;
   site_id?: string;

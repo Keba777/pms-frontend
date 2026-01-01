@@ -115,14 +115,70 @@ const ActivityForm: React.FC<ActivityFormProps> = ({
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files ? Array.from(event.target.files) : [];
-    setSelectedFiles(files);
+    if (event.target.files && event.target.files.length > 0) {
+      const newFiles = Array.from(event.target.files);
+      setSelectedFiles((prev) => [...prev, ...newFiles]);
+      event.target.value = "";
+    }
+  };
+
+  const removeSelectedFile = (index: number) => {
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const onSubmit = (data: CreateActivityInput) => {
-    const submitData = defaultTaskId
-      ? { ...data, task_id: defaultTaskId }
-      : data;
+    // Ensure unique user IDs
+    const uniqueUserIds = data.assignedUsers ? Array.from(new Set(data.assignedUsers)) : undefined;
+
+    let submitData: CreateActivityInput | FormData = defaultTaskId
+      ? { ...data, task_id: defaultTaskId, assignedUsers: uniqueUserIds }
+      : { ...data, assignedUsers: uniqueUserIds };
+
+    if (selectedFiles.length > 0) {
+      const formData = new FormData();
+      if (submitData.task_id) formData.append("task_id", submitData.task_id);
+      formData.append("activity_name", data.activity_name);
+      if (data.description) formData.append("description", data.description);
+      formData.append("priority", data.priority);
+      formData.append("status", data.status);
+      formData.append("approvalStatus", data.approvalStatus);
+      formData.append("unit", data.unit);
+      if (data.quantity) formData.append("quantity", String(data.quantity));
+      if (data.progress !== undefined) formData.append("progress", String(data.progress));
+      formData.append("start_date", new Date(data.start_date).toISOString());
+      formData.append("end_date", new Date(data.end_date).toISOString());
+      if (data.checked_by_name) formData.append("checked_by_name", data.checked_by_name);
+
+      // Numeric optional fields
+      const numFields = [
+        "labor_index_factor", "labor_utilization_factor", "labor_working_hours_per_day",
+        "machinery_index_factor", "machinery_utilization_factor", "machinery_working_hours_per_day",
+        "labor_cost", "material_cost", "equipment_cost"
+      ] as const;
+
+      numFields.forEach(field => {
+        if (data[field] !== null && data[field] !== undefined) {
+          formData.append(field, String(data[field]));
+        }
+      });
+
+      // Arrays
+      if (uniqueUserIds && uniqueUserIds.length > 0) {
+        uniqueUserIds.forEach((id) => formData.append("assignedUsers", id));
+      }
+
+      // JSON Arrays (Complex Objects)
+      if (data.work_force) formData.append("work_force", JSON.stringify(data.work_force));
+      if (data.machinery_list) formData.append("machinery_list", JSON.stringify(data.machinery_list));
+      if (data.materials_list) formData.append("materials_list", JSON.stringify(data.materials_list));
+      if (data.actuals) formData.append("actuals", JSON.stringify(data.actuals));
+
+      selectedFiles.forEach((file) => {
+        formData.append("attachments", file);
+      });
+
+      submitData = formData;
+    }
 
     createActivity(submitData, {
       onSuccess: () => {

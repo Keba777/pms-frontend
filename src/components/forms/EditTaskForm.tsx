@@ -6,13 +6,13 @@ import Select from "react-select";
 
 import ReactDatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { UpdateTaskInput } from "@/types/task";
+import { UpdateTaskInput, Task } from "@/types/task";
 import { User } from "@/types/user";
 
 interface EditTaskFormProps {
-  onSubmit: (data: UpdateTaskInput) => void;
+  onSubmit: (data: UpdateTaskInput | FormData) => void;
   onClose: () => void;
-  task: UpdateTaskInput;
+  task: Task;
   users?: User[];
 }
 
@@ -22,6 +22,17 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({
   task,
   users,
 }) => {
+  const [selectedFiles, setSelectedFiles] = React.useState<File[]>([]);
+  const [keptAttachments, setKeptAttachments] = React.useState<string[]>(
+    task.attachments || []
+  );
+
+  // Transform task data to match UpdateTaskInput structure
+  const { attachments, ...taskWithoutAttachments } = task;
+  const defaultValues: UpdateTaskInput = {
+    ...taskWithoutAttachments,
+    assignedUsers: task.assignedUsers?.map(user => user.id) || []
+  };
 
   const {
     register,
@@ -29,8 +40,67 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({
     control,
     formState: { errors },
   } = useForm<UpdateTaskInput>({
-    defaultValues: task,
+    defaultValues,
   });
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files.length > 0) {
+      const newFiles = Array.from(event.target.files);
+      setSelectedFiles((prev) => [...prev, ...newFiles]);
+      event.target.value = "";
+    }
+  };
+
+  const removeSelectedFile = (index: number) => {
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const removeExistingAttachment = (index: number) => {
+    setKeptAttachments((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const onFormSubmit = (data: UpdateTaskInput) => {
+    // Ensure ID is present
+    const submitData = { ...data, id: task.id };
+
+    // Ensure unique assignedUsers
+    if (submitData.assignedUsers) {
+      submitData.assignedUsers = Array.from(new Set(submitData.assignedUsers));
+    }
+
+    let finalData: UpdateTaskInput | FormData = submitData;
+
+    if (selectedFiles.length > 0 || keptAttachments.length !== (task.attachments?.length || 0)) {
+      const formData = new FormData();
+      formData.append("id", task.id);
+
+      // Append all fields
+      Object.entries(submitData).forEach(([key, value]) => {
+        if (key === "attachments" || key === "existingAttachments") return;
+
+        if (Array.isArray(value)) {
+          value.forEach((val) => formData.append(key, val as string));
+        } else if (value !== undefined && value !== null) {
+          formData.append(key, value as string);
+        }
+      });
+
+      selectedFiles.forEach((file) => {
+        formData.append("attachments", file);
+      });
+
+      keptAttachments.forEach((url) => {
+        formData.append("existingAttachments", url);
+      });
+
+      finalData = formData;
+    } else if (keptAttachments.length !== (task.attachments?.length || 0)) {
+      // If no new files but existing attachments removed, send updated list
+      finalData = { ...submitData, existingAttachments: keptAttachments };
+    }
+
+    onSubmit(finalData);
+  };
 
   const statusOptions = [
     { value: "Not Started", label: "Not Started" },
@@ -62,7 +132,7 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({
 
   return (
     <form
-      onSubmit={handleSubmit(onSubmit)}
+      onSubmit={handleSubmit(onFormSubmit)}
       className="bg-white rounded-lg shadow-xl p-6 space-y-4"
     >
       <div className="flex justify-between items-center border-b pb-2 mb-4">
@@ -89,6 +159,8 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({
       {errors.task_name && (
         <p className="text-red-500 text-sm ml-32">{errors.task_name.message}</p>
       )}
+
+      {/* ... Keeping existing fields ... */}
 
       <div className="flex items-center space-x-4">
         <label className="w-32 text-sm font-medium text-gray-700">
@@ -274,6 +346,80 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({
             />
           )}
         />
+      </div>
+
+      {/* Attachments Section */}
+      <div className="mt-4">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Attach Files
+        </label>
+
+        <div className="w-full border-2 border-dashed border-gray-300 rounded-md p-4 bg-gray-50 hover:border-bs-primary transition-colors duration-300">
+          <input
+            type="file"
+            multiple
+            onChange={handleFileChange}
+            className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 
+                   file:rounded-md file:border-0 
+                   file:text-sm file:font-semibold 
+                   file:bg-bs-primary file:text-white 
+                   hover:file:bg-bs-primary/90"
+          />
+          <p className="mt-2 text-sm text-gray-500">
+            You can select multiple files.
+          </p>
+        </div>
+
+        {/* Selected New Files */}
+        {selectedFiles.length > 0 && (
+          <div className="mt-4">
+            <h4 className="text-sm font-semibold text-gray-700 mb-2">
+              New Files Selected:
+            </h4>
+            <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+              {selectedFiles.map((file, index) => (
+                <li key={index} className="flex justify-between items-center bg-gray-100 p-1 rounded">
+                  <span>{file.name} ({(file.size / 1024).toFixed(2)} KB)</span>
+                  <button
+                    type="button"
+                    onClick={() => removeSelectedFile(index)}
+                    className="text-red-500 hover:text-red-700 ml-2 font-bold"
+                  >
+                    &times;
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Existing Attachments */}
+        {keptAttachments.length > 0 && (
+          <div className="mt-4">
+            <h4 className="text-sm font-semibold text-gray-700 mb-2">
+              Existing Attachments:
+            </h4>
+            <ul className="space-y-2">
+              {keptAttachments.map((url, index) => {
+                const fileName = url.split("/").pop() || `Attachment ${index + 1}`;
+                return (
+                  <li key={index} className="flex justify-between items-center bg-gray-100 p-2 rounded">
+                    <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline text-sm truncate max-w-xs">
+                      {fileName}
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => removeExistingAttachment(index)}
+                      className="text-red-500 hover:text-red-700 ml-2 font-bold"
+                    >
+                      Remove
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
       </div>
 
       <div className="flex justify-end space-x-4 mt-4">

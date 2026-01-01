@@ -32,13 +32,13 @@ export interface Actuals {
   end_date: Date | null;
   progress: number | null;
   status:
-    | "Not Started"
-    | "Started"
-    | "InProgress"
-    | "Canceled"
-    | "Onhold"
-    | "Completed"
-    | null;
+  | "Not Started"
+  | "Started"
+  | "InProgress"
+  | "Canceled"
+  | "Onhold"
+  | "Completed"
+  | null;
   labor_cost: number | null;
   material_cost: number | null;
   equipment_cost: number | null;
@@ -77,12 +77,12 @@ export interface Activity {
   end_date: Date;
   progress: number;
   status:
-    | "Not Started"
-    | "Started"
-    | "InProgress"
-    | "Canceled"
-    | "Onhold"
-    | "Completed";
+  | "Not Started"
+  | "Started"
+  | "InProgress"
+  | "Canceled"
+  | "Onhold"
+  | "Completed";
   approvalStatus: "Approved" | "Not Approved" | "Pending";
   assignedUsers?: User[];
   requests?: Request[];
@@ -107,6 +107,7 @@ export interface Activity {
   progressUpdates?: ProgressUpdateItem[] | null;
   createdAt?: Date;
   updatedAt?: Date;
+  attachments?: string[];
 }
 
 export interface CreateActivityInput {
@@ -120,12 +121,12 @@ export interface CreateActivityInput {
   end_date: Date;
   progress: number;
   status:
-    | "Not Started"
-    | "Started"
-    | "InProgress"
-    | "Canceled"
-    | "Onhold"
-    | "Completed";
+  | "Not Started"
+  | "Started"
+  | "InProgress"
+  | "Canceled"
+  | "Onhold"
+  | "Completed";
   approvalStatus: "Approved" | "Not Approved" | "Pending";
   assignedUsers?: string[];
   image?: string;
@@ -145,6 +146,7 @@ export interface CreateActivityInput {
   checked_by_date?: Date;
   actuals?: Actuals | null;
   progressUpdates?: ProgressUpdateItem[] | null;
+  attachments?: File[];
 }
 
 export interface UpdateActivityInput {
@@ -159,12 +161,12 @@ export interface UpdateActivityInput {
   end_date?: Date;
   progress?: number;
   status?:
-    | "Not Started"
-    | "Started"
-    | "InProgress"
-    | "Canceled"
-    | "Onhold"
-    | "Completed";
+  | "Not Started"
+  | "Started"
+  | "InProgress"
+  | "Canceled"
+  | "Onhold"
+  | "Completed";
   approvalStatus?: "Approved" | "Not Approved" | "Pending";
   assignedUsers?: string[];
   image?: string;
@@ -184,4 +186,6 @@ export interface UpdateActivityInput {
   checked_by_date?: Date;
   actuals?: Actuals | null;
   progressUpdates?: ProgressUpdateItem[] | null;
+  attachments?: File[];
+  existingAttachments?: string[];
 }

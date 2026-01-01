@@ -54,8 +54,15 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files ? Array.from(event.target.files) : [];
-    setSelectedFiles(files);
+    if (event.target.files && event.target.files.length > 0) {
+      const newFiles = Array.from(event.target.files);
+      setSelectedFiles((prev) => [...prev, ...newFiles]);
+      event.target.value = ""; // Reset input to allow re-selecting same files
+    }
+  };
+
+  const removeSelectedFile = (index: number) => {
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const startDateStr = watch("start_date");
@@ -85,15 +92,37 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
   };
 
   const onSubmit = (data: CreateTaskInput) => {
-    const submitData = defaultProjectId
-      ? { ...data, project_id: defaultProjectId }
-      : data;
+    // Ensure unique user IDs
+    const uniqueUserIds = data.assignedUsers ? Array.from(new Set(data.assignedUsers)) : undefined;
 
-    createTask(submitData, {
-      onSuccess: () => {
-        onClose();
-      },
-    });
+    let submitData: CreateTaskInput | FormData = defaultProjectId
+      ? { ...data, project_id: defaultProjectId, assignedUsers: uniqueUserIds }
+      : { ...data, assignedUsers: uniqueUserIds };
+
+    if (selectedFiles.length > 0) {
+      const formData = new FormData();
+      formData.append("task_name", data.task_name);
+      if (submitData.project_id) formData.append("project_id", submitData.project_id);
+      if (data.description) formData.append("description", data.description);
+      formData.append("priority", data.priority);
+      formData.append("status", data.status);
+      formData.append("start_date", new Date(data.start_date).toISOString());
+      formData.append("end_date", new Date(data.end_date).toISOString());
+      if (data.approvalStatus) formData.append("approvalStatus", data.approvalStatus);
+      if (data.progress !== undefined) formData.append("progress", String(data.progress));
+
+      if (uniqueUserIds && uniqueUserIds.length > 0) {
+        uniqueUserIds.forEach((id) => formData.append("assignedUsers", id));
+      }
+
+      selectedFiles.forEach((file) => {
+        formData.append("attachments", file);
+      });
+
+      submitData = formData;
+    }
+
+    createTask(submitData, { onSuccess: () => onClose() });
   };
 
   const statusOptions = [
@@ -426,10 +455,10 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Description <span className="text-red-500">*</span>
+            Description
           </label>
           <textarea
-            {...register("description", { required: "Description is required" })}
+            {...register("description")}
             placeholder="Please Enter Description"
             className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
             rows={5}
@@ -452,10 +481,10 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
               multiple
               onChange={handleFileChange}
               className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 
-                     file:rounded-md file:border-0 
-                     file:text-sm file:font-semibold 
-                     file:bg-bs-primary file:text-white 
-                     hover:file:bg-bs-primary/90"
+                       file:rounded-md file:border-0 
+                       file:text-sm file:font-semibold 
+                       file:bg-bs-primary file:text-white 
+                       hover:file:bg-bs-primary/90"
             />
             <p className="mt-2 text-sm text-gray-500">
               You can select multiple files.
@@ -469,8 +498,15 @@ const TaskForm: React.FC<TaskFormProps> = ({ onClose, defaultProjectId }) => {
               </h4>
               <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
                 {selectedFiles.map((file, index) => (
-                  <li key={index}>
-                    {file.name} ({(file.size / 1024).toFixed(2)} KB)
+                  <li key={index} className="flex justify-between items-center bg-gray-100 p-2 rounded mb-1">
+                    <span>{file.name} ({(file.size / 1024).toFixed(2)} KB)</span>
+                    <button
+                      type="button"
+                      className="text-red-500 hover:text-red-700 ml-2"
+                      onClick={() => removeSelectedFile(index)}
+                    >
+                      Remove
+                    </button>
                   </li>
                 ))}
               </ul>

@@ -33,13 +33,15 @@ const fetchTaskById = async (id: string): Promise<Task | null> => {
   }
 };
 
-const createTask = async (data: CreateTaskInput): Promise<Task> => {
+const createTask = async (data: CreateTaskInput | FormData): Promise<Task> => {
   const response = await apiClient.post<ApiResponse<Task>>("/tasks", data);
   return response.data.data;
 };
 
-const updateTask = async (data: UpdateTaskInput): Promise<Task> => {
-  const response = await apiClient.put<ApiResponse<Task>>(`/tasks/${data.id}`, data);
+const updateTask = async (data: UpdateTaskInput | FormData): Promise<Task> => {
+  const id = data instanceof FormData ? data.get("id")?.toString() : data.id;
+  if (!id) throw new Error("Task ID is missing");
+  const response = await apiClient.put<ApiResponse<Task>>(`/tasks/${id}`, data);
   return response.data.data;
 };
 

@@ -40,14 +40,16 @@ const fetchActivityById = async (id: string): Promise<Activity | null> => {
   }
 };
 
-const createActivity = async (data: CreateActivityInput): Promise<Activity> => {
+const createActivity = async (data: CreateActivityInput | FormData): Promise<Activity> => {
   const response = await apiClient.post<ApiResponse<Activity>>("/activities", data);
   return response.data.data;
 };
 
 // Keep generic activity update (if used elsewhere)
-const updateActivity = async (data: Partial<CreateActivityInput> & { id: string }): Promise<Activity> => {
-  const response = await apiClient.put<ApiResponse<Activity>>(`/activities/${data.id}`, data);
+const updateActivity = async (data: (Partial<CreateActivityInput> & { id: string }) | FormData): Promise<Activity> => {
+  const id = data instanceof FormData ? data.get("id")?.toString() : data.id;
+  if (!id) throw new Error("Activity ID is missing");
+  const response = await apiClient.put<ApiResponse<Activity>>(`/activities/${id}`, data);
   return response.data.data;
 };
 

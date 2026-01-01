@@ -1,7 +1,7 @@
 import { Activity } from "./activity";
 import { Project } from "./project";
 import { User } from "./user";
-import { ProgressUpdateItem } from "./activity"; 
+import { ProgressUpdateItem } from "./activity";
 
 export type TaskStatus = 'Not Started' | 'Started' | 'InProgress' | 'Canceled' | 'Onhold' | 'Completed';
 
@@ -32,6 +32,7 @@ export interface Task {
     progressUpdates?: ProgressUpdateItem[] | null;
     createdAt?: Date;
     updatedAt?: Date;
+    attachments?: string[];
 }
 
 export interface CreateTaskInput {
@@ -49,6 +50,7 @@ export interface CreateTaskInput {
     budget?: number | string;
     actuals?: TaskActuals | null;
     progressUpdates?: ProgressUpdateItem[] | null;
+    attachments?: File[];
 }
 
 export interface UpdateTaskInput {
@@ -67,4 +69,6 @@ export interface UpdateTaskInput {
     budget?: number | string | null;
     actuals?: TaskActuals | null;
     progressUpdates?: ProgressUpdateItem[] | null;
+    attachments?: File[];
+    existingAttachments?: string[];
 }
