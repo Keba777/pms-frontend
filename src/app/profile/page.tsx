@@ -132,8 +132,8 @@ export default function ProfilePage() {
                 Responsibilities
               </h3>
               <div className="flex flex-wrap gap-2">
-                {currentUser.responsiblities?.length ? (
-                  currentUser.responsiblities.map((resp, index) => (
+                {currentUser.responsibilities?.length ? (
+                  currentUser.responsibilities.map((resp, index) => (
                     <Badge
                       key={index}
                       variant="outline"

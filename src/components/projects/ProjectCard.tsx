@@ -147,8 +147,8 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
           </label>
           <span
             className={`px-2 py-1 rounded ${project.status === "InProgress"
-                ? "bg-green-500 text-white"
-                : "bg-gray-800 text-white"
+              ? "bg-green-500 text-white"
+              : "bg-gray-800 text-white"
               }`}
           >
             {project.status}
@@ -160,12 +160,12 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
           </label>
           <span
             className={`px-2 py-1 rounded ${project.priority === "Critical"
-                ? "bg-red-500 text-white"
-                : project.priority === "High"
-                  ? "bg-orange-500 text-white"
-                  : project.priority === "Medium"
-                    ? "bg-yellow-500 text-gray-900"
-                    : "bg-green-500 text-white"
+              ? "bg-red-500 text-white"
+              : project.priority === "High"
+                ? "bg-orange-500 text-white"
+                : project.priority === "Medium"
+                  ? "bg-yellow-500 text-gray-900"
+                  : "bg-green-500 text-white"
               }`}
           >
             {project.priority}
@@ -185,37 +185,34 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
       </div>
 
       {/* Members & Client */}
-      <div className="mt-2 flex flex-wrap justify-between">
-        <div className="w-full md:w-1/2 mb-4 md:mb-0">
-          <p className="text-sm font-medium text-gray-700">Assigned to:</p>
+      <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Assigned to:</p>
           <ul className="flex flex-wrap items-center gap-2">
             {memberDetails.length > 0 ? (
               memberDetails.map((m, i) => (
                 <li
                   key={i}
-                  className="bg-green-100 text-green-800 text-sm font-medium px-2 py-1 rounded-full"
+                  className="bg-green-50 text-green-700 text-[11px] font-bold px-2 py-0.5 rounded-full border border-green-200"
                 >
                   {m}
                 </li>
               ))
             ) : (
-              <span className="bg-blue-500 text-white px-2 py-1 rounded text-xs">
+              <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-[11px]">
                 Not Assigned
               </span>
             )}
-            <button className="text-blue-500 hover:text-blue-700 p-1 rounded-full">
-              <Edit size={16} />
-            </button>
           </ul>
         </div>
-        <div className="w-full md:w-1/2">
-          <p className="text-sm font-medium text-gray-700">Client:</p>
+        <div>
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Client:</p>
           {project.client ? (
-            <span className="bg-green-100 text-green-800 text-sm font-medium px-2 py-1 rounded-full">
+            <span className="bg-blue-50 text-blue-700 text-[11px] font-bold px-2 py-0.5 rounded-full border border-blue-200">
               <Link href={`/clients/${project.client}`}>{project.client}</Link>
             </span>
           ) : (
-            <span className="bg-blue-500 text-white px-2 py-1 rounded text-xs">
+            <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-[11px]">
               Not Assigned
             </span>
           )}
@@ -223,17 +220,23 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
       </div>
 
       {/* Dates & Duration */}
-      <div className="mt-4 flex flex-wrap text-xs text-gray-600">
-        <div className="w-full md:w-1/3 flex items-center mb-1 md:mb-0">
-          <Calendar size={12} className="mr-1 text-green-500" />
-          Starts: {format(project.start_date)}
+      <div className="mt-6 pt-4 border-t border-gray-100 grid grid-cols-2 gap-4 text-[11px] text-gray-500 font-medium">
+        <div className="flex items-center gap-1.5">
+          <Calendar size={14} className="text-green-600" />
+          <div className="flex flex-col">
+            <span className="text-[10px] uppercase text-gray-400">Starts</span>
+            <span>{format(project.start_date)}</span>
+          </div>
         </div>
-        <div className="w-full md:w-1/3 flex items-center justify-center mb-1 md:mb-0">
-          Duration: <span className="ml-1 text-green-500">{duration}</span>
+        <div className="flex items-center gap-1.5 justify-end">
+          <Calendar size={14} className="text-red-600" />
+          <div className="flex flex-col items-end">
+            <span className="text-[10px] uppercase text-gray-400">Ends</span>
+            <span>{format(project.end_date)}</span>
+          </div>
         </div>
-        <div className="w-full md:w-1/3 flex items-center justify-end">
-          <Calendar size={12} className="mr-1 text-red-500" />
-          Ends: {format(project.end_date)}
+        <div className="col-span-2 flex items-center justify-center bg-gray-50 rounded py-1 text-cyan-700">
+          Duration: <span className="ml-1 font-bold">{duration}</span>
         </div>
       </div>
 

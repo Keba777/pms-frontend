@@ -463,40 +463,51 @@ const ActualProjectSection: React.FC = () => {
   if (isError) return <div>Error loading projects.</div>;
 
   return (
-    <div>
-      <h2 className="text-3xl font-semibold mb-4 mt-6">Available Projects</h2>
-      <div ref={menuRef} className="flex items-center justify-between mb-4">
-        <div className="relative">
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row items-baseline gap-2 mt-6">
+        <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800">
+          Actual Project Statistics
+        </h2>
+        <span className="text-sm text-gray-400 font-medium">({extendedProjects.length} total)</span>
+      </div>
+
+      <div ref={menuRef} className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+        <div className="relative w-full sm:w-auto">
           <button
             onClick={() => setShowColumnMenu((prev) => !prev)}
-            className="flex items-center gap-1 px-5 py-2 text-sm bg-emerald-600 text-white rounded hover:bg-emerald-700"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2 text-sm bg-cyan-700 text-white rounded hover:bg-cyan-800 transition-colors shadow-sm"
           >
             Customize Columns <ChevronDown className="w-4 h-4" />
           </button>
           {showColumnMenu && (
-            <div className="absolute left-0 mt-1 w-48 bg-white border rounded shadow-lg z-10">
+            <div className="absolute left-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-xl z-20 py-2">
+              <div className="px-4 py-2 border-b border-gray-100 mb-1">
+                <span className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">Visible Columns</span>
+              </div>
               {Object.entries(columnOptions).map(([key, label]) => (
                 <label
                   key={key}
-                  className="flex items-center w-full px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                  className="flex items-center w-full px-4 py-2 hover:bg-gray-50 cursor-pointer transition-colors"
                 >
                   <input
                     type="checkbox"
                     checked={selectedColumns.includes(key)}
                     onChange={() => toggleColumn(key)}
-                    className="mr-2"
+                    className="w-4 h-4 rounded border-gray-300 text-cyan-600 focus:ring-cyan-500 mr-3"
                   />
-                  {label}
+                  <span className="text-sm text-gray-700 font-medium">{label}</span>
                 </label>
               ))}
             </div>
           )}
         </div>
-        <SearchInput
-          placeholder="Search Projects"
-          value={searchTerm}
-          onChange={setSearchTerm}
-        />
+        <div className="w-full sm:w-auto">
+          <SearchInput
+            placeholder="Search projects..."
+            value={searchTerm}
+            onChange={setSearchTerm}
+          />
+        </div>
       </div>
 
       {/* AG Grid Table */}

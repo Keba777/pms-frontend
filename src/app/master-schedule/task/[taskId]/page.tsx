@@ -188,47 +188,54 @@ const TaskActivityPage: React.FC = () => {
   if (isError || !task) return <div>Error loading task.</div>;
 
   return (
-    <div>
-      <div className="flex justify-end mb-4">
-        <GenericImport<CreateActivityInput>
-          expectedColumns={importColumns}
-          requiredAccessors={requiredAccessors}
-          onImport={handleActivityImport}
-          title="Activities"
-          onError={handleError}
-        />
-      </div>
-      <GenericDownloads
-        data={filteredActivities}
-        title="Activities"
-        columns={downloadColumns}
-      />
-      <div className="flex items-center justify-between">
-        <GenericFilter fields={filterFields} onFilterChange={setFilterValues} />
-      </div>
+    <div className="p-4 sm:p-6 bg-white min-h-screen">
+      <div className="flex flex-col gap-4 mb-8 bg-gray-50 p-4 rounded-xl border border-gray-100">
+        <h1 className="text-xl sm:text-2xl font-black text-cyan-800 uppercase tracking-tight mb-2">{task.task_name}</h1>
 
-      <h1 className="text-2xl font-bold mb-4">{task.task_name}</h1>
+        <div className="flex flex-col sm:flex-row items-center gap-3">
+          <div className="w-full sm:w-auto">
+            <GenericImport<CreateActivityInput>
+              expectedColumns={importColumns}
+              requiredAccessors={requiredAccessors}
+              onImport={handleActivityImport}
+              title="Activities"
+              onError={handleError}
+            />
+          </div>
+          <div className="w-full sm:w-auto">
+            <GenericDownloads
+              data={filteredActivities}
+              title="Activities"
+              columns={downloadColumns}
+            />
+          </div>
+        </div>
+
+        <div className="pt-4 border-t border-gray-100">
+          <GenericFilter fields={filterFields} onFilterChange={setFilterValues} />
+        </div>
+      </div>
 
       {/* Tabs */}
-      <div className="mb-6 border-b border-gray-200">
-        <nav className="-mb-px flex space-x-4">
+      <div className="mb-6 border-b border-gray-100 overflow-x-auto no-scrollbar">
+        <nav className="-mb-px flex space-x-2 sm:space-x-8 min-w-max">
           <button
             onClick={() => setActiveTab("planned")}
-            className={`px-4 py-2 text-sm font-medium ${activeTab === "planned"
-                ? "border-b-2 border-emerald-600 text-emerald-600"
-                : "text-gray-600 hover:text-gray-800"
+            className={`whitespace-nowrap px-4 py-3 text-sm font-black uppercase tracking-widest transition-all ${activeTab === "planned"
+                ? "border-b-4 border-cyan-600 text-cyan-700 bg-cyan-50/50"
+                : "text-gray-400 hover:text-gray-600 border-b-4 border-transparent"
               }`}
           >
-            Planned
+            Planned Activities
           </button>
           <button
             onClick={() => setActiveTab("actual")}
-            className={`px-4 py-2 text-sm font-medium ${activeTab === "actual"
-                ? "border-b-2 border-emerald-600 text-emerald-600"
-                : "text-gray-600 hover:text-gray-800"
+            className={`whitespace-nowrap px-4 py-3 text-sm font-black uppercase tracking-widest transition-all ${activeTab === "actual"
+                ? "border-b-4 border-cyan-600 text-cyan-700 bg-cyan-50/50"
+                : "text-gray-400 hover:text-gray-600 border-b-4 border-transparent"
               }`}
           >
-            Actual
+            Actual Activities
           </button>
         </nav>
       </div>

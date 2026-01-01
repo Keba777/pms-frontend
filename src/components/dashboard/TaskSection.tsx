@@ -278,11 +278,14 @@ const TaskSection: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl sm:text-3xl font-bold text-gray-800">
-        Available Tasks
-      </h2>
+      <div className="flex flex-col sm:flex-row items-baseline gap-2">
+        <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800">
+          Available Tasks
+        </h2>
+        <span className="text-sm text-gray-400 font-medium">({filtered.length} total)</span>
+      </div>
 
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-lg shadow-sm border border-gray-100">
         <Popover>
           <PopoverTrigger asChild>
             <Button variant="outline" className="w-full sm:w-auto">

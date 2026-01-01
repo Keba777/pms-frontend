@@ -98,17 +98,29 @@ export default function ClientLayout({
   return (
     <QueryClientProvider client={queryClient}>
       <ToastContainer />
-      <div className="flex min-h-screen flex-col lg:flex-row">
+      <div className="flex min-h-screen bg-gray-50">
+        {/* Mobile Backdrop Overlay */}
+        {isSidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 z-40 lg:hidden transition-opacity duration-300"
+            onClick={() => setIsSidebarOpen(false)}
+          />
+        )}
+
         <Sidebar
           isOpen={isSidebarOpen}
           toggleSidebar={() => setIsSidebarOpen(false)}
         />
-        <main className="flex-1 p-4 sm:p-6 md:p-8 lg:ml-64 overflow-x-hidden">
+
+        <div className="flex flex-col flex-1 min-w-0 lg:pl-64">
           <Header toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
-          {children}
-        </main>
+
+          <main className="flex-1 p-4 sm:p-6 md:p-8 w-full max-w-7xl 2xl:max-w-[1600px] mx-auto">
+            {children}
+          </main>
+
+        </div>
       </div>
-      <Footer />
     </QueryClientProvider>
   );
 }

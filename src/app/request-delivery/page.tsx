@@ -147,64 +147,78 @@ const RequestDeliveryPage: React.FC = () => {
   };
 
   return (
-    <div className="mt-8">
-      <div className="flex justify-end space-x-6 items-center">
-        <button
-          className="bg-cyan-700 hover:bg-cyan-800 text-white font-bold py-2 px-3 rounded text-sm"
-          onClick={() => setShowForm(true)}
-        >
-          <PlusIcon width={15} height={12} />
-        </button>
-        <div className="w-full sm:w-auto">
-          <GenericDownloads
-            data={filteredDeliveries}
-            title="Request_Deliveries_List"
-            columns={downloadColumns}
-          />
+    <div className="p-4 sm:p-6 bg-white min-h-screen">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8 bg-gray-50 p-4 rounded-xl border border-gray-100">
+        <h1 className="text-xl sm:text-2xl font-black text-cyan-800 uppercase tracking-tight">
+          Request Deliveries
+        </h1>
+        <div className="flex items-center gap-2">
+          <button
+            className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-white bg-cyan-700 rounded-lg hover:bg-cyan-800 transition-colors shadow-sm"
+            onClick={() => setShowForm(true)}
+          >
+            <PlusIcon width={16} height={16} />
+            <span>New Delivery</span>
+          </button>
         </div>
       </div>
 
-      <div className="flex items-center justify-between my-5">
-        <div ref={menuRef} className="relative">
-          <button
-            onClick={() => setShowColumnMenu((prev) => !prev)}
-            className="flex items-center gap-1 px-4 py-2 text-sm bg-emerald-600 text-white rounded hover:bg-emerald-700"
-          >
-            Customize Columns <ChevronDown className="w-4 h-4" />
-          </button>
-          {showColumnMenu && (
-            <div className="absolute right-0 mt-1 w-48 bg-white border rounded shadow-lg z-10">
-              {Object.entries(columnOptions).map(([key, label]) => (
-                <label
-                  key={key}
-                  className="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedColumns.includes(key)}
-                    onChange={() => toggleColumn(key)}
-                    className="mr-2"
-                  />
-                  {label}
-                </label>
-              ))}
+      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-8 flex flex-col gap-6">
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3 w-full lg:w-auto">
+            <div ref={menuRef} className="relative w-full lg:w-auto">
+              <button
+                onClick={() => setShowColumnMenu((prev) => !prev)}
+                className="w-full lg:w-auto flex items-center justify-center gap-2 px-4 py-2 text-[10px] font-black uppercase tracking-widest bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-all shadow-sm"
+              >
+                Customize Columns <ChevronDown className="w-4 h-4" />
+              </button>
+              {showColumnMenu && (
+                <div className="absolute left-0 mt-2 w-56 bg-white border border-gray-100 rounded-xl shadow-2xl z-50 py-2 max-h-[60vh] overflow-y-auto backdrop-blur-sm bg-white/95">
+                  <div className="px-4 py-2 border-b border-gray-50 mb-1">
+                    <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest">Select Columns</p>
+                  </div>
+                  {Object.entries(columnOptions).map(([key, label]) => (
+                    <label
+                      key={key}
+                      className="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer transition-colors group"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedColumns.includes(key)}
+                        onChange={() => toggleColumn(key)}
+                        className="w-4 h-4 rounded border-gray-300 text-cyan-600 focus:ring-cyan-500 mr-3"
+                      />
+                      <span className="text-sm font-bold text-gray-600 group-hover:text-gray-900">{label}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
             </div>
-          )}
+            <GenericDownloads
+              data={filteredDeliveries}
+              title="Request_Deliveries_List"
+              columns={downloadColumns}
+            />
+          </div>
         </div>
-        <GenericFilter fields={filterFields} onFilterChange={setFilterValues} />
+
+        <div className="pt-6 border-t border-gray-100">
+          <GenericFilter fields={filterFields} onFilterChange={setFilterValues} />
+        </div>
       </div>
 
       {showForm && (
-        <div className="modal-overlay">
-          <div className="modal-content">
+        <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             <RequestDeliveryForm onClose={() => setShowForm(false)} />
           </div>
         </div>
       )}
 
       {showEditForm && deliveryToEdit && (
-        <div className="modal-overlay">
-          <div className="modal-content">
+        <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             <EditRequestDeliveryForm
               requestDelivery={deliveryToEdit}
               onSubmit={handleEditSubmit}
@@ -228,23 +242,23 @@ const RequestDeliveryPage: React.FC = () => {
       )}
 
       {/* Table */}
-      <div className="overflow-x-auto">
-        <table className="min-w-full w-full divide-y divide-gray-200">
-          <thead className="bg-cyan-700">
+      <div className="overflow-x-auto bg-white rounded-2xl border border-gray-100 shadow-sm">
+        <table className="min-w-max divide-y divide-gray-100">
+          <thead className="bg-gray-50">
             <tr>
               {selectedColumns.map(
                 (col) =>
                   col !== "actions" && (
                     <th
                       key={col}
-                      className="px-4 py-3 text-left text-sm text-white"
+                      className="px-5 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest"
                     >
                       {columnOptions[col]}
                     </th>
                   )
               )}
               {selectedColumns.includes("actions") && (
-                <th className="px-4 py-3 text-left text-sm text-white">
+                <th className="px-5 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">
                   Actions
                 </th>
               )}
@@ -253,29 +267,29 @@ const RequestDeliveryPage: React.FC = () => {
           <tbody className="bg-white divide-y divide-gray-200">
             {filteredDeliveries.length > 0 ? (
               filteredDeliveries.map((d, index) => (
-                <tr key={d.id} className="hover:bg-gray-50">
+                <tr key={String(d.id)} className="hover:bg-gray-50/50 transition-colors">
                   {selectedColumns.includes("no") && (
-                    <td className="px-4 py-2 font-medium">{index + 1}</td>
+                    <td className="px-5 py-4 text-sm font-bold text-gray-700">{index + 1}</td>
                   )}
                   {selectedColumns.includes("refNumber") && (
-                    <td className="px-4 py-2 font-medium">
+                    <td className="px-5 py-4 text-sm font-bold text-gray-700 italic">
                       {d.refNumber || "N/A"}
                     </td>
                   )}
                   {selectedColumns.includes("deliveredBy") && (
-                    <td className="px-4 py-2">{d.deliveredBy || "N/A"}</td>
+                    <td className="px-5 py-4 text-sm text-gray-600">{d.deliveredBy || "N/A"}</td>
                   )}
                   {selectedColumns.includes("recievedBy") && (
-                    <td className="px-4 py-2">{d.recievedBy || "N/A"}</td>
+                    <td className="px-5 py-4 text-sm text-gray-600">{d.recievedBy || "N/A"}</td>
                   )}
                   {selectedColumns.includes("status") && (
-                    <td className="px-4 py-2">
+                    <td className="px-5 py-4">
                       <span
-                        className={`badge px-2 py-1 rounded ${d.status === "Delivered"
-                          ? "text-green-600"
+                        className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider ${d.status === "Delivered"
+                          ? "bg-emerald-50 text-emerald-700"
                           : d.status === "Pending"
-                            ? "text-yellow-500"
-                            : "text-red-500"
+                            ? "bg-amber-50 text-amber-700"
+                            : "bg-rose-50 text-rose-700"
                           }`}
                       >
                         {d.status}
@@ -283,31 +297,31 @@ const RequestDeliveryPage: React.FC = () => {
                     </td>
                   )}
                   {selectedColumns.includes("deliveryDate") && (
-                    <td className="px-4 py-2">
+                    <td className="px-5 py-4 text-sm text-gray-600 whitespace-nowrap">
                       {d.deliveryDate ? format(d.deliveryDate) : "N/A"}
                     </td>
                   )}
                   {selectedColumns.includes("recievedQuantity") && (
-                    <td className="px-4 py-2">{d.recievedQuantity || 0}</td>
+                    <td className="px-5 py-4 text-sm font-bold text-gray-700">{d.recievedQuantity || 0}</td>
                   )}
                   {selectedColumns.includes("site") && (
-                    <td className="px-4 py-2">{d.site?.name || "N/A"}</td>
+                    <td className="px-5 py-4 text-sm text-gray-600 italic whitespace-nowrap">{d.site?.name || "N/A"}</td>
                   )}
                   {selectedColumns.includes("remarks") && (
-                    <td className="px-4 py-2">{d.remarks || "N/A"}</td>
+                    <td className="px-5 py-4 text-sm text-gray-600 min-w-[200px]">{d.remarks || "N/A"}</td>
                   )}
                   {selectedColumns.includes("actions") && (
-                    <td className="px-4 py-2">
+                    <td className="px-5 py-4 whitespace-nowrap">
                       <Menu as="div" className="relative inline-block text-left">
-                        <MenuButton className="flex items-center gap-1 px-3 py-1 text-sm bg-cyan-700 text-white rounded hover:bg-cyan-800">
-                          Action <ChevronDown className="w-4 h-4" />
+                        <MenuButton className="flex items-center gap-1 px-3 py-1 text-[10px] font-black uppercase bg-cyan-700 text-white rounded-lg hover:bg-cyan-800 transition-all shadow-sm">
+                          Action <ChevronDown className="w-3 h-3" />
                         </MenuButton>
-                        <MenuItems className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-9999">
+                        <MenuItems className="absolute right-0 mt-2 w-48 bg-white border border-gray-100 divide-y divide-gray-50 rounded-xl shadow-xl focus:outline-none z-[9999] py-1 backdrop-blur-sm bg-white/95">
                           <MenuItem>
                             {({ active }) => (
                               <button
-                                onClick={() => handleView(d.id)}
-                                className={`block w-full px-4 py-2 text-left ${active ? "bg-blue-100" : ""
+                                onClick={() => handleView(d.id.toString())}
+                                className={`block w-full px-4 py-2 text-left text-xs font-bold text-gray-700 ${active ? "bg-gray-50" : ""
                                   }`}
                               >
                                 View
@@ -318,7 +332,7 @@ const RequestDeliveryPage: React.FC = () => {
                             {({ active }) => (
                               <button
                                 onClick={() => handleEditClick(d)}
-                                className={`block w-full px-4 py-2 text-left ${active ? "bg-blue-100" : ""
+                                className={`block w-full px-4 py-2 text-left text-xs font-bold text-gray-700 ${active ? "bg-gray-50" : ""
                                   }`}
                               >
                                 Edit
@@ -329,10 +343,10 @@ const RequestDeliveryPage: React.FC = () => {
                             {({ active }) => (
                               <button
                                 onClick={() => {
-                                  setSelectedId(d.id);
+                                  setSelectedId(d.id.toString());
                                   setIsDeleteModalOpen(true);
                                 }}
-                                className={`block w-full px-4 py-2 text-left ${active ? "bg-blue-100" : ""
+                                className={`block w-full px-4 py-2 text-left text-xs font-bold text-red-600 ${active ? "bg-gray-50" : ""
                                   }`}
                               >
                                 Delete
@@ -349,7 +363,7 @@ const RequestDeliveryPage: React.FC = () => {
               <tr>
                 <td
                   colSpan={selectedColumns.length}
-                  className="px-4 py-2 text-center text-gray-500"
+                  className="px-5 py-4 text-center text-gray-500"
                 >
                   No request deliveries found.
                 </td>

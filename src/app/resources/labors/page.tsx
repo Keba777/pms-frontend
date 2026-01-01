@@ -189,53 +189,75 @@ const ResourceLaborsPage: React.FC = () => {
 
   return (
     <div>
-      {/* Breadcrumb */}
-      <div className="flex justify-between mb-4 mt-4">
-        <nav aria-label="breadcrumb">
-          <ol className="flex space-x-2">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8 bg-gray-50 p-4 rounded-xl border border-gray-100">
+        <nav aria-label="breadcrumb" className="w-full sm:w-auto">
+          <ol className="flex items-center gap-2 text-sm">
             <li>
-              <Link href="/" className="text-blue-600 hover:underline">
+              <Link href="/" className="text-cyan-600 hover:text-cyan-700 font-bold transition-colors">
                 Home
               </Link>
             </li>
-            <li className="text-gray-500">/</li>
-            <li className="text-gray-900 font-semibold">Labors</li>
+            <li className="text-gray-400 font-bold">/</li>
+            <li className="text-gray-900 font-black uppercase tracking-wider">Labors</li>
           </ol>
         </nav>
       </div>
 
       {/* Summary Cards */}
-      <div className="flex flex-wrap gap-4 mb-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
         {summaryData.map((item) => (
-          <div key={item.label} className="flex font-2xl font-semibold bg-white p-4 rounded-lg shadow-md">
-            <h2 className="mr-2">{item.label} =</h2>
-            <div className="flex items-center">
-              <span className="text-cyan-700 font-stretch-semi-condensed font-semibold">{item.value}</span>
+          <div
+            key={item.label}
+            className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between group hover:shadow-md transition-all"
+          >
+            <div>
+              <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest mb-1">{item.label}</p>
+              <h2 className="text-2xl font-black text-gray-800">{item.value}</h2>
+            </div>
+            <div className="p-2 bg-cyan-50 rounded-lg group-hover:bg-cyan-100 transition-colors">
+              <div className="w-4 h-4 bg-cyan-600 rounded-full opacity-20" />
             </div>
           </div>
         ))}
       </div>
 
-      {/* Downloads */}
-      <GenericDownloads data={filteredRows} title="Labors" columns={downloadColumns} />
+      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-8 flex flex-col gap-6">
+        <GenericDownloads data={filteredRows} title="Labors" columns={downloadColumns} />
 
-      {/* Controls */}
-      <div className="flex items-center justify-between mb-4 mt-4">
-        <div ref={menuRef} className="relative">
-          <button onClick={() => setShowColumnMenu((v) => !v)} className="flex items-center gap-1 px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 text-sm">
-            Customize Columns <ChevronDown className="w-4 h-4" />
-          </button>
-          {showColumnMenu && (
-            <div className="absolute right-0 mt-1 w-48 bg-white border rounded shadow z-10">
-              {Object.entries(columnOptions).map(([key, label]) => (
-                <label key={key} className="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer">
-                  <input type="checkbox" checked={selectedColumns.includes(key as keyof AggregatedRow)} onChange={() => toggleColumn(key as keyof AggregatedRow)} className="mr-2" />{label}
-                </label>
-              ))}
-            </div>
-          )}
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-4 pt-6 border-t border-gray-100">
+          <div ref={menuRef} className="relative w-full lg:w-auto">
+            <button
+              onClick={() => setShowColumnMenu((v) => !v)}
+              className="w-full lg:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-700 text-white rounded-lg hover:bg-emerald-800 transition-colors shadow-sm font-bold text-sm"
+            >
+              Customize Columns <ChevronDown className="w-4 h-4" />
+            </button>
+            {showColumnMenu && (
+              <div className="absolute left-0 mt-2 w-56 bg-white border border-gray-200 rounded-xl shadow-xl z-50 py-2">
+                <div className="px-4 py-2 border-b border-gray-100 mb-1">
+                  <span className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">Visible Columns</span>
+                </div>
+                {Object.entries(columnOptions).map(([key, label]) => (
+                  <label
+                    key={key}
+                    className="flex items-center w-full px-4 py-2 hover:bg-gray-50 cursor-pointer transition-colors"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedColumns.includes(key as keyof AggregatedRow)}
+                      onChange={() => toggleColumn(key as keyof AggregatedRow)}
+                      className="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 mr-3"
+                    />
+                    <span className="text-sm text-gray-700 font-bold">{label}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+          <div className="w-full lg:w-auto">
+            <GenericFilter fields={filterFields} onFilterChange={(vals) => setFilters(vals as Record<string, string>)} />
+          </div>
         </div>
-        <GenericFilter fields={filterFields} onFilterChange={(vals) => setFilters(vals as Record<string, string>)} />
       </div>
 
       {/* Table */}

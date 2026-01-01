@@ -101,13 +101,13 @@ export default function ProfilePage() {
       </div>
 
       {/* Responsibilities */}
-      {user.responsiblities && user.responsiblities.length > 0 && (
+      {user.responsibilities && user.responsibilities.length > 0 && (
         <div className="mt-8">
           <h2 className="text-2xl font-semibold text-gray-800 mb-4">
             Responsibilities
           </h2>
           <div className="flex flex-wrap gap-2">
-            {user.responsiblities.map((r, i) => (
+            {user.responsibilities.map((r, i) => (
               <span
                 key={i}
                 className="inline-flex items-center bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm"

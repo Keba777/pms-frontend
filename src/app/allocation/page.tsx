@@ -84,26 +84,31 @@ const RequestRow: React.FC<{
   );
 
   return (
-    <tr key={req.id} className="hover:bg-gray-50">
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+    <tr key={req.id} className="hover:bg-gray-50/50 transition-colors">
+      <td className="px-5 py-4 whitespace-nowrap text-sm font-bold text-gray-700">
         {userLoading ? "Loading..." : requestUser?.first_name}
       </td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+      <td className="px-5 py-4 text-sm text-gray-600 italic">
         {materials.length > 0 ? materials.map((m) => m.item).join(", ") : "-"}
       </td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+      <td className="px-5 py-4 text-sm text-gray-600 italic">
         {equipment.length > 0 ? equipment.map((e) => e.item).join(", ") : "-"}
       </td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+      <td className="px-5 py-4 text-sm text-gray-600 italic">
         {labor.length > 0 ? labor.map((l) => l.role).join(", ") : "-"}
       </td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-        {req.status}
+      <td className="px-5 py-4 whitespace-nowrap">
+        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-black uppercase tracking-wider ${req.status === 'Completed' ? 'bg-emerald-100 text-emerald-800' :
+            req.status === 'Rejected' ? 'bg-rose-100 text-rose-800' :
+              'bg-amber-100 text-amber-800'
+          }`}>
+          {req.status}
+        </span>
       </td>
-      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+      <td className="px-5 py-4 whitespace-nowrap text-right">
         <button
           onClick={() => onAllocate(req.id)}
-          className={`px-4 py-2 bg-cyan-700 text-white rounded-2xl hover:bg-cyan-800 transition ${allocated ? "opacity-50 cursor-not-allowed" : ""
+          className={`px-4 py-2 text-xs font-black uppercase tracking-widest bg-cyan-700 text-white rounded-lg hover:bg-cyan-800 transition-all shadow-sm ${allocated ? "opacity-50 cursor-not-allowed" : "hover:scale-105"
             }`}
           disabled={allocated}
         >
@@ -153,33 +158,37 @@ const ResourceAllocationPage: React.FC = () => {
     return <div className="p-4 text-red-500">Error loading requests</div>;
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
-      <h1 className="text-3xl font-bold text-cyan-700 mb-6">
-        Resource Allocation
-      </h1>
+    <div className="p-4 sm:p-6 bg-white min-h-screen">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8 bg-gray-50 p-4 rounded-xl border border-gray-100">
+        <h1 className="text-xl sm:text-2xl font-black text-cyan-800 uppercase tracking-tight">
+          Resource Allocation
+        </h1>
+      </div>
+
       {filteredRequests.length === 0 ? (
-        <p className="text-gray-600">No requests for your department.</p>
+        <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm text-center">
+          <p className="text-gray-400 font-bold uppercase tracking-widest text-xs">No requests for your department.</p>
+        </div>
       ) : (
-        <div className="overflow-x-auto bg-white rounded-2xl shadow-lg">
-          <table className="min-w-full divide-y divide-gray-200">
+        <div className="overflow-x-auto bg-white rounded-2xl border border-gray-100 shadow-sm">
+          <table className="min-w-full divide-y divide-gray-100">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Requested By
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Materials
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Equipment
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Labor
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Status
-                </th>
-                <th className="px-6 py-3" />
+                {[
+                  "Requested By",
+                  "Materials",
+                  "Equipment",
+                  "Labor",
+                  "Status",
+                  "Action",
+                ].map((th) => (
+                  <th
+                    key={th}
+                    className="px-5 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest"
+                  >
+                    {th}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -198,80 +207,78 @@ const ResourceAllocationPage: React.FC = () => {
       )}
 
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl p-6 space-y-6">
-            <h2 className="text-xl font-semibold">Approval History</h2>
-            <div className="overflow-x-auto mb-6">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                      Step
-                    </th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                      Dept
-                    </th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                      Status
-                    </th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                      Approved By
-                    </th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                      Approved At
-                    </th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                      Checked By
-                    </th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                      Remarks
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {history.length > 0 ? (
-                    history.map((h) => (
-                      <tr key={h.id}>
-                        <td className="px-4 py-2 text-sm">{h.stepOrder}</td>
-                        <td className="px-4 py-2 text-sm">{h.departmentId}</td>
-                        <td className="px-4 py-2 text-sm">{h.status}</td>
-                        <td className="px-4 py-2 text-sm">
-                          {h.approvedBy || "-"}
-                        </td>
-                        <td className="px-4 py-2 text-sm">
-                          {h.approvedAt
-                            ? format(h.approvedAt)
-                            : "-"}
-                        </td>
-                        <td className="px-4 py-2 text-sm">
-                          {h.checkedBy || "-"}
-                        </td>
-                        <td className="px-4 py-2 text-sm">
-                          {h.remarks || "-"}
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td
-                        colSpan={7}
-                        className="px-4 py-4 text-center text-sm text-gray-500"
-                      >
-                        No history yet.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+        <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto flex flex-col">
+            <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+              <h2 className="text-lg font-black text-cyan-800 uppercase tracking-tight">Allocate Resource</h2>
+              <button onClick={closeModal} className="text-gray-400 hover:text-gray-600 transition-colors">
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
-            <div className="modal-overlay fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-              <div className="modal-content bg-white rounded-lg shadow-xl p-6">
+
+            <div className="p-6 space-y-8">
+              <section>
+                <h3 className="text-[10px] font-black uppercase text-gray-400 tracking-widest mb-4">Approval History</h3>
+                <div className="overflow-x-auto border border-gray-100 rounded-xl">
+                  <table className="min-w-full divide-y divide-gray-100">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        {[
+                          "Step",
+                          "Dept",
+                          "Status",
+                          "Approved By",
+                          "Approved At",
+                          "Checked By",
+                          "Remarks",
+                        ].map((th) => (
+                          <th key={th} className="px-4 py-3 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">
+                            {th}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-50">
+                      {history.length > 0 ? (
+                        history.map((h) => (
+                          <tr key={h.id}>
+                            <td className="px-4 py-3 text-sm font-bold text-gray-700">{h.stepOrder}</td>
+                            <td className="px-4 py-3 text-sm text-gray-600 italic whitespace-nowrap">{h.departmentId}</td>
+                            <td className="px-4 py-3">
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider ${h.status === 'Approved' ? 'bg-emerald-50 text-emerald-700' :
+                                  h.status === 'Rejected' ? 'bg-rose-50 text-rose-700' :
+                                    'bg-amber-50 text-amber-700'
+                                }`}>
+                                {h.status}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{h.approvedBy || "-"}</td>
+                            <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{h.approvedAt ? format(h.approvedAt) : "-"}</td>
+                            <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{h.checkedBy || "-"}</td>
+                            <td className="px-4 py-3 text-sm text-gray-600 min-w-[200px]">{h.remarks || "-"}</td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={7} className="px-4 py-6 text-center text-xs font-bold text-gray-400 uppercase tracking-widest">
+                            No history found.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+
+              <section className="bg-gray-50 p-6 rounded-2xl border border-gray-100">
                 <ApprovalForm
                   requestId={activeRequestId}
                   departmentId={departmentId!}
                   onClose={closeModal}
                 />
-              </div>
+              </section>
             </div>
           </div>
         </div>

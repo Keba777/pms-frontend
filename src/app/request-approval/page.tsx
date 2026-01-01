@@ -98,125 +98,138 @@ const ApprovalsPage = () => {
   const hasError = appError || deptError || userError;
 
   return (
-    <div className="max-w-7xl mx-auto p-6 bg-white shadow-lg rounded-lg mt-6">
-      {isLoading ? (
-        <div>Loading...</div>
-      ) : hasError ? (
-        <div className="text-red-500">Error loading data.</div>
-      ) : (
-        <>
-          <div className="flex justify-between items-center mb-4">
+    <div className="p-4 sm:p-6 bg-white min-h-screen">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8 bg-gray-50 p-4 rounded-xl border border-gray-100">
+        <h1 className="text-xl sm:text-2xl font-black text-cyan-800 uppercase tracking-tight">
+          Approvals
+        </h1>
+      </div>
+
+      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-8 flex flex-col gap-6">
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
+          <div className="w-full lg:w-72">
             <SearchInput value={searchQuery} onChange={setSearchQuery} placeholder="Search by Ref No or Department" />
+          </div>
+          <div className="flex items-center gap-3 w-full lg:w-auto">
             <GenericDownloads
               data={filteredApprovals}
               title={`Approvals_${new Date().toISOString().split("T")[0]}`}
               columns={columns}
             />
           </div>
+        </div>
+      </div>
 
-          <h1 className="text-4xl font-bold text-blue-700 mb-4">Approvals</h1>
-
-          {/* Approvals Table */}
-          {filteredApprovals.length === 0 ? (
-            <p className="text-gray-600">No approvals match your search.</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200 border border-gray-200">
-                <thead className="bg-blue-600">
-                  <tr>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-white uppercase">#</th>
-                    {[
-                      "Request Ref",
-                      "Step Order",
-                      "Department",
-                      "Status",
-                      "Checked By",
-                      "Approved By",
-                      "Approved At",
-                      "Remarks",
-                      "Prev Dept",
-                      "Next Dept",
-                      "Final Dept",
-                      "Action",
-                    ].map((h) => (
-                      <th
-                        key={h}
-                        className="px-4 py-2 text-left text-xs font-medium text-white uppercase"
-                      >
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredApprovals.map((app, idx) => (
-                    <tr key={app.id}>
-                      <td className="px-4 py-2 border border-gray-200">{idx + 1}</td>
-                      <td className="px-4 py-2 border border-gray-200">
-                        <Link href={`/requests/${app.requestId}`} className="text-blue-600 hover:underline">
-                          {`RC${app.requestId.slice(0, 4).toUpperCase()}`}
-                        </Link>
-                      </td>
-                      <td className="px-4 py-2 border border-gray-200">{app.stepOrder}</td>
-                      <td className="px-4 py-2 border border-gray-200">{app.department?.name || "-"}</td>
-                      <td className="px-4 py-2 border border-gray-200">{app.status}</td>
-                      <td className="px-4 py-2 border border-gray-200">{app.checkedByUser?.first_name || "-"}</td>
-                      <td className="px-4 py-2 border border-gray-200">{app.approvedByUser?.first_name || "-"}</td>
-                      <td className="px-4 py-2 border border-gray-200">
-                        {app.approvedAt ? new Date(app.approvedAt).toLocaleDateString() : "-"}
-                      </td>
-                      <td className="px-4 py-2 border border-gray-200">{app.remarks || "-"}</td>
-                      <td className="px-4 py-2 border border-gray-200">{app.prevDepartment?.name || "-"}</td>
-                      <td className="px-4 py-2 border border-gray-200">{app.nextDepartment?.name || "-"}</td>
-                      <td className="px-4 py-2 border border-gray-200">
-                        {app.finalDepartment ? "Yes" : "No"}
-                      </td>
-                      <td className="px-4 py-2 border border-gray-200">
-                        <Menu as="div" className="relative inline-block text-left">
-                          <MenuButton className="flex items-center gap-1 px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">
-                            Action <ChevronDown className="w-4 h-4" />
-                          </MenuButton>
-                          <MenuItems className="absolute left-0 mt-2 w-36 origin-top-left bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow-lg focus:outline-none z-50">
-                            <MenuItem>
-                              {({ active }) => (
-                                <button
-                                  className={`${active ? "bg-gray-100" : ""} w-full text-left px-3 py-2 text-sm text-gray-700`}
-                                  onClick={() => console.log(`View approval ${app.id}`)}
-                                >
-                                  View
-                                </button>
-                              )}
-                            </MenuItem>
-                            <MenuItem>
-                              {({ active }) => (
-                                <button
-                                  className={`${active ? "bg-gray-100" : ""} w-full text-left px-3 py-2 text-sm text-gray-700`}
-                                  onClick={() => console.log(`Edit approval ${app.id}`)}
-                                >
-                                  Edit
-                                </button>
-                              )}
-                            </MenuItem>
-                            <MenuItem>
-                              {({ active }) => (
-                                <button
-                                  className={`${active ? "bg-gray-100" : ""} w-full text-left px-3 py-2 text-sm text-red-600`}
-                                  onClick={() => console.log(`Delete approval ${app.id}`)}
-                                >
-                                  Delete
-                                </button>
-                              )}
-                            </MenuItem>
-                          </MenuItems>
-                        </Menu>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </>
+      {filteredApprovals.length === 0 ? (
+        <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm text-center">
+          <p className="text-gray-400 font-bold uppercase tracking-widest text-xs">No approvals match your search.</p>
+        </div>
+      ) : (
+        <div className="overflow-x-auto bg-white rounded-2xl border border-gray-100 shadow-sm">
+          <table className="min-w-full divide-y divide-gray-100">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-4 py-3 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">#</th>
+                {[
+                  "Request Ref",
+                  "Step Order",
+                  "Department",
+                  "Status",
+                  "Checked By",
+                  "Approved By",
+                  "Approved At",
+                  "Remarks",
+                  "Prev Dept",
+                  "Next Dept",
+                  "Final Dept",
+                  "Action",
+                ].map((h) => (
+                  <th
+                    key={h}
+                    className="px-4 py-3 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest"
+                  >
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-50">
+              {filteredApprovals.map((app, idx) => (
+                <tr key={app.id} className="hover:bg-gray-50/50 transition-colors">
+                  <td className="px-4 py-3 text-sm font-bold text-gray-700">{idx + 1}</td>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <Link href={`/requests/${app.requestId}`} className="text-blue-600 hover:underline font-bold text-sm">
+                      {`RC${app.requestId.slice(0, 4).toUpperCase()}`}
+                    </Link>
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-600 font-bold">{app.stepOrder}</td>
+                  <td className="px-4 py-3 text-sm text-gray-600 font-bold">{app.department?.name || "-"}</td>
+                  <td className="px-4 py-3">
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider ${app.status === 'Approved' ? 'bg-emerald-50 text-emerald-700' :
+                      app.status === 'Rejected' ? 'bg-rose-50 text-rose-700' :
+                        'bg-amber-50 text-amber-700'
+                      }`}>
+                      {app.status}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-600 italic whitespace-nowrap">{app.checkedByUser?.first_name || "-"}</td>
+                  <td className="px-4 py-3 text-sm text-gray-600 italic whitespace-nowrap">{app.approvedByUser?.first_name || "-"}</td>
+                  <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
+                    {app.approvedAt ? new Date(app.approvedAt).toLocaleDateString() : "-"}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-600 min-w-[200px]">{app.remarks || "-"}</td>
+                  <td className="px-4 py-3 text-sm text-gray-600 italic whitespace-nowrap">{app.prevDepartment?.name || "-"}</td>
+                  <td className="px-4 py-3 text-sm text-gray-600 italic whitespace-nowrap">{app.nextDepartment?.name || "-"}</td>
+                  <td className="px-4 py-3">
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider ${app.finalDepartment ? 'bg-indigo-50 text-indigo-700' : 'bg-gray-50 text-gray-700'
+                      }`}>
+                      {app.finalDepartment ? "Yes" : "No"}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <Menu as="div" className="relative inline-block text-left">
+                      <MenuButton className="flex items-center gap-1 px-3 py-1 text-xs font-black uppercase bg-cyan-700 text-white rounded hover:bg-cyan-800 transition-colors shadow-sm">
+                        Action <ChevronDown className="w-3 h-3" />
+                      </MenuButton>
+                      <MenuItems className="absolute right-0 mt-2 w-36 origin-top-right bg-white border border-gray-100 divide-y divide-gray-50 rounded-xl shadow-xl focus:outline-none z-50 py-1">
+                        <MenuItem>
+                          {({ active }) => (
+                            <button
+                              className={`${active ? "bg-gray-50" : ""} w-full text-left px-4 py-2 text-xs font-bold text-gray-700`}
+                              onClick={() => console.log(`View approval ${app.id}`)}
+                            >
+                              View
+                            </button>
+                          )}
+                        </MenuItem>
+                        <MenuItem>
+                          {({ active }) => (
+                            <button
+                              className={`${active ? "bg-gray-50" : ""} w-full text-left px-4 py-2 text-xs font-bold text-gray-700`}
+                              onClick={() => console.log(`Edit approval ${app.id}`)}
+                            >
+                              Edit
+                            </button>
+                          )}
+                        </MenuItem>
+                        <MenuItem>
+                          {({ active }) => (
+                            <button
+                              className={`${active ? "bg-gray-50" : ""} w-full text-left px-4 py-2 text-xs font-bold text-red-600`}
+                              onClick={() => console.log(`Delete approval ${app.id}`)}
+                            >
+                              Delete
+                            </button>
+                          )}
+                        </MenuItem>
+                      </MenuItems>
+                    </Menu>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

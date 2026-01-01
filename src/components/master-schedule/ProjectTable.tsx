@@ -160,41 +160,46 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
           }
         `}
       </style>
-      <h2 className="text-3xl font-semibold mb-4 mt-6">Available Projects</h2>
+      <h2 className="text-xl sm:text-2xl font-black text-gray-800 mb-6 mt-10 border-b border-gray-100 pb-4">Available Projects</h2>
 
-      <div className="flex items-center justify-between mb-4">
-        <div ref={menuRef} className="relative">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
+        <div ref={menuRef} className="relative w-full sm:w-auto">
           <button
             onClick={() => setShowColumnMenu((v) => !v)}
-            className="flex items-center gap-1 px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 text-sm"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-700 text-white rounded-lg hover:bg-emerald-800 transition-colors shadow-sm font-bold text-sm"
           >
             Customize Columns <ChevronDown className="w-4 h-4" />
           </button>
           {showColumnMenu && (
-            <div className="absolute right-0 mt-1 w-40 bg-white border rounded shadow z-10">
+            <div className="absolute left-0 mt-2 w-56 bg-white border border-gray-200 rounded-xl shadow-xl z-50 py-2">
+              <div className="px-4 py-2 border-b border-gray-100 mb-1">
+                <span className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">Visible Columns</span>
+              </div>
               {Object.entries(columnOptions).map(([key, label]) => (
                 <label
                   key={key}
-                  className="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                  className="flex items-center w-full px-4 py-2 hover:bg-gray-50 cursor-pointer transition-colors"
                 >
                   <input
                     type="checkbox"
                     checked={selectedColumns.includes(key)}
                     onChange={() => toggleColumn(key)}
-                    className="mr-2"
+                    className="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 mr-3"
                   />
-                  {label}
+                  <span className="text-sm text-gray-700 font-bold">{label}</span>
                 </label>
               ))}
             </div>
           )}
         </div>
 
-        <SearchInput
-          value={searchTerm}
-          onChange={setSearchTerm}
-          placeholder="Search projects..."
-        />
+        <div className="w-full sm:w-auto">
+          <SearchInput
+            value={searchTerm}
+            onChange={setSearchTerm}
+            placeholder="Search projects..."
+          />
+        </div>
       </div>
 
       <div className="overflow-x-auto">

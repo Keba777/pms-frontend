@@ -350,12 +350,10 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
           {/* Description */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Description <span className="text-red-500">*</span>
+              Description
             </label>
             <textarea
-              {...register("description", {
-                required: "Description is required",
-              })}
+              {...register("description")}
               className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
               rows={5}
             />

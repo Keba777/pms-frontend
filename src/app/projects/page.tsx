@@ -303,34 +303,33 @@ const ProjectPage: React.FC = () => {
         />
       </div>
 
-      {/* Tabs */}
       <div className="mt-4">
-        <div className="border-b flex space-x-4">
+        <div className="border-b flex items-center overflow-x-auto no-scrollbar">
           <button
-            className={`py-2 px-4 -mb-px border-b-2 font-medium ${activeTab === "planned"
+            className={`py-3 px-6 -mb-px border-b-2 font-medium transition-colors whitespace-nowrap ${activeTab === "planned"
                 ? "border-cyan-700 text-cyan-700"
                 : "border-transparent text-gray-500 hover:text-gray-700"
               }`}
             onClick={() => setActiveTab("planned")}
           >
-            Planned
+            Planned Projects
           </button>
           <button
-            className={`py-2 px-4 -mb-px border-b-2 font-medium ${activeTab === "actual"
+            className={`py-3 px-6 -mb-px border-b-2 font-medium transition-colors whitespace-nowrap ${activeTab === "actual"
                 ? "border-cyan-700 text-cyan-700"
                 : "border-transparent text-gray-500 hover:text-gray-700"
               }`}
             onClick={() => setActiveTab("actual")}
           >
-            Actual
+            Actual Projects
           </button>
         </div>
-        <div className="mt-4">
+        <div className="mt-6">
           {activeTab === "planned" ? (
             isListView ? (
               <ProjectSection />
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
                 {(filteredProjects || []).map((project: Project) => (
                   <ProjectCard key={project.id} project={project} />
                 ))}

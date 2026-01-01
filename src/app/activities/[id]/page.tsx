@@ -53,32 +53,46 @@ export default function ActivityPage() {
         </span>
       </div>
 
-      <div className="mt-6 flex justify-center">
-        <div className="w-full bg-gray-50 p-4 sm:p-6 md:p-8 rounded-lg shadow-md">
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-semibold text-gray-800 mb-4 text-center">
+      <div className="mt-8">
+        <div className="w-full bg-gray-50 p-5 sm:p-8 rounded-xl shadow-sm border border-gray-100">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 mb-6 text-center lg:text-left border-b border-gray-200 pb-4">
             Activity Details
           </h2>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
-            <span className="bg-yellow-300 text-yellow-800 px-3 py-2 rounded-full text-xs sm:text-sm font-semibold">
-              Priority: {activity.priority}
-            </span>
-            <span className="bg-blue-100 text-blue-700 px-3 py-2 rounded-full text-xs sm:text-sm font-semibold">
-              Start Date: {new Date(activity.start_date).toLocaleDateString()}
-            </span>
-            <span className="bg-green-100 text-green-700 px-3 py-2 rounded-full text-xs sm:text-sm font-semibold">
-              End Date: {new Date(activity.end_date).toLocaleDateString()}
-            </span>
-            <span className="bg-indigo-100 text-indigo-700 px-3 py-2 rounded-full text-xs sm:text-sm font-semibold">
-              Assigned to: {activity.unit}
-            </span>
-            <span className="bg-purple-100 text-purple-700 px-3 py-2 rounded-full text-xs sm:text-sm font-semibold">
-              Approval Status: {activity.approvalStatus}
-            </span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="flex flex-col gap-1">
+              <span className="text-xs font-bold uppercase text-gray-400 tracking-wider">Priority</span>
+              <span className={`text-sm font-semibold px-2 py-0.5 rounded w-fit ${activity.priority === 'Critical' ? 'bg-red-100 text-red-700' :
+                  activity.priority === 'High' ? 'bg-orange-100 text-orange-700' :
+                    'bg-yellow-100 text-yellow-700'
+                }`}>{activity.priority}</span>
+            </div>
+            <div className="flex flex-col gap-1">
+              <span className="text-xs font-bold uppercase text-gray-400 tracking-wider">Start Date</span>
+              <span className="text-gray-900 font-semibold">{new Date(activity.start_date).toLocaleDateString()}</span>
+            </div>
+            <div className="flex flex-col gap-1">
+              <span className="text-xs font-bold uppercase text-gray-400 tracking-wider">End Date</span>
+              <span className="text-gray-900 font-semibold">{new Date(activity.end_date).toLocaleDateString()}</span>
+            </div>
+            <div className="flex flex-col gap-1">
+              <span className="text-xs font-bold uppercase text-gray-400 tracking-wider">Unit</span>
+              <span className="text-gray-900 font-semibold">{activity.unit || "N/A"}</span>
+            </div>
+            <div className="flex flex-col gap-1">
+              <span className="text-xs font-bold uppercase text-gray-400 tracking-wider">Approval Status</span>
+              <span className="text-gray-900 font-semibold">{activity.approvalStatus}</span>
+            </div>
             {activity.progress !== undefined && (
-              <span className="bg-orange-100 text-orange-700 px-3 py-2 rounded-full text-xs sm:text-sm font-semibold">
-                Progress: {activity.progress}%
-              </span>
+              <div className="flex flex-col gap-1">
+                <span className="text-xs font-bold uppercase text-gray-400 tracking-wider">Overall Progress</span>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 h-3 bg-gray-200 rounded-full overflow-hidden">
+                    <div className="h-full bg-cyan-600 rounded-full" style={{ width: `${activity.progress}%` }} />
+                  </div>
+                  <span className="text-sm font-bold text-cyan-700">{activity.progress}%</span>
+                </div>
+              </div>
             )}
           </div>
         </div>

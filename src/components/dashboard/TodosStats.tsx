@@ -12,12 +12,12 @@ import {
   CheckSquare,
 } from "lucide-react";
 import { useTodos } from "@/hooks/useTodos";
-import { Todo } from "@/types/todo"; 
+import { Todo } from "@/types/todo";
 import Link from "next/link";
 
 
 const ICON_COLORS = {
-  cyan700: "#0e7490", 
+  cyan700: "#0e7490",
   gray200: "#e5e7eb",
   gray400: "#9ca3af",
   gray500: "#6b7280",
@@ -163,13 +163,15 @@ export default function TodosStats() {
 
   return (
     <div>
-        <div className="mb-4 mt-6">
-        <h2 className="text-3xl md:text-4xl text-center font-bold text-cyan-800">
+      <div className="text-center space-y-2 mt-8 mb-6">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-cyan-800">
           Todo Statistics
         </h2>
+        <div className="w-24 h-1 bg-cyan-600 mx-auto rounded-full" />
       </div>
+
       {/* Top summary cards */}
-      <div className="flex flex-wrap -mx-2 mt-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 -mx-2 mt-4">
         <Card
           title="Total Todos"
           count={isLoading ? 0 : totalTodos}
@@ -201,7 +203,7 @@ export default function TodosStats() {
       </div>
 
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 mb-12">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mt-8 mb-12">
         <StatsCard title="Todos by Status" items={statusItems} total={totalTodos} />
         <StatsCard title="Todos by Priority" items={priorityItems} total={totalTodos} />
 

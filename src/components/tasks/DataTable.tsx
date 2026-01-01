@@ -187,52 +187,57 @@ const DataTable: React.FC = () => {
 
   return (
     <div>
-      <div className="mb-5 flex space-x-4 justify-between">
-        <div ref={menuRef} className="relative">
+      <div className="flex flex-col lg:flex-row items-center justify-between gap-4 mb-6">
+        <div ref={menuRef} className="relative w-full lg:w-auto">
           <button
             onClick={() => setShowColumnMenu((prev) => !prev)}
-            className="flex items-center gap-1 px-4 py-2 text-sm bg-emerald-600 text-white rounded hover:bg-emerald-700 whitespace-nowrap"
+            className="w-full lg:w-auto flex items-center justify-center gap-2 px-5 py-2.5 text-sm bg-cyan-700 text-white rounded hover:bg-cyan-800 transition-colors shadow-sm font-medium"
           >
             Customize Columns <ChevronDown className="w-4 h-4" />
           </button>
           {showColumnMenu && (
-            <div className="absolute right-0 mt-1 w-48 bg-white border rounded shadow-lg z-10">
+            <div className="absolute left-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-xl z-20 py-2">
+              <div className="px-4 py-2 border-b border-gray-100 mb-1">
+                <span className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">Visible Columns</span>
+              </div>
               {Object.entries(columnOptions).map(([key, label]) => (
                 <label
                   key={key}
-                  className="flex items-center w-full px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                  className="flex items-center w-full px-4 py-2 hover:bg-gray-50 cursor-pointer transition-colors"
                 >
                   <input
                     type="checkbox"
                     checked={selectedColumns.includes(key)}
                     onChange={() => toggleColumn(key)}
-                    className="mr-2"
+                    className="w-4 h-4 rounded border-gray-300 text-cyan-600 focus:ring-cyan-500 mr-3"
                   />
-                  {label || <span>&nbsp;</span>}
+                  <span className="text-sm text-gray-700 font-medium">{label}</span>
                 </label>
               ))}
             </div>
           )}
         </div>
-        <div className="flex flex-col sm:flex-row gap-2 ">
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto">
           <GenericFilter
             fields={filterFields}
             onFilterChange={setFilterValues}
           />
-          <DatePicker
-            selected={fromDate}
-            onChange={setFromDate}
-            placeholderText="From Date"
-            className="rounded border border-gray-300 p-2 focus:outline-none focus:border-blue-500 w-full sm:w-auto"
-            dateFormat="yyyy-MM-dd"
-          />
-          <DatePicker
-            selected={toDate}
-            onChange={setToDate}
-            placeholderText="To Date"
-            className="rounded border border-gray-300 p-2 focus:outline-none focus:border-blue-500 w-full sm:w-auto"
-            dateFormat="yyyy-MM-dd"
-          />
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <DatePicker
+              selected={fromDate}
+              onChange={setFromDate}
+              placeholderText="From Date"
+              className="rounded-lg border border-gray-300 px-4 py-2 text-sm focus:ring-2 focus:ring-cyan-500 font-medium w-full sm:w-36"
+              dateFormat="yyyy-MM-dd"
+            />
+            <DatePicker
+              selected={toDate}
+              onChange={setToDate}
+              placeholderText="To Date"
+              className="rounded-lg border border-gray-300 px-4 py-2 text-sm focus:ring-2 focus:ring-cyan-500 font-medium w-full sm:w-36"
+              dateFormat="yyyy-MM-dd"
+            />
+          </div>
         </div>
       </div>
 

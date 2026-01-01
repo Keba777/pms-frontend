@@ -29,7 +29,7 @@ const UserForm: React.FC<UserFormProps> = ({ onClose }) => {
     watch,
   } = useForm<CreateUserInput>({
     defaultValues: {
-      responsiblities: [],
+      responsibilities: [],
       gender: 'Male',
     },
   });
@@ -91,12 +91,12 @@ const UserForm: React.FC<UserFormProps> = ({ onClose }) => {
   ];
 
   const [responsibilityInput, setResponsibilityInput] = useState("");
-  const responsibilities = watch("responsiblities");
+  const responsibilities = watch("responsibilities");
 
   const addResponsibility = () => {
     if (responsibilityInput.trim() !== "") {
       const updated = [...(responsibilities || []), responsibilityInput.trim()];
-      setValue("responsiblities", updated);
+      setValue("responsibilities", updated);
       setResponsibilityInput("");
     }
   };
@@ -104,7 +104,7 @@ const UserForm: React.FC<UserFormProps> = ({ onClose }) => {
   const removeResponsibility = (index: number) => {
     const updated = [...(responsibilities || [])];
     updated.splice(index, 1);
-    setValue("responsiblities", updated);
+    setValue("responsibilities", updated);
   };
 
   const onSubmit = (data: CreateUserInput) => {
@@ -171,8 +171,8 @@ const UserForm: React.FC<UserFormProps> = ({ onClose }) => {
     if (data.department_id) formData.append("department_id", data.department_id);
     if (data.status) formData.append("status", data.status);
     
-    if (data.responsiblities) {
-        data.responsiblities.forEach(r => formData.append("responsibilities[]", r));
+    if (data.responsibilities) {
+        data.responsibilities.forEach(r => formData.append("responsibilities[]", r));
     }
 
     if (selectedFile) {

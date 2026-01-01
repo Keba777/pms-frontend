@@ -46,7 +46,7 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
       department_id: user.department_id,
       role_id: user.role_id,
       status: user.status,
-      responsiblities: user.responsiblities || [],
+      responsibilities: user.responsibilities || [],
       username: user.username,
       gender: user.gender,
       position: user.position,
@@ -92,17 +92,17 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
 
   // responsibilities
   const [respInput, setRespInput] = useState("");
-  const responsibilities = watch("responsiblities") || [];
+  const responsibilities = watch("responsibilities") || [];
   const addResponsibility = () => {
     if (respInput.trim()) {
-      setValue("responsiblities", [...responsibilities, respInput.trim()]);
+      setValue("responsibilities", [...responsibilities, respInput.trim()]);
       setRespInput("");
     }
   };
   const removeResponsibility = (i: number) => {
     const arr = [...responsibilities];
     arr.splice(i, 1);
-    setValue("responsiblities", arr);
+    setValue("responsibilities", arr);
   };
 
   // sync selects

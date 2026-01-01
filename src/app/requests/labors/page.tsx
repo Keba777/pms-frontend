@@ -151,11 +151,15 @@ const LaborRequest = () => {
   });
 
   return (
-    <div className="max-w-7xl mx-auto p-6 bg-white shadow-lg rounded-lg mt-6">
-      <h1 className="text-4xl font-bold text-cyan-800 mb-4">Labor Requests</h1>
+    <div className="p-4 sm:p-6 bg-white min-h-screen">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8 bg-gray-50 p-4 rounded-xl border border-gray-100">
+        <h1 className="text-xl sm:text-2xl font-black text-cyan-800 uppercase tracking-tight">
+          Labor Requests
+        </h1>
+      </div>
 
       {/* Status Summary */}
-      <div className="flex flex-wrap gap-4 mb-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
         {[
           { label: "Total", value: total },
           { label: "Pending", value: pending },
@@ -165,35 +169,38 @@ const LaborRequest = () => {
         ].map((item) => (
           <div
             key={item.label}
-            className="flex font-2xl font-semibold bg-white p-4 rounded-lg shadow-md"
+            className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex flex-col justify-center items-center text-center group hover:bg-gray-50 transition-all"
           >
-            <h2 className="mr-2">{item.label} =</h2>
-            <span className="text-cyan-700 font-stretch-semi-condensed font-semibold">
+            <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest mb-1 group-hover:text-cyan-600 transition-colors">{item.label}</p>
+            <span className="text-2xl font-black text-gray-800">
               {item.value}
             </span>
           </div>
         ))}
       </div>
-      {/* Top Actions */}
-      <div className="flex justify-between items-center mb-4">
-        <SearchInput value={searchQuery} onChange={setSearchQuery} />
-        <div className="flex gap-4">
-          <GenericDownloads
-            data={filteredRequests.map((req, idx) => ({
-              ...req,
-              displayId: `RC${String(idx + 1).padStart(3, "0")}`,
-            }))}
-            title="Equipment_Requests"
-            columns={[
-              { header: "Request ID", accessor: "displayId" },
-              ...columns.slice(1),
-            ]}
-          />
+      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-8 flex flex-col gap-6">
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
+          <div className="w-full lg:w-72">
+            <SearchInput value={searchQuery} onChange={setSearchQuery} />
+          </div>
+          <div className="flex items-center gap-3 w-full lg:w-auto">
+            <GenericDownloads
+              data={filteredRequests.map((req, idx) => ({
+                ...req,
+                displayId: `RC${String(idx + 1).padStart(3, "0")}`,
+              }))}
+              title="Labor_Requests"
+              columns={[
+                { header: "Request ID", accessor: "displayId" },
+                ...columns.slice(1),
+              ]}
+            />
+          </div>
         </div>
-      </div>
 
-      <div className="mb-6">
-        <GenericFilter fields={filterFields} onFilterChange={setFilterValues} />
+        <div className="pt-6 border-t border-gray-100">
+          <GenericFilter fields={filterFields} onFilterChange={setFilterValues} />
+        </div>
       </div>
 
       {/* Requests Table */}
@@ -280,9 +287,8 @@ const LaborRequest = () => {
                           <MenuItem>
                             {({ active }) => (
                               <button
-                                className={`${
-                                  active ? "bg-gray-100" : ""
-                                } w-full text-left px-3 py-2 text-sm text-gray-700`}
+                                className={`${active ? "bg-gray-100" : ""
+                                  } w-full text-left px-3 py-2 text-sm text-gray-700`}
                               >
                                 View
                               </button>
@@ -291,9 +297,8 @@ const LaborRequest = () => {
                           <MenuItem>
                             {({ active }) => (
                               <button
-                                className={`${
-                                  active ? "bg-gray-100" : ""
-                                } w-full text-left px-3 py-2 text-sm text-gray-700`}
+                                className={`${active ? "bg-gray-100" : ""
+                                  } w-full text-left px-3 py-2 text-sm text-gray-700`}
                               >
                                 Edit
                               </button>
@@ -302,9 +307,8 @@ const LaborRequest = () => {
                           <MenuItem>
                             {({ active }) => (
                               <button
-                                className={`${
-                                  active ? "bg-gray-100" : ""
-                                } w-full text-left px-3 py-2 text-sm text-red-600`}
+                                className={`${active ? "bg-gray-100" : ""
+                                  } w-full text-left px-3 py-2 text-sm text-red-600`}
                               >
                                 Delete
                               </button>

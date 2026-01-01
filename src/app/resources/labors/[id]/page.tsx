@@ -29,20 +29,19 @@ export default function LaborDetailPage() {
   const siteLabors: Labor[] = labors?.filter((l) => l.siteId === siteId) ?? [];
 
   return (
-    <div className="max-w-7xl mx-auto p-6 bg-white shadow-lg rounded-lg mt-6">
-      <div className="flex justify-between mb-4">
+    <div className="p-4 sm:p-6 bg-white min-h-screen">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 bg-gray-50 p-4 rounded-xl border border-gray-100">
         <button
-          className="flex items-center text-gray-600 hover:text-gray-900 mb-6"
+          className="flex items-center text-cyan-700 hover:text-cyan-800 font-bold transition-colors group"
           onClick={() => router.push("/resources/labors")}
         >
-          <ArrowLeft className="w-5 h-5 mr-2" />
+          <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform" />
           Back to Sites
         </button>
+        <h1 className="text-xl sm:text-2xl font-black text-cyan-800 uppercase tracking-tight">
+          Labor at "{site.name}"
+        </h1>
       </div>
-
-      <h1 className="text-4xl font-bold text-cyan-800 mb-4">
-        Labor at "{site.name}"
-      </h1>
 
       {siteLabors.length === 0 ? (
         <p className="text-gray-600">No labor entries found for this site.</p>

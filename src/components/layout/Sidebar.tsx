@@ -81,9 +81,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
         const resource = s.link?.split("/")[1];
         return resource
           ? hasPermission(resource, "manage") ||
-              hasPermission(resource, "delete") ||
-              hasPermission(resource, "edit") ||
-              hasPermission(resource, "create")
+          hasPermission(resource, "delete") ||
+          hasPermission(resource, "edit") ||
+          hasPermission(resource, "create")
           : true;
       });
       return filteredSub.length > 0;
@@ -92,18 +92,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
     const resource = item.link?.split("/")[1];
     return resource
       ? hasPermission(resource, "manage") ||
-          hasPermission(resource, "delete") ||
-          hasPermission(resource, "edit") ||
-          hasPermission(resource, "create")
+      hasPermission(resource, "delete") ||
+      hasPermission(resource, "edit") ||
+      hasPermission(resource, "create")
       : true;
   });
 
   return (
     <aside
       id="layout-menu"
-      className={`${
-        isOpen ? "fixed top-0 bottom-0 z-50" : "hidden"
-      } lg:fixed lg:top-0 lg:bottom-0 lg:left-0 lg:block lg:w-64 font-medium bg-white shadow-md transition-all duration-300 overflow-y-auto`}
+      className={`fixed top-0 bottom-0 left-0 z-50 w-64 bg-white shadow-xl transition-transform duration-300 ease-in-out lg:translate-x-0 overflow-y-auto font-medium
+        ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
     >
       <button
         onClick={toggleSidebar}
@@ -114,7 +113,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
 
       <div className="flex items-center justify-center ">
         {/* Logo: send HR users to /hrm, others to / */}
-        <Link href={isHR ? "/hrm" : "/"} className="flex items-center">
+        <Link href={isHR ? "/hrm" : "/"} className="flex items-center" onClick={toggleSidebar}>
           <Image
             src={logo}
             alt="Logo"
@@ -133,7 +132,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
 
       <ul className="py-1 px-3">
         {filteredMenuItems.map((item, idx) => (
-          <MenuItem key={idx} item={item} />
+          <MenuItem key={idx} item={item} onItemClick={toggleSidebar} />
         ))}
       </ul>
     </aside>

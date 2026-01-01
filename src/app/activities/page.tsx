@@ -67,20 +67,26 @@ const ActivitiesPage = () => {
   }
 
   return (
-    <div>
-      {/* Breadcrumb */}
-      <div className="mb-5 mt-8">
+    <div className="p-4">
+      {/* Breadcrumb & Header */}
+      <div className="flex flex-col sm:flex-row items-baseline justify-between mb-6 mt-4 gap-4">
         <nav aria-label="breadcrumb">
-          <ol className="flex space-x-2 text-sm font-semibold">
+          <ol className="flex items-center space-x-2 text-sm font-medium">
             <li>
-              <Link href="/" className="hover:underline flex items-center">
+              <Link href="/" className="text-bs-primary hover:underline flex items-center">
                 Home
               </Link>
             </li>
             <li className="text-gray-400">/</li>
-            <li className="text-gray-800">Activities</li>
+            <li className="text-gray-900 font-bold">Activities</li>
           </ol>
         </nav>
+        <div className="flex items-baseline gap-2">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800">
+            Project Activities
+          </h1>
+          <span className="text-sm text-gray-400 font-medium">({activities?.length || 0} total)</span>
+        </div>
       </div>
 
       <GenericDownloads
@@ -94,28 +100,31 @@ const ActivitiesPage = () => {
         }}
       />
 
-      <div className="rounded-lg border border-gray-200 mt-4">
-        {/* Tabs Navigation moved below TopBarActions */}
-        <div className="flex space-x-4  mb-4 p-3">
+      {/* Tabs Navigation */}
+      <div className="mt-8 border-b border-gray-200">
+        <nav className="-mb-px flex space-x-4 overflow-x-auto no-scrollbar whitespace-nowrap">
           <button
             onClick={() => setActiveTab("planned")}
-            className={`py-2 px-4 focus:outline-none ${activeTab === "planned"
-                ? "border-b-2 border-blue-500 font-medium"
-                : "text-gray-600"
+            className={`px-6 py-3 text-sm font-medium transition-all ${activeTab === "planned"
+              ? "border-b-2 border-emerald-600 text-emerald-600"
+              : "text-gray-500 hover:text-gray-700 border-b-2 border-transparent"
               }`}
           >
-            Planned
+            Planned Activities
           </button>
           <button
             onClick={() => setActiveTab("actual")}
-            className={`py-2 px-4 focus:outline-none ${activeTab === "actual"
-                ? "border-b-2 border-blue-500 font-medium"
-                : "text-gray-600"
+            className={`px-6 py-3 text-sm font-medium transition-all ${activeTab === "actual"
+              ? "border-b-2 border-emerald-600 text-emerald-600"
+              : "text-gray-500 hover:text-gray-700 border-b-2 border-transparent"
               }`}
           >
-            Actual
+            Actual Activities
           </button>
-        </div>
+        </nav>
+      </div>
+
+      <div className="mt-6">
 
         {activeTab === "planned" ? (
           <DataTableActivities />

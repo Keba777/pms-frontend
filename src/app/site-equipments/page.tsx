@@ -268,270 +268,217 @@ const EquipmentsPage = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-6 bg-white shadow-lg rounded-lg mt-6">
-      <div className="flex flex-wrap justify-between items-center mb-4 gap-2">
-        <nav className="hidden md:block" aria-label="breadcrumb">
-          <ol className="flex space-x-2 text-sm sm:text-base">
-            <li>
-              <Link href="/" className="text-blue-600 hover:underline">
-                Home
-              </Link>
-            </li>
-            <li className="text-gray-500">/</li>
-            <li className="text-gray-900 font-semibold">Equipments</li>
-          </ol>
-        </nav>
-
-        <div className="flex flex-wrap gap-2 items-center w-full md:w-auto">
-          {canCreate && (
-            <button
-              type="button"
-              className="bg-cyan-700 hover:bg-cyan-800 text-white font-bold rounded text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2 flex items-center gap-1"
-              onClick={() => setShowForm(true)}
-              title="Create Equipment"
-            >
-              <span className="md:hidden">Add New</span>
-              <Plus className="w-4 h-4 hidden md:inline" />
-            </button>
-          )}
-          {canManage && (
-            <div className="w-full md:w-auto mt-2 md:mt-0">
-              <GenericDownloads
-                data={filteredEquipment}
-                title={`Equipments_${site.name}`}
-                columns={columns}
-              />
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Import */}
-      <div className="flex justify-end mb-4">
-        {canManage && (
-          <GenericImport<LooseEquipmentInput>
-            expectedColumns={importColumns}
-            requiredAccessors={requiredAccessors}
-            onImport={handleImport}
-            title="Equipments"
-            onError={handleError}
-          />
-        )}
-      </div>
-
-      {/* Create/Edit Modal */}
-      {showForm && canCreate && (
-        <div className="modal-overlay fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="modal-content bg-white rounded-lg shadow-xl p-6">
-            <EquipmentForm siteId={siteId as string} onClose={() => setShowForm(false)} />
+    <div className="p-4 sm:p-6 bg-white min-h-screen">
+      {/* Header Section */}
+      <div className="flex flex-col gap-4 mb-8 bg-gray-50 p-4 sm:p-6 rounded-2xl border border-gray-100 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <nav className="mb-2" aria-label="Breadcrumb">
+              <ol className="flex items-center space-x-2 text-[10px] font-black uppercase tracking-widest text-gray-400">
+                <li><Link href="/" className="hover:text-cyan-700 transition-colors">Home</Link></li>
+                <li className="flex items-center space-x-2">
+                  <span>/</span>
+                  <span className="text-gray-900">Equipments</span>
+                </li>
+              </ol>
+            </nav>
+            <h1 className="text-xl sm:text-2xl font-black text-cyan-800 uppercase tracking-tight">
+              Equipment at &quot;{site.name}&quot;
+            </h1>
+            <p className="text-[10px] sm:text-xs font-black text-gray-400 uppercase tracking-widest mt-1">
+              Asset tracking and utilization for site equipment
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            {canCreate && (
+              <button
+                type="button"
+                className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 text-[10px] font-black uppercase tracking-widest bg-cyan-700 text-white rounded-xl hover:bg-cyan-800 transition-all shadow-md shadow-cyan-200"
+                onClick={() => setShowForm(true)}
+              >
+                <Plus className="w-4 h-4" />
+                Add New
+              </button>
+            )}
+            {canManage && (
+              <div className="flex-1 sm:flex-none">
+                <GenericDownloads
+                  data={filteredEquipment}
+                  title={`Equipments_${site.name}`}
+                  columns={columns}
+                />
+              </div>
+            )}
           </div>
         </div>
-      )}
 
-      <div className="flex flex-col sm:flex-row gap-2 mb-4">
-        <GenericFilter fields={filterFields} onFilterChange={setFilterValues} />
+        {/* Global Controls */}
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 pt-4 border-t border-gray-200/60">
+          <div className="w-full lg:max-w-2xl">
+            <GenericFilter fields={filterFields} onFilterChange={setFilterValues} />
+          </div>
+          <div className="flex items-center justify-end gap-2">
+            {canManage && (
+              <GenericImport<LooseEquipmentInput>
+                expectedColumns={importColumns}
+                requiredAccessors={requiredAccessors}
+                onImport={handleImport}
+                title="Equipments"
+                onError={handleError}
+              />
+            )}
+          </div>
+        </div>
       </div>
 
-      <h1 className="text-4xl font-bold text-cyan-800 mb-4">
-        Equipment at &quot;{site.name}&quot;
-      </h1>
-
-      {/* Status Summary */}
-      <div className="flex flex-wrap gap-4 mb-4">
+      {/* Status Summary Cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
         {[
-          { label: "Total", value: total },
-          { label: "Available", value: available },
-          { label: "Unavailable", value: unavailable },
-          { label: "Rental", value: rental },
-          { label: "Own", value: own },
+          { label: "Total Assets", value: total, color: "text-cyan-700", bg: "bg-cyan-50" },
+          { label: "Available", value: available, color: "text-emerald-700", bg: "bg-emerald-50" },
+          { label: "Unavailable", value: unavailable, color: "text-rose-700", bg: "bg-rose-50" },
+          { label: "Rental", value: rental, color: "text-amber-700", bg: "bg-amber-50" },
+          { label: "Raycon Owned", value: own, color: "text-indigo-700", bg: "bg-indigo-50" },
         ].map((item) => (
-          <div
-            key={item.label}
-            className="flex font-2xl font-semibold bg-white p-4 rounded-lg shadow-md"
-          >
-            <h2 className="mr-2">{item.label} =</h2>
-            <span className="text-cyan-700 font-stretch-semi-condensed font-semibold">
-              {item.value}
-            </span>
+          <div key={item.label} className={`${item.bg} p-4 rounded-2xl border border-white shadow-sm transition-transform hover:scale-[1.02]`}>
+            <p className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1">{item.label}</p>
+            <p className={`text-2xl font-black ${item.color}`}>{item.value}</p>
           </div>
         ))}
       </div>
 
       {/* Equipment Table */}
-      {filteredEquipment.length === 0 ? (
-        <p className="text-gray-600">No equipment match your search.</p>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200 border border-gray-200">
-            <thead className="bg-cyan-700">
-              <tr>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase">
-                  #
-                </th>
-                {[
-                  "Item",
-                  "Type",
-                  "Unit",
-                  "Manufacturer",
-                  "Model",
-                  "Year",
-                  "Qty",
-                  "Est Hours",
-                  "Rate",
-                  "Total Amount",
-                  "OT",
-                  "Condition",
-                  "Owner",
-                  "Duration",
-                  "Starting Date",
-                  "Due Date",
-                  "Status",
-                  "Action",
-                ].map((h) => (
-                  <th
-                    key={h}
-                    className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase"
-                  >
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredEquipment.map((eq, idx) => {
-                const isAvailable = eq.status === "Available";
-                return (
-                  <tr key={eq.id}>
-                    <td className="px-4 py-2 border border-gray-200">
-                      {idx + 1}
-                    </td>
-                    <td className="px-4 py-2 border border-gray-200">
-                      <Link
-                        href={`/resources/equipment/${eq.id}`}
-                        className="text-blue-600 hover:underline"
-                      >
-                        {eq.item}
-                      </Link>
-                    </td>
-                    <td className="px-4 py-2 border border-gray-200">
-                      {eq.type || "-"}
-                    </td>
-                    <td className="px-4 py-2 border border-gray-200">
-                      {eq.unit}
-                    </td>
-                    <td className="px-4 py-2 border border-gray-200">
-                      {eq.manufacturer || "-"}
-                    </td>
-                    <td className="px-4 py-2 border border-gray-200">
-                      {eq.model || "-"}
-                    </td>
-                    <td className="px-4 py-2 border border-gray-200">
-                      {eq.year || "-"}
-                    </td>
-                    <td className="px-4 py-2 border border-gray-200">
-                      {eq.quantity ?? 0}
-                    </td>
-                    <td className="px-4 py-2 border border-gray-200">
-                      {eq.estimatedHours ?? 0}
-                    </td>
-                    <td className="px-4 py-2 border border-gray-200">
-                      {eq.rate ?? 0}
-                    </td>
-                    <td className="px-4 py-2 border border-gray-200">
-                      {eq.totalAmount ?? 0}
-                    </td>
-                    <td className="px-4 py-2 border border-gray-200">
-                      {eq.overTime ?? 0}
-                    </td>
-                    <td className="px-4 py-2 border border-gray-200">
-                      {eq.condition || "-"}
-                    </td>
-                    <td className="px-4 py-2 border border-gray-200">
-                      {eq.owner || "-"}
-                    </td>
-                    <td className="px-4 py-2 border border-gray-200">
-                      {eq.startingDate && eq.dueDate
-                        ? getDuration(eq.startingDate, eq.dueDate)
-                        : "-"}
-                    </td>
-                    <td className="px-4 py-2 border border-gray-200">
-                      {eq.startingDate
-                        ? format(eq.startingDate)
-                        : "-"}
-                    </td>
-                    <td className="px-4 py-2 border border-gray-200">
-                      {eq.dueDate
-                        ? format(eq.dueDate)
-                        : "-"}
-                    </td>
-                    <td className="px-4 py-2 border border-gray-200">
-                      <Badge
-                        className={`${isAvailable
-                            ? "bg-green-500 hover:bg-green-600"
-                            : "bg-red-500 hover:bg-red-600"
-                          } text-white`}
-                      >
-                        {eq.status}
-                      </Badge>
-                    </td>
-                    <td className="px-4 py-2 border border-gray-200">
-                      <Menu
-                        as="div"
-                        className="relative inline-block text-left"
-                      >
-                        <MenuButton className="flex items-center gap-1 px-3 py-1 text-sm bg-cyan-700 text-white rounded hover:bg-cyan-800">
-                          Action <ChevronDown className="w-4 h-4" />
-                        </MenuButton>
-                        <MenuItems className="absolute left-0 mt-2 w-full origin-top-left bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow-lg focus:outline-none z-50">
-                          <MenuItem>
-                            {({ active }) => (
-                              <button
-                                className={`${active ? "bg-gray-100" : ""
-                                  } w-full text-left px-3 py-2 text-sm text-gray-700`}
-                              >
-                                View
-                              </button>
-                            )}
-                          </MenuItem>
-                          <MenuItem>
-                            {({ active }) => (
-                              <button
-                                className={`${active ? "bg-gray-100" : ""
-                                  } w-full text-left px-3 py-2 text-sm text-gray-700`}
-                              >
-                                Edit
-                              </button>
-                            )}
-                          </MenuItem>
-                          <MenuItem>
-                            {({ active }) => (
-                              <button
-                                className={`${active ? "bg-gray-100" : ""
-                                  } w-full text-left px-3 py-2 text-sm text-red-600`}
-                              >
-                                Delete
-                              </button>
-                            )}
-                          </MenuItem>
-                          <MenuItem>
-                            {({ active }) => (
-                              <button
-                                onClick={() => console.log("Manage clicked")}
-                                className={`${active ? "bg-gray-100" : ""
-                                  } w-full text-left px-3 py-2 text-sm text-gray-700`}
-                              >
-                                Manage
-                              </button>
-                            )}
-                          </MenuItem>
-                        </MenuItems>
-                      </Menu>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        {filteredEquipment.length === 0 ? (
+          <div className="p-12 text-center">
+            <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">No equipment match your search.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-100">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">#</th>
+                  {[
+                    "Item", "Type", "Unit", "Manufacturer", "Model", "Year", "Qty",
+                    "Est Hours", "Rate", "Total", "OT", "Condition", "Owner",
+                    "Duration", "Starting", "Due", "Status", "Action"
+                  ].map((head) => (
+                    <th key={head} className="px-4 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                      {head}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-50">
+                {filteredEquipment.map((eq, idx) => {
+                  const isAvailable = eq.status === "Available";
+                  return (
+                    <tr key={eq.id} className="hover:bg-gray-50/50 transition-colors">
+                      <td className="px-4 py-4 text-sm font-black text-gray-300">{String(idx + 1).padStart(2, '0')}</td>
+                      <td className="px-4 py-4">
+                        <Link href={`/resources/equipment/${eq.id}`} className="text-sm font-black text-cyan-700 hover:text-cyan-800 transition-colors">
+                          {eq.item}
+                        </Link>
+                      </td>
+                      <td className="px-4 py-4 text-sm text-gray-600 font-medium">{eq.type || "-"}</td>
+                      <td className="px-4 py-4 text-sm text-gray-500">{eq.unit}</td>
+                      <td className="px-4 py-4 text-sm text-gray-600">{eq.manufacturer || "-"}</td>
+                      <td className="px-4 py-4 text-sm text-gray-600 uppercase font-bold">{eq.model || "-"}</td>
+                      <td className="px-4 py-4 text-sm text-gray-900 font-mono font-bold">{eq.year || "-"}</td>
+                      <td className="px-4 py-4 text-sm font-black text-gray-900">{eq.quantity ?? 0}</td>
+                      <td className="px-4 py-4 text-sm text-gray-600">{eq.estimatedHours ?? 0}h</td>
+                      <td className="px-4 py-4 text-sm text-gray-600 font-mono">${(eq.rate ?? 0).toLocaleString()}</td>
+                      <td className="px-4 py-4 text-sm font-black text-gray-900 font-mono">${(eq.totalAmount ?? 0).toLocaleString()}</td>
+                      <td className="px-4 py-4 text-sm text-gray-400">{eq.overTime ?? 0}h</td>
+                      <td className="px-4 py-4">
+                        <span className={`px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest shadow-sm ${eq.condition === 'New' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                          }`}>
+                          {eq.condition || "-"}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4">
+                        <span className={`px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest shadow-sm ${eq.owner === 'Raycon' ? 'bg-indigo-100 text-indigo-800' : 'bg-gray-100 text-gray-700'
+                          }`}>
+                          {eq.owner || "-"}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4 text-sm text-gray-500 font-medium">
+                        {eq.startingDate && eq.dueDate ? `${getDuration(eq.startingDate, eq.dueDate)}d` : "-"}
+                      </td>
+                      <td className="px-4 py-4 text-sm text-gray-400 italic">
+                        {eq.startingDate ? format(eq.startingDate) : "-"}
+                      </td>
+                      <td className="px-4 py-4 text-sm text-gray-400 italic">
+                        {eq.dueDate ? format(eq.dueDate) : "-"}
+                      </td>
+                      <td className="px-4 py-4">
+                        <span className={`px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest shadow-sm ${isAvailable ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"
+                          }`}>
+                          {eq.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4 text-sm whitespace-nowrap">
+                        <Menu as="div" className="relative inline-block text-left">
+                          <MenuButton className="flex items-center gap-1 px-3 py-1.5 text-[10px] font-black uppercase bg-cyan-700 text-white rounded-lg hover:bg-cyan-800 transition-all shadow-sm">
+                            Action <ChevronDown className="w-3 h-3" />
+                          </MenuButton>
+                          <MenuItems className="absolute right-0 mt-2 w-48 bg-white border border-gray-100 divide-y divide-gray-50 rounded-xl shadow-xl focus:outline-none z-[9999] py-1 backdrop-blur-sm bg-white/95">
+                            {[
+                              { label: "View Details", href: `/resources/equipment/${eq.id}` },
+                              { label: "Edit Item", action: () => console.log("Edit clicked") },
+                              { label: "Manage Maintenance", action: () => console.log("Manage clicked") },
+                              { label: "Delete", action: () => console.log("Delete clicked"), color: "text-rose-600" }
+                            ].map((item) => (
+                              <MenuItem key={item.label}>
+                                {({ active }) => (
+                                  item.href ? (
+                                    <Link
+                                      href={item.href}
+                                      className={`block w-full px-4 py-2 text-left text-xs font-bold text-gray-700 ${active ? "bg-gray-50 text-cyan-700" : ""
+                                        }`}
+                                    >
+                                      {item.label}
+                                    </Link>
+                                  ) : (
+                                    <button
+                                      className={`block w-full px-4 py-2 text-left text-xs font-bold ${item.color || 'text-gray-700'} ${active ? "bg-gray-50 text-cyan-700" : ""
+                                        }`}
+                                      onClick={item.action}
+                                    >
+                                      {item.label}
+                                    </button>
+                                  )
+                                )}
+                              </MenuItem>
+                            ))}
+                          </MenuItems>
+                        </Menu>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Form Modal */}
+      {showForm && canCreate && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+          <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity" onClick={() => setShowForm(false)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-100">
+              <h3 className="text-lg sm:text-xl font-black text-cyan-800 uppercase tracking-tight">Add New Equipment</h3>
+              <button onClick={() => setShowForm(false)} className="text-gray-400 hover:text-gray-600 p-2 rounded-lg hover:bg-gray-50 transition-colors">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+              <EquipmentForm siteId={siteId as string} onClose={() => setShowForm(false)} />
+            </div>
+          </div>
         </div>
       )}
     </div>

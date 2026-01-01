@@ -11,11 +11,11 @@ interface CardProps {
 
 const Card: React.FC<CardProps> = ({ title, count, link, Icon, color }) => {
   return (
-    <div className="w-full sm:w-1/2 md:w-1/4 px-2 mb-3">
+    <div className="w-full px-2 mb-4">
       <div className="bg-white p-[22px] rounded-lg shadow-md">
         <div className="flex justify-between items-center mb-4">
           <div className={`text-${color}`}>
-            <Icon size={35} /> 
+            <Icon size={35} />
           </div>
         </div>
         <span className="block text-sm font-semibold text-gray-600">{title}</span>

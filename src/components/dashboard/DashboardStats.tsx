@@ -64,49 +64,49 @@ export default function DashboardStats() {
     baseColor: string,
     link: string
   ): StatItem[] => [
-    {
-      label: "Not Started",
-      value: getCountByStatus(items, "Not Started"),
-      icon,
-      iconColor: "#f87171",
-      link,
-    },
-    {
-      label: "Started",
-      value: getCountByStatus(items, "Started"),
-      icon,
-      iconColor: "#facc15",
-      link,
-    },
-    {
-      label: "In Progress",
-      value: getCountByStatus(items, "InProgress"),
-      icon,
-      iconColor: "#3b82f6",
-      link,
-    },
-    {
-      label: "On Hold",
-      value: getCountByStatus(items, "Onhold"),
-      icon,
-      iconColor: "#f59e0b",
-      link,
-    },
-    {
-      label: "Canceled",
-      value: getCountByStatus(items, "Canceled"),
-      icon,
-      iconColor: "#ef4444",
-      link,
-    },
-    {
-      label: "Completed",
-      value: getCountByStatus(items, "Completed"),
-      icon,
-      iconColor: "#10b981",
-      link,
-    },
-  ];
+      {
+        label: "Not Started",
+        value: getCountByStatus(items, "Not Started"),
+        icon,
+        iconColor: "#f87171",
+        link,
+      },
+      {
+        label: "Started",
+        value: getCountByStatus(items, "Started"),
+        icon,
+        iconColor: "#facc15",
+        link,
+      },
+      {
+        label: "In Progress",
+        value: getCountByStatus(items, "InProgress"),
+        icon,
+        iconColor: "#3b82f6",
+        link,
+      },
+      {
+        label: "On Hold",
+        value: getCountByStatus(items, "Onhold"),
+        icon,
+        iconColor: "#f59e0b",
+        link,
+      },
+      {
+        label: "Canceled",
+        value: getCountByStatus(items, "Canceled"),
+        icon,
+        iconColor: "#ef4444",
+        link,
+      },
+      {
+        label: "Completed",
+        value: getCountByStatus(items, "Completed"),
+        icon,
+        iconColor: "#10b981",
+        link,
+      },
+    ];
 
   const projectStats = generateStats(
     projects,
@@ -128,9 +128,9 @@ export default function DashboardStats() {
   );
 
   return (
-    <div>
+    <div className="space-y-8">
       {/* Summary Cards */}
-      <div className="flex flex-wrap -mx-2 mt-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 -mx-2 mt-4">
         <Card
           title="Total Projects"
           count={isLoadingProjects ? 0 : totalProjects}
@@ -165,13 +165,14 @@ export default function DashboardStats() {
         <TodosStats />
       </div>
 
-      <div className="mb-4 mt-6">
-        <h2 className="text-4xl text-center font-bold text-cyan-800">
+      <div className="text-center space-y-2">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-cyan-800">
           Project Statistics
         </h2>
+        <div className="w-24 h-1 bg-cyan-600 mx-auto rounded-full" />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 mb-12">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mt-6 mb-12">
         <StatsCard
           title="Project Statistics"
           items={projectStats}
@@ -188,7 +189,7 @@ export default function DashboardStats() {
           total={totalActivities}
         />
       </div>
-      
+
     </div>
   );
 }

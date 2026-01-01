@@ -181,126 +181,123 @@ const TodosPage = () => {
   ];
 
   return (
-    <div className="max-w-7xl mx-auto p-2 md:p-4 lg:p-6 bg-white shadow-lg rounded-lg mt-6">
+    <div className="p-4 sm:p-6 bg-white min-h-screen">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8 bg-gray-50 p-4 rounded-xl border border-gray-100">
+        <h1 className="text-xl sm:text-2xl font-black text-cyan-800 uppercase tracking-tight">
+          Todos
+        </h1>
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <button
+            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold text-gray-600 bg-white border border-gray-200 rounded-lg hover:border-cyan-200 hover:text-cyan-700 transition-all shadow-sm"
+            onClick={() => setIsListView((prev) => !prev)}
+          >
+            {isListView ? <Grid width={16} height={16} /> : <List width={16} height={16} />}
+            <span>{isListView ? "Grid View" : "List View"}</span>
+          </button>
+          <button
+            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold text-white bg-cyan-700 rounded-lg hover:bg-cyan-800 transition-colors shadow-sm"
+            onClick={() => setShowForm(true)}
+          >
+            <PlusIcon width={16} height={16} />
+            <span>New Todo</span>
+          </button>
+        </div>
+      </div>
+
       {/* Status Summary */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-10">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
         {[
-          { label: "Total", value: total },
-          { label: "Not Started", value: notStartedCount },
-          { label: "In Progress", value: inProgressCount },
-          { label: "Pending", value: pendingCount },
-          { label: "Completed", value: completedCount },
+          { label: "Total", value: total, color: "text-cyan-600", bg: "bg-cyan-50" },
+          { label: "Not Started", value: notStartedCount, color: "text-gray-600", bg: "bg-gray-50" },
+          { label: "In Progress", value: inProgressCount, color: "text-amber-600", bg: "bg-amber-50" },
+          { label: "Pending", value: pendingCount, color: "text-rose-600", bg: "bg-rose-50" },
+          { label: "Completed", value: completedCount, color: "text-emerald-600", bg: "bg-emerald-50" },
         ].map((item) => (
           <div
             key={item.label}
-            className="flex flex-col items-center font-semibold bg-white p-4 rounded-lg shadow-md text-center"
+            className={`flex flex-col items-center justify-center p-4 rounded-xl border border-gray-100 shadow-sm ${item.bg}`}
           >
-            <h2 className="text-sm sm:text-base">{item.label}</h2>
-            <span className="text-cyan-700 text-lg sm:text-xl font-bold">
+            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">{item.label}</p>
+            <span className={`text-2xl font-black ${item.color}`}>
               {item.value}
             </span>
           </div>
         ))}
       </div>
 
-      {/* Top Actions */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6">
-        <div className="flex gap-2 sm:gap-4 w-full sm:w-auto">
-          <button
-            className="flex-1 sm:flex-none bg-cyan-700 hover:bg-cyan-800 text-white font-bold py-2 px-3 rounded text-sm"
-            onClick={() => setIsListView((prev) => !prev)}
-          >
-            {isListView ? (
-              <Grid width={15} height={12} />
-            ) : (
-              <List width={15} height={12} />
-            )}
-          </button>
-          <button
-            className="flex-1 sm:flex-none bg-cyan-700 hover:bg-cyan-800 text-white font-bold py-2 px-3 rounded text-sm"
-            onClick={() => setShowForm(true)}
-          >
-            <PlusIcon width={15} height={12} />
-          </button>
-        </div>
-        <div className="w-full sm:w-auto">
-          <GenericDownloads
-            data={filteredTodos}
-            title="Todos_List"
-            columns={columns}
-          />
-        </div>
-      </div>
-
-      {/* Filters + Date Pickers */}
-      <div className="flex flex-col lg:flex-row justify-between gap-4 mb-6 items-start">
-        {/* Customize Columns Button */}
-        <div ref={menuRef} className="relative w-full lg:w-auto shrink-0">
-          <button
-            onClick={() => setShowColumnMenu((prev) => !prev)}
-            className="flex items-center justify-center gap-1 px-4 py-2 text-sm bg-cyan-700 text-white rounded hover:bg-cyan-800 w-full lg:w-auto whitespace-nowrap"
-          >
-            Customize Columns <ChevronDown className="w-4 h-4" />
-          </button>
-          {showColumnMenu && (
-            <div className="absolute left-0 mt-1 w-48 bg-white border rounded shadow-lg z-10">
-              {Object.entries(columnOptions).map(([key, label]) => (
-                <label
-                  key={key}
-                  className="flex items-center w-full px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedColumns.includes(key)}
-                    onChange={() => toggleColumn(key)}
-                    className="mr-2"
-                  />
-                  {label || <span>&nbsp;</span>}
-                </label>
-              ))}
+      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-8 flex flex-col gap-6">
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+            <div ref={menuRef} className="relative w-full lg:w-auto">
+              <button
+                onClick={() => setShowColumnMenu((prev) => !prev)}
+                className="w-full lg:w-auto flex items-center justify-center gap-2 px-4 py-2 text-[10px] font-black uppercase tracking-widest bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-all shadow-sm"
+              >
+                Customize Columns <ChevronDown className="w-4 h-4" />
+              </button>
+              {showColumnMenu && (
+                <div className="absolute left-0 mt-2 w-56 bg-white border border-gray-100 rounded-xl shadow-2xl z-50 py-2 max-h-[60vh] overflow-y-auto backdrop-blur-sm bg-white/95">
+                  <div className="px-4 py-2 border-b border-gray-50 mb-1">
+                    <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest">Select Columns</p>
+                  </div>
+                  {Object.entries(columnOptions).map(([key, label]) => (
+                    <label
+                      key={key}
+                      className="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer transition-colors group"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedColumns.includes(key)}
+                        onChange={() => toggleColumn(key)}
+                        className="w-4 h-4 rounded border-gray-300 text-cyan-600 focus:ring-cyan-500 mr-3"
+                      />
+                      <span className="text-sm font-bold text-gray-600 group-hover:text-gray-900">{label}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
             </div>
-          )}
+            <GenericDownloads
+              data={filteredTodos}
+              title="Todos_List"
+              columns={columns}
+            />
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center gap-2 w-full lg:w-auto">
+            <div className="relative w-full sm:w-auto">
+              <DatePicker
+                selected={fromDate}
+                onChange={setFromDate}
+                placeholderText="From Due Date"
+                className="w-full sm:w-40 rounded-lg border border-gray-200 p-2 text-xs font-bold text-gray-600 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 outline-none shadow-sm transition-all"
+                dateFormat="yyyy-MM-dd"
+              />
+            </div>
+            <div className="relative w-full sm:w-auto">
+              <DatePicker
+                selected={toDate}
+                onChange={setToDate}
+                placeholderText="To Due Date"
+                className="w-full sm:w-40 rounded-lg border border-gray-200 p-2 text-xs font-bold text-gray-600 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 outline-none shadow-sm transition-all"
+                dateFormat="yyyy-MM-dd"
+              />
+            </div>
+          </div>
         </div>
 
-        {/* Filters + Date Pickers */}
-        <div className="flex flex-col sm:flex-row flex-wrap gap-2 w-full lg:w-auto">
-          <div className="flex-1 min-w-[200px]">
-            <GenericFilter
-              fields={filterFields}
-              onFilterChange={setFilterValues}
-            />
-          </div>
-
-          <div className="flex flex-col sm:flex-row gap-2 flex-wrap">
-            <DatePicker
-              selected={fromDate}
-              onChange={setFromDate}
-              placeholderText="From Date"
-              className="rounded border border-gray-300 p-2 focus:outline-none focus:border-blue-500 w-full sm:w-auto"
-              dateFormat="yyyy-MM-dd"
-            />
-            <DatePicker
-              selected={toDate}
-              onChange={setToDate}
-              placeholderText="To Date"
-              className="rounded border border-gray-300 p-2 focus:outline-none focus:border-blue-500 w-full sm:w-auto"
-              dateFormat="yyyy-MM-dd"
-            />
-          </div>
+        <div className="pt-6 border-t border-gray-100">
+          <GenericFilter fields={filterFields} onFilterChange={setFilterValues} />
         </div>
       </div>
 
       {showForm && (
-        <div className="modal-overlay">
-          <div className="modal-content">
+        <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             <TodoForm onClose={() => setShowForm(false)} />
           </div>
         </div>
       )}
-
-      <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-cyan-800 mb-4">
-        Todos
-      </h1>
 
       {isListView ? (
         <TodosTable

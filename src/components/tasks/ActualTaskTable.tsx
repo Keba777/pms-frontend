@@ -483,44 +483,54 @@ const ActualTaskTable: React.FC = () => {
 
   return (
     <div>
-      <div className="mb-5 flex items-center justify-between">
-        <div ref={menuRef} className="relative">
-          <button
-            onClick={() => setShowColumnMenu((prev) => !prev)}
-            className="flex items-center gap-1 px-3 py-2 text-sm bg-emerald-600 text-white rounded hover:bg-emerald-700"
-          >
-            Customize Columns <ChevronDown className="w-4 h-4" />
-          </button>
-          {showColumnMenu && (
-            <div className="absolute right-0 mt-1 w-56 bg-white border rounded shadow-lg z-10">
-              {Object.entries(columnOptions).map(([key, label]) => (
-                <label key={key} className="flex items-center w-full px-3 py-2 hover:bg-gray-100 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={selectedColumns.includes(key)}
-                    onChange={() =>
-                      setSelectedColumns((prev) =>
-                        prev.includes(key) ? prev.filter((c) => c !== key) : [...prev, key]
-                      )
-                    }
-                    className="mr-2"
-                  />
-                  {label || <span>&nbsp;</span>}
-                </label>
-              ))}
-            </div>
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+          <div ref={menuRef} className="relative w-full sm:w-auto">
+            <button
+              onClick={() => setShowColumnMenu((prev) => !prev)}
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 text-sm bg-cyan-700 text-white rounded hover:bg-cyan-800 transition-colors shadow-sm font-medium"
+            >
+              Customize Columns <ChevronDown className="w-4 h-4" />
+            </button>
+            {showColumnMenu && (
+              <div className="absolute left-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-xl z-20 py-2">
+                <div className="px-4 py-2 border-b border-gray-100 mb-1">
+                  <span className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">Visible Columns</span>
+                </div>
+                {Object.entries(columnOptions).map(([key, label]) => (
+                  <label
+                    key={key}
+                    className="flex items-center w-full px-4 py-2 hover:bg-gray-50 cursor-pointer transition-colors"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedColumns.includes(key)}
+                      onChange={() =>
+                        setSelectedColumns((prev) =>
+                          prev.includes(key) ? prev.filter((c) => c !== key) : [...prev, key]
+                        )
+                      }
+                      className="w-4 h-4 rounded border-gray-300 text-cyan-600 focus:ring-cyan-500 mr-3"
+                    />
+                    <span className="text-sm text-gray-700 font-medium">{label}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+          {dirtyRows.size > 0 && (
+            <button
+              onClick={handleSave}
+              disabled={isSaving}
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 shadow-md transition-all font-semibold"
+            >
+              {isSaving ? "Saving..." : "Save Changes"}
+            </button>
           )}
         </div>
-        {dirtyRows.size > 0 && (
-          <button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="flex items-center gap-1 px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
-          >
-            {isSaving ? "Saving..." : "Save Changes"}
-          </button>
-        )}
-        <SearchInput placeholder="Search tasks..." value={search} onChange={setSearch} />
+        <div className="w-full sm:w-auto">
+          <SearchInput placeholder="Search tasks..." value={search} onChange={setSearch} />
+        </div>
       </div>
 
       <div className="ag-theme-alpine custom-grid" style={{ width: "100%" }}>

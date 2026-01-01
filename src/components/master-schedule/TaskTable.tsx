@@ -330,54 +330,67 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
           }
         `}
       </style>
-      <div>
-        <div className="flex justify-end mb-4">
-          <GenericImport<CreateTaskInput>
-            expectedColumns={importColumns}
-            requiredAccessors={requiredAccessors}
-            onImport={handleTaskImport}
-            title="Tasks"
-            onError={handleError}
-          />
-        </div>
-        <GenericDownloads
-          data={filteredTasks}
-          title="Tasks"
-          columns={downloadColumns}
-        />
-      </div>
-
-      <div className="flex items-center justify-between">
-        <div ref={menuRef} className="relative">
+      <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+            <GenericImport<CreateTaskInput>
+              expectedColumns={importColumns}
+              requiredAccessors={requiredAccessors}
+              onImport={handleTaskImport}
+              title="Tasks"
+              onError={handleError}
+            />
+            <GenericDownloads
+              data={filteredTasks}
+              title="Tasks"
+              columns={downloadColumns}
+            />
+          </div>
           <button
-            onClick={() => setShowColumnMenu((v) => !v)}
-            className="flex items-center gap-1 px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 text-sm"
+            onClick={() => setShowCreateForm(true)}
+            className="w-full sm:w-auto px-6 py-2.5 bg-cyan-700 text-white rounded-lg hover:bg-cyan-800 transition-all font-black uppercase text-xs tracking-widest shadow-sm"
           >
-            Customize Columns <ChevronDown className="w-4 h-4" />
+            Create Task
           </button>
-          {showColumnMenu && (
-            <div className="absolute right-0 mt-1 w-48 bg-white border rounded shadow z-10">
-              {Object.entries(columnOptions).map(([key, label]) => (
-                <label
-                  key={key}
-                  className="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedColumns.includes(key)}
-                    onChange={() => toggleColumn(key)}
-                    className="mr-2"
-                  />
-                  {label}
-                </label>
-              ))}
-            </div>
-          )}
         </div>
-        <GenericFilter
-          fields={filterFields}
-          onFilterChange={(values) => setFilters(values as TaskFilters)}
-        />
+
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-4 pt-4 border-t border-gray-100">
+          <div ref={menuRef} className="relative w-full lg:w-auto">
+            <button
+              onClick={() => setShowColumnMenu((v) => !v)}
+              className="w-full lg:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-700 text-white rounded-lg hover:bg-emerald-800 transition-colors shadow-sm font-bold text-sm"
+            >
+              Customize Columns <ChevronDown className="w-4 h-4" />
+            </button>
+            {showColumnMenu && (
+              <div className="absolute left-0 mt-2 w-56 bg-white border border-gray-200 rounded-xl shadow-xl z-50 py-2">
+                <div className="px-4 py-2 border-b border-gray-100 mb-1">
+                  <span className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">Visible Columns</span>
+                </div>
+                {Object.entries(columnOptions).map(([key, label]) => (
+                  <label
+                    key={key}
+                    className="flex items-center w-full px-4 py-2 hover:bg-gray-50 cursor-pointer transition-colors"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedColumns.includes(key)}
+                      onChange={() => toggleColumn(key)}
+                      className="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 mr-3"
+                    />
+                    <span className="text-sm text-gray-700 font-bold">{label}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+          <div className="w-full lg:w-auto">
+            <GenericFilter
+              fields={filterFields}
+              onFilterChange={(values) => setFilters(values as TaskFilters)}
+            />
+          </div>
+        </div>
       </div>
 
       {/* Modals */}
@@ -413,17 +426,9 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
       )}
 
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold text-gray-800">
-          {projectId ? "Project Tasks" : "All Tasks"}
-        </h2>
-        <button
-          onClick={() => setShowCreateForm(true)}
-          className="px-4 py-2 bg-teal-700 text-white rounded hover:bg-teal-800"
-        >
-          Create Task
-        </button>
-      </div>
+      <h2 className="text-xl sm:text-2xl font-black text-gray-800 mb-6 mt-10 border-b border-gray-100 pb-4">
+        {projectId ? "Project Tasks" : "All Tasks"}
+      </h2>
 
       {/* Table */}
       <div className="overflow-x-auto">

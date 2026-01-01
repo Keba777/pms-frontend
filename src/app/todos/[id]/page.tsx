@@ -93,96 +93,81 @@ export default function TodoPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
-      {/* Back + Refresh */}
-      <div className="mb-4 flex items-center justify-between gap-4">
-        <div>
-          <Button
-            variant="outline"
+    <div className="p-4 sm:p-6 bg-white min-h-screen">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8 bg-gray-50 p-4 rounded-xl border border-gray-100">
+        <div className="flex items-center gap-4">
+          <button
             onClick={() => router.push("/todos")}
-            className="gap-2"
+            className="p-2 hover:bg-white rounded-lg transition-colors border border-transparent hover:border-gray-200 text-gray-400 hover:text-cyan-700 shadow-sm hover:shadow-md"
           >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Todos
-          </Button>
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <div>
+            <h1 className="text-xl sm:text-2xl font-black text-cyan-800 uppercase tracking-tight">
+              Todo Details
+            </h1>
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5 mt-0.5">
+              <RefreshCw className="w-3 h-3 hover:rotate-180 transition-transform cursor-pointer" onClick={() => router.refresh()} />
+              Status: {todo.status}
+            </p>
+          </div>
         </div>
-        <div>
-          <Button
-            variant="ghost"
-            onClick={() => router.refresh()}
-            className="gap-2"
-            title="Refresh"
-          >
-            <RefreshCw className="h-4 w-4" />
-            Refresh
-          </Button>
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <Badge className={`w-full sm:w-auto flex justify-center py-1.5 text-[10px] font-black uppercase tracking-widest ${todo.priority === 'High' || todo.priority === 'Urgent' ? 'bg-rose-100 text-rose-800' :
+              todo.priority === 'Medium' ? 'bg-amber-100 text-amber-800' :
+                'bg-emerald-100 text-emerald-800'
+            }`}>
+            {todo.priority} Priority
+          </Badge>
+          {todo.type && (
+            <Badge variant="outline" className="w-full sm:w-auto flex justify-center py-1.5 text-[10px] font-black uppercase tracking-widest border-cyan-200 text-cyan-700">
+              {todo.type}
+            </Badge>
+          )}
         </div>
       </div>
 
-      {/* Top Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left: Main info */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="text-2xl">{todo.task}</CardTitle>
-            <div className="flex flex-wrap gap-2 pt-2">
-              <Badge variant="default">{todo.status}</Badge>
-              <Badge variant="secondary">Priority: {todo.priority}</Badge>
-              {todo.type && <Badge variant="outline">Type: {todo.type}</Badge>}
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
+        <div className="lg:col-span-2 space-y-6">
+          <section className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+            <h2 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+              <Paperclip className="w-4 h-4 text-cyan-600" />
+              Task Description
+            </h2>
+            <h3 className="text-lg font-bold text-gray-800 mb-4">{todo.task}</h3>
             {todo.remark && (
-              <p className="text-sm text-muted-foreground">{todo.remark}</p>
+              <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                <p className="text-sm text-gray-600 italic whitespace-pre-wrap leading-relaxed">
+                  {todo.remark}
+                </p>
+              </div>
             )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              <InfoChip
-                label="Given Date"
-                value={new Date(todo.givenDate).toLocaleDateString()}
-              />
-              <InfoChip
-                label="Due Date"
-                value={new Date(todo.dueDate).toLocaleDateString()}
-              />
-              <InfoChip
-                label="Target"
-                value={new Date(todo.target).toLocaleDateString()}
-              />
-              <InfoChip
-                label="Department"
-                value={todo.department?.name ?? "N/A"}
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
+              <InfoChip label="Given Date" value={new Date(todo.givenDate).toLocaleDateString()} />
+              <InfoChip label="Due Date" value={new Date(todo.dueDate).toLocaleDateString()} />
+              <InfoChip label="Target" value={new Date(todo.target).toLocaleDateString()} />
+              <InfoChip label="Department" value={todo.department?.name ?? "N/A"} />
               <InfoChip label="KPI" value={todo.kpi?.score?.toString() ?? "N/A"} />
-              {todo.createdAt && (
-                <InfoChip
-                  label="Created"
-                  value={new Date(todo.createdAt).toLocaleDateString()}
-                />
-              )}
-              {todo.updatedAt && (
-                <InfoChip
-                  label="Updated"
-                  value={new Date(todo.updatedAt).toLocaleDateString()}
-                />
-              )}
+              <InfoChip label="Created At" value={new Date(todo.createdAt!).toLocaleDateString()} />
             </div>
 
-            {/* Overall progress */}
-            <div className="pt-2">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium">Overall Progress</span>
-                <span className="text-sm text-muted-foreground">
-                  {latestProgress}%
-                </span>
+            <div className="mt-8">
+              <div className="flex items-center justify-between mb-3 text-[10px] font-black uppercase tracking-widest">
+                <span className="text-gray-400">Task Completion</span>
+                <span className="text-cyan-700">{latestProgress}%</span>
               </div>
-              <Progress value={Number(latestProgress || 0)} />
+              <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-cyan-600 rounded-full transition-all duration-500 ease-out"
+                  style={{ width: `${latestProgress}%` }}
+                />
+              </div>
             </div>
 
-            {/* Attachments on todo */}
             {todo.attachment && todo.attachment.length > 0 && (
-              <div className="pt-4">
-                <h4 className="text-sm font-semibold mb-2">Todo Attachments</h4>
+              <div className="mt-8 pt-8 border-t border-gray-50">
+                <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Attachments</h4>
                 <div className="flex flex-wrap gap-2">
                   {todo.attachment.map((url, i) => (
                     <a
@@ -190,59 +175,86 @@ export default function TodoPage() {
                       href={url}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md border hover:bg-accent text-sm"
+                      className="group flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-50 border border-gray-100 hover:border-cyan-200 hover:bg-cyan-50 transition-all text-xs font-bold text-gray-600 hover:text-cyan-700 shadow-sm"
                     >
-                      <Paperclip className="h-4 w-4" />
-                      {url.split("/").pop()}
+                      <Paperclip className="h-3.5 w-3.5 text-gray-400 group-hover:text-cyan-500" />
+                      <span className="truncate max-w-[150px]">{url.split("/").pop()}</span>
                     </a>
                   ))}
                 </div>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </section>
 
-        {/* Right: Add progress form */}
-        <div className="space-y-4">
-          <CreateTodoProgressForm
-            todoId={todoId}
-            // keep onClose for backwards compatibility
-            onClose={() => {
-              // fallback behavior: refresh after close
-              router.refresh();
-            }}
-            // optional: if the form supports returning the created progress object,
-            // it should call onAdded(createdProgress) so we can append it locally.
-            onAdded={(created?: TodoProgress) => {
-              return handleNewProgressAdded(created);
-            }}
-          />
-
-          {/* Assigned people */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">People</CardTitle>
+          <Card className="rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <CardHeader className="bg-gray-50 border-b border-gray-100 py-4">
+              <CardTitle className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                <RefreshCw className="w-4 h-4 text-cyan-600" />
+                Progress Timeline
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <div>
-                <div className="text-xs text-muted-foreground mb-1">
-                  Assigned By
+            <CardContent className="p-6">
+              {sortedUpdates.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                  <RefreshCw className="w-8 h-8 text-gray-300 mb-2 animate-pulse" />
+                  <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">No progress updates yet</p>
                 </div>
+              ) : (
+                <ScrollArea className="max-h-[60vh]">
+                  <ul className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-cyan-500 before:via-cyan-200 before:to-transparent">
+                    {sortedUpdates.map((p, idx) => (
+                      <TimelineItem
+                        key={p.id ?? idx}
+                        index={idx + 1}
+                        progress={p.progress}
+                        remark={p.remark}
+                        createdAt={p.createdAt}
+                        attachments={p.attachment}
+                        isLast={idx === sortedUpdates.length - 1}
+                      />
+                    ))}
+                  </ul>
+                </ScrollArea>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="space-y-6">
+          <section className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
+            <div className="bg-gray-50 border-b border-gray-100 px-6 py-4">
+              <h2 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                <RefreshCw className="w-4 h-4 text-cyan-600" />
+                Update Progress
+              </h2>
+            </div>
+            <div className="p-6 bg-gradient-to-br from-white to-gray-50">
+              <CreateTodoProgressForm
+                todoId={todoId}
+                onClose={() => router.refresh()}
+                onAdded={(created?: TodoProgress) => handleNewProgressAdded(created)}
+              />
+            </div>
+          </section>
+
+          <section className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
+            <div className="bg-gray-50 border-b border-gray-100 px-6 py-4">
+              <h2 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                <RefreshCw className="w-4 h-4 text-cyan-600" />
+                Stakeholders
+              </h2>
+            </div>
+            <CardContent className="p-6 space-y-6">
+              <div className="space-y-3">
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Assigned By</p>
                 <PersonRow
-                  name={
-                    todo.assignedBy
-                      ? `${todo.assignedBy.first_name} ${todo.assignedBy.last_name ?? ""
-                      }`
-                      : "N/A"
-                  }
+                  name={todo.assignedBy ? `${todo.assignedBy.first_name} ${todo.assignedBy.last_name ?? ""}` : "N/A"}
                   avatar={todo.assignedBy?.profile_picture}
                 />
               </div>
-              <Separator />
-              <div>
-                <div className="text-xs text-muted-foreground mb-1">
-                  Assigned To
-                </div>
+              <Separator className="bg-gray-100" />
+              <div className="space-y-3">
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Assigned To</p>
                 <div className="flex flex-wrap gap-2">
                   {(todo.assignedUsers ?? []).length ? (
                     todo.assignedUsers!.map((u) => (
@@ -254,46 +266,14 @@ export default function TodoPage() {
                       />
                     ))
                   ) : (
-                    <span className="text-sm text-muted-foreground">N/A</span>
+                    <span className="text-sm font-bold text-gray-400 italic">No users assigned</span>
                   )}
                 </div>
               </div>
             </CardContent>
-          </Card>
+          </section>
         </div>
       </div>
-
-      {/* Timeline */}
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle className="text-xl">Progress Updates</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {sortedUpdates.length === 0 ? (
-            <div className="text-sm text-muted-foreground">
-              No progress updates yet.
-            </div>
-          ) : (
-            <ScrollArea className="max-h-[60vh] pr-4">
-              <ul className="relative pl-4">
-                {/* vertical line */}
-                <div className="absolute left-1 top-0 bottom-0 w-[2px] bg-border" />
-                {sortedUpdates.map((p, idx) => (
-                  <TimelineItem
-                    key={p.id ?? idx}
-                    index={idx + 1}
-                    progress={p.progress}
-                    remark={p.remark}
-                    createdAt={p.createdAt}
-                    attachments={p.attachment}
-                    isLast={idx === sortedUpdates.length - 1}
-                  />
-                ))}
-              </ul>
-            </ScrollArea>
-          )}
-        </CardContent>
-      </Card>
     </div>
   );
 }
@@ -302,9 +282,9 @@ export default function TodoPage() {
 
 function InfoChip({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-md border p-3">
-      <div className="text-xs text-muted-foreground">{label}</div>
-      <div className="text-sm font-medium">{value}</div>
+    <div className="rounded-xl border border-gray-100 p-4 bg-gray-50/50 shadow-sm hover:shadow-md transition-shadow">
+      <div className="text-[10px] font-black uppercase text-gray-400 tracking-widest mb-1">{label}</div>
+      <div className="text-xs font-bold text-gray-700">{value}</div>
     </div>
   );
 }
@@ -320,14 +300,16 @@ function PersonRow({
 }) {
   return (
     <div
-      className={`inline-flex items-center gap-2 ${compact ? "border px-2 py-1 rounded-md" : ""
+      className={`inline-flex items-center gap-3 transition-all ${compact ? "px-3 py-1.5 rounded-xl bg-gray-50 border border-gray-100 hover:border-cyan-200 hover:bg-cyan-50 shadow-sm" : ""
         }`}
     >
-      <Avatar className="h-8 w-8">
+      <Avatar className="h-9 w-9 border-2 border-white shadow-sm">
         <AvatarImage src={avatar} />
-        <AvatarFallback>{name?.slice(0, 2).toUpperCase()}</AvatarFallback>
+        <AvatarFallback className="bg-cyan-100 text-cyan-700 font-bold text-xs">
+          {name?.slice(0, 2).toUpperCase()}
+        </AvatarFallback>
       </Avatar>
-      <span className="text-sm">{name}</span>
+      <span className="text-sm font-bold text-gray-700 truncate max-w-[120px]">{name}</span>
     </div>
   );
 }
@@ -356,57 +338,62 @@ function TimelineItem({
 }) {
   const dateStr = new Date(createdAt).toLocaleString();
   return (
-    <li className="relative pl-6 pb-6">
-      {/* dot */}
-      <div className="absolute -left-[7px] mt-1 h-3.5 w-3.5 rounded-full bg-primary ring-4 ring-background" />
-      {/* connector extension (optional) */}
-      {!isLast && (
-        <div className="absolute left-[2px] top-6 bottom-0 w-[2px] bg-border" />
-      )}
-
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-        <div className="flex items-center gap-3">
-          <Badge variant="default">Step {index}</Badge>
-          <span className="text-sm text-muted-foreground">{dateStr}</span>
-        </div>
-        <div className="text-sm font-medium">Progress: {progress}%</div>
+    <li className="relative pl-12 pb-10 last:pb-0">
+      <div className="absolute left-0 mt-1.5 h-10 w-10 rounded-xl bg-white border-2 border-cyan-500 flex items-center justify-center z-10 shadow-sm">
+        <span className="text-[10px] font-black text-cyan-700">{index}</span>
       </div>
 
-      {remark && <p className="mt-2 text-sm">{remark}</p>}
-
-      {/* per-update attachments */}
-      {attachments && attachments.length > 0 && (
-        <div className="mt-2 flex flex-wrap gap-2">
-          {attachments.map((url, i) => (
-            <a
-              key={i}
-              href={url}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1 px-2 py-1 border rounded-md text-sm hover:bg-accent"
-            >
-              <Paperclip className="h-4 w-4" />
-              {url.split("/").pop()}
-            </a>
-          ))}
+      <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+        <div className="absolute top-0 right-0 p-3">
+          <Badge className="bg-cyan-50 text-cyan-700 border-cyan-100 text-[10px] font-black uppercase tracking-widest">
+            {progress}%
+          </Badge>
         </div>
-      )}
 
-      {/* author row */}
-      {author && (
-        <div className="mt-3 flex items-center gap-2">
-          <Avatar className="h-6 w-6">
-            <AvatarImage src={author.avatar} />
-            <AvatarFallback>
-              {`${author.first_name?.[0] ?? ""}${author.last_name?.[0] ?? ""
-                }`.toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-          <span className="text-xs text-muted-foreground">
-            by {author.first_name} {author.last_name ?? ""}
-          </span>
+        <div className="flex flex-col gap-1 mb-3">
+          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Update Added</p>
+          <p className="text-xs font-bold text-gray-600 italic">{dateStr}</p>
         </div>
-      )}
+
+        {remark && (
+          <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 mb-4">
+            <p className="text-sm text-gray-700 leading-relaxed italic">
+              {remark}
+            </p>
+          </div>
+        )}
+
+        {attachments && attachments.length > 0 && (
+          <div className="mt-4 flex flex-wrap gap-2">
+            {attachments.map((url, i) => (
+              <a
+                key={i}
+                href={url}
+                target="_blank"
+                rel="noreferrer"
+                className="group/file flex items-center gap-2 px-3 py-1.5 rounded-xl border border-gray-100 bg-white hover:bg-cyan-50 hover:border-cyan-200 transition-all text-[10px] font-bold text-gray-600 hover:text-cyan-700 shadow-sm"
+              >
+                <Paperclip className="h-3 w-3 text-gray-400 group-hover/file:text-cyan-500" />
+                <span>{url.split("/").pop()}</span>
+              </a>
+            ))}
+          </div>
+        )}
+
+        {author && (
+          <div className="mt-4 pt-4 border-t border-gray-50 flex items-center gap-2">
+            <Avatar className="h-6 w-6">
+              <AvatarImage src={author.avatar} />
+              <AvatarFallback className="bg-cyan-50 text-cyan-700 text-[10px] uppercase">
+                {`${author.first_name?.[0] ?? ""}${author.last_name?.[0] ?? ""}`.toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+              By {author.first_name} {author.last_name ?? ""}
+            </span>
+          </div>
+        )}
+      </div>
     </li>
   );
 }

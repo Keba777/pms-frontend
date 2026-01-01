@@ -83,95 +83,167 @@ const DispatchDetailsPage = () => {
   };
 
   return (
-    <div className="container mx-auto p-4 max-w-4xl">
-      <Button
-        variant="ghost"
-        className="mb-4 text-cyan-700 hover:text-cyan-800 flex items-center gap-2"
-        onClick={() => router.back()}
-      >
-        <ArrowLeft className="h-4 w-4" /> Back to Dispatches
-      </Button>
+    <div className="p-4 sm:p-6 bg-white min-h-screen">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8 bg-gray-50 p-4 rounded-xl border border-gray-100">
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => router.back()}
+            className="p-2 hover:bg-white rounded-lg transition-colors border border-transparent hover:border-gray-200 text-gray-400 hover:text-cyan-700 shadow-sm hover:shadow-md"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <div>
+            <h1 className="text-xl sm:text-2xl font-black text-cyan-800 uppercase tracking-tight">
+              Dispatch Details
+            </h1>
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5 mt-0.5">
+              <Hash className="w-3 h-3" />
+              Reference: {dispatch.refNumber || "N/A"}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <span className={`w-full sm:w-auto text-center px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${dispatch.status === 'Delivered' ? 'bg-emerald-100 text-emerald-800' :
+              dispatch.status === 'Cancelled' ? 'bg-rose-100 text-rose-800' :
+                dispatch.status === 'In Transit' ? 'bg-blue-100 text-blue-800' :
+                  'bg-amber-100 text-amber-800'
+            }`}>
+            {dispatch.status}
+          </span>
+        </div>
+      </div>
 
-      <Card className="shadow-lg border-gray-200 overflow-hidden">
-        <CardHeader className="bg-cyan-700 text-white py-4">
-          <CardTitle className="text-xl sm:text-2xl flex items-center gap-2">
-            <Clipboard className="h-6 w-6" />
-            Dispatch Details - {dispatch.refNumber || "N/A"}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-4 sm:p-6 grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {/* ID and Approval */}
-          <section className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
-            <h3 className="text-base sm:text-lg font-semibold mb-2 text-gray-800 flex items-center gap-2">
-              <Hash className="h-5 w-5 text-cyan-700" />
-              Identification
-            </h3>
-            <div className="space-y-1 sm:space-y-2 text-xs sm:text-sm text-gray-700">
-              <p className="flex items-center gap-1"><span className="font-medium">Activity:</span> {dispatch.approval?.request?.activity?.activity_name || "N/A"}</p>
-              <p className="flex items-center gap-1"><span className="font-medium">Reference Number:</span> {dispatch.refNumber || "N/A"}</p>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
+          <section className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+            <h2 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+              <Truck className="w-4 h-4 text-cyan-600" />
+              Transport Information
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+              <div className="space-y-1">
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Driver Name</p>
+                <p className="text-sm font-bold text-gray-700 flex items-center gap-2">
+                  <User className="w-4 h-4 text-cyan-500" />
+                  {dispatch.driverName || "N/A"}
+                </p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Vehicle Details</p>
+                <div className="space-y-2">
+                  <p className="text-sm font-bold text-gray-700 flex items-center gap-2">
+                    <Hash className="w-4 h-4 text-cyan-500" />
+                    {dispatch.vehicleNumber || "N/A"}
+                  </p>
+                  <p className="text-sm text-gray-500 italic flex items-center gap-2">
+                    <Truck className="w-4 h-4 text-gray-300" />
+                    {dispatch.vehicleType || "N/A"}
+                  </p>
+                </div>
+              </div>
+              <div className="space-y-1">
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Transport Mode</p>
+                <p className="text-sm font-bold text-gray-700 flex items-center gap-2">
+                  {getDispatchedByIcon(dispatch.dispatchedBy)}
+                  {dispatch.dispatchedBy || "N/A"}
+                </p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Transport Cost</p>
+                <p className="text-lg font-black text-cyan-700 flex items-center gap-1">
+                  <DollarSign className="w-5 h-5" />
+                  {dispatch.totalTransportCost.toLocaleString()}
+                </p>
+              </div>
             </div>
           </section>
 
-          {/* Vehicle Info */}
-          <section className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
-            <h3 className="text-base sm:text-lg font-semibold mb-2 text-gray-800 flex items-center gap-2">
-              {getDispatchedByIcon(dispatch.dispatchedBy)}
-              Vehicle & Driver
-            </h3>
-            <div className="space-y-1 sm:space-y-2 text-xs sm:text-sm text-gray-700">
-              <p className="flex items-center gap-1"><User className="h-4 w-4 text-cyan-700" /><span className="font-medium ml-1">Driver Name:</span> {dispatch.driverName || "N/A"}</p>
-              <p className="flex items-center gap-1"><Truck className="h-4 w-4 text-cyan-700" /><span className="font-medium ml-1">Vehicle Number:</span> {dispatch.vehicleNumber || "N/A"}</p>
-              <p className="flex items-center gap-1"><Truck className="h-4 w-4 text-cyan-700" /><span className="font-medium ml-1">Vehicle Type:</span> {dispatch.vehicleType || "N/A"}</p>
-              <p className="flex items-center gap-1">{getDispatchedByIcon(dispatch.dispatchedBy)}<span className="font-medium ml-1">Dispatched By:</span> {dispatch.dispatchedBy || "N/A"}</p>
+          <section className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+            <h2 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-cyan-600" />
+              Route Details
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 relative">
+              <div className="absolute hidden sm:block top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center">
+                <ArrowLeft className="w-4 h-4 text-gray-300 rotate-180" />
+              </div>
+              <div className="space-y-1">
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Departure</p>
+                <p className="text-sm font-bold text-gray-700 flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-rose-500" />
+                  {dispatch.depatureSite?.name || "N/A"}
+                </p>
+              </div>
+              <div className="space-y-1 sm:text-right">
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Arrival</p>
+                <p className="text-sm font-bold text-gray-700 flex items-center gap-2 sm:justify-end">
+                  {dispatch.arrivalSite?.name || "N/A"}
+                  <MapPin className="w-4 h-4 text-emerald-500" />
+                </p>
+              </div>
             </div>
           </section>
 
-          {/* Dates */}
-          <section className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
-            <h3 className="text-base sm:text-lg font-semibold mb-2 text-gray-800 flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-cyan-700" />
-              Timeline
-            </h3>
-            <div className="space-y-1 sm:space-y-2 text-xs sm:text-sm text-gray-700">
-              <p className="flex items-center gap-1"><Clock className="h-4 w-4 text-cyan-700" /><span className="font-medium ml-1">Dispatched Date:</span> {format(dispatch.dispatchedDate)}</p>
-              <p className="flex items-center gap-1"><Clock className="h-4 w-4 text-cyan-700" /><span className="font-medium ml-1">Estimated Arrival:</span> {format(dispatch.estArrivalTime)}</p>
-            </div>
-          </section>
-
-          {/* Sites */}
-          <section className="bg-white rounded-lg shadow-sm p-4 border border-gray-200 sm:col-span-2 lg:col-span-1">
-            <h3 className="text-base sm:text-lg font-semibold mb-2 text-gray-800 flex items-center gap-2">
-              <MapPin className="h-5 w-5 text-cyan-700" />
-              Locations
-            </h3>
-            <div className="space-y-1 sm:space-y-2 text-xs sm:text-sm text-gray-700">
-              <p className="flex items-center gap-1"><MapPin className="h-4 w-4 text-cyan-700" /><span className="font-medium ml-1">Departure Site:</span> {dispatch.depatureSite?.name || "N/A"}</p>
-              <p className="flex items-center gap-1"><MapPin className="h-4 w-4 text-cyan-700" /><span className="font-medium ml-1">Arrival Site:</span> {dispatch.arrivalSite?.name || "N/A"}</p>
-            </div>
-          </section>
-
-          {/* Cost and Status */}
-          <section className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
-            <h3 className="text-base sm:text-lg font-semibold mb-2 text-gray-800 flex items-center gap-2">
-              <DollarSign className="h-5 w-5 text-cyan-700" />
-              Financial & Status
-            </h3>
-            <div className="space-y-1 sm:space-y-2 text-xs sm:text-sm text-gray-700">
-              <p className="flex items-center gap-1"><DollarSign className="h-4 w-4 text-cyan-700" /><span className="font-medium ml-1">Total Transport Cost:</span> ${dispatch.totalTransportCost.toFixed(2)}</p>
-              <p className="flex items-center gap-1"><Badge className={`ml-1 ${getStatusColor(dispatch.status)}`}>{dispatch.status}</Badge></p>
-            </div>
-          </section>
-
-          {/* Remarks */}
-          <section className="sm:col-span-2 lg:col-span-3 bg-white rounded-lg shadow-sm p-4 border border-gray-200">
-            <h3 className="text-base sm:text-lg font-semibold mb-2 text-gray-800 flex items-center gap-2">
-              <Clipboard className="h-5 w-5 text-cyan-700" />
+          <section className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+            <h2 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+              <Clipboard className="w-4 h-4 text-cyan-600" />
               Remarks
-            </h3>
-            <p className="text-xs sm:text-sm bg-gray-100 p-4 rounded-md text-gray-700 whitespace-pre-wrap">{dispatch.remarks || "No remarks provided."}</p>
+            </h2>
+            <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+              <p className="text-sm text-gray-600 italic whitespace-pre-wrap leading-relaxed">
+                {dispatch.remarks || "No remarks provided for this dispatch."}
+              </p>
+            </div>
           </section>
-        </CardContent>
-      </Card>
+        </div>
+
+        <div className="space-y-6">
+          <section className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+            <h2 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-cyan-600" />
+              Timeline
+            </h2>
+            <div className="space-y-6">
+              <div className="flex gap-4">
+                <div className="flex flex-col items-center">
+                  <div className="w-8 h-8 rounded-full bg-cyan-50 border border-cyan-100 flex items-center justify-center">
+                    <Truck className="w-4 h-4 text-cyan-600" />
+                  </div>
+                  <div className="w-px h-full bg-gray-100"></div>
+                </div>
+                <div className="pb-6">
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Dispatched</p>
+                  <p className="text-sm font-bold text-gray-700">{format(dispatch.dispatchedDate)}</p>
+                </div>
+              </div>
+              <div className="flex gap-4">
+                <div className="flex flex-col items-center">
+                  <div className="w-8 h-8 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center">
+                    <Clock className="w-4 h-4 text-emerald-600" />
+                  </div>
+                </div>
+                <div>
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Est. Arrival</p>
+                  <p className="text-sm font-bold text-gray-700">{format(dispatch.estArrivalTime)}</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+            <h2 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+              <Clipboard className="w-4 h-4 text-cyan-600" />
+              Linked Activity
+            </h2>
+            <div className="p-4 bg-cyan-50/50 rounded-xl border border-cyan-100/50">
+              <p className="text-[10px] font-black text-cyan-600 uppercase tracking-widest mb-1">Activity Name</p>
+              <p className="text-sm font-bold text-cyan-900 leading-tight">
+                {dispatch.approval?.request?.activity?.activity_name || "N/A"}
+              </p>
+            </div>
+          </section>
+        </div>
+      </div>
     </div>
   );
 };

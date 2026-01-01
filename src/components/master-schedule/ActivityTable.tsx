@@ -195,44 +195,50 @@ const ActivityTable: React.FC<ActivityTableProps> = ({
         <GenericFilter fields={filterFields} onFilterChange={setFilterValues} />
       </div> */}
 
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div ref={menuRef} className="relative">
-          <button
-            onClick={() => setShowColumnMenu((v) => !v)}
-            className="flex items-center gap-1 px-4 py-2 bg-emerald-700 text-white rounded hover:bg-emerald-800 text-sm"
-          >
-            Customize Columns <ChevronDown className="w-4 h-4" />
-          </button>
-          {showColumnMenu && (
-            <div className="absolute right-0 mt-1 w-48 bg-white border rounded shadow-lg z-10">
-              {Object.entries(columnOptions).map(([key, label]) => (
-                <label
-                  key={key}
-                  className="flex items-center w-full px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedColumns.includes(key)}
-                    onChange={() => toggleColumn(key)}
-                    className="mr-2"
-                  />
-                  {label}
-                </label>
-              ))}
+      <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div ref={menuRef} className="relative w-full sm:w-auto">
+            <button
+              onClick={() => setShowColumnMenu((v) => !v)}
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-700 text-white rounded-lg hover:bg-emerald-800 transition-colors shadow-sm font-bold text-sm"
+            >
+              Customize Columns <ChevronDown className="w-4 h-4" />
+            </button>
+            {showColumnMenu && (
+              <div className="absolute left-0 mt-2 w-56 bg-white border border-gray-200 rounded-xl shadow-xl z-50 py-2">
+                <div className="px-4 py-2 border-b border-gray-100 mb-1">
+                  <span className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">Visible Columns</span>
+                </div>
+                {Object.entries(columnOptions).map(([key, label]) => (
+                  <label
+                    key={key}
+                    className="flex items-center w-full px-4 py-2 hover:bg-gray-50 cursor-pointer transition-colors"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedColumns.includes(key)}
+                      onChange={() => toggleColumn(key)}
+                      className="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 mr-3"
+                    />
+                    <span className="text-sm text-gray-700 font-bold">{label}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+            <div className="text-xs font-black uppercase text-gray-400 tracking-wider bg-white px-3 py-2 rounded-lg border border-gray-100">
+              Total Activities: <span className="text-cyan-800 ml-1">{totalActivities}</span>
             </div>
-          )}
+            <button
+              onClick={() => setShowForm(true)}
+              className="w-full sm:w-auto px-6 py-2.5 bg-emerald-700 text-white rounded-lg hover:bg-emerald-800 transition-all font-black uppercase text-xs tracking-widest shadow-sm"
+            >
+              Create Activity
+            </button>
+          </div>
         </div>
-        <div className="font-semibold">
-          Total Activities:{" "}
-          <span className="font-normal ml-1">{totalActivities}</span>
-        </div>
-        <button
-          onClick={() => setShowForm(true)}
-          className="px-4 py-2 bg-emerald-700 text-white rounded hover:bg-emerald-800"
-        >
-          Create Activity
-        </button>
       </div>
 
       {/* Modals */}

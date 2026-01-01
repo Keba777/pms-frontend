@@ -196,23 +196,22 @@ export default function EquipmentPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-6 bg-white shadow-lg rounded-lg mt-6">
-      <div className="flex justify-between mb-4">
+    <div className="p-4 sm:p-6 bg-white min-h-screen">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 bg-gray-50 p-4 rounded-xl border border-gray-100">
         <button
-          className="flex items-center text-gray-600 hover:text-gray-900 mb-6"
+          className="flex items-center text-cyan-700 hover:text-cyan-800 font-bold transition-colors group"
           onClick={() => router.push("/resources/equipments")}
         >
-          <ArrowLeft className="w-5 h-5 mr-2" />
+          <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform" />
           Back to Sites
         </button>
+        <h1 className="text-xl sm:text-2xl font-black text-cyan-800 uppercase tracking-tight">
+          Equipment at "{site.name}"
+        </h1>
       </div>
 
-      <h1 className="text-4xl font-bold text-cyan-800 mb-4">
-        Equipment at "{site.name}"
-      </h1>
-
       {/* Status Summary */}
-      <div className="flex flex-wrap gap-4 mb-10">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
         {[
           { label: "Total", value: total },
           { label: "Available", value: available },
@@ -222,56 +221,59 @@ export default function EquipmentPage() {
         ].map((item) => (
           <div
             key={item.label}
-            className="flex font-2xl font-semibold bg-white p-4 rounded-lg shadow-md"
+            className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex flex-col justify-center items-center text-center group hover:bg-gray-50 transition-all"
           >
-            <h2 className="mr-2">{item.label} =</h2>
-            <span className="text-cyan-700 font-stretch-semi-condensed font-semibold">
+            <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest mb-1 group-hover:text-cyan-600 transition-colors">{item.label}</p>
+            <span className="text-2xl font-black text-gray-800">
               {item.value}
             </span>
           </div>
         ))}
       </div>
 
-      {/* Top Actions */}
-      <div className="flex justify-end mb-8">
+      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-8 flex flex-col gap-6">
         <GenericDownloads
           data={filteredEquipments}
           title={`Equipment_${site.name}`}
           columns={columns}
         />
-      </div>
-      <div className="flex justify-between items-center mb-4">
-        <div ref={menuRef} className="relative">
-          <button
-            onClick={() => setShowColumnMenu((prev) => !prev)}
-            className="flex items-center gap-1 px-4 py-2 text-sm bg-cyan-700 text-white rounded hover:bg-cyan-800 border border-gray-200"
-          >
-            Customize Columns <ChevronDown className="w-4 h-4" />
-          </button>
-          {showColumnMenu && (
-            <div className="absolute left-0 mt-1 w-48 bg-white border border-gray-200 rounded shadow-lg z-10">
-              {Object.entries(columnOptions).map(([key, label]) => (
-                <label
-                  key={key}
-                  className="flex items-center w-full px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedColumns.includes(key)}
-                    onChange={() => toggleColumn(key)}
-                    className="mr-2"
-                  />
-                  {label || <span>&nbsp;</span>}
-                </label>
-              ))}
-            </div>
-          )}
-        </div>
-        <div className="flex gap-4">
-          <GenericFilter
-            fields={filterFields}
-            onFilterChange={setFilterValues}
-          />
+
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-4 pt-6 border-t border-gray-100">
+          <div ref={menuRef} className="relative w-full lg:w-auto">
+            <button
+              onClick={() => setShowColumnMenu((prev) => !prev)}
+              className="w-full lg:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-700 text-white rounded-lg hover:bg-emerald-800 transition-colors shadow-sm font-bold text-sm"
+            >
+              Customize Columns <ChevronDown className="w-4 h-4" />
+            </button>
+            {showColumnMenu && (
+              <div className="absolute left-0 mt-2 w-56 bg-white border border-gray-200 rounded-xl shadow-xl z-50 py-2 max-h-[400px] overflow-y-auto no-scrollbar">
+                <div className="px-4 py-2 border-b border-gray-100 mb-1">
+                  <span className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">Visible Columns</span>
+                </div>
+                {Object.entries(columnOptions).map(([key, label]) => (
+                  <label
+                    key={key}
+                    className="flex items-center w-full px-4 py-2 hover:bg-gray-50 cursor-pointer transition-colors"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedColumns.includes(key)}
+                      onChange={() => toggleColumn(key)}
+                      className="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 mr-3"
+                    />
+                    <span className="text-sm text-gray-700 font-bold">{label}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+          <div className="w-full lg:w-auto">
+            <GenericFilter
+              fields={filterFields}
+              onFilterChange={setFilterValues}
+            />
+          </div>
         </div>
       </div>
 

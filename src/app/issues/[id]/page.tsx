@@ -93,107 +93,142 @@ const IssueDetailsPage = () => {
   };
 
   return (
-    <div className="container mx-auto p-4 max-w-4xl">
+    <div className="max-w-5xl mx-auto p-4 sm:p-6 lg:p-8">
       <Button
         variant="ghost"
-        className="mb-4 text-cyan-700 hover:text-cyan-800 flex items-center gap-2"
+        className="mb-6 text-cyan-700 hover:text-cyan-800 flex items-center gap-2 font-bold px-0 bg-transparent hover:bg-transparent"
         onClick={() => router.back()}
       >
-        <ArrowLeft className="h-4 w-4" /> Back to Issues
+        <ArrowLeft className="h-5 w-5" /> Back to Issues
       </Button>
 
-      <Card className="shadow-lg border-gray-200 overflow-hidden">
-        <CardHeader className="bg-cyan-700 text-white py-4">
-          <CardTitle className="text-xl sm:text-2xl flex items-center gap-2">
-            <AlertCircle className="h-6 w-6" />
-            Issue Details - {issue.issueType}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-4 sm:p-6 grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {/* ID and References */}
-          <section className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
-            <h3 className="text-base sm:text-lg font-semibold mb-2 text-gray-800 flex items-center gap-2">
-              <Hash className="h-5 w-5 text-cyan-700" />
-              Identification
-            </h3>
-            <div className="space-y-1 sm:space-y-2 text-xs sm:text-sm text-gray-700">
-              <p className="flex items-center gap-1"><span className="font-medium">Activity ID:</span> {issue.activity?.activity_name || "N/A"}</p>
-              <p className="flex items-center gap-1"><span className="font-medium">Project ID:</span> {issue.project?.title || "N/A"}</p>
-              <p className="flex items-center gap-1"><span className="font-medium">Task ID:</span> {issue.task?.task_name || "N/A"}</p>
-            </div>
-          </section>
-
-          {/* Issue Info */}
-          <section className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
-            <h3 className="text-base sm:text-lg font-semibold mb-2 text-gray-800 flex items-center gap-2">
-              <AlertCircle className="h-5 w-5 text-cyan-700" />
-              Issue Information
-            </h3>
-            <div className="space-y-1 sm:space-y-2 text-xs sm:text-sm text-gray-700">
-              <p className="flex items-center gap-1"><Calendar className="h-4 w-4 text-cyan-700" /><span className="font-medium ml-1">Date:</span> {format(issue.date)}</p>
-              <p className="flex items-center gap-1"><AlertCircle className="h-4 w-4 text-cyan-700" /><span className="font-medium ml-1">Type:</span> {issue.issueType}</p>
-              <Badge className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-sm font-medium ${getPriorityColor(issue.priority)}`}>
-                {issue.priority}
+      <Card className="shadow-2xl border-none overflow-hidden rounded-2xl bg-white">
+        <CardHeader className="bg-cyan-700 text-white p-6 sm:p-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <CardTitle className="text-2xl sm:text-3xl lg:text-4xl font-black flex items-center gap-3">
+              <AlertCircle className="h-8 w-8 sm:h-10 sm:w-10" />
+              {issue.issueType}
+            </CardTitle>
+            <div className="flex flex-wrap gap-2">
+              <Badge className={`px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest ${getPriorityColor(issue.priority)} shadow-md`}>
+                {issue.priority} Priority
               </Badge>
-              <Badge className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-sm font-medium ${getStatusColor(issue.status)}`}>
+              <Badge className={`px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest ${getStatusColor(issue.status)} shadow-md`}>
                 {issue.status}
               </Badge>
             </div>
-          </section>
+          </div>
+        </CardHeader>
+        <CardContent className="p-6 sm:p-8 space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Identification */}
+            <section className="bg-gray-50 rounded-2xl p-5 border border-gray-100 shadow-sm flex flex-col gap-4">
+              <div className="flex items-center gap-2 border-b border-gray-200 pb-3">
+                <Hash className="h-5 w-5 text-cyan-700" />
+                <h3 className="text-sm font-black uppercase text-gray-400 tracking-wider">Identification</h3>
+              </div>
+              <div className="space-y-4">
+                <div className="flex flex-col">
+                  <span className="text-xs font-bold text-gray-400 uppercase">Activity</span>
+                  <span className="text-gray-900 font-black">{issue.activity?.activity_name || "N/A"}</span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-xs font-bold text-gray-400 uppercase">Project</span>
+                  <span className="text-gray-900 font-black">{issue.project?.title || "N/A"}</span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-xs font-bold text-gray-400 uppercase">Task</span>
+                  <span className="text-gray-900 font-black">{issue.task?.task_name || "N/A"}</span>
+                </div>
+              </div>
+            </section>
 
-          {/* People Involved */}
-          <section className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
-            <h3 className="text-base sm:text-lg font-semibold mb-2 text-gray-800 flex items-center gap-2">
-              <Users className="h-5 w-5 text-cyan-700" />
-              People Involved
-            </h3>
-            <div className="space-y-1 sm:space-y-2 text-xs sm:text-sm text-gray-700">
-              <p className="flex items-center gap-1"><User className="h-4 w-4 text-cyan-700" /><span className="font-medium ml-1">Raised By:</span> {issue.raisedBy.first_name} {issue.raisedBy.last_name}</p>
-              <p className="flex items-center gap-1"><User className="h-4 w-4 text-cyan-700" /><span className="font-medium ml-1">Responsible:</span> {issue.responsible?.first_name || "N/A"} {issue.responsible?.last_name || ""}</p>
-            </div>
-          </section>
+            {/* People Involved */}
+            <section className="bg-gray-50 rounded-2xl p-5 border border-gray-100 shadow-sm flex flex-col gap-4">
+              <div className="flex items-center gap-2 border-b border-gray-200 pb-3">
+                <Users className="h-5 w-5 text-cyan-700" />
+                <h3 className="text-sm font-black uppercase text-gray-400 tracking-wider">Stakeholders</h3>
+              </div>
+              <div className="space-y-4">
+                <div className="flex flex-col">
+                  <span className="text-xs font-bold text-gray-400 uppercase">Raised By</span>
+                  <span className="text-gray-900 font-black flex items-center gap-2">
+                    <User className="h-4 w-4 text-cyan-600" />
+                    {issue.raisedBy.first_name} {issue.raisedBy.last_name}
+                  </span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-xs font-bold text-gray-400 uppercase">Responsible</span>
+                  <span className="text-gray-900 font-black flex items-center gap-2">
+                    <User className="h-4 w-4 text-cyan-600" />
+                    {issue.responsible?.first_name || "N/A"} {issue.responsible?.last_name || ""}
+                  </span>
+                </div>
+              </div>
+            </section>
 
-          {/* Locations */}
-          <section className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
-            <h3 className="text-base sm:text-lg font-semibold mb-2 text-gray-800 flex items-center gap-2">
-              <Building className="h-5 w-5 text-cyan-700" />
-              Locations
-            </h3>
-            <div className="space-y-1 sm:space-y-2 text-xs sm:text-sm text-gray-700">
-              <p className="flex items-center gap-1"><Building className="h-4 w-4 text-cyan-700" /><span className="font-medium ml-1">Site:</span> {site?.name || "N/A"}</p>
-              <p className="flex items-center gap-1"><Building className="h-4 w-4 text-cyan-700" /><span className="font-medium ml-1">Department:</span> {department?.name || "N/A"}</p>
-            </div>
-          </section>
+            {/* Context & Timeline */}
+            <section className="bg-gray-50 rounded-2xl p-5 border border-gray-100 shadow-sm flex flex-col gap-4">
+              <div className="flex items-center gap-2 border-b border-gray-200 pb-3">
+                <Building className="h-5 w-5 text-cyan-700" />
+                <h3 className="text-sm font-black uppercase text-gray-400 tracking-wider">Context</h3>
+              </div>
+              <div className="space-y-4">
+                <div className="flex flex-col">
+                  <span className="text-xs font-bold text-gray-400 uppercase">Site</span>
+                  <span className="text-gray-900 font-black">{site?.name || "N/A"}</span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-xs font-bold text-gray-400 uppercase">Department</span>
+                  <span className="text-gray-900 font-black">{department?.name || "N/A"}</span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-xs font-bold text-gray-400 uppercase">Incident Date</span>
+                  <span className="text-gray-900 font-black flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-cyan-600" />
+                    {format(issue.date)}
+                  </span>
+                </div>
+              </div>
+            </section>
+          </div>
 
           {/* Description */}
-          <section className="sm:col-span-2 lg:col-span-3 bg-white rounded-lg shadow-sm p-4 border border-gray-200">
-            <h3 className="text-base sm:text-lg font-semibold mb-2 text-gray-800 flex items-center gap-2">
-              <MessageSquare className="h-5 w-5 text-cyan-700" />
-              Description
-            </h3>
-            <p className="text-xs sm:text-sm bg-gray-100 p-4 rounded-md text-gray-700 whitespace-pre-wrap">{issue.description || "No description provided."}</p>
+          <section className="bg-white rounded-2xl p-6 border-2 border-gray-100 shadow-inner">
+            <div className="flex items-center gap-2 mb-4">
+              <MessageSquare className="h-6 w-6 text-cyan-700" />
+              <h3 className="text-lg font-black uppercase text-gray-800 tracking-wider">Detailed Description</h3>
+            </div>
+            <div className="text-sm sm:text-base text-gray-700 leading-relaxed font-medium bg-gray-50 p-6 rounded-xl border border-gray-200 whitespace-pre-wrap">
+              {issue.description || "No description provided."}
+            </div>
           </section>
 
           {/* Action Taken */}
-          <section className="sm:col-span-2 lg:col-span-3 bg-white rounded-lg shadow-sm p-4 border border-gray-200">
-            <h3 className="text-base sm:text-lg font-semibold mb-2 text-gray-800 flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-cyan-700" />
-              Action Taken
-            </h3>
-            <p className="text-xs sm:text-sm bg-gray-100 p-4 rounded-md text-gray-700 whitespace-pre-wrap">{issue.actionTaken || "No action taken yet."}</p>
+          <section className="bg-cyan-50/50 rounded-2xl p-6 border-2 border-cyan-100 shadow-inner">
+            <div className="flex items-center gap-2 mb-4">
+              <CheckCircle className="h-6 w-6 text-cyan-700" />
+              <h3 className="text-lg font-black uppercase text-gray-800 tracking-wider">Action Taken</h3>
+            </div>
+            <div className="text-sm sm:text-base text-cyan-900 leading-relaxed font-black bg-white/80 p-6 rounded-xl border border-cyan-200 shadow-sm whitespace-pre-wrap">
+              {issue.actionTaken || "No actions recorded yet."}
+            </div>
           </section>
 
           {/* Timestamps */}
-          <section className="sm:col-span-2 lg:col-span-3 bg-white rounded-lg shadow-sm p-4 border border-gray-200">
-            <h3 className="text-base sm:text-lg font-semibold mb-2 text-gray-800 flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-cyan-700" />
-              Timestamps
-            </h3>
-            <div className="space-y-1 sm:space-y-2 text-xs sm:text-sm text-gray-700">
-              <p className="flex items-center gap-1"><Clock className="h-4 w-4 text-cyan-700" /><span className="font-medium ml-1">Created At:</span> {format(issue.createdAt)}</p>
-              <p className="flex items-center gap-1"><Clock className="h-4 w-4 text-cyan-700" /><span className="font-medium ml-1">Updated At:</span> {format(issue.updatedAt)}</p>
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-gray-100 p-4 rounded-xl border border-gray-200">
+            <div className="flex items-center gap-3">
+              <Clock className="h-5 w-5 text-gray-400" />
+              <div className="flex flex-col sm:flex-row sm:gap-6">
+                <p className="text-[10px] font-black uppercase text-gray-500 tracking-widest whitespace-nowrap">
+                  CREATED: <span className="text-gray-900 ml-1">{format(issue.createdAt)}</span>
+                </p>
+                <p className="text-[10px] font-black uppercase text-gray-500 tracking-widest whitespace-nowrap">
+                  UPDATED: <span className="text-gray-900 ml-1">{format(issue.updatedAt)}</span>
+                </p>
+              </div>
             </div>
-          </section>
+          </div>
         </CardContent>
       </Card>
     </div>

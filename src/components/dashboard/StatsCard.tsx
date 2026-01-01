@@ -38,7 +38,7 @@ const StatsCard = ({ title, items, total }: StatsCardProps) => {
       <div className="p-4 flex-1">
         {/* Pie Chart Section */}
         <div className="relative flex justify-center mb-6">
-          <ResponsiveContainer width="84%" height={170}>
+          <ResponsiveContainer width="100%" height={200}>
             <PieChart>
               <Pie
                 data={chartData}
@@ -46,9 +46,10 @@ const StatsCard = ({ title, items, total }: StatsCardProps) => {
                 nameKey="name"
                 cx="50%"
                 cy="50%"
-                outerRadius={60}
+                innerRadius={45}
+                outerRadius={75}
+                paddingAngle={5}
                 fill="#8884d8"
-                label
               >
                 {chartData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />

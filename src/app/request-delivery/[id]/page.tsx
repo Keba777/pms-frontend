@@ -83,81 +83,122 @@ const RequestDeliveryDetailsPage = () => {
   };
 
   return (
-    <div className="container mx-auto p-4 max-w-4xl">
-      <Button
-        variant="ghost"
-        className="mb-4 text-cyan-700 hover:text-cyan-800 flex items-center gap-2"
-        onClick={() => router.back()}
-      >
-        <ArrowLeft className="h-4 w-4" /> Back to Request Deliveries
-      </Button>
-
-      <Card className="shadow-lg border-gray-200 overflow-hidden">
-        <CardHeader className="bg-cyan-700 text-white py-4">
-          <CardTitle className="text-xl sm:text-2xl flex items-center gap-2">
-            <Package className="h-6 w-6" />
-            Request Delivery Details - {delivery.refNumber || "N/A"}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-4 sm:p-6 grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {/* ID and Approval */}
-          <section className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
-            <h3 className="text-base sm:text-lg font-semibold mb-2 text-gray-800 flex items-center gap-2">
-              <Hash className="h-5 w-5 text-cyan-700" />
-              Identification
-            </h3>
-            <div className="space-y-1 sm:space-y-2 text-xs sm:text-sm text-gray-700">
-              <p className="flex items-center gap-1"><span className="font-medium">Activity:</span> {delivery.approval?.request?.activity?.activity_name || "N/A"}</p>
-              <p className="flex items-center gap-1"><span className="font-medium">Reference Number:</span> {delivery.refNumber || "N/A"}</p>
-            </div>
-          </section>
-
-          {/* Parties Involved */}
-          <section className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
-            <h3 className="text-base sm:text-lg font-semibold mb-2 text-gray-800 flex items-center gap-2">
-              <User className="h-5 w-5 text-cyan-700" />
-              Parties Involved
-            </h3>
-            <div className="space-y-1 sm:space-y-2 text-xs sm:text-sm text-gray-700">
-              <p className="flex items-center gap-1"><User className="h-4 w-4 text-cyan-700" /><span className="font-medium ml-1">Delivered By:</span> {delivery.deliveredBy || "N/A"}</p>
-              <p className="flex items-center gap-1"><User className="h-4 w-4 text-cyan-700" /><span className="font-medium ml-1">Received By:</span> {delivery.recievedBy || "N/A"}</p>
-            </div>
-          </section>
-
-          {/* Delivery Details */}
-          <section className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
-            <h3 className="text-base sm:text-lg font-semibold mb-2 text-gray-800 flex items-center gap-2">
-              <Package className="h-5 w-5 text-cyan-700" />
+    <div className="p-4 sm:p-6 bg-white min-h-screen">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8 bg-gray-50 p-4 rounded-xl border border-gray-100">
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => router.back()}
+            className="p-2 hover:bg-white rounded-lg transition-colors border border-transparent hover:border-gray-200 text-gray-400 hover:text-cyan-700 shadow-sm hover:shadow-md"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <div>
+            <h1 className="text-xl sm:text-2xl font-black text-cyan-800 uppercase tracking-tight">
               Delivery Details
-            </h3>
-            <div className="space-y-1 sm:space-y-2 text-xs sm:text-sm text-gray-700">
-              <p className="flex items-center gap-1"><Clock className="h-4 w-4 text-cyan-700" /><span className="font-medium ml-1">Delivery Date:</span> {format(delivery.deliveryDate)}</p>
-              <p className="flex items-center gap-1"><Package className="h-4 w-4 text-cyan-700" /><span className="font-medium ml-1">Received Quantity:</span> {delivery.recievedQuantity}</p>
-              <p className="flex items-center gap-1"><Badge className={`ml-1 ${getStatusColor(delivery.status)}`}>{delivery.status}</Badge></p>
+            </h1>
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5 mt-0.5">
+              <Hash className="w-3 h-3" />
+              Reference: {delivery.refNumber || "N/A"}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <span className={`w-full sm:w-auto text-center px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${delivery.status === 'Delivered' ? 'bg-emerald-100 text-emerald-800' :
+              delivery.status === 'Cancelled' ? 'bg-rose-100 text-rose-800' :
+                'bg-amber-100 text-amber-800'
+            }`}>
+            {delivery.status}
+          </span>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
+          <section className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+            <h2 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+              <Package className="w-4 h-4 text-cyan-600" />
+              Delivery Information
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+              <div className="space-y-1">
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Delivered By</p>
+                <p className="text-sm font-bold text-gray-700 flex items-center gap-2">
+                  <User className="w-4 h-4 text-cyan-500" />
+                  {delivery.deliveredBy || "N/A"}
+                </p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Received By</p>
+                <p className="text-sm font-bold text-gray-700 flex items-center gap-2">
+                  <User className="w-4 h-4 text-emerald-500" />
+                  {delivery.recievedBy || "N/A"}
+                </p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Quantity Received</p>
+                <p className="text-lg font-black text-cyan-700 flex items-center gap-2">
+                  <Package className="w-5 h-5" />
+                  {delivery.recievedQuantity || 0}
+                </p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Site</p>
+                <p className="text-sm font-bold text-gray-700 flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-rose-500" />
+                  {delivery.site?.name || "N/A"}
+                </p>
+              </div>
             </div>
           </section>
 
-          {/* Site */}
-          <section className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
-            <h3 className="text-base sm:text-lg font-semibold mb-2 text-gray-800 flex items-center gap-2">
-              <MapPin className="h-5 w-5 text-cyan-700" />
-              Site
-            </h3>
-            <div className="space-y-1 sm:space-y-2 text-xs sm:text-sm text-gray-700">
-              <p className="flex items-center gap-1"><MapPin className="h-4 w-4 text-cyan-700" /><span className="font-medium ml-1">Site Name:</span> {delivery.site?.name || "N/A"}</p>
-            </div>
-          </section>
-
-          {/* Remarks */}
-          <section className="sm:col-span-2 lg:col-span-3 bg-white rounded-lg shadow-sm p-4 border border-gray-200">
-            <h3 className="text-base sm:text-lg font-semibold mb-2 text-gray-800 flex items-center gap-2">
-              <Clipboard className="h-5 w-5 text-cyan-700" />
+          <section className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+            <h2 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+              <Clipboard className="w-4 h-4 text-cyan-600" />
               Remarks
-            </h3>
-            <p className="text-xs sm:text-sm bg-gray-100 p-4 rounded-md text-gray-700 whitespace-pre-wrap">{delivery.remarks || "No remarks provided."}</p>
+            </h2>
+            <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+              <p className="text-sm text-gray-600 italic whitespace-pre-wrap leading-relaxed">
+                {delivery.remarks || "No remarks provided for this delivery."}
+              </p>
+            </div>
           </section>
-        </CardContent>
-      </Card>
+        </div>
+
+        <div className="space-y-6">
+          <section className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+            <h2 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-cyan-600" />
+              Timeline
+            </h2>
+            <div className="space-y-6">
+              <div className="flex gap-4">
+                <div className="flex flex-col items-center">
+                  <div className="w-8 h-8 rounded-full bg-cyan-50 border border-cyan-100 flex items-center justify-center">
+                    <Clock className="w-4 h-4 text-cyan-600" />
+                  </div>
+                </div>
+                <div>
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Delivery Date</p>
+                  <p className="text-sm font-bold text-gray-700">{format(delivery.deliveryDate)}</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+            <h2 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+              <Clipboard className="w-4 h-4 text-cyan-600" />
+              Linked Activity
+            </h2>
+            <div className="p-4 bg-cyan-50/50 rounded-xl border border-cyan-100/50">
+              <p className="text-[10px] font-black text-cyan-600 uppercase tracking-widest mb-1">Activity Name</p>
+              <p className="text-sm font-bold text-cyan-900 leading-tight">
+                {delivery.approval?.request?.activity?.activity_name || "N/A"}
+              </p>
+            </div>
+          </section>
+        </div>
+      </div>
     </div>
   );
 };

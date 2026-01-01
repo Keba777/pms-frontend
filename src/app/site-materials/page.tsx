@@ -47,7 +47,7 @@ const MaterialsPage = () => {
   } = useWarehouses();
   const { data: sites, isLoading: siteLoading, error: siteError } = useSites();
 
-  const { mutateAsync: createMaterialAsync } = useCreateMaterial(() => {});
+  const { mutateAsync: createMaterialAsync } = useCreateMaterial(() => { });
 
   const canCreate = hasPermission("materials", "create");
   const canManage = hasPermission("materials", "manage");
@@ -126,8 +126,8 @@ const MaterialsPage = () => {
           ? row.quantity >= 1
             ? "Available"
             : row.quantity === 0
-            ? "Not-Avail"
-            : "-"
+              ? "Not-Avail"
+              : "-"
           : "-",
     },
   ];
@@ -221,273 +221,192 @@ const MaterialsPage = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-6 bg-white shadow-lg rounded-lg mt-6">
-      <div className="flex flex-wrap justify-between items-center mb-4 gap-2">
-        <nav className="hidden md:block" aria-label="breadcrumb">
-          <ol className="flex space-x-2 text-sm sm:text-base">
-            <li>
-              <Link href="/" className="text-blue-600 hover:underline">
-                Home
-              </Link>
-            </li>
-            <li className="text-gray-500">/</li>
-            <li className="text-gray-900 font-semibold">Materials</li>
-          </ol>
-        </nav>
-
-        <div className="flex flex-wrap gap-2 items-center w-full md:w-auto">
-          {canCreate && (
-            <button
-              type="button"
-              className="bg-cyan-700 hover:bg-cyan-800 text-white font-bold rounded text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2 flex items-center gap-1"
-              onClick={() => setShowForm(true)}
-              title="Create Material"
-            >
-              <span className="md:hidden">Add New</span>
-              <Plus className="w-4 h-4 hidden md:inline" />
-            </button>
-          )}
-          {canManage && (
-            <div className="w-full md:w-auto mt-2 md:mt-0">
-              <GenericDownloads
-                data={filteredMaterials}
-                title={`Materials_${site.name}`}
-                columns={columns}
-              />
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Import */}
-      <div className="flex justify-end mb-4">
-        {canManage && (
-          <GenericImport<LooseMaterialInput>
-            expectedColumns={importColumns}
-            requiredAccessors={requiredAccessors}
-            onImport={handleImport}
-            title="Materials"
-            onError={handleError}
-          />
-        )}
-      </div>
-
-      {/* Form Modal */}
-      {showForm && canCreate && (
-        <div className="modal-overlay fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="modal-content bg-white rounded-lg shadow-xl p-6">
-            <MaterialForm
-              warehouseId={siteWarehouseIds[0]}
-              onClose={() => setShowForm(false)}
-            />
+    <div className="p-4 sm:p-6 bg-white min-h-screen">
+      {/* Header Section */}
+      <div className="flex flex-col gap-4 mb-8 bg-gray-50 p-4 sm:p-6 rounded-2xl border border-gray-100 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <nav className="mb-2" aria-label="Breadcrumb">
+              <ol className="flex items-center space-x-2 text-[10px] font-black uppercase tracking-widest text-gray-400">
+                <li><Link href="/" className="hover:text-cyan-700 transition-colors">Home</Link></li>
+                <li className="flex items-center space-x-2">
+                  <span>/</span>
+                  <span className="text-gray-900">Materials</span>
+                </li>
+              </ol>
+            </nav>
+            <h1 className="text-xl sm:text-2xl font-black text-cyan-800 uppercase tracking-tight">
+              Materials at &quot;{site.name}&quot;
+            </h1>
+            <p className="text-[10px] sm:text-xs font-black text-gray-400 uppercase tracking-widest mt-1">
+              Inventory management and tracking for site materials
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            {canCreate && (
+              <button
+                type="button"
+                className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 text-[10px] font-black uppercase tracking-widest bg-cyan-700 text-white rounded-xl hover:bg-cyan-800 transition-all shadow-md shadow-cyan-200"
+                onClick={() => setShowForm(true)}
+              >
+                <Plus className="w-4 h-4" />
+                Add New
+              </button>
+            )}
+            {canManage && (
+              <div className="flex-1 sm:flex-none">
+                <GenericDownloads
+                  data={filteredMaterials}
+                  title={`Materials_${site.name}`}
+                  columns={columns}
+                />
+              </div>
+            )}
           </div>
         </div>
-      )}
 
-      <div className="flex flex-col sm:flex-row gap-2 mb-4">
-        <GenericFilter fields={filterFields} onFilterChange={setFilterValues} />
+        {/* Global Controls */}
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 pt-4 border-t border-gray-200/60">
+          <div className="w-full lg:max-w-2xl">
+            <GenericFilter fields={filterFields} onFilterChange={setFilterValues} />
+          </div>
+          <div className="flex items-center justify-end gap-2">
+            {canManage && (
+              <GenericImport<LooseMaterialInput>
+                expectedColumns={importColumns}
+                requiredAccessors={requiredAccessors}
+                onImport={handleImport}
+                title="Materials"
+                onError={handleError}
+              />
+            )}
+          </div>
+        </div>
       </div>
 
-      <h1 className="text-4xl font-bold text-cyan-800 mb-4">
-        Materials at &quot;{site.name}&quot;
-      </h1>
-
-      {/* Status Summary */}
-      <div className="flex flex-wrap gap-4 mb-4">
+      {/* Status Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
         {[
-          { label: "Total", value: total },
-          { label: "Available", value: available },
-          { label: "Out of Store", value: inactive },
+          { label: "Total Items", value: total, color: "text-cyan-700", bg: "bg-cyan-50" },
+          { label: "Available", value: available, color: "text-emerald-700", bg: "bg-emerald-50" },
+          { label: "Out of Store", value: inactive, color: "text-rose-700", bg: "bg-rose-50" },
         ].map((item) => (
-          <div
-            key={item.label}
-            className="flex font-2xl font-semibold bg-white p-4 rounded-lg shadow-md"
-          >
-            <h2 className="mr-2">{item.label} =</h2>
-            <span className="text-cyan-700 font-stretch-semi-condensed font-semibold">
-              {item.value}
-            </span>
+          <div key={item.label} className={`${item.bg} p-4 rounded-2xl border border-white shadow-sm transition-transform hover:scale-[1.02]`}>
+            <p className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1">{item.label}</p>
+            <p className={`text-2xl font-black ${item.color}`}>{item.value}</p>
           </div>
         ))}
       </div>
 
       {/* Materials Table */}
-      {filteredMaterials.length === 0 ? (
-        <p className="text-gray-600">No materials match your search.</p>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200 border border-gray-200">
-            <thead className="bg-cyan-700">
-              <tr>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase">
-                  #
-                </th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase">
-                  ID
-                </th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase">
-                  Item Name
-                </th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase">
-                  Type
-                </th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase">
-                  Unit
-                </th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase">
-                  Qty
-                </th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase">
-                  Min-Qty
-                </th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase">
-                  Unit Price
-                </th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase">
-                  Total Price
-                </th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase">
-                  Re-Qty
-                </th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase">
-                  Shelf No
-                </th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase">
-                  Status
-                </th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase">
-                  Action
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredMaterials.map((mat, idx) => {
-                const statusText =
-                  mat.quantity !== undefined
-                    ? mat.quantity >= 1
-                      ? "Available"
-                      : "Not-Avail"
-                    : "-";
-                const isAvailable = statusText === "Available";
-                const showDash = statusText === "-";
-                return (
-                  <tr key={mat.id}>
-                    <td className="px-4 py-2 border border-gray-200">
-                      {idx + 1}
-                    </td>
-                    <td className="px-4 py-2 border border-gray-200">
-                      {"RC00"}
-                      {idx + 1}
-                    </td>
-                    <td className="px-4 py-2 border border-gray-200">
-                      <Link
-                        href={`/resources/materials/${mat.id}`}
-                        className="text-blue-600 hover:underline"
-                      >
-                        {mat.item}
-                      </Link>
-                    </td>
-                    <td className="px-4 py-2 border border-gray-200">
-                      {mat.type}
-                    </td>
-                    <td className="px-4 py-2 border border-gray-200">
-                      {mat.unit}
-                    </td>
-                    <td className="px-4 py-2 border border-gray-200">
-                      {mat.quantity ?? 0}
-                    </td>
-                    <td className="px-4 py-2 border border-gray-200">
-                      {mat.minQuantity ?? 0}
-                    </td>
-                    <td className="px-4 py-2 border border-gray-200">
-                      {mat.rate ?? 0}
-                    </td>
-                    <td className="px-4 py-2 border border-gray-200">
-                      {mat.totalPrice ?? 0}
-                    </td>
-                    <td className="px-4 py-2 border border-gray-200">
-                      {mat.reorderQuantity ?? 0}
-                    </td>
-                    <td className="px-4 py-2 border border-gray-200">
-                      {mat.shelfNo ?? "-"}
-                    </td>
-                    <td className="px-4 py-2 border border-gray-200">
-                      {showDash ? (
-                        "-"
-                      ) : (
-                        <Badge
-                          className={`${
-                            isAvailable
-                              ? "bg-green-500 hover:bg-green-600"
-                              : "bg-red-500 hover:bg-red-600"
-                          } text-white`}
-                        >
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        {filteredMaterials.length === 0 ? (
+          <div className="p-12 text-center">
+            <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">No materials match your search.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-100">
+              <thead className="bg-gray-50">
+                <tr>
+                  {["#", "ID", "Item Name", "Type", "Unit", "Qty", "Min-Qty", "Unit Price", "Total Price", "Re-Qty", "Shelf No", "Status", "Action"].map((head) => (
+                    <th key={head} className="px-4 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                      {head}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-50">
+                {filteredMaterials.map((mat, idx) => {
+                  const statusText = mat.quantity !== undefined ? (mat.quantity >= 1 ? "Available" : "Not-Avail") : "-";
+                  const isAvailable = statusText === "Available";
+                  return (
+                    <tr key={mat.id} className="hover:bg-gray-50/50 transition-colors">
+                      <td className="px-4 py-4 text-sm font-black text-gray-300">{String(idx + 1).padStart(2, '0')}</td>
+                      <td className="px-4 py-4 text-sm font-bold text-gray-400">RC{String(idx + 1).padStart(3, '0')}</td>
+                      <td className="px-4 py-4">
+                        <Link href={`/resources/materials/${mat.id}`} className="text-sm font-black text-cyan-700 hover:text-cyan-800 transition-colors">
+                          {mat.item}
+                        </Link>
+                      </td>
+                      <td className="px-4 py-4 text-sm text-gray-600">{mat.type}</td>
+                      <td className="px-4 py-4 text-sm text-gray-500 font-medium">{mat.unit}</td>
+                      <td className="px-4 py-4 text-sm font-black text-gray-900">{mat.quantity ?? 0}</td>
+                      <td className="px-4 py-4 text-sm text-gray-400 font-medium">{mat.minQuantity ?? 0}</td>
+                      <td className="px-4 py-4 text-sm text-gray-600 font-mono">${(mat.rate ?? 0).toLocaleString()}</td>
+                      <td className="px-4 py-4 text-sm font-black text-gray-900 font-mono">${(mat.totalPrice ?? 0).toLocaleString()}</td>
+                      <td className="px-4 py-4 text-sm text-gray-400 font-medium">{mat.reorderQuantity ?? 0}</td>
+                      <td className="px-4 py-4 text-sm text-gray-500 italic">{mat.shelfNo ?? "-"}</td>
+                      <td className="px-4 py-4">
+                        <span className={`px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest shadow-sm ${isAvailable ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"
+                          }`}>
                           {statusText}
-                        </Badge>
-                      )}
-                    </td>
-                    <td className="px-4 py-2 border border-gray-200">
-                      <Menu
-                        as="div"
-                        className="relative inline-block text-left"
-                      >
-                        <MenuButton className="flex items-center gap-1 px-3 py-1 text-sm bg-cyan-700 text-white rounded hover:bg-cyan-800">
-                          Action <ChevronDown className="w-4 h-4" />
-                        </MenuButton>
-                        <MenuItems className="absolute left-0 mt-2 w-full origin-top-left bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow-lg focus:outline-none z-50">
-                          <MenuItem>
-                            {({ active }) => (
-                              <button
-                                className={`${
-                                  active ? "bg-gray-100" : ""
-                                } w-full text-left px-3 py-2 text-sm text-gray-700`}
-                              >
-                                View
-                              </button>
-                            )}
-                          </MenuItem>
-                          <MenuItem>
-                            {({ active }) => (
-                              <button
-                                className={`${
-                                  active ? "bg-gray-100" : ""
-                                } w-full text-left px-3 py-2 text-sm text-gray-700`}
-                              >
-                                Edit
-                              </button>
-                            )}
-                          </MenuItem>
-                          <MenuItem>
-                            {({ active }) => (
-                              <button
-                                className={`${
-                                  active ? "bg-gray-100" : ""
-                                } w-full text-left px-3 py-2 text-sm text-red-600`}
-                              >
-                                Delete
-                              </button>
-                            )}
-                          </MenuItem>
-                          <MenuItem>
-                            {({ active }) => (
-                              <button
-                                onClick={() => console.log("Manage clicked")}
-                                className={`${
-                                  active ? "bg-gray-100" : ""
-                                } w-full text-left px-3 py-2 text-sm text-gray-700`}
-                              >
-                                Manage
-                              </button>
-                            )}
-                          </MenuItem>
-                        </MenuItems>
-                      </Menu>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                        </span>
+                      </td>
+                      <td className="px-4 py-4">
+                        <Menu as="div" className="relative inline-block text-left">
+                          <MenuButton className="flex items-center gap-1 px-3 py-1.5 text-[10px] font-black uppercase bg-cyan-700 text-white rounded-lg hover:bg-cyan-800 transition-all shadow-sm">
+                            Action <ChevronDown className="w-3 h-3" />
+                          </MenuButton>
+                          <MenuItems className="absolute right-0 mt-2 w-48 bg-white border border-gray-100 divide-y divide-gray-50 rounded-xl shadow-xl focus:outline-none z-[9999] py-1 backdrop-blur-sm bg-white/95">
+                            {[
+                              { label: "View Details", href: `/resources/materials/${mat.id}` },
+                              { label: "Edit Item", action: () => console.log("Edit clicked") },
+                              { label: "Manage Inventory", action: () => console.log("Manage clicked") },
+                              { label: "Delete", action: () => console.log("Delete clicked"), color: "text-rose-600" }
+                            ].map((item) => (
+                              <MenuItem key={item.label}>
+                                {({ active }) => (
+                                  item.href ? (
+                                    <Link
+                                      href={item.href}
+                                      className={`block w-full px-4 py-2 text-left text-xs font-bold text-gray-700 ${active ? "bg-gray-50 text-cyan-700" : ""
+                                        }`}
+                                    >
+                                      {item.label}
+                                    </Link>
+                                  ) : (
+                                    <button
+                                      className={`block w-full px-4 py-2 text-left text-xs font-bold ${item.color || 'text-gray-700'} ${active ? "bg-gray-50 text-cyan-700" : ""
+                                        }`}
+                                      onClick={item.action}
+                                    >
+                                      {item.label}
+                                    </button>
+                                  )
+                                )}
+                              </MenuItem>
+                            ))}
+                          </MenuItems>
+                        </Menu>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Form Modal */}
+      {showForm && canCreate && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+          <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity" onClick={() => setShowForm(false)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-100">
+              <h3 className="text-lg sm:text-xl font-black text-cyan-800 uppercase tracking-tight">Add New Material</h3>
+              <button onClick={() => setShowForm(false)} className="text-gray-400 hover:text-gray-600 p-2 rounded-lg hover:bg-gray-50 transition-colors">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+              <MaterialForm
+                warehouseId={siteWarehouseIds[0]}
+                onClose={() => setShowForm(false)}
+              />
+            </div>
+          </div>
         </div>
       )}
     </div>

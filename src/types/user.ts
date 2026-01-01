@@ -19,7 +19,7 @@ export interface User {
     department?: Department
     siteId?: string;
     site?: Site
-    responsiblities?: string[]
+    responsibilities?: string[]
     access?: "Low Access" | "Full Access" | "Average Access";
     status?: "Active" | "InActive";
     projects?: Project[];
@@ -46,7 +46,7 @@ export interface CreateUserInput {
     status?: "Active" | "InActive";
     role_name?: string;
     siteId?: string;
-    responsiblities?: string[]
+    responsibilities?: string[]
     access?: "Low Access" | "Full Access" | "Average Access";
     username?: string;
     gender?: 'Male' | 'Female';
@@ -69,7 +69,7 @@ export interface UpdateUserInput {
     status?: "Active" | "InActive";
     role_id?: string;
     siteId?: string;
-    responsiblities?: string[]
+    responsibilities?: string[]
     access?: "Low Access" | "Full Access" | "Average Access";
     username?: string;
     gender?: 'Male' | 'Female';

@@ -40,11 +40,11 @@ const Filters: React.FC<FiltersProps> = ({ projects, onChange }) => {
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-4">
       <select
         value={period}
         onChange={(e) => setPeriod(e.target.value)}
-        className="w-full rounded-md border px-3 py-2"
+        className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-bold text-gray-700 bg-gray-50 focus:ring-2 focus:ring-cyan-500 focus:bg-white transition-all outline-none"
       >
         <option value="">All Time</option>
         <option value="today">Today</option>
@@ -56,7 +56,7 @@ const Filters: React.FC<FiltersProps> = ({ projects, onChange }) => {
       <select
         value={status}
         onChange={(e) => setStatus(e.target.value)}
-        className="w-full rounded-md border px-3 py-2"
+        className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-bold text-gray-700 bg-gray-50 focus:ring-2 focus:ring-cyan-500 focus:bg-white transition-all outline-none"
       >
         <option value="">All Statuses</option>
         {statuses.map((s) => (
@@ -69,7 +69,7 @@ const Filters: React.FC<FiltersProps> = ({ projects, onChange }) => {
       <select
         value={priority}
         onChange={(e) => setPriority(e.target.value)}
-        className="w-full rounded-md border px-3 py-2"
+        className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-bold text-gray-700 bg-gray-50 focus:ring-2 focus:ring-cyan-500 focus:bg-white transition-all outline-none"
       >
         <option value="">All Priorities</option>
         {priorities.map((p) => (
@@ -83,7 +83,7 @@ const Filters: React.FC<FiltersProps> = ({ projects, onChange }) => {
         type="date"
         value={startDate}
         onChange={(e) => setStartDate(e.target.value)}
-        className="w-full rounded-md border px-3 py-2"
+        className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-bold text-gray-700 bg-gray-50 focus:ring-2 focus:ring-cyan-500 focus:bg-white transition-all outline-none"
         placeholder="Start ≥"
       />
 
@@ -91,15 +91,15 @@ const Filters: React.FC<FiltersProps> = ({ projects, onChange }) => {
         type="date"
         value={endDate}
         onChange={(e) => setEndDate(e.target.value)}
-        className="w-full rounded-md border px-3 py-2"
+        className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-bold text-gray-700 bg-gray-50 focus:ring-2 focus:ring-cyan-500 focus:bg-white transition-all outline-none"
         placeholder="End ≤"
       />
 
       <button
         onClick={clearAll}
-        className="flex items-center justify-center rounded-md border px-3 py-2 text-red-600 hover:bg-gray-100"
+        className="flex items-center justify-center rounded-lg border border-red-100 px-4 py-2.5 text-sm font-black text-red-600 bg-red-50 hover:bg-red-100 transition-colors shadow-sm"
       >
-        <XCircle size={18} className="mr-1" />
+        <XCircle size={18} className="mr-2" />
         Clear
       </button>
     </div>
