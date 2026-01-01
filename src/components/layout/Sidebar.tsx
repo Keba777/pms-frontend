@@ -19,6 +19,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
   const user = useAuthStore((state) => state.user);
   const { hasPermission } = useAuthStore();
 
+  // VERIFICATION LOG: Check this in your browser console
+  console.log('Current User Permissions:', user?.permissions);
+
   const [chatBadge, setChatBadge] = useState(0);
   const [groupChatBadge, setGroupChatBadge] = useState(0);
 
@@ -83,9 +86,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
           ? hasPermission(resource, "manage") ||
           hasPermission(resource, "delete") ||
           hasPermission(resource, "edit") ||
-          hasPermission(resource, "create")
+          hasPermission(resource, "create") ||
+          hasPermission(resource, "view")
           : true;
       });
+      // Try to keep the item if it has visible children, OR if the item itself has a link that is permitted?
+      // Usually if it has a submenu, we only care if children are visible. 
+      // But let's stick to the previous logic: return true if filteredSub has length.
+      // Wait, if filteredSub is empty, we hide the parent? Yes.
       return filteredSub.length > 0;
     }
 
@@ -94,7 +102,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
       ? hasPermission(resource, "manage") ||
       hasPermission(resource, "delete") ||
       hasPermission(resource, "edit") ||
-      hasPermission(resource, "create")
+      hasPermission(resource, "create") ||
+      hasPermission(resource, "view")
       : true;
   });
 

@@ -32,7 +32,8 @@ const MenuItem: React.FC<MenuItemProps> = ({ item, onItemClick }) => {
       ? hasPermission(resource, "manage") ||
       hasPermission(resource, "delete") ||
       hasPermission(resource, "edit") ||
-      hasPermission(resource, "create")
+      hasPermission(resource, "create") ||
+      hasPermission(resource, "view")
       : true;
   });
 
@@ -59,8 +60,8 @@ const MenuItem: React.FC<MenuItemProps> = ({ item, onItemClick }) => {
           }
         }}
         className={`flex items-center py-2.5 px-4 rounded-md transition-colors duration-200 text-sm font-medium ${isActive
-            ? "bg-gray-100 text-blue-600 shadow-sm"
-            : "hover:bg-gray-50 text-gray-700"
+          ? "bg-gray-100 text-blue-600 shadow-sm"
+          : "hover:bg-gray-50 text-gray-700"
           }`}
       >
         {Icon && <Icon className={`w-5 h-5 mr-3 flex-shrink-0 ${item.iconColor}`} />}

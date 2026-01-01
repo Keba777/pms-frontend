@@ -33,6 +33,7 @@ export interface User {
     joiningDate?: Date;
     estSalary?: number;
     ot?: number;
+    permissions?: string[];
 }
 
 export interface CreateUserInput {

@@ -3,12 +3,12 @@ import { create } from "zustand";
 import { persist, PersistStorage } from "zustand/middleware";
 import { User, Permissions } from "@/types/user";
 
-export type PermissionAction = "create" | "edit" | "delete" | "manage";
+export type PermissionAction = "create" | "edit" | "update" | "delete" | "manage" | "view";
 
 interface AuthStore {
     user: User | null;
     token: string | null;
-    permissions: Permissions | null;
+    permissions: string[] | null;
     expiresAt: number | null;
     _hasHydrated: boolean;
     login: (user: User, token: string) => void;
@@ -31,7 +31,7 @@ export const useAuthStore = create<AuthStore>()(
                 set({
                     user,
                     token,
-                    permissions: user.role?.permissions ?? null,
+                    permissions: user.permissions ?? null, // Use flattened permissions from backend
                     expiresAt,
                 });
             },
@@ -47,27 +47,19 @@ export const useAuthStore = create<AuthStore>()(
             setHasHydrated: (state) => set({ _hasHydrated: state }),
 
             hasPermission: (resource, action) => {
-                const { user, permissions } = get();
-                // Admin exceptions: these resources are restricted even for admins
-                const adminExceptions = [
-                    'site-labors',
-                    'site-materials',
-                    'site-equipments',
-                ];
+                const { permissions } = get();
 
-                // If user is admin
-                if (user?.role?.name?.toLowerCase() === "admin") {
-                    // Deny access if resource is in exceptions
-                    if (adminExceptions.includes(resource)) {
-                        return false;
-                    }
-                    return true;
-                }
+                if (!permissions) return false;
 
-                // Non-admin permission check
-                const resourcePerms =
-                    (permissions?.[resource] as Record<string, boolean> | undefined) || {};
-                return Boolean(resourcePerms[action]);
+                // Check for wildcard first
+                if (permissions.includes('*')) return true;
+
+                // Normalize action: map 'edit' to 'update' to match backend
+                const normalizedAction = action === 'edit' ? 'update' : action;
+
+                // Check specific permission slug
+                const slug = `${resource}:${normalizedAction}`;
+                return permissions.includes(slug);
             },
         }),
         {
