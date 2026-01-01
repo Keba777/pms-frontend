@@ -53,7 +53,7 @@ const createUser = async (data: Omit<User, "id"> | FormData): Promise<User> => {
     // because User type says string.
     // The component usually has a local type like CreateUserInput which has profile_picture?: string | File.
     // Let's accept any/generic for flexibility or update types properly.
-    
+
     // For now, let's allow the caller to pass FormData.
     const response = await apiClient.post<ApiResponse<User>>("/users", data);
     return response.data.data;
@@ -61,12 +61,12 @@ const createUser = async (data: Omit<User, "id"> | FormData): Promise<User> => {
 
 // Import multiple users
 const importUsers = async (formData: FormData): Promise<User[]> => {
-  const response = await apiClient.post<ApiResponse<User[]>>("/users/import", formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  });
-  return response.data.data;
+    const response = await apiClient.post<ApiResponse<User[]>>("/users/import", formData, {
+        headers: {
+            "Content-Type": "multipart/form-data",
+        },
+    });
+    return response.data.data;
 };
 
 // Update an existing user
@@ -81,7 +81,7 @@ const updateUser = async (data: UpdateUserInput): Promise<User> => {
         if (key === "profile_picture" && value instanceof File) {
             formData.append(key, value);
         } else if (Array.isArray(value)) {
-            value.forEach((item) => formData.append(`${key}[]`, item));
+            value.forEach((item) => formData.append(key, item));
         } else {
             formData.append(key, String(value));
         }
@@ -160,19 +160,19 @@ export const useCreateUser = (onSuccess?: (user: User) => void) => {
 
 // Hook to import multiple users and refresh users list
 export const useImportUsers = (onSuccess?: (users: User[]) => void) => {
-  const queryClient = useQueryClient();
+    const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: importUsers,
-    onSuccess: (users) => {
-      toast.success("Users imported successfully!");
-      queryClient.invalidateQueries({ queryKey: ["users"] });
-      if (onSuccess) onSuccess(users);
-    },
-    onError: () => {
-      toast.error("Failed to import users");
-    },
-  });
+    return useMutation({
+        mutationFn: importUsers,
+        onSuccess: (users) => {
+            toast.success("Users imported successfully!");
+            queryClient.invalidateQueries({ queryKey: ["users"] });
+            if (onSuccess) onSuccess(users);
+        },
+        onError: () => {
+            toast.error("Failed to import users");
+        },
+    });
 };
 
 // Hook to update an existing user and refresh users list

@@ -41,8 +41,8 @@ const UserForm: React.FC<UserFormProps> = ({ onClose }) => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files ? e.target.files[0] : null;
     if (file) {
-        setSelectedFile(file);
-        setPreviewUrl(URL.createObjectURL(file));
+      setSelectedFile(file);
+      setPreviewUrl(URL.createObjectURL(file));
     }
   };
 
@@ -112,12 +112,12 @@ const UserForm: React.FC<UserFormProps> = ({ onClose }) => {
     // Append all fields to FormData
     // Since CreateUserInput structure is flat (mostly), we iterate.
     // However, react-hook-form data might differ slightly from FormData structure needed by backend if array/nested.
-    
+
     // Manual mapping to be safe or iteration
     formData.append("first_name", data.first_name);
     formData.append("last_name", data.last_name);
     formData.append("email", data.email);
-    formData.append("password", data.password);
+    if (data.password) formData.append("password", data.password);
     formData.append("phone", data.phone);
     if (data.username) formData.append("username", data.username);
     if (data.gender) formData.append("gender", data.gender);
@@ -126,7 +126,7 @@ const UserForm: React.FC<UserFormProps> = ({ onClose }) => {
     if (data.joiningDate) formData.append("joiningDate", data.joiningDate.toString()); // check format
     if (data.estSalary) formData.append("estSalary", data.estSalary.toString());
     if (data.ot) formData.append("ot", data.ot.toString());
-    
+
     // Optional fields
     // NOTE: Backend expects role_id for "role_id" column, but frontend was sending "role_name"? 
     // UserForm used "role_name" in hook form previously? 
@@ -158,25 +158,25 @@ const UserForm: React.FC<UserFormProps> = ({ onClose }) => {
     //   Current UserForm options: `value: role.name`. 
     //   I will change this to `value: role.id` to be correct, and name the field `role_id`?
     //   Or if I simply omit it, it defaults.
-    
+
     // Let's stick to previous behavior but allow optional.
     // If I select a role, I want it to work. 
     // I will change role options to use ID as value, and key to role_id.
-    
+
     if (data.role_name) {
-         formData.append("role_id", data.role_name); 
+      formData.append("role_id", data.role_name);
     }
 
     if (data.siteId) formData.append("siteId", data.siteId);
     if (data.department_id) formData.append("department_id", data.department_id);
     if (data.status) formData.append("status", data.status);
-    
+
     if (data.responsibilities) {
-        data.responsibilities.forEach(r => formData.append("responsibilities[]", r));
+      data.responsibilities.forEach(r => formData.append("responsibilities", r));
     }
 
     if (selectedFile) {
-        formData.append("profile_picture", selectedFile);
+      formData.append("profile_picture", selectedFile);
     }
 
     // Call createUser with FormData (cast to any or overload in hook)
@@ -226,24 +226,24 @@ const UserForm: React.FC<UserFormProps> = ({ onClose }) => {
 
         {/* Profile Picture */}
         <div>
-           <label className="block text-sm font-medium text-gray-700 mb-1">
-             Profile Picture
-           </label>
-           {previewUrl && (
-              <Image
-                src={previewUrl}
-                alt="Preview"
-                width={80}
-                height={80}
-                className="rounded-full mb-2 object-cover"
-              />
-            )}
-           <input
-             type="file"
-             accept="image/*"
-             onChange={handleFileChange}
-             className="w-full px-3 py-2 border rounded-md"
-           />
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Profile Picture
+          </label>
+          {previewUrl && (
+            <Image
+              src={previewUrl}
+              alt="Preview"
+              width={80}
+              height={80}
+              className="rounded-full mb-2 object-cover"
+            />
+          )}
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            className="w-full px-3 py-2 border rounded-md"
+          />
         </div>
 
         {/* Last Name */}
@@ -411,11 +411,11 @@ const UserForm: React.FC<UserFormProps> = ({ onClose }) => {
         {/* Password */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Password <span className="text-red-500">*</span>
+            Password <span className="text-gray-400 text-xs">(Defaults to 123456)</span>
           </label>
           <input
             type="password"
-            {...register("password", { required: "Password is required" })}
+            {...register("password")}
             placeholder="Enter password"
             className="w-full px-3 py-2 border rounded-md"
           />
