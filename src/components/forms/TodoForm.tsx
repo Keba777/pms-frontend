@@ -46,21 +46,32 @@ const TodoForm: React.FC<TodoFormProps> = ({ onClose }) => {
   const { data: roles } = useRoles();
 
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [targetList, setTargetList] = useState<string[]>([]);
+  const [targetInput, setTargetInput] = useState("");
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files ? Array.from(event.target.files) : [];
     setSelectedFiles(files);
   };
 
-  const onSubmit = (data: CreateTodoInput) => {
-    const submitData = { ...data, departmentId };
-
-    if (
-      !submitData.attachment ||
-      Object.keys(submitData.attachment).length === 0
-    ) {
-      delete submitData.attachment;
+  const addTargetItem = () => {
+    if (targetInput.trim()) {
+      setTargetList([...targetList, targetInput.trim()]);
+      setTargetInput("");
     }
+  };
+
+  const removeTargetItem = (index: number) => {
+    setTargetList(targetList.filter((_, i) => i !== index));
+  };
+
+  const onSubmit = (data: CreateTodoInput) => {
+    const submitData = {
+      ...data,
+      departmentId,
+      target: targetList,
+      attachment: selectedFiles
+    };
 
     createTodo(submitData, {
       onSuccess: () => {
@@ -71,6 +82,8 @@ const TodoForm: React.FC<TodoFormProps> = ({ onClose }) => {
       },
     });
   };
+
+
 
   const statusOptions = [
     {
@@ -260,7 +273,7 @@ const TodoForm: React.FC<TodoFormProps> = ({ onClose }) => {
               </p>
               <div className="flex items-center text-sm mt-1">
                 <Calendar size={16} className="mr-1" />
-                <span>{format(lastTodo.target)}</span>
+                <span>{format(lastTodo.target_date)}</span>
               </div>
             </div>
           ) : (
@@ -274,7 +287,7 @@ const TodoForm: React.FC<TodoFormProps> = ({ onClose }) => {
               Target Date
             </label>
             <Controller
-              name="target"
+              name="target_date"
               control={control}
               render={({ field }) => (
                 <>
@@ -282,9 +295,9 @@ const TodoForm: React.FC<TodoFormProps> = ({ onClose }) => {
                     showFullMonthYearPicker
                     showYearDropdown
                     selected={field.value ? new Date(field.value) : undefined}
-                    onChange={(date: any, event?: any) => {
+                    onChange={(date: any) => {
                       const d = Array.isArray(date) ? date[0] : date;
-                      field.onChange(d ? d.toISOString() : undefined);
+                      field.onChange(d);
                     }}
                     placeholderText="Enter Target Date"
                     className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
@@ -308,9 +321,9 @@ const TodoForm: React.FC<TodoFormProps> = ({ onClose }) => {
                     showFullMonthYearPicker
                     showYearDropdown
                     selected={field.value ? new Date(field.value) : undefined}
-                    onChange={(date: any, event?: any) => {
+                    onChange={(date: any) => {
                       const d = Array.isArray(date) ? date[0] : date;
-                      field.onChange(d ? d.toISOString() : undefined);
+                      field.onChange(d);
                     }}
                     placeholderText="Enter Due Date"
                     className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
@@ -324,6 +337,50 @@ const TodoForm: React.FC<TodoFormProps> = ({ onClose }) => {
               </p>
             )}
           </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Target List
+          </label>
+          <div className="flex gap-2 mb-2">
+            <input
+              type="text"
+              value={targetInput}
+              onChange={(e) => setTargetInput(e.target.value)}
+              placeholder="Add target item"
+              className="flex-1 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  addTargetItem();
+                }
+              }}
+            />
+            <button
+              type="button"
+              onClick={addTargetItem}
+              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+            >
+              Add
+            </button>
+          </div>
+          {targetList.length > 0 && (
+            <ul className="list-disc list-inside space-y-1 bg-gray-50 p-2 rounded border">
+              {targetList.map((item, idx) => (
+                <li key={idx} className="flex justify-between items-center text-sm">
+                  <span>{item}</span>
+                  <button
+                    type="button"
+                    onClick={() => removeTargetItem(idx)}
+                    className="text-red-500 hover:text-red-700 font-bold px-2"
+                  >
+                    &times;
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
         <div>

@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import "react-datepicker/dist/react-datepicker.css";
 import { UpdateTodoInput } from "@/types/todo";
@@ -30,6 +30,46 @@ const EditTodoForm: React.FC<EditTodoFormProps> = ({
   } = useForm<UpdateTodoInput>({
     defaultValues: todo,
   });
+
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [existingAttachments, setExistingAttachments] = useState<string[]>(
+    (todo as any).attachment || []
+  );
+  const [targetList, setTargetList] = useState<string[]>(todo.target || []);
+  const [targetInput, setTargetInput] = useState("");
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files ? Array.from(event.target.files) : [];
+    setSelectedFiles((prev) => [...prev, ...files]);
+    event.target.value = "";
+  };
+
+  const removeSelectedFile = (index: number) => {
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const removeExistingAttachment = (urlToRemove: string) => {
+    setExistingAttachments((prev) => prev.filter((url) => url !== urlToRemove));
+  };
+
+  const addTargetItem = () => {
+    if (targetInput.trim()) {
+      setTargetList([...targetList, targetInput.trim()]);
+      setTargetInput("");
+    }
+  };
+
+  const removeTargetItem = (index: number) => {
+    setTargetList(targetList.filter((_, i) => i !== index));
+  };
+
+  const cleanData = (data: UpdateTodoInput) => {
+    const newData = { ...data };
+    newData.target = targetList;
+    newData.existingAttachments = existingAttachments;
+    newData.attachment = selectedFiles;
+    return newData;
+  };
 
   const statusOptions = [
     {
@@ -81,7 +121,7 @@ const EditTodoForm: React.FC<EditTodoFormProps> = ({
 
   return (
     <form
-      onSubmit={handleSubmit(onSubmit)}
+      onSubmit={handleSubmit((data) => onSubmit(cleanData(data)))}
       className="bg-white rounded-lg shadow-xl p-6 space-y-6"
     >
       <div className="flex justify-between items-center pb-4 border-b">
@@ -211,7 +251,7 @@ const EditTodoForm: React.FC<EditTodoFormProps> = ({
               Target Date
             </label>
             <Controller
-              name="target"
+              name="target_date"
               control={control}
               render={({ field }) => (
                 <>
@@ -219,7 +259,7 @@ const EditTodoForm: React.FC<EditTodoFormProps> = ({
                     showFullMonthYearPicker
                     showYearDropdown
                     selected={field.value ? new Date(field.value) : undefined}
-                    onChange={(date: any, event?: any) => {
+                    onChange={(date: any) => {
                       const d = Array.isArray(date) ? date[0] : date;
                       field.onChange(d ? d.toISOString() : undefined);
                     }}
@@ -245,7 +285,7 @@ const EditTodoForm: React.FC<EditTodoFormProps> = ({
                     showFullMonthYearPicker
                     showYearDropdown
                     selected={field.value ? new Date(field.value) : undefined}
-                    onChange={(date: any, event?: any) => {
+                    onChange={(date: any) => {
                       const d = Array.isArray(date) ? date[0] : date;
                       field.onChange(d ? d.toISOString() : undefined);
                     }}
@@ -261,6 +301,51 @@ const EditTodoForm: React.FC<EditTodoFormProps> = ({
               </p>
             )}
           </div>
+        </div>
+
+        {/* Target List UI */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Target List
+          </label>
+          <div className="flex gap-2 mb-2">
+            <input
+              type="text"
+              value={targetInput}
+              onChange={(e) => setTargetInput(e.target.value)}
+              placeholder="Add target item"
+              className="flex-1 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  addTargetItem();
+                }
+              }}
+            />
+            <button
+              type="button"
+              onClick={addTargetItem}
+              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+            >
+              Add
+            </button>
+          </div>
+          {targetList.length > 0 && (
+            <ul className="list-disc list-inside space-y-1 bg-gray-50 p-2 rounded border">
+              {targetList.map((item, idx) => (
+                <li key={idx} className="flex justify-between items-center text-sm">
+                  <span>{item}</span>
+                  <button
+                    type="button"
+                    onClick={() => removeTargetItem(idx)}
+                    className="text-red-500 hover:text-red-700 font-bold px-2"
+                  >
+                    &times;
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
         <div>
@@ -300,6 +385,67 @@ const EditTodoForm: React.FC<EditTodoFormProps> = ({
           />
         </div>
 
+        {/* Attachments Section */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Existing Attachments
+          </label>
+          {existingAttachments.length > 0 ? (
+            <ul className="grid grid-cols-1 gap-2 mb-4">
+              {existingAttachments.map((url, idx) => (
+                <li key={idx} className="flex justify-between items-center p-2 bg-gray-50 border rounded-md">
+                  <a href={url} target="_blank" rel="noreferrer" className="text-sm text-blue-600 hover:underline truncate max-w-xs" title={url}>
+                    {url.split("/").pop()}
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => removeExistingAttachment(url)}
+                    className="text-xs text-red-500 hover:text-red-700 font-medium"
+                  >
+                    Remove
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-gray-400 italic mb-4">No existing attachments</p>
+          )}
+
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Add New Files
+          </label>
+          <div className="w-full border-2 border-dashed border-gray-300 rounded-md p-4 bg-gray-50 hover:border-cyan-700 transition-colors duration-300">
+            <input
+              type="file"
+              multiple
+              onChange={handleFileChange}
+              className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-cyan-700 file:text-white hover:file:bg-cyan-800"
+            />
+            <p className="mt-2 text-sm text-gray-500">
+              Select new files to add.
+            </p>
+          </div>
+          {selectedFiles.length > 0 && (
+            <div className="mt-2">
+              <h4 className="text-sm font-semibold text-gray-700 mb-1">New Files Selected:</h4>
+              <ul className="list-disc list-inside text-sm text-gray-600">
+                {selectedFiles.map((file, index) => (
+                  <li key={index} className="flex justify-between items-center">
+                    <span>{file.name} ({(file.size / 1024).toFixed(2)} KB)</span>
+                    <button
+                      type="button"
+                      onClick={() => removeSelectedFile(index)}
+                      className="text-xs text-red-500 hover:text-red-700 font-medium ml-2"
+                    >
+                      Remove
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+
         <div className="flex justify-end gap-4">
           <button
             type="button"
@@ -316,7 +462,7 @@ const EditTodoForm: React.FC<EditTodoFormProps> = ({
           </button>
         </div>
       </div>
-    </form>
+    </form >
   );
 };
 

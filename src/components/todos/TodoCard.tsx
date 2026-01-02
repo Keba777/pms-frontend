@@ -37,9 +37,8 @@ export default function TodoCard({ todo, departments }: TodoCardProps) {
           {todo.task}
         </Link>
         <span
-          className={`px-3 py-1 rounded-full text-xs font-medium shadow-sm ${
-            priorityBadgeClasses[todo.priority]
-          }`}
+          className={`px-3 py-1 rounded-full text-xs font-medium shadow-sm ${priorityBadgeClasses[todo.priority]
+            }`}
         >
           {todo.priority || "-"}
         </span>
@@ -75,15 +74,25 @@ export default function TodoCard({ todo, departments }: TodoCardProps) {
             }
           />
 
-          <div className="flex items-center justify-between">
-            <span className="text-cyan-700 font-medium">Target:</span>
-            <span>
-              {todo.target ? new Date(todo.target).toLocaleDateString() : "-"}
-            </span>
-            <span className="text-cyan-700 font-medium ml-2">Due:</span>
-            <span>
-              {todo.dueDate ? new Date(todo.dueDate).toLocaleDateString() : "-"}
-            </span>
+          <div className="flex items-center justify-between col-span-2">
+            <div className="flex items-center gap-2">
+              <span className="text-cyan-700 font-medium whitespace-nowrap">Given:</span>
+              <span className="whitespace-nowrap">
+                {todo.givenDate ? new Date(todo.givenDate).toLocaleDateString() : "-"}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-cyan-700 font-medium whitespace-nowrap">Target:</span>
+              <span className="whitespace-nowrap">
+                {todo.target_date ? new Date(todo.target_date).toLocaleDateString() : "-"}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-cyan-700 font-medium whitespace-nowrap">Due:</span>
+              <span className="whitespace-nowrap">
+                {todo.dueDate ? new Date(todo.dueDate).toLocaleDateString() : "-"}
+              </span>
+            </div>
           </div>
         </div>
         <InfoItem label="KPI" value={todo.kpi?.score || todo.kpiId || "-"} />
@@ -91,9 +100,8 @@ export default function TodoCard({ todo, departments }: TodoCardProps) {
         {/* Status */}
         <div className="flex justify-between items-center mt-2">
           <span
-            className={`px-3 py-1 rounded-full text-xs font-medium ${
-              statusBadgeClasses[todo.status]
-            }`}
+            className={`px-3 py-1 rounded-full text-xs font-medium ${statusBadgeClasses[todo.status]
+              }`}
           >
             {todo.status}
           </span>

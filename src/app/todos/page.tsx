@@ -19,6 +19,8 @@ import {
 import TodoForm from "@/components/forms/TodoForm";
 import TodosTable from "@/components/todos/TodosTable";
 import TodoCard from "@/components/todos/TodoCard";
+import TodoTableSkeleton from "@/components/todos/TodoTableSkeleton";
+import TodoCardSkeleton from "@/components/todos/TodoCardSkeleton";
 
 const columnOptions: Record<string, string> = {
   task: "Task",
@@ -26,7 +28,9 @@ const columnOptions: Record<string, string> = {
   priority: "Priority",
   assignedBy: "Assigned By",
   assignedUsers: "Assigned Users",
-  target: "Target",
+  target_date: "Target Date",
+  target: "Target List",
+  givenDate: "Given Date",
   dueDate: "Due Date",
   kpi: "KPI",
   department: "Department",
@@ -104,8 +108,7 @@ const TodosPage = () => {
   const isLoading = todoLoading || deptLoading;
   const isError = todoError || deptError;
 
-  if (isLoading) return <div>Loading...</div>;
-  if (isError) return <div className="text-red-500">Error loading data.</div>;
+  if (isError) return <div className="text-red-500 text-center py-10">Error loading data.</div>;
 
   const total = todos?.length ?? 0;
   const notStartedCount =
@@ -130,10 +133,15 @@ const TodosPage = () => {
         row.assignedUsers?.map((u) => u.first_name).join(", ") || "-",
     },
     {
-      header: "Target",
+      header: "Target Date",
       accessor: (row) =>
-        row.target ? new Date(row.target).toISOString().split("T")[0] : "-",
+        row.target_date ? new Date(row.target_date).toISOString().split("T")[0] : "-",
     },
+    {
+      header: "Target List",
+      accessor: (row) => row.target?.join(", ") || "-",
+    },
+    { header: "Given Date", accessor: (row) => row.givenDate ? new Date(row.givenDate).toISOString().split("T")[0] : "-" },
     {
       header: "Due Date",
       accessor: (row) =>
@@ -219,7 +227,7 @@ const TodosPage = () => {
           >
             <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">{item.label}</p>
             <span className={`text-2xl font-black ${item.color}`}>
-              {item.value}
+              {isLoading ? 0 : item.value}
             </span>
           </div>
         ))}
@@ -299,7 +307,17 @@ const TodosPage = () => {
         </div>
       )}
 
-      {isListView ? (
+      {isLoading ? (
+        isListView ? (
+          <TodoTableSkeleton />
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <TodoCardSkeleton key={i} />
+            ))}
+          </div>
+        )
+      ) : isListView ? (
         <TodosTable
           filteredTodos={filteredTodos}
           selectedColumns={selectedColumns}

@@ -77,6 +77,8 @@ const TodosTable: React.FC<TodosTableProps> = ({
   const handleManageClick = (t: Todo) => {
     setTodoToManage({
       ...t,
+      existingAttachments: t.attachment,
+      attachment: undefined,
       assignedUsers: t.assignedUsers?.map((u) => u.id),
     });
     setShowManageForm(true);
@@ -119,9 +121,19 @@ const TodosTable: React.FC<TodosTableProps> = ({
                 Assigned To
               </th>
             )}
+            {selectedColumns.includes("target_date") && (
+              <th className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase whitespace-nowrap">
+                Target Date
+              </th>
+            )}
             {selectedColumns.includes("target") && (
               <th className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase whitespace-nowrap">
-                Target
+                Target List
+              </th>
+            )}
+            {selectedColumns.includes("givenDate") && (
+              <th className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase whitespace-nowrap">
+                Given Date
               </th>
             )}
             {selectedColumns.includes("dueDate") && (
@@ -202,11 +214,28 @@ const TodosTable: React.FC<TodosTableProps> = ({
                   )}
                 </td>
               )}
+              {selectedColumns.includes("target_date") && (
+                <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
+                  {todo.target_date
+                    ? format(todo.target_date)
+                    : "-"}
+                </td>
+              )}
               {selectedColumns.includes("target") && (
                 <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
-                  {todo.target
-                    ? format(todo.target)
-                    : "-"}
+                  {todo.target && todo.target.length > 0 ? (
+                    <ul className="list-disc list-inside text-xs">
+                      {todo.target.slice(0, 2).map((t, i) => (
+                        <li key={i} className="truncate max-w-[150px]" title={t}>{t}</li>
+                      ))}
+                      {todo.target.length > 2 && <li>+{todo.target.length - 2} more</li>}
+                    </ul>
+                  ) : "-"}
+                </td>
+              )}
+              {selectedColumns.includes("givenDate") && (
+                <td className="px-4 py-2 border border-gray-200 whitespace-nowrap">
+                  {todo.givenDate ? format(todo.givenDate) : "-"}
                 </td>
               )}
               {selectedColumns.includes("dueDate") && (
@@ -268,6 +297,8 @@ const TodosTable: React.FC<TodosTableProps> = ({
                             onClick={() => {
                               setTodoToEdit({
                                 ...todo,
+                                existingAttachments: todo.attachment,
+                                attachment: undefined,
                                 assignedUsers: todo.assignedUsers?.map(
                                   (u) => u.id
                                 ),

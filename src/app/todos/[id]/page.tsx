@@ -114,8 +114,8 @@ export default function TodoPage() {
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <Badge className={`w-full sm:w-auto flex justify-center py-1.5 text-[10px] font-black uppercase tracking-widest ${todo.priority === 'High' || todo.priority === 'Urgent' ? 'bg-rose-100 text-rose-800' :
-              todo.priority === 'Medium' ? 'bg-amber-100 text-amber-800' :
-                'bg-emerald-100 text-emerald-800'
+            todo.priority === 'Medium' ? 'bg-amber-100 text-amber-800' :
+              'bg-emerald-100 text-emerald-800'
             }`}>
             {todo.priority} Priority
           </Badge>
@@ -146,7 +146,7 @@ export default function TodoPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
               <InfoChip label="Given Date" value={new Date(todo.givenDate).toLocaleDateString()} />
               <InfoChip label="Due Date" value={new Date(todo.dueDate).toLocaleDateString()} />
-              <InfoChip label="Target" value={new Date(todo.target).toLocaleDateString()} />
+              <InfoChip label="Target" value={todo.target_date ? new Date(todo.target_date).toLocaleDateString() : "-"} />
               <InfoChip label="Department" value={todo.department?.name ?? "N/A"} />
               <InfoChip label="KPI" value={todo.kpi?.score?.toString() ?? "N/A"} />
               <InfoChip label="Created At" value={new Date(todo.createdAt!).toLocaleDateString()} />

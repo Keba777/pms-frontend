@@ -32,12 +32,69 @@ const fetchTodoById = async (id: string): Promise<Todo | null> => {
 };
 
 const createTodo = async (data: CreateTodoInput): Promise<Todo> => {
-    const response = await apiClient.post<ApiResponse<Todo>>("/todos", data);
+    const formData = new FormData();
+    formData.append("task", data.task);
+    formData.append("type", data.type);
+    formData.append("priority", data.priority);
+    formData.append("dueDate", data.dueDate instanceof Date ? data.dueDate.toISOString() : data.dueDate);
+    if (data.target_date) formData.append("target_date", data.target_date instanceof Date ? data.target_date.toISOString() : data.target_date);
+    formData.append("departmentId", data.departmentId);
+    if (data.status) formData.append("status", data.status);
+    if (data.progress !== undefined) formData.append("progress", data.progress.toString());
+    if (data.remark) formData.append("remark", data.remark);
+    if (data.remainder) formData.append("remainder", data.remainder);
+
+    if (data.assignedUsers && data.assignedUsers.length > 0) {
+        data.assignedUsers.forEach((id) => formData.append("assignedUsers", id));
+    }
+
+    if (data.target && data.target.length > 0) {
+        data.target.forEach((t) => formData.append("target", t));
+    }
+
+    if (data.attachment && data.attachment.length > 0) {
+        data.attachment.forEach((file) => formData.append("attachments", file));
+    }
+
+    const response = await apiClient.post<ApiResponse<Todo>>("/todos", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+    });
     return response.data.data;
 };
 
 const updateTodo = async (data: UpdateTodoInput): Promise<Todo> => {
-    const response = await apiClient.put<ApiResponse<Todo>>(`/todos/${data.id}`, data);
+    const formData = new FormData();
+    if (data.id) formData.append("id", data.id);
+    if (data.task) formData.append("task", data.task);
+    if (data.type) formData.append("type", data.type);
+    if (data.priority) formData.append("priority", data.priority);
+    if (data.dueDate) formData.append("dueDate", data.dueDate instanceof Date ? data.dueDate.toISOString() : data.dueDate);
+    if (data.target_date) formData.append("target_date", data.target_date instanceof Date ? data.target_date.toISOString() : data.target_date);
+    if (data.departmentId) formData.append("departmentId", data.departmentId);
+    if (data.status) formData.append("status", data.status);
+    if (data.progress !== undefined) formData.append("progress", data.progress.toString());
+    if (data.remark) formData.append("remark", data.remark);
+    if (data.remainder) formData.append("remainder", data.remainder);
+
+    if (data.assignedUsers) {
+        data.assignedUsers.forEach((id) => formData.append("assignedUsers", id));
+    }
+
+    if (data.target) {
+        data.target.forEach((t) => formData.append("target", t));
+    }
+
+    if (data.existingAttachments) {
+        data.existingAttachments.forEach((url) => formData.append("existingAttachments", url));
+    }
+
+    if (data.attachment && data.attachment.length > 0) {
+        data.attachment.forEach((file) => formData.append("attachments", file));
+    }
+
+    const response = await apiClient.put<ApiResponse<Todo>>(`/todos/${data.id}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+    });
     return response.data.data;
 };
 

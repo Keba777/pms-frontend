@@ -15,7 +15,8 @@ export interface Todo {
     assignedUsers?: User[];
     givenDate: Date;
     dueDate: Date;
-    target: Date;
+    target_date: Date;
+    target: string[];
     kpiId?: string;
     kpi?: Kpi;
     departmentId: string;
@@ -36,13 +37,14 @@ export interface CreateTodoInput {
     priority: "Urgent" | "High" | "Medium" | "Low";
     assignedUsers?: string[];
     dueDate: Date;
-    target: Date;
+    target_date: Date;
+    target: string[];
     departmentId: string;
     status?: "Not Started" | "In progress" | "Pending" | "Completed";
     progress?: number;
     remark?: string;
     remainder?: string;
-    attachment?: string[];
+    attachment?: File[];
 }
 
 export interface UpdateTodoInput {
@@ -52,13 +54,15 @@ export interface UpdateTodoInput {
     priority?: "Urgent" | "High" | "Medium" | "Low";
     assignedUsers?: string[];
     dueDate?: Date;
-    target?: Date;
+    target_date?: Date;
+    target?: string[];
     departmentId?: string;
     status?: "Not Started" | "In progress" | "Pending" | "Completed";
     progress?: number;
     remark?: string;
     remainder?: string;
-    attachment?: string[];
+    existingAttachments?: string[];
+    attachment?: File[];
 }
 
 // =======================
