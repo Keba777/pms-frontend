@@ -145,11 +145,13 @@ const ProjectSection: React.FC = () => {
     setProjectToEdit({
       ...proj,
       members: proj.members?.map((m) => m.id),
+      existingAttachments: proj.attachments,
+      attachments: undefined,
     });
     setShowEditForm(true);
   };
 
-  const handleEditSubmit = (data: UpdateProjectInput) => {
+  const handleEditSubmit = (data: UpdateProjectInput | FormData) => {
     updateProject(data);
     setShowEditForm(false);
   };
@@ -162,6 +164,8 @@ const ProjectSection: React.FC = () => {
       members: proj.members?.map((m) => m.id),
       name: proj.title,
       progressUpdates: proj.progressUpdates,
+      existingAttachments: proj.attachments,
+      attachments: undefined,
     });
     setShowManageForm(true);
   };
