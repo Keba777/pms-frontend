@@ -37,12 +37,27 @@ const deleteMaterial = async (id: string): Promise<{ message: string }> => {
     return response.data.data;
 };
 
+import { useSearchStore } from "@/store/searchStore";
+
 // Hook to fetch all Materials and update the store
 export const useMaterials = () => {
     const setMaterials = useMaterialStore((state) => state.setMaterials);
+    const searchQuery = useSearchStore((s) => s.searchQuery);
+
     const query = useQuery({
         queryKey: ["materials"],
         queryFn: fetchMaterials,
+        select: (materials) => {
+            const filtered = materials.filter((m) => {
+                if (!searchQuery) return true;
+                const q = searchQuery.toLowerCase();
+                return (
+                    m.item.toLowerCase().includes(q) ||
+                    m.status?.toLowerCase().includes(q)
+                );
+            });
+            return filtered;
+        }
     });
 
     useEffect(() => {

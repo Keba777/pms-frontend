@@ -37,11 +37,29 @@ export const deleteRequestDelivery = async (id: string): Promise<{ message: stri
     return response.data.data;
 };
 
+import { useSearchStore } from "@/store/searchStore";
+
 export const useRequestDeliveries = () => {
     const setRequestDeliveries = useRequestDeliveryStore((state) => state.setRequestDeliveries);
+    const searchQuery = useSearchStore((s) => s.searchQuery);
+
     const query = useQuery({
         queryKey: ["request-deliveries"],
         queryFn: fetchRequestDeliveries,
+        select: (deliveries) => {
+            const filtered = deliveries.filter((d) => {
+                if (!searchQuery) return true;
+                const q = searchQuery.toLowerCase();
+                return (
+                    d.status.toLowerCase().includes(q) ||
+                    d.refNumber?.toLowerCase().includes(q) ||
+                    d.deliveredBy.toLowerCase().includes(q) ||
+                    d.recievedBy.toLowerCase().includes(q) ||
+                    d.remarks?.toLowerCase().includes(q)
+                );
+            });
+            return filtered;
+        }
     });
 
     useEffect(() => {

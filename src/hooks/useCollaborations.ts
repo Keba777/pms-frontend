@@ -72,15 +72,84 @@ const deleteDiscussionApi = async (
   return res.data.data;
 };
 
+import { useSearchStore } from "@/store/searchStore";
+
 // Hooks
 export const useDiscussions = () => {
   const setDiscussions = useDiscussionStore((s) => s.setDiscussions);
+  const searchQuery = useSearchStore((s) => s.searchQuery);
+
   const query = useQuery<AppDiscussion[], Error>({
     queryKey: ["discussions"],
     queryFn: fetchDiscussions,
+    select: (data) => {
+      const filtered = data.filter((d) => {
+        if (!searchQuery) return true;
+        const q = searchQuery.toLowerCase();
+        return (
+          d.subject.toLowerCase().includes(q) ||
+          d.body.toLowerCase().includes(q)
+        );
+      });
+      return filtered;
+    }
   });
 
   if (query.data) setDiscussions(query.data);
+  return query;
+};
+
+// ... existing code ...
+
+// Hooks
+export const useNotifications = () => {
+  const setNotifications = useNotificationStore((s) => s.setNotifications);
+  const searchQuery = useSearchStore((s) => s.searchQuery);
+
+  const query = useQuery<AppNotification[], Error>({
+    queryKey: ["notifications"],
+    queryFn: fetchNotifications,
+    select: (data) => {
+      const filtered = data.filter((n) => {
+        if (!searchQuery) return true;
+        const q = searchQuery.toLowerCase();
+        return (
+          n.title?.toLowerCase().includes(q) ||
+          n.message.toLowerCase().includes(q)
+        );
+      });
+      return filtered;
+    }
+  });
+
+  if (query.data) setNotifications(query.data);
+  return query;
+};
+
+// ... existing code ...
+
+// Hooks
+export const useActivities = () => {
+  const setActivities = useActivityStore((s) => s.setActivities);
+  const searchQuery = useSearchStore((s) => s.searchQuery);
+
+  const query = useQuery<AppActivity[], Error>({
+    queryKey: ["activities"],
+    queryFn: fetchActivities,
+    select: (data) => {
+      const filtered = data.filter((a) => {
+        if (!searchQuery) return true;
+        const q = searchQuery.toLowerCase();
+        return (
+          a.action.toLowerCase().includes(q) ||
+          a.type.toLowerCase().includes(q)
+        );
+      });
+      return filtered;
+    }
+  });
+
+  if (query.data) setActivities(query.data);
   return query;
 };
 
@@ -188,16 +257,7 @@ const deleteNotificationApi = async (
 };
 
 // Hooks
-export const useNotifications = () => {
-  const setNotifications = useNotificationStore((s) => s.setNotifications);
-  const query = useQuery<AppNotification[], Error>({
-    queryKey: ["notifications"],
-    queryFn: fetchNotifications,
-  });
-
-  if (query.data) setNotifications(query.data);
-  return query;
-};
+// useNotifications is now defined above
 
 export const useNotification = (id?: number | string) =>
   useQuery<AppNotification | null, Error>({
@@ -305,16 +365,7 @@ const deleteActivityApi = async (
 };
 
 // Hooks
-export const useActivities = () => {
-  const setActivities = useActivityStore((s) => s.setActivities);
-  const query = useQuery<AppActivity[], Error>({
-    queryKey: ["activities"],
-    queryFn: fetchActivities,
-  });
-
-  if (query.data) setActivities(query.data);
-  return query;
-};
+// useActivities is now defined above
 
 export const useActivity = (id?: number | string) =>
   useQuery<AppActivity | null, Error>({

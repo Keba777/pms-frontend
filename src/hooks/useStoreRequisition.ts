@@ -61,14 +61,30 @@ const deleteStoreRequisition = async (
     return response.data.data;
 };
 
+import { useSearchStore } from "@/store/searchStore";
+
 // Hook to fetch all store requisitions and sync to store
 export const useStoreRequisitions = () => {
     const setStoreRequisitions = useStoreRequisitionStore(
         (state) => state.setStoreRequisitions
     );
+    const searchQuery = useSearchStore((s) => s.searchQuery);
+
     const query = useQuery({
         queryKey: ["storeRequisitions"],
         queryFn: fetchStoreRequisitions,
+        select: (requisitions) => {
+            const filtered = requisitions.filter((r) => {
+                if (!searchQuery) return true;
+                const q = searchQuery.toLowerCase();
+                return (
+                    r.description?.toLowerCase().includes(q) ||
+                    r.remarks?.toLowerCase().includes(q) ||
+                    r.unitOfMeasure.toLowerCase().includes(q)
+                );
+            });
+            return filtered;
+        }
     });
 
     useEffect(() => {

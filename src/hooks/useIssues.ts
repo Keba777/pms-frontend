@@ -46,12 +46,30 @@ const deleteIssue = async (id: string): Promise<{ message: string }> => {
     return response.data.data;
 };
 
+import { useSearchStore } from "@/store/searchStore";
+
 // Hook to fetch all Issues and update the store
 export const useIssues = () => {
     const setIssues = useIssueStore((state) => state.setIssues);
+    const searchQuery = useSearchStore((s) => s.searchQuery);
+
     const query = useQuery({
         queryKey: ["issues"],
         queryFn: fetchIssues,
+        select: (issues) => {
+            const filtered = issues.filter((i) => {
+                if (!searchQuery) return true;
+                const q = searchQuery.toLowerCase();
+                return (
+                    i.description.toLowerCase().includes(q) ||
+                    i.issueType.toLowerCase().includes(q) ||
+                    i.status.toLowerCase().includes(q) ||
+                    i.priority.toLowerCase().includes(q) ||
+                    i.actionTaken?.toLowerCase().includes(q)
+                );
+            });
+            return filtered;
+        }
     });
 
     useEffect(() => {

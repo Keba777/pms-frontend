@@ -37,12 +37,29 @@ const deleteEquipment = async (id: string): Promise<{ message: string }> => {
     return response.data.data;
 };
 
+import { useSearchStore } from "@/store/searchStore";
+
 // Hook to fetch all Equipments and update the store
 export const useEquipments = () => {
     const setEquipments = useEquipmentStore((state) => state.setEquipments);
+    const searchQuery = useSearchStore((s) => s.searchQuery);
+
     const query = useQuery({
         queryKey: ["equipments"],
         queryFn: fetchEquipments,
+        select: (equipments) => {
+            const filtered = equipments.filter((e) => {
+                if (!searchQuery) return true;
+                const q = searchQuery.toLowerCase();
+                return (
+                    e.item.toLowerCase().includes(q) ||
+                    e.manufacturer?.toLowerCase().includes(q) ||
+                    e.model?.toLowerCase().includes(q) ||
+                    e.status.toLowerCase().includes(q)
+                );
+            });
+            return filtered;
+        }
     });
 
     useEffect(() => {

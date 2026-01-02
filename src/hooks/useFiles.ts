@@ -5,6 +5,7 @@ import apiClient from "@/services/api-client";
 import { AppFile, CreateFileInput, UpdateFileInput } from "@/types/file";
 import { useFileStore } from "@/store/fileStore";
 import { toast } from "react-toastify";
+import { useSearchStore } from "@/store/searchStore";
 
 // ----------------------------
 // API functions
@@ -60,14 +61,26 @@ const deleteFile = async (id: string): Promise<{ message: string }> => {
   return response.data.data;
 };
 
-// ----------------------------
-// React Query hooks
-// ----------------------------
+
 export const useFiles = () => {
   const setFiles = useFileStore((s) => s.setFiles);
+  const searchQuery = useSearchStore((s) => s.searchQuery);
+
   const query = useQuery<AppFile[], Error>({
     queryKey: ["files"],
     queryFn: fetchFiles,
+    select: (data) => {
+      const filtered = data.filter((f) => {
+        if (!searchQuery) return true;
+        const q = searchQuery.toLowerCase();
+        return (
+          f.title.toLowerCase().includes(q) ||
+          f.fileName.toLowerCase().includes(q) ||
+          f.type.toLowerCase().includes(q)
+        );
+      });
+      return filtered;
+    }
   });
 
   if (query.data) setFiles(query.data);

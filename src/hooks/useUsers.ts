@@ -103,13 +103,30 @@ const deleteUser = async (id: string): Promise<{ message: string }> => {
 // React Query Hooks
 // ----------------------------
 
+import { useSearchStore } from "@/store/searchStore";
+
 // Hook to fetch all users and update the store
 export const useUsers = () => {
     const setUsers = useUserStore((state) => state.setUsers);
+    const searchQuery = useSearchStore((s) => s.searchQuery);
 
     const query = useQuery({
         queryKey: ["users"],
         queryFn: fetchUsers,
+        select: (users) => {
+            const filtered = users.filter((u) => {
+                if (!searchQuery) return true;
+                const q = searchQuery.toLowerCase();
+                return (
+                    u.first_name.toLowerCase().includes(q) ||
+                    u.last_name.toLowerCase().includes(q) ||
+                    u.username?.toLowerCase().includes(q) ||
+                    u.email.toLowerCase().includes(q) ||
+                    u.position?.toLowerCase().includes(q)
+                );
+            });
+            return filtered;
+        }
     });
 
     useEffect(() => {

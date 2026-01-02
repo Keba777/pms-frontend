@@ -42,12 +42,30 @@ const deleteDispatch = async (id: string): Promise<{ message: string }> => {
     return response.data.data;
 };
 
+import { useSearchStore } from "@/store/searchStore";
+
 // Hook: Get All Dispatches
 export const useDispatches = () => {
     const setDispatches = useDispatchStore((state) => state.setDispatches);
+    const searchQuery = useSearchStore((s) => s.searchQuery);
+
     const query = useQuery({
         queryKey: ["dispatches"],
         queryFn: fetchDispatches,
+        select: (dispatches) => {
+            const filtered = dispatches.filter((d) => {
+                if (!searchQuery) return true;
+                const q = searchQuery.toLowerCase();
+                return (
+                    d.refNumber?.toLowerCase().includes(q) ||
+                    d.driverName?.toLowerCase().includes(q) ||
+                    d.vehicleNumber?.toLowerCase().includes(q) ||
+                    d.remarks?.toLowerCase().includes(q) ||
+                    d.status.toLowerCase().includes(q)
+                );
+            });
+            return filtered;
+        }
     });
 
     useEffect(() => {

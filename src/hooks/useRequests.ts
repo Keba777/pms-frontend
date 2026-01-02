@@ -37,12 +37,29 @@ const deleteRequest = async (id: string): Promise<{ message: string }> => {
     return response.data.data;
 };
 
+import { useSearchStore } from "@/store/searchStore";
+
 // Hook to fetch all Requests and update the store
 export const useRequests = () => {
     const setRequests = useRequestStore((state) => state.setRequests);
+    const searchQuery = useSearchStore((s) => s.searchQuery);
+
     const query = useQuery({
         queryKey: ["requests"],
         queryFn: fetchRequests,
+        select: (requests) => {
+            const filtered = requests.filter((r) => {
+                if (!searchQuery) return true;
+                const q = searchQuery.toLowerCase();
+                return (
+                    r.status.toLowerCase().includes(q) ||
+                    r.user?.first_name.toLowerCase().includes(q) ||
+                    r.user?.last_name.toLowerCase().includes(q) ||
+                    r.department?.name.toLowerCase().includes(q)
+                );
+            });
+            return filtered;
+        }
     });
 
     useEffect(() => {

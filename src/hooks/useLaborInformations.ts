@@ -6,7 +6,7 @@ import { LaborInformation, CreateLaborInformationInput, UpdateLaborInformationIn
 import { useLaborInformationStore } from "@/store/laborInformationStore";
 import { toast } from "react-toastify";
 import { useEffect } from "react";
-    
+
 interface ApiResponse<T> {
     success: boolean;
     data: T;
@@ -37,11 +37,27 @@ const deleteLaborInformation = async (id: string): Promise<{ message: string }> 
     return response.data.data;
 };
 
+import { useSearchStore } from "@/store/searchStore";
+
 export const useLaborInformations = () => {
     const setLaborInformations = useLaborInformationStore((state) => state.setLaborInformations);
+    const searchQuery = useSearchStore((s) => s.searchQuery);
+
     const query = useQuery({
         queryKey: ["labor-informations"],
         queryFn: fetchLaborInformations,
+        select: (infos) => {
+            const filtered = infos.filter((i) => {
+                if (!searchQuery) return true;
+                const q = searchQuery.toLowerCase();
+                return (
+                    i.firstName.toLowerCase().includes(q) ||
+                    i.lastName.toLowerCase().includes(q) ||
+                    i.status?.toLowerCase().includes(q)
+                );
+            });
+            return filtered;
+        }
     });
 
     useEffect(() => {

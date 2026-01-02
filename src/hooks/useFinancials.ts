@@ -68,18 +68,86 @@ const deleteInvoice = async (id: string): Promise<{ message: string }> => {
     return response.data.data;
 };
 
+import { useSearchStore } from "@/store/searchStore";
+
 // React Query Hooks for Invoices
 export const useInvoices = () => {
     const setInvoices = useInvoiceStore((s) => s.setInvoices);
+    const searchQuery = useSearchStore((s) => s.searchQuery);
 
     const query = useQuery<Invoice[], Error>({
         queryKey: ["invoices"],
         queryFn: fetchInvoices,
+        select: (data) => {
+            const filtered = data.filter((i) => {
+                if (!searchQuery) return true;
+                const q = searchQuery.toLowerCase();
+                return i.status.toLowerCase().includes(q);
+            });
+            return filtered;
+        }
     });
 
     useEffect(() => {
         if (query.data) setInvoices(query.data);
     }, [query.data, setInvoices]);
+
+    return query;
+};
+
+// ... existing code ...
+
+// React Query Hooks for Payments
+export const usePayments = () => {
+    const setPayments = usePaymentStore((s) => s.setPayments);
+    const searchQuery = useSearchStore((s) => s.searchQuery);
+
+    const query = useQuery<Payment[], Error>({
+        queryKey: ["payments"],
+        queryFn: fetchPayments,
+        select: (data) => {
+            const filtered = data.filter((p) => {
+                if (!searchQuery) return true;
+                const q = searchQuery.toLowerCase();
+                return p.method.toLowerCase().includes(q);
+            });
+            return filtered;
+        }
+    });
+
+    useEffect(() => {
+        if (query.data) setPayments(query.data);
+    }, [query.data, setPayments]);
+
+    return query;
+};
+
+// ... existing code ...
+
+// React Query Hooks for Payrolls
+export const usePayrolls = () => {
+    const setPayrolls = usePayrollStore((s) => s.setPayrolls);
+    const searchQuery = useSearchStore((s) => s.searchQuery);
+
+    const query = useQuery<Payroll[], Error>({
+        queryKey: ["payrolls"],
+        queryFn: fetchPayrolls,
+        select: (data) => {
+            const filtered = data.filter((p) => {
+                if (!searchQuery) return true;
+                const q = searchQuery.toLowerCase();
+                return (
+                    p.status.toLowerCase().includes(q) ||
+                    p.month.toLowerCase().includes(q)
+                );
+            });
+            return filtered;
+        }
+    });
+
+    useEffect(() => {
+        if (query.data) setPayrolls(query.data);
+    }, [query.data, setPayrolls]);
 
     return query;
 };
@@ -171,20 +239,7 @@ const deletePayment = async (id: string): Promise<{ message: string }> => {
 };
 
 // React Query Hooks for Payments
-export const usePayments = () => {
-    const setPayments = usePaymentStore((s) => s.setPayments);
-
-    const query = useQuery<Payment[], Error>({
-        queryKey: ["payments"],
-        queryFn: fetchPayments,
-    });
-
-    useEffect(() => {
-        if (query.data) setPayments(query.data);
-    }, [query.data, setPayments]);
-
-    return query;
-};
+// usePayments is now defined above
 
 export const usePayment = (id: string) =>
     useQuery<Payment | null, Error>({
@@ -375,20 +430,7 @@ const deletePayroll = async (id: string): Promise<{ message: string }> => {
 };
 
 // React Query Hooks for Payrolls
-export const usePayrolls = () => {
-    const setPayrolls = usePayrollStore((s) => s.setPayrolls);
-
-    const query = useQuery<Payroll[], Error>({
-        queryKey: ["payrolls"],
-        queryFn: fetchPayrolls,
-    });
-
-    useEffect(() => {
-        if (query.data) setPayrolls(query.data);
-    }, [query.data, setPayrolls]);
-
-    return query;
-};
+// usePayrolls is now defined above
 
 export const usePayroll = (id: string) =>
     useQuery<Payroll | null, Error>({

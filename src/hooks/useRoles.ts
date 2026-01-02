@@ -53,16 +53,30 @@ const deleteRole = async (id: string): Promise<{ message: string }> => {
 // Updated React Query hooks
 // ----------------------------
 
+import { useSearchStore } from "@/store/searchStore";
+
 // Hook to fetch all Roles and update the store
 export const useRoles = () => {
     const setRoles = useRoleStore((state) => state.setRoles);
+    const searchQuery = useSearchStore((s) => s.searchQuery);
+
     const query = useQuery({
         queryKey: ["roles"],
         queryFn: fetchRoles,
+        select: (roles) => {
+            const filtered = roles.filter((r) => {
+                if (!searchQuery) return true;
+                const q = searchQuery.toLowerCase();
+                return r.name.toLowerCase().includes(q);
+            });
+            return filtered;
+        }
     });
 
     useEffect(() => {
-        if (query.data) setRoles(query.data);
+        if (query.data) {
+            setRoles(query.data);
+        }
     }, [query.data, setRoles]);
 
     return query;

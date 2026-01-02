@@ -56,13 +56,29 @@ const deleteClient = async (id: string): Promise<{ message: string }> => {
 // React Query Hooks
 // ----------------------------
 
+import { useSearchStore } from "@/store/searchStore";
+
 // Hook to fetch all clients and update the store
 export const useClients = () => {
     const setClients = useClientStore((state) => state.setClients);
+    const searchQuery = useSearchStore((s) => s.searchQuery);
 
     const query = useQuery({
         queryKey: ["clients"],
         queryFn: fetchClients,
+        select: (clients) => {
+            const filtered = clients.filter((c) => {
+                if (!searchQuery) return true;
+                const q = searchQuery.toLowerCase();
+                return (
+                    c.companyName.toLowerCase().includes(q) ||
+                    c.responsiblePerson?.toLowerCase().includes(q) ||
+                    c.description?.toLowerCase().includes(q) ||
+                    c.status?.toLowerCase().includes(q)
+                );
+            });
+            return filtered;
+        }
     });
 
     useEffect(() => {

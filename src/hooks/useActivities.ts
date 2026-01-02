@@ -96,20 +96,34 @@ const updateActivityProgress = async (payload: UpdateActivityProgressPayload): P
 // React Query Hooks
 // ----------------------------
 
+import { useSearchStore } from "@/store/searchStore";
+
 export const useActivities = () => {
   const setActivities = useActivityStore((s) => s.setActivities);
+  const searchQuery = useSearchStore((s) => s.searchQuery);
 
   const query = useQuery<Activity[], Error>({
     queryKey: ["activities"],
     queryFn: fetchActivities,
-    select: (activities) =>
-      activities
+    select: (activities) => {
+      const filtered = activities.filter((a) => {
+        if (!searchQuery) return true;
+        const q = searchQuery.toLowerCase();
+        return (
+          a.activity_name.toLowerCase().includes(q) ||
+          a.description?.toLowerCase().includes(q) ||
+          a.status?.toLowerCase().includes(q)
+        );
+      });
+
+      return filtered
         .slice()
         .sort(
           (a, b) =>
             new Date(a.createdAt!).getTime() -
             new Date(b.createdAt!).getTime()
-        ),
+        );
+    }
   });
 
   useEffect(() => {

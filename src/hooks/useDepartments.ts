@@ -37,12 +37,27 @@ const deleteDepartment = async (id: string): Promise<{ message: string }> => {
     return response.data.data;
 };
 
+import { useSearchStore } from "@/store/searchStore";
+
 // Hook to fetch all Departments and update the store
 export const useDepartments = () => {
     const setDepartments = useDepartmentStore((state) => state.setDepartments);
+    const searchQuery = useSearchStore((s) => s.searchQuery);
+
     const query = useQuery({
         queryKey: ["departments"],
         queryFn: fetchDepartments,
+        select: (departments) => {
+            const filtered = departments.filter((d) => {
+                if (!searchQuery) return true;
+                const q = searchQuery.toLowerCase();
+                return (
+                    d.name.toLowerCase().includes(q) ||
+                    d.description?.toLowerCase().includes(q)
+                );
+            });
+            return filtered;
+        }
     });
 
     useEffect(() => {

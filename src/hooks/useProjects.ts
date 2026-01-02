@@ -81,23 +81,45 @@ const updateProjectProgress = async (data: any): Promise<Project> => {
 // Updated React Query hooks
 // ----------------------------
 
+import { useSearchStore } from "@/store/searchStore";
+
 // Hook to fetch all Projects and update the store
 export const useProjects = () => {
   const setProjects = useProjectStore((s) => s.setProjects);
+  const searchQuery = useSearchStore((s) => s.searchQuery);
+
   const query = useQuery<Project[], Error>({
     queryKey: ["projects"],
     queryFn: fetchProjects,
-    select: (projects) =>
-      projects
+    select: (projects) => {
+      const filtered = projects.filter((p) => {
+        if (!searchQuery) return true;
+        const q = searchQuery.toLowerCase();
+        return (
+          p.title.toLowerCase().includes(q) ||
+          p.description?.toLowerCase().includes(q) ||
+          p.status?.toLowerCase().includes(q)
+        );
+      });
+
+      return filtered
         .slice()
         .sort(
           (a, b) =>
             new Date(a.createdAt!).getTime() -
             new Date(b.createdAt!).getTime()
-        ),
+        );
+    }
   });
 
   useEffect(() => {
+    // Note: If we use 'select', query.data is already filtered/sorted. 
+    // However, if we want to store the FULL list in the store, we should perhaps separate fetching vs filtering.
+    // The current pattern sets the STORE to the result of the query. 
+    // If we return filtered data here, the store gets filtered data. 
+    // This implies that if I clear search, it refetches? No, React Query caches the raw data but 'select' runs on it.
+    // Actually, 'query.data' usually refers to the result of select function.
+    // So the store will receive filtered projects. This is fine for now as long as we don't rely on the store being a rigid cache of everything elsewhere without refetching.
     if (query.data) setProjects(query.data);
   }, [query.data, setProjects]);
 

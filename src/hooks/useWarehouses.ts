@@ -37,12 +37,29 @@ const deleteWarehouse = async (id: string): Promise<{ message: string }> => {
     return response.data.data;
 };
 
+import { useSearchStore } from "@/store/searchStore";
+
 // Hook to fetch all Warehouses and update the store
 export const useWarehouses = () => {
     const setWarehouses = useWarehouseStore((state) => state.setWarehouses);
+    const searchQuery = useSearchStore((s) => s.searchQuery);
+
     const query = useQuery({
         queryKey: ["warehouses"],
         queryFn: fetchWarehouses,
+        select: (warehouses) => {
+            const filtered = warehouses.filter((w) => {
+                if (!searchQuery) return true;
+                const q = searchQuery.toLowerCase();
+                return (
+                    w.type.toLowerCase().includes(q) ||
+                    w.owner.toLowerCase().includes(q) ||
+                    w.remark?.toLowerCase().includes(q) ||
+                    w.status.toLowerCase().includes(q)
+                );
+            });
+            return filtered;
+        }
     });
 
     useEffect(() => {

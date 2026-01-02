@@ -177,10 +177,21 @@ const deleteMaterialSheet = async (
 // ----------------------------
 // React Query Hooks
 // ----------------------------
+import { useSearchStore } from "@/store/searchStore";
+
 export const useLaborTimesheets = () => {
+    const searchQuery = useSearchStore((s) => s.searchQuery);
     return useQuery<LaborTimesheet[], Error>({
         queryKey: ["labor-timesheets"],
         queryFn: fetchLaborTimesheets,
+        select: (data) => {
+            const filtered = data.filter((t) => {
+                if (!searchQuery) return true;
+                const q = searchQuery.toLowerCase();
+                return t.status.toLowerCase().includes(q);
+            });
+            return filtered;
+        }
     });
 };
 
@@ -230,9 +241,18 @@ export const useDeleteLaborTimesheet = () => {
 };
 
 export const useEquipmentTimesheets = () => {
+    const searchQuery = useSearchStore((s) => s.searchQuery);
     return useQuery<EquipmentTimesheet[], Error>({
         queryKey: ["equipment-timesheets"],
         queryFn: fetchEquipmentTimesheets,
+        select: (data) => {
+            const filtered = data.filter((t) => {
+                if (!searchQuery) return true;
+                const q = searchQuery.toLowerCase();
+                return t.status.toLowerCase().includes(q);
+            });
+            return filtered;
+        }
     });
 };
 
@@ -282,9 +302,21 @@ export const useDeleteEquipmentTimesheet = () => {
 };
 
 export const useMaterialSheets = () => {
+    const searchQuery = useSearchStore((s) => s.searchQuery);
     return useQuery<MaterialBalanceSheet[], Error>({
         queryKey: ["material-sheets"],
         queryFn: fetchMaterialSheets,
+        select: (data) => {
+            const filtered = data.filter((t) => {
+                if (!searchQuery) return true;
+                const q = searchQuery.toLowerCase();
+                return (
+                    t.status.toLowerCase().includes(q) ||
+                    t.assignedTo.toLowerCase().includes(q)
+                );
+            });
+            return filtered;
+        }
     });
 };
 

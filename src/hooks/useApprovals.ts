@@ -37,12 +37,29 @@ const deleteApproval = async (id: string): Promise<{ message: string }> => {
     return response.data.data;
 };
 
+import { useSearchStore } from "@/store/searchStore";
+
 // Hook to fetch all Approvals and update the store
 export const useApprovals = () => {
     const setApprovals = useApprovalStore((state) => state.setApprovals);
+    const searchQuery = useSearchStore((s) => s.searchQuery);
+
     const query = useQuery({
         queryKey: ["approvals"],
         queryFn: fetchApprovals,
+        select: (approvals) => {
+            const filtered = approvals.filter((a) => {
+                if (!searchQuery) return true;
+                const q = searchQuery.toLowerCase();
+                return (
+                    a.status.toLowerCase().includes(q) ||
+                    a.remarks?.toLowerCase().includes(q) ||
+                    a.approvedBy?.toLowerCase().includes(q) ||
+                    a.checkedBy?.toLowerCase().includes(q)
+                );
+            });
+            return filtered;
+        }
     });
 
     useEffect(() => {

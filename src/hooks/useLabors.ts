@@ -126,13 +126,28 @@ export const buildLaborImportFormData = (labors: any[], files?: File[]) => {
 // React Query Hooks
 // ----------------------------
 
+import { useSearchStore } from "@/store/searchStore";
+
 // Hook to fetch all labors and update the store
 export const useLabors = () => {
   const setLabors = useLaborStore((state) => state.setLabors);
+  const searchQuery = useSearchStore((s) => s.searchQuery);
 
   const query = useQuery({
     queryKey: ["labors"],
     queryFn: fetchLabors,
+    select: (labors) => {
+      const filtered = labors.filter((l) => {
+        if (!searchQuery) return true;
+        const q = searchQuery.toLowerCase();
+        return (
+          l.role.toLowerCase().includes(q) ||
+          l.responsiblePerson?.toLowerCase().includes(q) ||
+          l.status?.toLowerCase().includes(q)
+        );
+      });
+      return filtered;
+    }
   });
 
   useEffect(() => {

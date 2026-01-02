@@ -55,12 +55,24 @@ const deleteSite = async (
     return response.data.data;
 };
 
+import { useSearchStore } from "@/store/searchStore";
+
 // Hook to fetch all sites and update the store
 export const useSites = () => {
     const setSites = useSiteStore((state) => state.setSites);
+    const searchQuery = useSearchStore((s) => s.searchQuery);
+
     const query = useQuery({
         queryKey: ["sites"],
         queryFn: fetchSites,
+        select: (sites) => {
+            const filtered = sites.filter((s) => {
+                if (!searchQuery) return true;
+                const q = searchQuery.toLowerCase();
+                return s.name.toLowerCase().includes(q);
+            });
+            return filtered;
+        }
     });
 
     useEffect(() => {

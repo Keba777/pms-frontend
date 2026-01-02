@@ -66,16 +66,30 @@ const updateTaskProgress = async (data: any): Promise<Task> => {
 // React Query Hooks
 // ----------------------------
 
+import { useSearchStore } from "@/store/searchStore";
+
 export const useTasks = () => {
   const setTasks = useTaskStore((s) => s.setTasks);
+  const searchQuery = useSearchStore((s) => s.searchQuery);
 
   const query = useQuery<Task[], Error>({
     queryKey: ["tasks"],
     queryFn: fetchTasks,
-    select: (tasks) =>
-      tasks
+    select: (tasks) => {
+      const filtered = tasks.filter((t) => {
+        if (!searchQuery) return true;
+        const q = searchQuery.toLowerCase();
+        return (
+          t.task_name.toLowerCase().includes(q) ||
+          t.description?.toLowerCase().includes(q) ||
+          t.status?.toLowerCase().includes(q)
+        );
+      });
+
+      return filtered
         .slice()
-        .sort((a, b) => new Date(a.createdAt!).getTime() - new Date(b.createdAt!).getTime()),
+        .sort((a, b) => new Date(a.createdAt!).getTime() - new Date(b.createdAt!).getTime());
+    },
   });
 
   useEffect(() => {

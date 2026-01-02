@@ -14,6 +14,7 @@ import {
   useMarkAllAsRead,
   useMarkAsRead,
 } from "@/hooks/useNotifications";
+import { useSearchStore } from "@/store/searchStore";
 import { useNotificationStore } from "@/store/notificationStore";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -51,6 +52,8 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
 
+  const { searchQuery, setSearchQuery } = useSearchStore();
+
   const handleLogout = () => {
     logout();
     router.push("/login");
@@ -66,7 +69,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
             className="p-2 lg:hidden"
             onClick={toggleSidebar}
           >
-            <MenuIcon className="w-8 h-8 text-gray-600" />
+            <MenuIcon className="w-10 h-10 text-gray-600" />
           </Button>
           <span className="text-lg font-semibold text-gray-800 hidden sm:block">
             Dashboard
@@ -78,6 +81,8 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
           <Input
             type="text"
             placeholder="Search..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full py-2 px-4 text-sm border-gray-200 focus:border-blue-500"
           />
         </div>
@@ -90,7 +95,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
             className="p-2 md:hidden"
             onClick={() => setSearchOpen(!searchOpen)}
           >
-            <Search className="w-5 h-5 text-gray-600" />
+            <Search className="w-6 h-6 text-gray-600" />
           </Button>
 
           {/* Notifications */}
@@ -102,7 +107,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
               <Button variant="ghost" className="p-2 relative">
                 <Bell className="w-8 h-8 text-gray-600" />
                 {unreadCount > 0 && (
-                  <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                  <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center border-2 border-white">
                     {unreadCount}
                   </span>
                 )}
@@ -133,9 +138,8 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
                   notifications.map((n) => (
                     <DropdownMenuItem
                       key={n.id}
-                      className={`flex flex-col px-4 py-2 text-sm cursor-pointer ${
-                        n.read ? "" : "bg-blue-50"
-                      }`}
+                      className={`flex flex-col px-4 py-2 text-sm cursor-pointer ${n.read ? "" : "bg-blue-50"
+                        }`}
                       onClick={() => markAsReadMutation.mutate(n.id!)}
                     >
                       <span className="truncate">{n.type}</span>
@@ -161,15 +165,15 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
           {/* User */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="p-0">
+              <Button variant="ghost" className="p-0 rounded-full border-2 border-gray-100 hover:border-blue-100 transition-colors">
                 <Image
                   src={
                     user?.profile_picture ? user.profile_picture : userAvatar
                   }
                   alt="User Avatar"
-                  width={32}
-                  height={32}
-                  className="rounded-full"
+                  width={40}
+                  height={40}
+                  className="rounded-full object-cover w-10 h-10"
                 />
               </Button>
             </DropdownMenuTrigger>
@@ -200,6 +204,8 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
           <Input
             type="text"
             placeholder="Search..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full py-2 px-4 text-sm border-gray-200 focus:border-blue-500"
           />
         </div>

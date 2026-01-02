@@ -53,7 +53,7 @@ const createTodoProgress = async (data: CreateTodoProgressInput): Promise<TodoPr
     if (data.remark) formData.append("remark", data.remark);
     if (data.attachment?.length) {
         data.attachment.forEach((file) => {
-            formData.append("attachments", file); 
+            formData.append("attachments", file);
         });
     }
 
@@ -72,21 +72,37 @@ const createTodoProgress = async (data: CreateTodoProgressInput): Promise<TodoPr
 // React Query hooks
 // ----------------------------
 
+import { useSearchStore } from "@/store/searchStore";
+
 // Fetch all todos
 export const useTodos = () => {
     const setTodos = useTodoStore((s) => s.setTodos);
+    const searchQuery = useSearchStore((s) => s.searchQuery);
 
     const query = useQuery<Todo[], Error>({
         queryKey: ["todos"],
         queryFn: fetchTodos,
-        select: (todos) =>
-            todos
+        select: (todos) => {
+            const filtered = todos.filter((t) => {
+                if (!searchQuery) return true;
+                const q = searchQuery.toLowerCase();
+                return (
+                    t.task.toLowerCase().includes(q) ||
+                    t.type.toLowerCase().includes(q) ||
+                    t.remark?.toLowerCase().includes(q) ||
+                    t.priority.toLowerCase().includes(q) ||
+                    t.status.toLowerCase().includes(q)
+                );
+            });
+
+            return filtered
                 .slice()
                 .sort(
                     (a, b) =>
                         new Date(a.createdAt!).getTime() -
                         new Date(b.createdAt!).getTime()
-                ),
+                );
+        }
     });
 
     useEffect(() => {
