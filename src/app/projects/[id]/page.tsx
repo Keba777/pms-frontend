@@ -6,7 +6,6 @@ import { ArrowLeft, Plus } from "lucide-react";
 import { useProjectStore } from "@/store/projectStore";
 import { formatDate, getDateDuration } from "@/utils/dateUtils";
 import { Task } from "@/types/task";
-import StatsCard from "@/components/dashboard/StatsCard";
 import TaskTable from "@/components/master-schedule/TaskTable";
 import TaskForm from "@/components/forms/TaskForm";
 import DiscussionTab from "@/components/projects/DiscussionTab";
@@ -32,55 +31,9 @@ export default function ProjectPage() {
     );
   }
 
-  // Task stats helper
-  const getCountByStatus = (tasks: Task[], status: string): number =>
-    tasks.filter((task) => task.status === status).length;
-
-  // Task statistics array
-  const taskStats = [
-    {
-      label: "Not Started",
-      value: getCountByStatus(project.tasks || [], "Not Started"),
-      icon: <Plus size={18} />,
-      iconColor: "#f87171",
-      link: "/tasks",
-    },
-    {
-      label: "Started",
-      value: getCountByStatus(project.tasks || [], "Started"),
-      icon: <Plus size={18} />,
-      iconColor: "#facc15",
-      link: "/tasks",
-    },
-    {
-      label: "In Progress",
-      value: getCountByStatus(project.tasks || [], "InProgress"),
-      icon: <Plus size={18} />,
-      iconColor: "#3b82f6",
-      link: "/tasks",
-    },
-    {
-      label: "On Hold",
-      value: getCountByStatus(project.tasks || [], "Onhold"),
-      icon: <Plus size={18} />,
-      iconColor: "#f59e0b",
-      link: "/tasks",
-    },
-    {
-      label: "Canceled",
-      value: getCountByStatus(project.tasks || [], "Canceled"),
-      icon: <Plus size={18} />,
-      iconColor: "#ef4444",
-      link: "/tasks",
-    },
-    {
-      label: "Completed",
-      value: getCountByStatus(project.tasks || [], "Completed"),
-      icon: <Plus size={18} />,
-      iconColor: "#10b981",
-      link: "/tasks",
-    },
-  ];
+  // Calculate totals
+  const totalTasks = project.tasks?.length ?? 0;
+  const totalActivities = project.tasks?.reduce((sum, task) => sum + (task.activities?.length ?? 0), 0) ?? 0;
 
   const duration =
     project.start_date && project.end_date
@@ -106,151 +59,261 @@ export default function ProjectPage() {
       <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-cyan-800 mb-2">
         {project.title}
       </h1>
-      {project.description && (
-        <p className="text-gray-600 mb-4">{project.description}</p>
-      )}
       <div className="mb-6">
         <span className="inline-block bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-semibold">
           {project.status}
         </span>
       </div>
 
-      {/* Stats + Details */}
-      <div className="flex flex-col lg:flex-row lg:space-x-8 lg:mb-8">
-        <div className="lg:w-1/3 mb-6 lg:mb-0">
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-cyan-800 mb-4">
-            Task Statistics
-          </h2>
-          <StatsCard
-            title="Task Statistics"
-            items={taskStats}
-            total={project.tasks?.length ?? 0}
-          />
+      <div className="flex flex-col lg:flex-row gap-6 mb-8">
+        {/* Statistics Section */}
+        <div className="lg:w-1/4 grid grid-cols-1 gap-4">
+          <div className="bg-gradient-to-br from-cyan-50 to-blue-50 p-6 rounded-xl border border-cyan-100 shadow-sm">
+            <h3 className="text-cyan-800 text-sm font-semibold uppercase tracking-wider mb-2">Total Tasks</h3>
+            <div className="flex items-baseline gap-2">
+              <span className="text-4xl font-bold text-cyan-900">{totalTasks}</span>
+              <span className="text-cyan-600 text-sm">tasks defined</span>
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-br from-emerald-50 to-teal-50 p-6 rounded-xl border border-emerald-100 shadow-sm">
+            <h3 className="text-emerald-800 text-sm font-semibold uppercase tracking-wider mb-2">Total Activities</h3>
+            <div className="flex items-baseline gap-2">
+              <span className="text-4xl font-bold text-emerald-900">{totalActivities}</span>
+              <span className="text-emerald-600 text-sm">active works</span>
+            </div>
+          </div>
         </div>
-        <div className="lg:w-2/3 bg-gray-50 p-6 rounded-lg shadow">
-          <h2 className="text-lg font-semibold mb-4">Project Details</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium">
-              Priority: {project.priority}
-            </span>
-            <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-medium">
-              Start: {formatDate(project.start_date)}
-            </span>
-            <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">
-              End: {formatDate(project.end_date)}
-            </span>
-            {duration && (
-              <span className="bg-gray-200 text-gray-800 px-3 py-1 rounded-full text-sm font-medium">
-                Duration: {duration}
-              </span>
-            )}
-          </div>
 
-          <div className="mt-4 border-t pt-2">
-            <h3 className="text-sm font-semibold text-gray-700 mb-2">Attachments</h3>
-            {project.attachments && project.attachments.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mt-2">
-                {project.attachments.map((url, index) => {
-                  const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(url);
-                  const isVideo = /\.(mp4|webm|ogg)$/i.test(url);
-                  const isPDF = /\.pdf$/i.test(url);
-                  const fileName = url.split("/").pop();
-
-                  return (
-                    <div
-                      key={index}
-                      className="border rounded-lg p-2 bg-gray-50 flex flex-col items-center shadow-sm hover:shadow-md transition-shadow"
-                    >
-                      {isImage ? (
-                        <a
-                          href={url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="w-full h-32 flex items-center justify-center bg-gray-200 rounded overflow-hidden mb-2"
-                        >
-                          <img
-                            src={url}
-                            alt={fileName}
-                            className="object-cover w-full h-full"
-                          />
-                        </a>
-                      ) : isVideo ? (
-                        <div className="w-full h-32 bg-black rounded mb-2 flex items-center justify-center overflow-hidden">
-                          <video src={url} controls className="w-full h-full" />
-                        </div>
-                      ) : (
-                        <a
-                          href={url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="w-full h-32 flex items-center justify-center bg-gray-200 rounded mb-2 hover:bg-gray-300 transition-colors"
-                        >
-                          <span className="text-4xl opacity-70">
-                            {isPDF ? "📄" : "📎"}
-                          </span>
-                        </a>
-                      )}
-
-                      <div className="w-full text-center px-1">
-                        <a
-                          href={url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs text-blue-600 hover:text-blue-800 hover:underline block truncate"
-                          title={fileName}
-                        >
-                          {fileName}
-                        </a>
-                      </div>
-                    </div>
-                  );
-                })}
+        {/* Details Section */}
+        <div className="lg:flex-1 bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold text-gray-800">Project Overview</h2>
+            <div className="flex items-center gap-2">
+              <div className="w-32 h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-cyan-600 rounded-full"
+                  style={{ width: `${project.progress || 0}%` }}
+                />
               </div>
-            ) : (
-              <p className="text-sm text-gray-500 italic">No attachments.</p>
-            )}
+              <span className="text-sm font-medium text-cyan-700">{project.progress || 0}%</span>
+            </div>
           </div>
+
+          {project.description && (
+            <div className="mb-6 p-4 bg-gray-50 rounded-lg border-l-4 border-cyan-500 shadow-sm">
+              <p className="text-gray-700 text-sm leading-relaxed italic">
+                {project.description}
+              </p>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="space-y-4">
+              <div>
+                <p className="text-xs text-gray-400 uppercase font-semibold mb-1">Timeline</p>
+                <div className="flex flex-col gap-1">
+                  <span className="text-sm text-gray-700 flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-blue-400" />
+                    Start: {formatDate(project.start_date)}
+                  </span>
+                  <span className="text-sm text-gray-700 flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                    End: {formatDate(project.end_date)}
+                  </span>
+                  {duration && (
+                    <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded-md inline-block mt-1">
+                      Duration: {duration}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <p className="text-xs text-gray-400 uppercase font-semibold mb-1">Financials & Priority</p>
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Budget:</span>
+                    <span className="text-sm font-bold text-gray-900">
+                      {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(project.budget || 0)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Priority:</span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${project.priority === 'Critical' ? 'bg-red-100 text-red-700' :
+                      project.priority === 'High' ? 'bg-orange-100 text-orange-700' :
+                        project.priority === 'Medium' ? 'bg-blue-100 text-blue-700' :
+                          'bg-gray-100 text-gray-700'
+                      }`}>
+                      {project.priority}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <p className="text-xs text-gray-400 uppercase font-semibold mb-1">Entity Information</p>
+                <div className="flex flex-col gap-1">
+                  <div className="text-sm">
+                    <span className="text-gray-500">Client: </span>
+                    <span className="font-medium text-gray-800">{project.clientInfo?.companyName || 'N/A'}</span>
+                  </div>
+                  <div className="text-sm">
+                    <span className="text-gray-500">Site: </span>
+                    <span className="font-medium text-gray-800">
+                      {project.projectSite?.name || project.site?.name || 'N/A'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {project.actuals && (
+            <div className="mt-6 pt-6 border-t border-gray-50">
+              <p className="text-xs text-gray-400 uppercase font-semibold mb-3">Project Actuals</p>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                {project.actuals.start_date && (
+                  <div className="bg-gray-50 p-2 rounded-lg">
+                    <p className="text-[10px] text-gray-500 uppercase">Actual Start</p>
+                    <p className="text-xs font-semibold">{formatDate(project.actuals.start_date)}</p>
+                  </div>
+                )}
+                {project.actuals.end_date && (
+                  <div className="bg-gray-50 p-2 rounded-lg">
+                    <p className="text-[10px] text-gray-500 uppercase">Actual End</p>
+                    <p className="text-xs font-semibold">{formatDate(project.actuals.end_date)}</p>
+                  </div>
+                )}
+                {project.actuals.budget && (
+                  <div className="bg-gray-50 p-2 rounded-lg">
+                    <p className="text-[10px] text-gray-500 uppercase">Actual Spend</p>
+                    <p className="text-xs font-semibold">
+                      {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(project.actuals.budget))}
+                    </p>
+                  </div>
+                )}
+                {project.actuals.status && (
+                  <div className="bg-gray-50 p-2 rounded-lg">
+                    <p className="text-[10px] text-gray-500 uppercase">Current Stage</p>
+                    <p className="text-xs font-semibold">{project.actuals.status}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Project Tabs (shadcn/ui) */}
-      <Tabs defaultValue="discussion" className="w-full">
-        <TabsList className="flex flex-wrap justify-start gap-2 rounded-lg bg-muted p-2 shadow-sm">
-          {[
-            { key: "discussion", label: "Discussion" },
-            { key: "issue", label: "Issue" },
-            { key: "files", label: "Files" },
-            { key: "notification", label: "Notification" },
-            { key: "activityLog", label: "Activity Log" },
-          ].map((tab) => (
-            <TabsTrigger
-              key={tab.key}
-              value={tab.key}
-              className="px-4 py-2 text-sm sm:text-base font-medium rounded-md 
-                         data-[state=active]:bg-primary data-[state=active]:text-white
-                         transition hover:bg-primary/10 hover:text-primary"
-            >
-              {tab.label}
-            </TabsTrigger>
-          ))}
-        </TabsList>
+      <div className="mt-4 border-t pt-2">
+        <h3 className="text-sm font-semibold text-gray-700 mb-2">Attachments</h3>
+        {project.attachments && project.attachments.length > 0 ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mt-2">
+            {project.attachments.map((url, index) => {
+              const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(url);
+              const isVideo = /\.(mp4|webm|ogg)$/i.test(url);
+              const isPDF = /\.pdf$/i.test(url);
+              const fileName = url.split("/").pop();
 
-        <TabsContent value="discussion" className="p-4 sm:p-6 border rounded-lg shadow bg-white">
-          <DiscussionTab type="project" referenceId={projectId} />
-        </TabsContent>
-        <TabsContent value="issue" className="p-4 sm:p-6 border rounded-lg shadow bg-white">
-          <IssueTab projectId={projectId} />
-        </TabsContent>
-        <TabsContent value="files" className="p-4 sm:p-6 border rounded-lg shadow bg-white">
-          <FilesTab type="project" referenceId={projectId} />
-        </TabsContent>
-        <TabsContent value="notification" className="p-4 sm:p-6 border rounded-lg shadow bg-white">
-          <NotificationTab type="project" referenceId={projectId} />
-        </TabsContent>
-        <TabsContent value="activityLog" className="p-4 sm:p-6 border rounded-lg shadow bg-white">
-          <ActivityLogTab type="project" referenceId={projectId} />
-        </TabsContent>
-      </Tabs>
+              return (
+                <div
+                  key={index}
+                  className="border rounded-lg p-2 bg-gray-50 flex flex-col items-center shadow-sm hover:shadow-md transition-shadow"
+                >
+                  {isImage ? (
+                    <a
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full h-32 flex items-center justify-center bg-gray-200 rounded overflow-hidden mb-2"
+                    >
+                      <img
+                        src={url}
+                        alt={fileName}
+                        className="object-cover w-full h-full"
+                      />
+                    </a>
+                  ) : isVideo ? (
+                    <div className="w-full h-32 bg-black rounded mb-2 flex items-center justify-center overflow-hidden">
+                      <video src={url} controls className="w-full h-full" />
+                    </div>
+                  ) : (
+                    <a
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full h-32 flex items-center justify-center bg-gray-200 rounded mb-2 hover:bg-gray-300 transition-colors"
+                    >
+                      <span className="text-4xl opacity-70">
+                        {isPDF ? "📄" : "📎"}
+                      </span>
+                    </a>
+                  )}
+
+                  <div className="w-full text-center px-1">
+                    <a
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-blue-600 hover:text-blue-800 hover:underline block truncate"
+                      title={fileName}
+                    >
+                      {fileName}
+                    </a>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="text-sm text-gray-500 italic">No attachments.</p>
+        )}
+      </div>
+
+      <div className="mt-8">
+        {/* Project Tabs (shadcn/ui) */}
+        <Tabs defaultValue="discussion" className="w-full">
+          <TabsList className="flex flex-wrap justify-start gap-2 rounded-lg bg-muted p-2 shadow-sm">
+            {[
+              { key: "discussion", label: "Discussion" },
+              { key: "issue", label: "Issue" },
+              { key: "files", label: "Files" },
+              { key: "notification", label: "Notification" },
+              { key: "activityLog", label: "Activity Log" },
+            ].map((tab) => (
+              <TabsTrigger
+                key={tab.key}
+                value={tab.key}
+                className="px-4 py-2 text-sm sm:text-base font-medium rounded-md 
+                           data-[state=active]:bg-primary data-[state=active]:text-white
+                           transition hover:bg-primary/10 hover:text-primary"
+              >
+                {tab.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+
+          <TabsContent value="discussion" className="p-4 sm:p-6 border rounded-lg shadow bg-white">
+            <DiscussionTab type="project" referenceId={projectId} />
+          </TabsContent>
+          <TabsContent value="issue" className="p-4 sm:p-6 border rounded-lg shadow bg-white">
+            <IssueTab projectId={projectId} />
+          </TabsContent>
+          <TabsContent value="files" className="p-4 sm:p-6 border rounded-lg shadow bg-white">
+            <FilesTab type="project" referenceId={projectId} />
+          </TabsContent>
+          <TabsContent value="notification" className="p-4 sm:p-6 border rounded-lg shadow bg-white">
+            <NotificationTab type="project" referenceId={projectId} />
+          </TabsContent>
+          <TabsContent value="activityLog" className="p-4 sm:p-6 border rounded-lg shadow bg-white">
+            <ActivityLogTab type="project" referenceId={projectId} />
+          </TabsContent>
+        </Tabs>
+      </div>
 
       {/* Task Tabs (shadcn/ui) */}
       <div className="mt-6 border-t pt-4">
@@ -302,7 +365,7 @@ export default function ProjectPage() {
       {/* Task Form Modal */}
       {showCreateForm && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-max-2xl max-h-[90vh] overflow-y-auto">
             <TaskForm
               onClose={() => setShowCreateForm(false)}
               defaultProjectId={projectId}

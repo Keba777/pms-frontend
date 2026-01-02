@@ -1,10 +1,32 @@
 "use client";
 
-import React, { useState, useRef } from "react";
-import { ChevronDown, Eye, Edit, Trash2, PlusIcon, ExternalLink } from "lucide-react";
+import React, { useState, useRef, useMemo } from "react";
+import { ChevronDown, Eye, Edit, Trash2, Plus as PlusIcon, ExternalLink, Search } from "lucide-react";
 import { toast } from "react-toastify";
 import { Skeleton } from "@/components/ui/skeleton";
 import GenericDownloads, { Column } from "@/components/common/GenericDownloads";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 import CollaborationForm from "@/components/forms/CollaborationForm";
 import { useUsers } from "@/hooks/useUsers";
@@ -56,32 +78,89 @@ export function DiscussionTable({ type, referenceId }: DiscussionTableProps) {
 
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<AppDiscussion | null>(null);
-  const [dropdownId, setDropdownId] = useState<number | string | null>(null);
-  const dropdownRef = useRef<HTMLDivElement | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  if (error) return <div>Error loading discussions</div>;
+  const columnOptions = [
+    { value: "id", label: "ID" },
+    { value: "subject", label: "Subject" },
+    { value: "createdBy", label: "Created By" },
+    { value: "participants", label: "Participants" },
+    { value: "lastMsg", label: "Last Msg" },
+    { value: "pinned", label: "Pinned" },
+    { value: "actions", label: "Actions" },
+  ];
 
-  if (isLoading) {
-    return (
-      <div className="space-y-2">
-        <Skeleton className="h-8 w-full" />
-        {Array(5)
-          .fill(0)
-          .map((_, i) => (
-            <Skeleton key={i} className="h-10 w-full" />
-          ))}
-      </div>
-    );
-  }
-
-  const items = (discussions ?? []).filter(
-    (d) => d.type === type && String(d.referenceId) === String(referenceId)
+  const [selectedColumns, setSelectedColumns] = useState<string[]>(
+    columnOptions.map((col) => col.value)
   );
+
+  const toggleColumn = (col: string) => {
+    setSelectedColumns((prev) =>
+      prev.includes(col) ? prev.filter((c) => c !== col) : [...prev, col]
+    );
+  };
 
   const getUserName = (id: string) => {
     const user = users?.find((u: any) => String(u.id) === String(id));
     return user ? `${user.first_name} ${user.last_name}` : id;
   };
+
+  const items = useMemo(() => {
+    const filtered = (discussions ?? []).filter(
+      (d) => d.type === type && String(d.referenceId) === String(referenceId)
+    );
+    if (!searchTerm) return filtered;
+    return filtered.filter((d) =>
+      d.subject?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      d.createdByUser?.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      d.createdByUser?.last_name?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [discussions, type, referenceId, searchTerm]);
+
+  if (error) return <div className="text-red-500 py-4">Error loading discussions</div>;
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <Skeleton className="h-10 w-48" />
+          <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto order-2 sm:order-1">
+              <Skeleton className="h-10 w-full sm:w-24" />
+              <Skeleton className="h-10 w-full sm:w-32" />
+            </div>
+            <div className="w-full sm:w-auto order-1 sm:order-2">
+              <Skeleton className="h-10 w-full sm:w-48" />
+            </div>
+          </div>
+        </div>
+        <div className="rounded-md border overflow-hidden">
+          <Table>
+            <TableHeader className="bg-cyan-700">
+              <TableRow>
+                {columnOptions.map((col) => (
+                  <TableHead key={col.value} className="text-white">
+                    <Skeleton className="h-4 w-16 bg-cyan-600/50" />
+                  </TableHead>
+                ))}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {Array(5).fill(0).map((_, i) => (
+                <TableRow key={i}>
+                  {columnOptions.map((col) => (
+                    <TableCell key={col.value}>
+                      <Skeleton className="h-4 w-full" />
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+    );
+  }
 
   const openCreate = () => {
     setEditing(null);
@@ -91,7 +170,6 @@ export function DiscussionTable({ type, referenceId }: DiscussionTableProps) {
   const openEdit = (d: AppDiscussion) => {
     setEditing(d);
     setShowForm(true);
-    setDropdownId(null);
   };
 
   const handleDelete = async (id: number | string) => {
@@ -101,16 +179,7 @@ export function DiscussionTable({ type, referenceId }: DiscussionTableProps) {
       toast.success("Discussion deleted");
     } catch {
       toast.error("Failed to delete discussion");
-    } finally {
-      setDropdownId(null);
     }
-  };
-
-  const handleView = (d: AppDiscussion) => {
-    // simple view: open a new window with a discussion detail route if you have one,
-    // or show modal - for now we'll open a quick window placeholder
-    toast.info("Open discussion view");
-    setDropdownId(null);
   };
 
   const downloadColumns: Column<any>[] = [
@@ -123,20 +192,64 @@ export function DiscussionTable({ type, referenceId }: DiscussionTableProps) {
   ];
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="my-6 text-3xl font-bold text-gray-800">Discussions</h1>
-        <div className="flex items-center gap-4">
-          <button
-            className="bg-cyan-700 hover:bg-cyan-800 text-white font-bold py-2 px-3 rounded text-sm flex items-center gap-2"
-            onClick={openCreate}
-          >
-            <PlusIcon width={15} height={12} /> New
-          </button>
-          <GenericDownloads
-            data={items}
-            title="Discussions"
-            columns={downloadColumns}
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-baseline gap-2">
+        <h2 className="text-2xl font-bold text-gray-800">Discussions</h2>
+        <span className="text-sm text-gray-400 font-medium">({items.length} total)</span>
+      </div>
+
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+        <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+          <div className="w-full sm:w-auto order-1 sm:order-2">
+            <GenericDownloads
+              data={items}
+              title="Discussions"
+              columns={downloadColumns}
+            />
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto order-2 sm:order-1">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="h-9 w-full sm:w-auto">
+                  Columns <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-56 p-2" align="start">
+                <div className="space-y-1">
+                  {columnOptions.map((col) => (
+                    <div key={col.value} className="flex items-center space-x-2 p-1 hover:bg-gray-50 rounded">
+                      <Checkbox
+                        id={`col-${col.value}`}
+                        checked={selectedColumns.includes(col.value)}
+                        onCheckedChange={() => toggleColumn(col.value)}
+                      />
+                      <label htmlFor={`col-${col.value}`} className="text-sm cursor-pointer flex-1">
+                        {col.label}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+
+            <Button
+              size="sm"
+              className="h-9 bg-cyan-700 hover:bg-cyan-800 w-full sm:w-auto"
+              onClick={openCreate}
+            >
+              <PlusIcon className="mr-2 h-4 w-4" /> New
+            </Button>
+          </div>
+        </div>
+
+        <div className="relative w-full sm:w-64">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Input
+            placeholder="Search discussions..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9 h-9 w-full"
           />
         </div>
       </div>
@@ -155,101 +268,95 @@ export function DiscussionTable({ type, referenceId }: DiscussionTableProps) {
         </div>
       )}
 
-      <div className="overflow-x-auto border rounded shadow-sm">
-        <table className="min-w-full table-auto border-collapse">
-          <thead className="bg-cyan-700 text-gray-100">
-            <tr>
-              <th className="px-3 py-2 border text-left">#</th>
-              <th className="px-3 py-2 border text-left">Subject</th>
-              <th className="px-3 py-2 border text-left">Created By</th>
-              <th className="px-3 py-2 border text-left">Participants</th>
-              <th className="px-3 py-2 border text-left">Last Msg</th>
-              <th className="px-3 py-2 border text-left">Pinned</th>
-              <th className="px-3 py-2 border text-left">Actions</th>
-            </tr>
-          </thead>
-
-          <tbody className="bg-white divide-y divide-gray-200">
+      <div className="overflow-x-auto rounded-md border shadow-sm">
+        <Table>
+          <TableHeader className="bg-cyan-700">
+            <TableRow className="hover:bg-cyan-700">
+              {columnOptions
+                .filter((col) => selectedColumns.includes(col.value))
+                .map((col) => (
+                  <TableHead key={col.value} className="text-white font-semibold whitespace-nowrap px-4 py-3">
+                    {col.label}
+                  </TableHead>
+                ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {items.length > 0 ? (
               items.map((d, idx) => (
-                <tr
-                  key={d.id}
-                  className="hover:bg-gray-50 relative"
-                  onClick={() => setDropdownId(null)}
-                >
-                  <td className="border px-3 py-2 text-center">{idx + 1}</td>
-                  <td className="border px-3 py-2 font-medium">{d.subject}</td>
-                  <td className="border px-3 py-2">
-                    {d.createdByUser?.first_name} {d.createdByUser?.last_name}
-                  </td>
-                  <td className="border px-3 py-2 text-sm">
-                    {(d.participants ?? [])
-                      .map(getUserName)
-                      .slice(0, 3)
-                      .join(", ") || "-"}
-                  </td>
-                  <td className="border px-3 py-2">
-                    {formatDate(d.lastMessageAt)}
-                  </td>
-                  <td className="border px-3 py-2">
-                    {d.pinned ? "Yes" : "No"}
-                  </td>
-                  <td className="border px-3 py-2">
-                    <div className="relative">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setDropdownId(dropdownId === d.id ? null : d.id);
-                        }}
-                        className="flex items-center justify-between gap-1 px-3 py-1 bg-cyan-700 text-white rounded w-full hover:bg-cyan-800"
-                      >
-                        Actions
-                        <ChevronDown className="w-4 h-4" />
-                      </button>
-
-                      {dropdownId === d.id && (
-                        <div
-                          ref={dropdownRef}
-                          className="absolute left-0 top-full mt-1 w-44 bg-white border rounded shadow-lg z-50"
-                        >
-                          <button
-                            onClick={() => handleView(d)}
-                            className="w-full text-left px-3 py-2 hover:bg-gray-100 flex items-center gap-2"
-                          >
-                            <ExternalLink className="w-4 h-4" /> View
-                          </button>
-
-                          <button
-                            onClick={() => openEdit(d)}
-                            className="w-full text-left px-3 py-2 hover:bg-gray-100 flex items-center gap-2"
-                          >
-                            <Edit className="w-4 h-4" /> Edit
-                          </button>
-
-                          <button
+                <TableRow key={d.id} className="hover:bg-gray-50">
+                  {selectedColumns.includes("id") && (
+                    <TableCell className="px-4 py-3 text-gray-500">{idx + 1}</TableCell>
+                  )}
+                  {selectedColumns.includes("subject") && (
+                    <TableCell className="px-4 py-3 font-medium text-gray-900">{d.subject}</TableCell>
+                  )}
+                  {selectedColumns.includes("createdBy") && (
+                    <TableCell className="px-4 py-3">
+                      {d.createdByUser?.first_name} {d.createdByUser?.last_name}
+                    </TableCell>
+                  )}
+                  {selectedColumns.includes("participants") && (
+                    <TableCell className="px-4 py-3 text-sm text-gray-600 max-w-xs truncate">
+                      {(d.participants ?? [])
+                        .map(getUserName)
+                        .slice(0, 3)
+                        .join(", ") || "-"}
+                      {(d.participants?.length ?? 0) > 3 && " ..."}
+                    </TableCell>
+                  )}
+                  {selectedColumns.includes("lastMsg") && (
+                    <TableCell className="px-4 py-3 text-sm">
+                      {formatDate(d.lastMessageAt)}
+                    </TableCell>
+                  )}
+                  {selectedColumns.includes("pinned") && (
+                    <TableCell className="px-4 py-3">
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${d.pinned ? "bg-amber-100 text-amber-700" : "bg-gray-100 text-gray-600"
+                        }`}>
+                        {d.pinned ? "Pinned" : "No"}
+                      </span>
+                    </TableCell>
+                  )}
+                  {selectedColumns.includes("actions") && (
+                    <TableCell className="px-4 py-3">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm" className="h-8 px-2 bg-cyan-700 text-white hover:bg-cyan-800">
+                            Action <ChevronDown className="ml-1 h-3 w-3" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-40">
+                          <DropdownMenuItem onClick={() => toast.info("Open discussion view")}>
+                            <ExternalLink className="mr-2 h-4 w-4" /> View
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => openEdit(d)}>
+                            <Edit className="mr-2 h-4 w-4" /> Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
                             onClick={() => handleDelete(d.id)}
-                            className="w-full text-left px-3 py-2 hover:bg-gray-100 text-red-600 flex items-center gap-2"
+                            className="text-red-600 focus:text-red-600"
                           >
-                            <Trash2 className="w-4 h-4" /> Delete
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </td>
-                </tr>
+                            <Trash2 className="mr-2 h-4 w-4" /> Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  )}
+                </TableRow>
               ))
             ) : (
-              <tr>
-                <td
-                  colSpan={7}
-                  className="border px-3 py-2 text-center text-gray-500"
+              <TableRow>
+                <TableCell
+                  colSpan={selectedColumns.length}
+                  className="h-24 text-center text-gray-500"
                 >
                   No discussions found
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             )}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </div>
   );
@@ -264,37 +371,92 @@ interface NotificationTableProps {
   referenceId: string;
 }
 
-export function NotificationTable({
-  type,
-  referenceId,
-}: NotificationTableProps) {
+export function NotificationTable({ type, referenceId }: NotificationTableProps) {
   const { data: notifications, isLoading, error } = useNotifications();
   const deleteNotification = useDeleteNotification();
   const { data: users } = useUsers();
 
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<AppNotification | null>(null);
-  const [dropdownId, setDropdownId] = useState<number | string | null>(null);
-  const dropdownRef = useRef<HTMLDivElement | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  if (error) return <div>Error loading notifications</div>;
+  const columnOptions = [
+    { value: "id", label: "ID" },
+    { value: "date", label: "Date" },
+    { value: "title", label: "Title" },
+    { value: "message", label: "Message" },
+    { value: "recipient", label: "Recipient" },
+    { value: "read", label: "Read" },
+    { value: "actions", label: "Actions" },
+  ];
+
+  const [selectedColumns, setSelectedColumns] = useState<string[]>(
+    columnOptions.map((col) => col.value)
+  );
+
+  const toggleColumn = (col: string) => {
+    setSelectedColumns((prev) =>
+      prev.includes(col) ? prev.filter((c) => c !== col) : [...prev, col]
+    );
+  };
+
+  const items = useMemo(() => {
+    const filtered = (notifications ?? []).filter(
+      (n) => n.type === type && String(n.referenceId) === String(referenceId)
+    );
+    if (!searchTerm) return filtered;
+    return filtered.filter((n) =>
+      n.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      n.message?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      n.recipientUser?.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      n.recipientUser?.last_name?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [notifications, type, referenceId, searchTerm]);
+
+  if (error) return <div className="text-red-500 py-4">Error loading notifications</div>;
 
   if (isLoading) {
     return (
-      <div className="space-y-2">
-        <Skeleton className="h-8 w-full" />
-        {Array(5)
-          .fill(0)
-          .map((_, i) => (
-            <Skeleton key={i} className="h-10 w-full" />
-          ))}
+      <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <Skeleton className="h-10 w-48" />
+          <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto order-2 sm:order-1">
+              <Skeleton className="h-10 w-full sm:w-24" />
+              <Skeleton className="h-10 w-full sm:h-9" />
+            </div>
+            <div className="w-full sm:w-auto order-1 sm:order-2">
+              <Skeleton className="h-10 w-full sm:w-48" />
+            </div>
+          </div>
+        </div>
+        <div className="rounded-md border overflow-hidden">
+          <Table>
+            <TableHeader className="bg-cyan-700">
+              <TableRow>
+                {columnOptions.map((col) => (
+                  <TableHead key={col.value} className="text-white">
+                    <Skeleton className="h-4 w-16 bg-cyan-600/50" />
+                  </TableHead>
+                ))}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {Array(5).fill(0).map((_, i) => (
+                <TableRow key={i}>
+                  {columnOptions.map((col) => (
+                    <TableCell key={col.value}>
+                      <Skeleton className="h-4 w-full" />
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </div>
     );
   }
-
-  const items = (notifications ?? []).filter(
-    (n) => n.type === type && String(n.referenceId) === String(referenceId)
-  );
 
   const openCreate = () => {
     setEditing(null);
@@ -304,7 +466,6 @@ export function NotificationTable({
   const openEdit = (n: AppNotification) => {
     setEditing(n);
     setShowForm(true);
-    setDropdownId(null);
   };
 
   const handleDelete = async (id: number | string) => {
@@ -314,14 +475,7 @@ export function NotificationTable({
       toast.success("Notification deleted");
     } catch {
       toast.error("Failed to delete notification");
-    } finally {
-      setDropdownId(null);
     }
-  };
-
-  const handleView = (n: AppNotification) => {
-    toast.info(n.message);
-    setDropdownId(null);
   };
 
   const downloadColumns: Column<any>[] = [
@@ -334,20 +488,64 @@ export function NotificationTable({
   ];
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="my-6 text-3xl font-bold text-gray-800">Notifications</h1>
-        <div className="flex items-center gap-4">
-          <button
-            className="bg-cyan-700 hover:bg-cyan-800 text-white font-bold py-2 px-3 rounded text-sm flex items-center gap-2"
-            onClick={openCreate}
-          >
-            <PlusIcon width={15} height={12} /> New
-          </button>
-          <GenericDownloads
-            data={items}
-            title="Notifications"
-            columns={downloadColumns}
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-baseline gap-2">
+        <h2 className="text-2xl font-bold text-gray-800">Notifications</h2>
+        <span className="text-sm text-gray-400 font-medium">({items.length} total)</span>
+      </div>
+
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+        <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+          <div className="w-full sm:w-auto order-1 sm:order-2">
+            <GenericDownloads
+              data={items}
+              title="Notifications"
+              columns={downloadColumns}
+            />
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto order-2 sm:order-1">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="h-9 w-full sm:w-auto">
+                  Columns <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-56 p-2" align="start">
+                <div className="space-y-1">
+                  {columnOptions.map((col) => (
+                    <div key={col.value} className="flex items-center space-x-2 p-1 hover:bg-gray-50 rounded">
+                      <Checkbox
+                        id={`col-notif-${col.value}`}
+                        checked={selectedColumns.includes(col.value)}
+                        onCheckedChange={() => toggleColumn(col.value)}
+                      />
+                      <label htmlFor={`col-notif-${col.value}`} className="text-sm cursor-pointer flex-1">
+                        {col.label}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+
+            <Button
+              size="sm"
+              className="h-9 bg-cyan-700 hover:bg-cyan-800 w-full sm:w-auto"
+              onClick={openCreate}
+            >
+              <PlusIcon className="mr-2 h-4 w-4" /> New
+            </Button>
+          </div>
+        </div>
+
+        <div className="relative w-full sm:w-64">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Input
+            placeholder="Search notifications..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9 h-9 w-full"
           />
         </div>
       </div>
@@ -366,94 +564,87 @@ export function NotificationTable({
         </div>
       )}
 
-      <div className="overflow-x-auto border rounded shadow-sm">
-        <table className="min-w-full table-auto border-collapse">
-          <thead className="bg-cyan-700 text-gray-100">
-            <tr>
-              <th className="px-3 py-2 border text-left">#</th>
-              <th className="px-3 py-2 border text-left">Date</th>
-              <th className="px-3 py-2 border text-left">Title</th>
-              <th className="px-3 py-2 border text-left">Message</th>
-              <th className="px-3 py-2 border text-left">Recipient</th>
-              <th className="px-3 py-2 border text-left">Read</th>
-              <th className="px-3 py-2 border text-left">Actions</th>
-            </tr>
-          </thead>
-
-          <tbody className="bg-white divide-y divide-gray-200">
+      <div className="overflow-x-auto rounded-md border shadow-sm">
+        <Table>
+          <TableHeader className="bg-cyan-700">
+            <TableRow className="hover:bg-cyan-700">
+              {columnOptions
+                .filter((col) => selectedColumns.includes(col.value))
+                .map((col) => (
+                  <TableHead key={col.value} className="text-white font-semibold whitespace-nowrap px-4 py-3">
+                    {col.label}
+                  </TableHead>
+                ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {items.length > 0 ? (
               items.map((n, idx) => (
-                <tr
-                  key={n.id}
-                  className="hover:bg-gray-50 relative"
-                  onClick={() => setDropdownId(null)}
-                >
-                  <td className="border px-3 py-2 text-center">{idx + 1}</td>
-                  <td className="border px-3 py-2">{formatDate(n.date)}</td>
-                  <td className="border px-3 py-2 font-medium">
-                    {n.title ?? "-"}
-                  </td>
-                  <td className="border px-3 py-2 text-sm">{n.message}</td>
-                  <td className="border px-3 py-2">
-                    {n.recipientUser?.first_name} {n.recipientUser?.last_name}
-                  </td>
-                  <td className="border px-3 py-2">{n.read ? "Yes" : "No"}</td>
-                  <td className="border px-3 py-2">
-                    <div className="relative">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setDropdownId(dropdownId === n.id ? null : n.id);
-                        }}
-                        className="flex items-center justify-between gap-1 px-3 py-1 bg-cyan-700 text-white rounded w-full hover:bg-cyan-800"
-                      >
-                        Actions
-                        <ChevronDown className="w-4 h-4" />
-                      </button>
-
-                      {dropdownId === n.id && (
-                        <div
-                          ref={dropdownRef}
-                          className="absolute left-0 top-full mt-1 w-44 bg-white border rounded shadow-lg z-50"
-                        >
-                          <button
-                            onClick={() => handleView(n)}
-                            className="w-full text-left px-3 py-2 hover:bg-gray-100 flex items-center gap-2"
-                          >
-                            <Eye className="w-4 h-4" /> View
-                          </button>
-
-                          <button
-                            onClick={() => openEdit(n)}
-                            className="w-full text-left px-3 py-2 hover:bg-gray-100 flex items-center gap-2"
-                          >
-                            <Edit className="w-4 h-4" /> Edit
-                          </button>
-
-                          <button
+                <TableRow key={n.id} className="hover:bg-gray-50">
+                  {selectedColumns.includes("id") && (
+                    <TableCell className="px-4 py-3 text-gray-500">{idx + 1}</TableCell>
+                  )}
+                  {selectedColumns.includes("date") && (
+                    <TableCell className="px-4 py-3 text-sm">{formatDate(n.date)}</TableCell>
+                  )}
+                  {selectedColumns.includes("title") && (
+                    <TableCell className="px-4 py-3 font-medium text-gray-900">{n.title || "-"}</TableCell>
+                  )}
+                  {selectedColumns.includes("message") && (
+                    <TableCell className="px-4 py-3 text-sm text-gray-600 max-w-sm truncate">{n.message}</TableCell>
+                  )}
+                  {selectedColumns.includes("recipient") && (
+                    <TableCell className="px-4 py-3 text-sm">
+                      {n.recipientUser?.first_name} {n.recipientUser?.last_name}
+                    </TableCell>
+                  )}
+                  {selectedColumns.includes("read") && (
+                    <TableCell className="px-4 py-3">
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${n.read ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"
+                        }`}>
+                        {n.read ? "Read" : "Unread"}
+                      </span>
+                    </TableCell>
+                  )}
+                  {selectedColumns.includes("actions") && (
+                    <TableCell className="px-4 py-3">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm" className="h-8 px-2 bg-cyan-700 text-white hover:bg-cyan-800">
+                            Action <ChevronDown className="ml-1 h-3 w-3" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-40">
+                          <DropdownMenuItem onClick={() => toast.info(n.message)}>
+                            <Eye className="mr-2 h-4 w-4" /> View
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => openEdit(n)}>
+                            <Edit className="mr-2 h-4 w-4" /> Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
                             onClick={() => handleDelete(n.id)}
-                            className="w-full text-left px-3 py-2 hover:bg-gray-100 text-red-600 flex items-center gap-2"
+                            className="text-red-600 focus:text-red-600"
                           >
-                            <Trash2 className="w-4 h-4" /> Delete
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </td>
-                </tr>
+                            <Trash2 className="mr-2 h-4 w-4" /> Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  )}
+                </TableRow>
               ))
             ) : (
-              <tr>
-                <td
-                  colSpan={7}
-                  className="border px-3 py-2 text-center text-gray-500"
+              <TableRow>
+                <TableCell
+                  colSpan={selectedColumns.length}
+                  className="h-24 text-center text-gray-500"
                 >
                   No notifications found
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             )}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </div>
   );
@@ -475,27 +666,85 @@ export function ActivityLogTable({ type, referenceId }: ActivityLogTableProps) {
 
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<AppActivity | null>(null);
-  const [dropdownId, setDropdownId] = useState<number | string | null>(null);
-  const dropdownRef = useRef<HTMLDivElement | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  if (error) return <div>Error loading activities</div>;
+  const columnOptions = [
+    { value: "id", label: "ID" },
+    { value: "date", label: "Date" },
+    { value: "action", label: "Action" },
+    { value: "actor", label: "Actor" },
+    { value: "details", label: "Details" },
+    { value: "parent", label: "Parent" },
+    { value: "actions", label: "Actions" },
+  ];
+
+  const [selectedColumns, setSelectedColumns] = useState<string[]>(
+    columnOptions.map((col) => col.value)
+  );
+
+  const toggleColumn = (col: string) => {
+    setSelectedColumns((prev) =>
+      prev.includes(col) ? prev.filter((c) => c !== col) : [...prev, col]
+    );
+  };
+
+  const items = useMemo(() => {
+    const filtered = (activities ?? []).filter(
+      (a) => a.type === type && String(a.referenceId) === String(referenceId)
+    );
+    if (!searchTerm) return filtered;
+    return filtered.filter((a) =>
+      a.action?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      a.details?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      a.actorUser?.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      a.actorUser?.last_name?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [activities, type, referenceId, searchTerm]);
+
+  if (error) return <div className="text-red-500 py-4">Error loading activities</div>;
 
   if (isLoading) {
     return (
-      <div className="space-y-2">
-        <Skeleton className="h-8 w-full" />
-        {Array(5)
-          .fill(0)
-          .map((_, i) => (
-            <Skeleton key={i} className="h-10 w-full" />
-          ))}
+      <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <Skeleton className="h-10 w-48" />
+          <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto order-2 sm:order-1">
+              <Skeleton className="h-10 w-full sm:w-24" />
+              <Skeleton className="h-10 w-full sm:w-32" />
+            </div>
+            <div className="w-full sm:w-auto order-1 sm:order-2">
+              <Skeleton className="h-10 w-full sm:w-48" />
+            </div>
+          </div>
+        </div>
+        <div className="rounded-md border overflow-hidden">
+          <Table>
+            <TableHeader className="bg-cyan-700">
+              <TableRow>
+                {columnOptions.map((col) => (
+                  <TableHead key={col.value} className="text-white">
+                    <Skeleton className="h-4 w-16 bg-cyan-600/50" />
+                  </TableHead>
+                ))}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {Array(5).fill(0).map((_, i) => (
+                <TableRow key={i}>
+                  {columnOptions.map((col) => (
+                    <TableCell key={col.value}>
+                      <Skeleton className="h-4 w-full" />
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </div>
     );
   }
-
-  const items = (activities ?? []).filter(
-    (a) => a.type === type && String(a.referenceId) === String(referenceId)
-  );
 
   const openCreate = () => {
     setEditing(null);
@@ -505,7 +754,6 @@ export function ActivityLogTable({ type, referenceId }: ActivityLogTableProps) {
   const openEdit = (a: AppActivity) => {
     setEditing(a);
     setShowForm(true);
-    setDropdownId(null);
   };
 
   const handleDelete = async (id: number | string) => {
@@ -515,14 +763,7 @@ export function ActivityLogTable({ type, referenceId }: ActivityLogTableProps) {
       toast.success("Activity deleted");
     } catch {
       toast.error("Failed to delete activity");
-    } finally {
-      setDropdownId(null);
     }
-  };
-
-  const handleView = (a: AppActivity) => {
-    toast.info(a.action);
-    setDropdownId(null);
   };
 
   const downloadColumns: Column<any>[] = [
@@ -535,20 +776,64 @@ export function ActivityLogTable({ type, referenceId }: ActivityLogTableProps) {
   ];
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="my-6 text-3xl font-bold text-gray-800">Activity Logs</h1>
-        <div className="flex items-center gap-4">
-          <button
-            className="bg-cyan-700 hover:bg-cyan-800 text-white font-bold py-2 px-3 rounded text-sm flex items-center gap-2"
-            onClick={openCreate}
-          >
-            <PlusIcon width={15} height={12} /> New
-          </button>
-          <GenericDownloads
-            data={items}
-            title="Activity_Logs"
-            columns={downloadColumns}
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-baseline gap-2">
+        <h2 className="text-2xl font-bold text-gray-800">Activity Logs</h2>
+        <span className="text-sm text-gray-400 font-medium">({items.length} total)</span>
+      </div>
+
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+        <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+          <div className="w-full sm:w-auto order-1 sm:order-2">
+            <GenericDownloads
+              data={items}
+              title="Activity_Logs"
+              columns={downloadColumns}
+            />
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto order-2 sm:order-1">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="h-9 w-full sm:w-auto">
+                  Columns <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-56 p-2" align="start">
+                <div className="space-y-1">
+                  {columnOptions.map((col) => (
+                    <div key={col.value} className="flex items-center space-x-2 p-1 hover:bg-gray-50 rounded">
+                      <Checkbox
+                        id={`col-act-${col.value}`}
+                        checked={selectedColumns.includes(col.value)}
+                        onCheckedChange={() => toggleColumn(col.value)}
+                      />
+                      <label htmlFor={`col-act-${col.value}`} className="text-sm cursor-pointer flex-1">
+                        {col.label}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+
+            <Button
+              size="sm"
+              className="h-9 bg-cyan-700 hover:bg-cyan-800 w-full sm:w-auto"
+              onClick={openCreate}
+            >
+              <PlusIcon className="mr-2 h-4 w-4" /> New
+            </Button>
+          </div>
+        </div>
+
+        <div className="relative w-full sm:w-64">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Input
+            placeholder="Search activity logs..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9 h-9 w-full"
           />
         </div>
       </div>
@@ -567,96 +852,86 @@ export function ActivityLogTable({ type, referenceId }: ActivityLogTableProps) {
         </div>
       )}
 
-      <div className="overflow-x-auto border rounded shadow-sm">
-        <table className="min-w-full table-auto border-collapse">
-          <thead className="bg-cyan-700 text-gray-100">
-            <tr>
-              <th className="px-3 py-2 border text-left">#</th>
-              <th className="px-3 py-2 border text-left">Date</th>
-              <th className="px-3 py-2 border text-left">Action</th>
-              <th className="px-3 py-2 border text-left">Actor</th>
-              <th className="px-3 py-2 border text-left">Details</th>
-              <th className="px-3 py-2 border text-left">Parent</th>
-              <th className="px-3 py-2 border text-left">Actions</th>
-            </tr>
-          </thead>
-
-          <tbody className="bg-white divide-y divide-gray-200">
+      <div className="overflow-x-auto rounded-md border shadow-sm">
+        <Table>
+          <TableHeader className="bg-cyan-700">
+            <TableRow className="hover:bg-cyan-700">
+              {columnOptions
+                .filter((col) => selectedColumns.includes(col.value))
+                .map((col) => (
+                  <TableHead key={col.value} className="text-white font-semibold whitespace-nowrap px-4 py-3">
+                    {col.label}
+                  </TableHead>
+                ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {items.length > 0 ? (
               items.map((a, idx) => (
-                <tr
-                  key={a.id}
-                  className="hover:bg-gray-50 relative"
-                  onClick={() => setDropdownId(null)}
-                >
-                  <td className="border px-3 py-2 text-center">{idx + 1}</td>
-                  <td className="border px-3 py-2">{formatDate(a.date)}</td>
-                  <td className="border px-3 py-2 font-medium">{a.action}</td>
-                  <td className="border px-3 py-2">
-                    {a.actorUser?.first_name} {a.actorUser?.last_name}
-                  </td>
-                  <td className="border px-3 py-2 text-sm">
-                    {a.details ?? "-"}
-                  </td>
-                  <td className="border px-3 py-2">
-                    {a.parentActivityId ?? "-"}
-                  </td>
-                  <td className="border px-3 py-2">
-                    <div className="relative">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setDropdownId(dropdownId === a.id ? null : a.id);
-                        }}
-                        className="flex items-center justify-between gap-1 px-3 py-1 bg-cyan-700 text-white rounded w-full hover:bg-cyan-800"
-                      >
-                        Actions
-                        <ChevronDown className="w-4 h-4" />
-                      </button>
-
-                      {dropdownId === a.id && (
-                        <div
-                          ref={dropdownRef}
-                          className="absolute left-0 top-full mt-1 w-44 bg-white border rounded shadow-lg z-50"
-                        >
-                          <button
-                            onClick={() => handleView(a)}
-                            className="w-full text-left px-3 py-2 hover:bg-gray-100 flex items-center gap-2"
-                          >
-                            <Eye className="w-4 h-4" /> View
-                          </button>
-
-                          <button
-                            onClick={() => openEdit(a)}
-                            className="w-full text-left px-3 py-2 hover:bg-gray-100 flex items-center gap-2"
-                          >
-                            <Edit className="w-4 h-4" /> Edit
-                          </button>
-
-                          <button
+                <TableRow key={a.id} className="hover:bg-gray-50">
+                  {selectedColumns.includes("id") && (
+                    <TableCell className="px-4 py-3 text-gray-500">{idx + 1}</TableCell>
+                  )}
+                  {selectedColumns.includes("date") && (
+                    <TableCell className="px-4 py-3 text-sm">{formatDate(a.date)}</TableCell>
+                  )}
+                  {selectedColumns.includes("action") && (
+                    <TableCell className="px-4 py-3 font-medium text-gray-900">{a.action}</TableCell>
+                  )}
+                  {selectedColumns.includes("actor") && (
+                    <TableCell className="px-4 py-3 text-sm">
+                      {a.actorUser?.first_name} {a.actorUser?.last_name}
+                    </TableCell>
+                  )}
+                  {selectedColumns.includes("details") && (
+                    <TableCell className="px-4 py-3 text-sm text-gray-600 max-w-sm truncate">
+                      {a.details ?? "-"}
+                    </TableCell>
+                  )}
+                  {selectedColumns.includes("parent") && (
+                    <TableCell className="px-4 py-3 text-sm text-gray-500">
+                      {a.parentActivityId ?? "-"}
+                    </TableCell>
+                  )}
+                  {selectedColumns.includes("actions") && (
+                    <TableCell className="px-4 py-3">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm" className="h-8 px-2 bg-cyan-700 text-white hover:bg-cyan-800">
+                            Action <ChevronDown className="ml-1 h-3 w-3" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-40">
+                          <DropdownMenuItem onClick={() => toast.info(a.action)}>
+                            <Eye className="mr-2 h-4 w-4" /> View
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => openEdit(a)}>
+                            <Edit className="mr-2 h-4 w-4" /> Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
                             onClick={() => handleDelete(a.id)}
-                            className="w-full text-left px-3 py-2 hover:bg-gray-100 text-red-600 flex items-center gap-2"
+                            className="text-red-600 focus:text-red-600"
                           >
-                            <Trash2 className="w-4 h-4" /> Delete
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </td>
-                </tr>
+                            <Trash2 className="mr-2 h-4 w-4" /> Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  )}
+                </TableRow>
               ))
             ) : (
-              <tr>
-                <td
-                  colSpan={7}
-                  className="border px-3 py-2 text-center text-gray-500"
+              <TableRow>
+                <TableCell
+                  colSpan={selectedColumns.length}
+                  className="h-24 text-center text-gray-500"
                 >
                   No activity logs found
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             )}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </div>
   );
