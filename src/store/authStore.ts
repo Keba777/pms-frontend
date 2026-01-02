@@ -47,7 +47,12 @@ export const useAuthStore = create<AuthStore>()(
             setHasHydrated: (state) => set({ _hasHydrated: state }),
 
             hasPermission: (resource, action) => {
-                const { permissions } = get();
+                const { permissions, user } = get();
+
+                // Super Admins have access to everything
+                if (user?.role?.name?.toLowerCase() === "superadmin") {
+                    return true;
+                }
 
                 if (!permissions) return false;
 

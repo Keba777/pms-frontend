@@ -34,6 +34,9 @@ export interface User {
     estSalary?: number;
     ot?: number;
     permissions?: string[];
+    orgId?: string;
+    organization?: { id: string; orgName: string; logo?: string };
+    isStricted?: boolean;
 }
 
 export interface CreateUserInput {

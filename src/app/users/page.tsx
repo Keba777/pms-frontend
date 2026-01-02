@@ -14,6 +14,7 @@ import {
 import { useDepartments } from "@/hooks/useDepartments";
 import { useRoles } from "@/hooks/useRoles";
 import { useSites } from "@/hooks/useSites";
+import { useAuthStore } from "@/store/authStore";
 import Spinner from "@/components/common/ui/Spinner";
 import MetricsCard from "@/components/users/MetricsCard";
 import Link from "next/link";
@@ -43,6 +44,7 @@ import {
 } from "@/components/common/GenericFilter";
 import { toast } from "react-toastify";
 import { Skeleton } from "@/components/ui/skeleton";
+import SystemAdminUsersPage from "@/components/system-admin/AdminUsers";
 
 // === TEMPORARY TYPE FOR IMPORT (supports File or URL) ===
 interface ImportUserRow {
@@ -67,6 +69,9 @@ interface ImportUserRow {
 }
 
 const UsersPage = () => {
+  const { user: currentUser } = useAuthStore();
+  const isSystemAdmin = currentUser?.role?.name?.toLowerCase() === "systemadmin";
+
   // === DATA ===
   const {
     data: users = [],
@@ -175,6 +180,11 @@ const UsersPage = () => {
     });
   }, [users, filterValues]);
 
+  // Handle System Admin View
+  if (isSystemAdmin) {
+    return <SystemAdminUsersPage />;
+  }
+
   if (error) {
     return (
       <div className="text-red-600 text-center py-4">
@@ -209,10 +219,6 @@ const UsersPage = () => {
       deleteUser(selectedUserId);
       setIsDeleteModalOpen(false);
     }
-  };
-
-  const handleViewUser = (userId: string) => {
-    router.push(`/users/profile/${userId}`);
   };
 
   const handleUpdateUser = (data: UpdateUserInput) => {
@@ -282,80 +288,76 @@ const UsersPage = () => {
   ];
 
   const handleImport = async (rows: ImportUserRow[]) => {
-  if (rows.length === 0) return;
+    if (rows.length === 0) return;
 
-  try {
-    setUploading(true);
+    try {
+      setUploading(true);
 
-    const roleMap = new Map(roles.map(r => [r.name.toLowerCase(), r.id]));
-    const deptMap = new Map(departments.map(d => [d.name.toLowerCase(), d.id]));
-    const siteMap = new Map(sites.map(s => [s.name.toLowerCase(), s.id]));
+      const roleMap = new Map(roles.map(r => [r.name.toLowerCase(), r.id]));
+      const deptMap = new Map(departments.map(d => [d.name.toLowerCase(), d.id]));
+      const siteMap = new Map(sites.map(s => [s.name.toLowerCase(), s.id]));
 
-    const formData = new FormData();
+      const formData = new FormData();
 
-    const usersJson = rows.map((r, index) => {
-      let roleId = r.role_name ? roleMap.get(r.role_name.trim().toLowerCase()) : undefined;
-      // If no role name provided, we rely on backend default 'User'. 
-      // If role name provided but not found, throw error? or fallback? User said "if the Role name is empty please make it to User by default".
-      // implying if provided but wrong, it might still error, but if empty, it's fine.
-      // But if provided and not found, maybe we should error.
-      if (r.role_name && !roleId) throw new Error(`Row ${index + 2}: Role "${r.role_name}" not found`);
-      
-      const siteId = r.site_name ? siteMap.get(r.site_name.trim().toLowerCase()) : undefined;
-      if (r.site_name && !siteId) throw new Error(`Row ${index + 2}: Site "${r.site_name}" not found`);
+      const usersJson = rows.map((r, index) => {
+        let roleId = r.role_name ? roleMap.get(r.role_name.trim().toLowerCase()) : undefined;
+        if (r.role_name && !roleId) throw new Error(`Row ${index + 2}: Role "${r.role_name}" not found`);
 
-      const departmentId = r.department_name
-        ? deptMap.get(r.department_name.trim().toLowerCase()) || undefined
-        : undefined;
+        const siteId = r.site_name ? siteMap.get(r.site_name.trim().toLowerCase()) : undefined;
+        if (r.site_name && !siteId) throw new Error(`Row ${index + 2}: Site "${r.site_name}" not found`);
 
-      const responsibilities = r.responsibilities
-        ? r.responsibilities.split(",").map(s => s.trim()).filter(Boolean)
-        : [];
+        const departmentId = r.department_name
+          ? deptMap.get(r.department_name.trim().toLowerCase()) || undefined
+          : undefined;
 
-      const userObj: any = {
-        first_name: r.first_name,
-        last_name: r.last_name,
-        email: r.email,
-        phone: r.phone,
-        password: "123456",
-        role_id: roleId,
-        siteId: siteId,
-        department_id: departmentId,
-        access: r.access,
-        status: r.status,
-        responsiblities: responsibilities,
-        username: r.username ? r.username.trim().toLowerCase() : undefined,
-        gender: r.gender,
-        position: r.position,
-        terms: r.terms,
-        joiningDate: r.joining_date ? new Date(r.joining_date) : undefined,
-        estSalary: r.est_salary ? parseFloat(r.est_salary as any) : undefined,
-        ot: r.ot ? parseFloat(r.ot as any) : undefined,
-      };
+        const responsibilities = r.responsibilities
+          ? r.responsibilities.split(",").map(s => s.trim()).filter(Boolean)
+          : [];
 
-      // Handle profile picture
-      if (r.profile_picture instanceof File && r.profile_picture.size > 0) {
-        formData.append("profile_picture", r.profile_picture);
-      } else if (typeof r.profile_picture === "string" && r.profile_picture.startsWith("http")) {
-        userObj.profile_picture = r.profile_picture;
-      }
+        const userObj: any = {
+          first_name: r.first_name,
+          last_name: r.last_name,
+          email: r.email,
+          phone: r.phone,
+          password: "123456",
+          role_id: roleId,
+          siteId: siteId,
+          department_id: departmentId,
+          access: r.access,
+          status: r.status,
+          responsiblities: responsibilities,
+          username: r.username ? r.username.trim().toLowerCase() : undefined,
+          gender: r.gender,
+          position: r.position,
+          terms: r.terms,
+          joiningDate: r.joining_date ? new Date(r.joining_date) : undefined,
+          estSalary: r.est_salary ? parseFloat(r.est_salary as any) : undefined,
+          ot: r.ot ? parseFloat(r.ot as any) : undefined,
+        };
 
-      return userObj;
-    });
+        // Handle profile picture
+        if (r.profile_picture instanceof File && r.profile_picture.size > 0) {
+          formData.append("profile_picture", r.profile_picture);
+        } else if (typeof r.profile_picture === "string" && r.profile_picture.startsWith("http")) {
+          userObj.profile_picture = r.profile_picture;
+        }
 
-    // Append users as JSON string (or as individual fields)
-    formData.append("users", JSON.stringify(usersJson));
-    console.log("FormData entries:", Array.from(formData.entries()));
+        return userObj;
+      });
 
-    await importUsers(formData);
-    toast.success(`Imported ${rows.length} users successfully!`);
-  } catch (err: any) {
-    toast.error(err.message || "Import failed");
-    console.error(err);
-  } finally {
-    setUploading(false);
-  }
-};
+      // Append users as JSON string (or as individual fields)
+      formData.append("users", JSON.stringify(usersJson));
+      console.log("FormData entries:", Array.from(formData.entries()));
+
+      await importUsers(formData);
+      toast.success(`Imported ${rows.length} users successfully!`);
+    } catch (err: any) {
+      toast.error(err.message || "Import failed");
+      console.error(err);
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleError = (msg: string) => toast.error(msg);
 
@@ -387,26 +389,16 @@ const UsersPage = () => {
   ];
 
   return (
-    <div className="p-4 space-y-6">
-      {/* Breadcrumb + Actions */}
-      <div className="flex items-center mb-4 gap-4 flex-wrap">
-        <nav aria-label="breadcrumb">
-          <ol className="flex space-x-2">
-            <li><Link href="/" className="text-blue-600 hover:underline">Home</Link></li>
-            <li className="text-gray-500">/</li>
-            <li className="text-gray-900 font-semibold">Users</li>
-          </ol>
-        </nav>
-
-        <div className="ml-auto flex items-center gap-3">
-          <div className="w-full sm:w-auto">
-            <GenericDownloads data={filteredUsers} title="Users_List" columns={downloadColumns} />
-          </div>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-2xl font-bold text-gray-900">Users</h1>
+        <div className="flex items-center gap-3">
+          <GenericDownloads data={filteredUsers} title="Users List" columns={downloadColumns} />
           <button
-            className="bg-cyan-700 hover:bg-cyan-800 text-white font-bold py-2 px-3 rounded text-sm"
+            className="bg-cyan-700 hover:bg-cyan-800 text-white font-bold py-2 px-3 rounded text-sm flex items-center gap-2"
             onClick={() => setShowForm(true)}
           >
-            <PlusIcon width={15} height={12} />
+            <PlusIcon width={15} height={15} /> Add User
           </button>
         </div>
       </div>
@@ -421,6 +413,7 @@ const UsersPage = () => {
           onError={handleError}
         />
       </div>
+
 
       {/* Modals */}
       {showForm && (
@@ -443,23 +436,28 @@ const UsersPage = () => {
       )}
 
       {/* Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {metrics.map(({ title, value, icon }) => (
           <MetricsCard key={title} title={title} value={value} icon={icon} />
         ))}
       </div>
 
       {/* Filters + Columns */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div ref={menuRef} className="relative">
+      <div className="flex flex-col md:flex-row md:items-start gap-4">
+        {/* Filters take up more space */}
+        <div className="flex-1">
+          <GenericFilter fields={filterFields} onFilterChange={setFilterValues} />
+        </div>
+
+        <div ref={menuRef} className="relative mt-1">
           <button
             onClick={() => setShowColumnMenu(prev => !prev)}
-            className="flex items-center gap-1 px-4 py-2 text-sm bg-cyan-700 text-white rounded hover:bg-cyan-800"
+            className="flex items-center gap-1 px-4 py-2 text-sm bg-gray-100 text-gray-700 border hover:bg-gray-200 rounded"
           >
-            Customize Columns <ChevronDown className="w-4 h-4" />
+            Columns <ChevronDown className="w-4 h-4" />
           </button>
           {showColumnMenu && (
-            <div className="absolute left-0 mt-1 w-48 bg-white border rounded shadow-lg z-10">
+            <div className="absolute right-0 mt-1 w-48 bg-white border rounded shadow-lg z-10 max-h-80 overflow-y-auto">
               {Object.entries(columnOptions).map(([key, label]) => (
                 <label key={key} className="flex items-center w-full px-4 py-2 hover:bg-gray-100 cursor-pointer">
                   <input
@@ -476,151 +474,117 @@ const UsersPage = () => {
             </div>
           )}
         </div>
-        <div className="flex-1">
-          <GenericFilter fields={filterFields} onFilterChange={setFilterValues} />
-        </div>
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto">
-        <table className="min-w-max w-full border border-gray-200 divide-y divide-gray-200">
-          <thead className="bg-cyan-700">
+      <div className="overflow-x-auto rounded-lg shadow border border-gray-200">
+        <table className="min-w-max w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
             <tr>
-              {selectedColumns.includes("id") && <th className="border border-gray-200 px-4 py-2 text-center text-sm font-medium text-gray-50">ID</th>}
-              {selectedColumns.includes("profile") && <th className="border border-gray-200 px-4 py-2 text-center text-sm font-medium text-gray-50">Profile</th>}
-              {selectedColumns.includes("name") && <th className="border border-gray-200 px-6 py-4 text-left text-sm font-medium text-gray-50">Name</th>}
-              {selectedColumns.includes("role") && <th className="border border-gray-200 px-6 py-4 text-left text-sm font-medium text-gray-50">Role</th>}
-              {selectedColumns.includes("access") && <th className="border border-gray-200 px-6 py-4 text-left text-sm font-medium text-gray-50">Permission Level</th>}
-              {selectedColumns.includes("department") && <th className="border border-gray-200 px-6 py-4 text-left text-sm font-medium text-gray-50">Department</th>}
-              {selectedColumns.includes("site") && <th className="border border-gray-200 px-6 py-4 text-left text-sm font-medium text-gray-50">Site</th>}
-              {selectedColumns.includes("phone") && <th className="border border-gray-200 px-6 py-4 text-left text-sm font-medium text-gray-50">Phone</th>}
-              {selectedColumns.includes("status") && <th className="border border-gray-200 px-6 py-4 text-left text-sm font-medium text-gray-50">Status</th>}
-              {selectedColumns.includes("assigned") && <th className="border border-gray-200 px-6 py-4 text-center text-sm font-medium text-gray-50">Assigned</th>}
-              {selectedColumns.includes("username") && <th className="border border-gray-200 px-6 py-4 text-left text-sm font-medium text-gray-50">Username</th>}
-              {selectedColumns.includes("gender") && <th className="border border-gray-200 px-6 py-4 text-left text-sm font-medium text-gray-50">Gender</th>}
-              {selectedColumns.includes("position") && <th className="border border-gray-200 px-6 py-4 text-left text-sm font-medium text-gray-50">Position</th>}
-              {selectedColumns.includes("terms") && <th className="border border-gray-200 px-6 py-4 text-left text-sm font-medium text-gray-50">Terms</th>}
-              {selectedColumns.includes("joiningDate") && <th className="border border-gray-200 px-6 py-4 text-left text-sm font-medium text-gray-50">Joining Date</th>}
-              {selectedColumns.includes("estSalary") && <th className="border border-gray-200 px-6 py-4 text-left text-sm font-medium text-gray-50">Est Salary</th>}
-              {selectedColumns.includes("ot") && <th className="border border-gray-200 px-6 py-4 text-left text-sm font-medium text-gray-50">OT</th>}
-              {selectedColumns.includes("actions") && <th className="border border-gray-200 px-6 py-4 text-center text-sm font-medium text-gray-50">Actions</th>}
+              {selectedColumns.includes("id") && <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>}
+              {selectedColumns.includes("profile") && <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Profile</th>}
+              {selectedColumns.includes("name") && <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>}
+              {selectedColumns.includes("role") && <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>}
+              {selectedColumns.includes("access") && <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Permission</th>}
+              {selectedColumns.includes("department") && <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>}
+              {selectedColumns.includes("site") && <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Site</th>}
+              {selectedColumns.includes("phone") && <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>}
+              {selectedColumns.includes("status") && <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>}
+              {selectedColumns.includes("assigned") && <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Assigned</th>}
+              {selectedColumns.includes("username") && <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Username</th>}
+              {selectedColumns.includes("gender") && <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gender</th>}
+
+              {selectedColumns.includes("position") && <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Position</th>}
+              {selectedColumns.includes("terms") && <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Terms</th>}
+              {selectedColumns.includes("joiningDate") && <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joining Date</th>}
+              {selectedColumns.includes("estSalary") && <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Salary</th>}
+              {selectedColumns.includes("ot") && <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">OT</th>}
+              {selectedColumns.includes("actions") && <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>}
             </tr>
           </thead>
-          <tbody className="bg-white">
+          <tbody className="bg-white divide-y divide-gray-200">
             {loadingUsers ? (
               Array.from({ length: 5 }).map((_, idx) => (
                 <tr key={idx} className="hover:bg-gray-50">
                   {selectedColumns.map((col) => (
-                    <td key={col} className="border border-gray-200 px-4 py-2">
-                      {col === "profile" ? (
-                        <Skeleton className="h-8 w-8 rounded-full mx-auto" />
-                      ) : (
-                        <Skeleton className="h-4 w-full" />
-                      )}
+                    <td key={col} className="px-4 py-2">
+                      <Skeleton className="h-4 w-full" />
                     </td>
                   ))}
                 </tr>
               ))
             ) : (
               filteredUsers.map((user, idx) => (
-                <tr key={user.id} className="hover:bg-gray-50">
-                  {selectedColumns.includes("id") && <td className="border border-gray-200 px-4 py-2 text-center">{idx + 1}</td>}
+                <tr key={user.id} className="hover:bg-gray-50 transition-colors">
+                  {selectedColumns.includes("id") && <td className="px-4 py-4 whitespace-nowrap text-center text-sm text-gray-500">{idx + 1}</td>}
                   {selectedColumns.includes("profile") && (
-                    <td className="border border-gray-200 px-4 py-2 text-center">
-                      <Image src={user.profile_picture || avatar} alt="Profile" width={32} height={32} className="rounded-full" />
+                    <td className="px-4 py-4 whitespace-nowrap text-center">
+                      <Image src={user.profile_picture || avatar} alt="Profile" width={32} height={32} className="rounded-full inline-block" />
                     </td>
                   )}
                   {selectedColumns.includes("name") && (
-                    <td className="border border-gray-200 px-6 py-3 whitespace-nowrap">
-                      <Link href={`/users/profile/${user.id}`} className="text-cyan-700 hover:text-cyan-900 block">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <Link href={`/users/profile/${user.id}`} className="text-cyan-700 hover:text-cyan-900 font-medium">
                         {user.first_name} {user.last_name}
                       </Link>
-                      <div className="text-xs text-gray-500 mt-1">{user.email}</div>
+                      <div className="text-xs text-gray-500">{user.email}</div>
                     </td>
                   )}
-                  {selectedColumns.includes("role") && <td className="border border-gray-200 px-6 py-3 whitespace-nowrap">{user.role?.name || "—"}</td>}
+                  {selectedColumns.includes("role") && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{user.role?.name || "—"}</td>}
                   {selectedColumns.includes("access") && (
-                    <td className="border border-gray-200 px-6 py-3 whitespace-nowrap flex items-center">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                       {editingAccessUserId === user.id ? (
                         <select
-                          className="border border-gray-300 rounded px-2 py-1 text-sm"
+                          className="border border-gray-300 rounded px-2 py-1 text-sm bg-white"
                           defaultValue={user.access ?? "Low Access"}
                           onChange={(e) => handleAccessChange(user.id, e.target.value as any)}
                           onBlur={() => setEditingAccessUserId(null)}
+                          autoFocus
                         >
                           <option>Low Access</option>
                           <option>Average Access</option>
                           <option>Full Access</option>
                         </select>
                       ) : (
-                        <>
+                        <div className="flex items-center gap-2 group cursor-pointer" onClick={() => setEditingAccessUserId(user.id)}>
                           <span>{user.access || "Low Access"}</span>
-                          <button onClick={() => setEditingAccessUserId(user.id)} className="ml-2 text-xs text-blue-600">
-                            <Edit2 />
-                          </button>
-                        </>
+                          <Edit2 className="w-3 h-3 text-gray-400 group-hover:text-cyan-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </div>
                       )}
                     </td>
                   )}
-                  {selectedColumns.includes("department") && <td className="border border-gray-200 px-6 py-3 whitespace-nowrap">{user.department?.name || "—"}</td>}
-                  {selectedColumns.includes("site") && <td className="border border-gray-200 px-6 py-3 whitespace-nowrap">{user.site?.name || "—"}</td>}
-                  {selectedColumns.includes("phone") && <td className="border border-gray-200 px-6 py-3 whitespace-nowrap">{user.phone}</td>}
-                  {selectedColumns.includes("status") && <td className="border border-gray-200 px-6 py-3 whitespace-nowrap">{user.status || "Active"}</td>}
-                  {selectedColumns.includes("assigned") && (
-                    <td className="border border-gray-200 px-6 py-3 whitespace-nowrap text-center flex space-x-2 justify-center">
-                      <AssignBadge name="Projects" count={user.projects?.length ?? 0} />
-                      <AssignBadge name="Tasks" count={user.tasks?.length ?? 0} />
-                      <AssignBadge name="Activities" count={user.activities?.length ?? 0} />
+                  {selectedColumns.includes("department") && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{user.department?.name || "—"}</td>}
+                  {selectedColumns.includes("site") && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{user.site?.name || "—"}</td>}
+                  {selectedColumns.includes("phone") && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{user.phone}</td>}
+                  {selectedColumns.includes("status") && (
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${user.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                        {user.status || "Active"}
+                      </span>
                     </td>
                   )}
-                  {selectedColumns.includes("username") && <td className="border border-gray-200 px-6 py-3 whitespace-nowrap">{user.username || "—"}</td>}
-                  {selectedColumns.includes("gender") && <td className="border border-gray-200 px-6 py-3 whitespace-nowrap">{user.gender || "—"}</td>}
-                  {selectedColumns.includes("position") && <td className="border border-gray-200 px-6 py-3 whitespace-nowrap">{user.position || "—"}</td>}
-                  {selectedColumns.includes("terms") && <td className="border border-gray-200 px-6 py-3 whitespace-nowrap">{user.terms || "—"}</td>}
-                  {selectedColumns.includes("joiningDate") && <td className="border border-gray-200 px-6 py-3 whitespace-nowrap">{user.joiningDate ? new Date(user.joiningDate).toISOString().slice(0, 10) : "—"}</td>}
-                  {selectedColumns.includes("estSalary") && <td className="border border-gray-200 px-6 py-3 whitespace-nowrap">{user.estSalary || "—"}</td>}
-                  {selectedColumns.includes("ot") && <td className="border border-gray-200 px-6 py-3 whitespace-nowrap">{user.ot || "—"}</td>}
-                  {selectedColumns.includes("actions") && (
-                    <td className="px-4 py-2 whitespace-nowrap">
-                      <Menu>
-                        <MenuButton className="flex items-center gap-1 px-3 py-1 text-sm bg-cyan-700 text-white rounded hover:bg-cyan-800">
-                          Action <ChevronDown className="w-4 h-4" />
-                        </MenuButton>
-                        <MenuItems className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-10">
-                          <MenuItem>
-                            {({ focus }) => (
-                              <button
-                                className={`block w-full px-4 py-2 text-left ${focus ? "bg-blue-100" : ""}`}
-                                onClick={() => { setUserToEdit(user); setShowEditForm(true); }}
-                              >
-                                Update
-                              </button>
-                            )}
-                          </MenuItem>
-                          <MenuItem>
-                            {({ focus }) => (
-                              <button
-                                className={`block w-full px-4 py-2 text-left ${focus ? "bg-blue-100" : ""}`}
-                                onClick={() => handleDeleteUserClick(user.id)}
-                              >
-                                Delete
-                              </button>
-                            )}
-                          </MenuItem>
-                          <MenuItem>
-                            {({ focus }) => (
-                              <button
-                                className={`block w-full px-4 py-2 text-left ${focus ? "bg-blue-100" : ""}`}
-                                onClick={() => handleViewUser(user.id)}
-                              >
-                                Quick View
-                              </button>
-                            )}
-                          </MenuItem>
-                        </MenuItems>
-                      </Menu>
+                  {selectedColumns.includes("assigned") && (
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                      <div className="flex space-x-2 justify-center">
+                        <AssignBadge name="Projects" count={user.projects?.length ?? 0} />
+                        <AssignBadge name="Tasks" count={user.tasks?.length ?? 0} />
+                        <AssignBadge name="Activities" count={user.activities?.length ?? 0} />
+                      </div>
                     </td>
-                  )}             
+                  )}
+                  {selectedColumns.includes("username") && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{user.username || "—"}</td>}
+                  {selectedColumns.includes("gender") && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{user.gender || "—"}</td>}
+
+                  {selectedColumns.includes("position") && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{user.position || "—"}</td>}
+                  {selectedColumns.includes("terms") && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{user.terms || "—"}</td>}
+                  {selectedColumns.includes("joiningDate") && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{user.joiningDate ? new Date(user.joiningDate).toLocaleDateString() : "—"}</td>}
+                  {selectedColumns.includes("estSalary") && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{user.estSalary || "—"}</td>}
+                  {selectedColumns.includes("ot") && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{user.ot || "—"}</td>}
+                  {selectedColumns.includes("actions") && (
+                    <td className="px-4 py-4 whitespace-nowrap text-center">
+                      {/* ...existing code... */}
+                    </td>
+                  )}
                 </tr>
               ))
             )}
@@ -628,7 +592,6 @@ const UsersPage = () => {
         </table>
       </div>
 
-      {/* Delete Modal */}
       {isDeleteModalOpen && (
         <ConfirmModal
           isVisible={isDeleteModalOpen}

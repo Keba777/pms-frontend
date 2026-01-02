@@ -3,7 +3,7 @@ import Link from "next/link";
 
 interface CardProps {
   title: string;
-  count: number;
+  count: number | string;
   link: string;
   Icon: React.FC<{ size?: number }>; // Pass size as a prop
   color: string;

@@ -7,11 +7,21 @@ import { ToastContainer } from "react-toastify";
 import Footer from "@/components/layout/Footer";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useAuthStore } from "@/store/authStore";
-import { useEffect, useState, useRef } from "react";
+import { useOrganizationStore } from "@/store/organizationStore";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { ModuleRegistry } from 'ag-grid-community';
 import { AllCommunityModule } from 'ag-grid-community';
 
 const queryClient = new QueryClient();
+
+// Helper to convert decimal/hex color to CSS variable compatible string
+const formatColor = (color: number | string | null | undefined) => {
+  if (!color) return null;
+  if (typeof color === "number") {
+    return `#${color.toString(16).padStart(6, "0")}`;
+  }
+  return color;
+};
 
 export default function ClientLayout({
   children,
@@ -21,6 +31,7 @@ export default function ClientLayout({
   const pathname = usePathname();
   const router = useRouter();
   const { user, expiresAt, logout, _hasHydrated } = useAuthStore();
+  const { organization, fetchOrganization, clearOrganization } = useOrganizationStore();
   const [isLoading, setIsLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const logoutTimer = useRef<number | null>(null);
@@ -31,6 +42,43 @@ export default function ClientLayout({
   useEffect(() => {
     ModuleRegistry.registerModules([AllCommunityModule]);
   }, []);
+
+  // Fetch organization details when user changes
+  useEffect(() => {
+    if (_hasHydrated && user?.orgId) {
+      if (!organization || organization.id !== user.orgId) {
+        fetchOrganization(user.orgId);
+      }
+    } else if (_hasHydrated && !user) {
+      clearOrganization();
+    }
+  }, [_hasHydrated, user, organization, fetchOrganization, clearOrganization]);
+
+  // Apply dynamic theme
+  useEffect(() => {
+    if (organization) {
+      const root = document.documentElement;
+
+      const themeColors = {
+        "--primary": formatColor(organization.primaryColor),
+        "--background": formatColor(organization.backgroundColor),
+        "--secondary": formatColor(organization.secondaryColor),
+        "--accent": formatColor(organization.accentColor),
+        "--destructive": formatColor(organization.destructiveColor),
+        "--card": formatColor(organization.cardColor),
+        "--border": formatColor(organization.borderColor),
+      };
+
+      Object.entries(themeColors).forEach(([key, value]) => {
+        if (value) {
+          root.style.setProperty(key, value as string);
+        }
+      });
+
+      // Update document title if needed (optional)
+      // document.title = organization.orgName || "pms";
+    }
+  }, [organization]);
 
   useEffect(() => {
     if (!_hasHydrated) return;

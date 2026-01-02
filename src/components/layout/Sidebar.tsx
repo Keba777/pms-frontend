@@ -5,10 +5,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { FiX } from "react-icons/fi";
 import MenuItem from "@/components/common/ui/MenuItem";
-import menuItems from "./menuItems";
+import menuItems, { systemAdminMenuItems, superAdminMenuItems } from "./menuItems";
 import { useAuthStore } from "@/store/authStore";
 import { supabase } from "@/lib/supabase";
 import logo from "@/../public/images/logo.jpg";
+import { useOrganizationStore } from "@/store/organizationStore";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -20,7 +21,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
   const { hasPermission } = useAuthStore();
 
   // VERIFICATION LOG: Check this in your browser console
-  console.log('Current User Permissions:', user?.permissions);
+
 
   const [chatBadge, setChatBadge] = useState(0);
   const [groupChatBadge, setGroupChatBadge] = useState(0);
@@ -29,6 +30,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
   const isHR = Boolean(
     user?.role?.name && user.role.name.toLowerCase().includes("hr")
   );
+
+  const isSystemAdmin = user?.role?.name?.toLowerCase() === "systemadmin";
+  const isSuperAdmin = user?.role?.name?.toLowerCase() === "superadmin";
 
   // Fetch unread message count for “Chat” badge
   useEffect(() => {
@@ -61,7 +65,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
     //   });
   }, [user]);
 
-  const menuItemsWithBadge = menuItems.map((item) => {
+  // Determine which menu to show based on role
+  const itemsToRender = isSystemAdmin
+    ? systemAdminMenuItems
+    : isSuperAdmin
+      ? superAdminMenuItems
+      : menuItems;
+
+  const menuItemsWithBadge = itemsToRender.map((item) => {
     if (item.title === "Chat") return { ...item, badge: chatBadge };
     if (item.title === "Team Chats") return { ...item, badge: groupChatBadge };
     return item;
@@ -69,6 +80,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
 
   // Apply your existing permission-based filtering
   const filteredMenuItems = menuItemsWithBadge.filter((item) => {
+    // If System Admin or Super Admin, assume access to all items in their specific menu
+    if (isSystemAdmin || isSuperAdmin) {
+      return true;
+    }
+
     // HR-only dashboard item (keep as you had it)
     if (item.title === "HR Dashboard") {
       return user?.role?.name === "HR Manager" || isHR;
@@ -107,6 +123,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
       : true;
   });
 
+  const { organization } = useOrganizationStore();
+
   return (
     <aside
       id="layout-menu"
@@ -120,22 +138,23 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
         <FiX size={24} />
       </button>
 
-      <div className="flex items-center justify-center ">
+      <div className="flex items-center justify-center py-4">
         {/* Logo: send HR users to /hrm, others to / */}
         <Link href={isHR ? "/hrm" : "/"} className="flex items-center" onClick={toggleSidebar}>
           <Image
-            src={logo}
+            src={organization?.logo || logo}
             alt="Logo"
             width={200}
             height={50}
-            className="w-24"
+            className="w-24 h-auto object-contain"
+            unoptimized={!!organization?.logo}
           />
         </Link>
       </div>
 
       <div className="px-2">
-        <h2 className="w-full bg-cyan-700 hover:bg-cyan-800 text-white px-4 py-2 rounded inline-flex items-center">
-          Raycon Construction
+        <h2 className="w-full bg-primary hover:opacity-90 text-white px-4 py-2 rounded inline-flex items-center justify-center font-bold uppercase tracking-wider">
+          {organization?.orgName || "pms"}
         </h2>
       </div>
 

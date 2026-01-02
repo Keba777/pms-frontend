@@ -29,6 +29,7 @@ import {
   Receipt,
   Star,
   Inbox,
+  Building,
 } from "lucide-react";
 
 const menuItems = [
@@ -327,6 +328,12 @@ const menuItems = [
         iconColor: "text-violet-600",
       },
       {
+        title: "Organizations",
+        link: "/organizations",
+        icon: Building,
+        iconColor: "text-amber-600",
+      },
+      {
         title: "Languages",
         link: "/settings/languages",
         icon: Languages,
@@ -340,6 +347,52 @@ const menuItems = [
   },
   {
     title: "",
+  },
+];
+
+export const systemAdminMenuItems = [
+  { title: "Dashboard", link: "/", icon: Home, iconColor: "text-rose-500" },
+  {
+    title: "Organizations",
+    link: "/organizations",
+    icon: Building,
+    iconColor: "text-amber-600",
+  },
+  {
+    title: "Global Users",
+    link: "/users",
+    icon: Users,
+    iconColor: "text-indigo-600",
+  },
+  {
+    title: "Settings",
+    icon: Settings,
+    iconColor: "text-emerald-700",
+    submenu: [
+      {
+        title: "General",
+        link: "/settings",
+        icon: Settings2,
+        iconColor: "text-blue-600",
+      },
+      {
+        title: "Languages",
+        link: "/settings/languages",
+        icon: Languages,
+        iconColor: "text-cyan-600",
+      },
+    ],
+  },
+];
+
+// Super Admin sees everything Admin sees + Organizations menu
+export const superAdminMenuItems = [
+  ...menuItems.slice(0, -2), // Remove the two empty items at the end
+  {
+    title: "Organizations",
+    link: "/organizations",
+    icon: Building,
+    iconColor: "text-amber-600",
   },
 ];
 
