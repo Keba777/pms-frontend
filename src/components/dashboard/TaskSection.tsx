@@ -71,7 +71,12 @@ const statusBadgeClasses: Record<Task["status"], string> = {
   Completed: "bg-green-100 text-green-800",
 };
 
-const TaskSection: React.FC = () => {
+interface TaskSectionProps {
+  searchTerm?: string;
+  statusFilter?: string | null;
+}
+
+const TaskSection: React.FC<TaskSectionProps> = ({ searchTerm: globalSearch, statusFilter }) => {
 
   const router = useRouter();
   const { data: tasks, isLoading, isError } = useTasks();
@@ -160,56 +165,20 @@ const TaskSection: React.FC = () => {
     setShowManageForm(false);
   };
 
-  if (isLoading)
-    return (
-      <div className="space-y-6">
-        <Skeleton className="h-9 w-48" />
+  // No early return for isLoading - we want to keep the title and filters visible.
 
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <Skeleton className="h-10 w-full sm:w-40" />
-          <Skeleton className="h-10 w-full sm:w-64" />
-        </div>
-
-        <div className="overflow-x-auto rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-primary hover:bg-primary/90">
-                {columnOptions.map((col) => (
-                  <TableHead
-                    key={col.value}
-                    className="text-gray-50 font-medium px-4 py-4"
-                  >
-                    <Skeleton className="h-4 w-20 bg-gray-300" />
-                  </TableHead>
-                ))}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {Array.from({ length: 5 }).map((_, index) => (
-                <TableRow key={index} className="hover:bg-gray-50">
-                  {columnOptions.map((col) => (
-                    <TableCell key={col.value} className="px-4 py-2">
-                      <Skeleton className="h-4 w-full" />
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
-    );
-  if (isError)
-    return (
-      <div className="text-center py-8 text-red-600">Error loading tasks.</div>
-    );
-
+  const isDataAvailable = !isLoading && tasks;
   const filtered =
-    tasks?.filter(
-      (t) =>
+    tasks?.filter((t) => {
+      const matchesSearch =
         t.task_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        t.status.toLowerCase().includes(searchTerm.toLowerCase())
-    ) || [];
+        t.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (globalSearch ? t.task_name.toLowerCase().includes(globalSearch.toLowerCase()) : true);
+
+      const matchesStatus = statusFilter ? t.status === statusFilter : true;
+
+      return matchesSearch && matchesStatus;
+    }) || [];
 
   const totalPages = Math.ceil(filtered.length / pageSize);
   const paginatedTasks = filtered.slice((page - 1) * pageSize, page * pageSize);
@@ -367,7 +336,28 @@ const TaskSection: React.FC = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {paginatedTasks.length > 0 ? (
+            {isLoading ? (
+              Array.from({ length: 5 }).map((_, index) => (
+                <TableRow key={index} className="hover:bg-gray-50">
+                  {columnOptions
+                    .filter((col) => selectedColumns.includes(col.value))
+                    .map((col) => (
+                      <TableCell key={col.value} className="px-4 py-2 text-center">
+                        <Skeleton className="h-4 w-full" />
+                      </TableCell>
+                    ))}
+                </TableRow>
+              ))
+            ) : isError ? (
+              <TableRow>
+                <TableCell
+                  colSpan={selectedColumns.length}
+                  className="text-center py-8 text-red-500"
+                >
+                  Error loading tasks.
+                </TableCell>
+              </TableRow>
+            ) : paginatedTasks.length > 0 ? (
               paginatedTasks.map((task, idx) => {
                 const duration = getDateDuration(
                   task.start_date,

@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { Menu, MenuButton, MenuItems, MenuItem } from "@headlessui/react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
   useActivities,
@@ -14,8 +14,40 @@ import { getDuration } from "@/utils/helper";
 import { formatDate as format } from "@/utils/dateUtils";
 import EditActivityForm from "../forms/EditActivityForm";
 import ConfirmModal from "../common/ui/ConfirmModal";
-import ActivityTableSkeleton from "./ActivityTableSkeleton";
 import ManageActivityForm from "../forms/ManageActivityForm";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { FaEdit, FaTrash, FaEye, FaTasks } from "react-icons/fa";
 import {
   FilterField,
   FilterValues,
@@ -41,6 +73,7 @@ const statusBadgeClasses: Record<Activity["status"], string> = {
   Completed: "bg-primary/20 text-primary",
 };
 const columnOptions: Record<string, string> = {
+  no: "No",
   activity_name: "Activity",
   assignedUsers: "Assigned To",
   priority: "Priority",
@@ -68,6 +101,8 @@ const DataTableActivities: React.FC = () => {
   const [filterValues, setFilterValues] = useState<FilterValues>({});
   const [fromDate, setFromDate] = useState<Date | null>(null);
   const [toDate, setToDate] = useState<Date | null>(null);
+  const [pageSize, setPageSize] = useState(10);
+  const [page, setPage] = useState(1);
   // Column selection state
   const [selectedColumns, setSelectedColumns] = useState<string[]>(
     Object.keys(columnOptions)
@@ -100,8 +135,8 @@ const DataTableActivities: React.FC = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-  if (isLoading) return <ActivityTableSkeleton />;
-  if (error) return <div>Error fetching activities.</div>;
+  // No early return for isLoading or error - handled inline to keep UI controls persistent
+  const isDataAvailable = !isLoading && activities;
   // Filter options
   const priorityOptions: Option<string>[] = [
     { label: "Low", value: "Low" },
@@ -172,56 +207,107 @@ const DataTableActivities: React.FC = () => {
     setActivityToManage(activity as any);
     setShowManageForm(true);
   };
+  const totalPages = Math.ceil(filteredActivities.length / pageSize);
+  const paginatedActivities = filteredActivities.slice((page - 1) * pageSize, page * pageSize);
+
+  // Helper to render page numbers with ellipsis
+  const renderPageNumbers = () => {
+    const pages: React.ReactNode[] = [];
+    const maxVisible = 5;
+    const startPage = Math.max(1, page - Math.floor(maxVisible / 2));
+    const endPage = Math.min(totalPages, startPage + maxVisible - 1);
+
+    if (startPage > 1) {
+      pages.push(
+        <PaginationItem key={1}>
+          <PaginationLink onClick={() => setPage(1)} className="cursor-pointer" isActive={page === 1}>
+            1
+          </PaginationLink>
+        </PaginationItem>
+      );
+      if (startPage > 2) {
+        pages.push(<PaginationItem key="ellipsis-start"><PaginationEllipsis /></PaginationItem>);
+      }
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(
+        <PaginationItem key={i}>
+          <PaginationLink onClick={() => setPage(i)} className="cursor-pointer" isActive={page === i}>
+            {i}
+          </PaginationLink>
+        </PaginationItem>
+      );
+    }
+
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) {
+        pages.push(<PaginationItem key="ellipsis-end"><PaginationEllipsis /></PaginationItem>);
+      }
+      pages.push(
+        <PaginationItem key={totalPages}>
+          <PaginationLink onClick={() => setPage(totalPages)} className="cursor-pointer" isActive={page === totalPages}>
+            {totalPages}
+          </PaginationLink>
+        </PaginationItem>
+      );
+    }
+    return pages;
+  };
+
   return (
-    <div>
-      <div className="flex flex-col lg:flex-row items-center justify-between gap-4 mb-6">
-        <div ref={menuRef} className="relative w-full lg:w-auto">
-          <button
-            onClick={() => setShowColumnMenu((prev) => !prev)}
-            className="w-full lg:w-auto flex items-center justify-center gap-2 px-5 py-2.5 text-sm bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors shadow-sm font-medium"
-          >
-            Customize Columns <ChevronDown className="w-4 h-4" />
-          </button>
-          {showColumnMenu && (
-            <div className="absolute left-0 mt-2 w-56 bg-white border border-border rounded-lg shadow-xl z-20 py-2">
-              <div className="px-4 py-2 border-b border-border/50 mb-1">
-                <span className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider">Visible Columns</span>
-              </div>
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row items-baseline gap-2">
+        <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800">
+          Planned Activities
+        </h2>
+        <span className="text-sm text-gray-400 font-medium">({filteredActivities.length} total)</span>
+      </div>
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-lg shadow-sm border border-gray-100 mb-6">
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" className="w-full sm:w-auto">
+              Customize Columns <ChevronDown className="ml-2 h-4 w-4" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-64 ">
+            <div className="space-y-2">
               {Object.entries(columnOptions).map(([key, label]) => (
-                <label
-                  key={key}
-                  className="flex items-center w-full px-4 py-2 hover:bg-accent cursor-pointer transition-colors"
-                >
-                  <input
-                    type="checkbox"
+                <div key={key} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={key}
                     checked={selectedColumns.includes(key)}
-                    onChange={() => toggleColumn(key)}
-                    className="w-4 h-4 rounded border-border text-primary focus:ring-primary mr-3"
+                    onCheckedChange={() => toggleColumn(key)}
                   />
-                  <span className="text-sm text-foreground font-medium">{label}</span>
-                </label>
+                  <label htmlFor={key} className="">
+                    {label}
+                  </label>
+                </div>
               ))}
             </div>
-          )}
-        </div>
-        <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto">
-          <GenericFilter
-            fields={filterFields}
-            onFilterChange={setFilterValues}
+          </PopoverContent>
+        </Popover>
+
+        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+          <Input
+            placeholder="Search activities..."
+            value={(filterValues.activity_name as string) || ""}
+            onChange={(e) => setFilterValues({ ...filterValues, activity_name: e.target.value })}
+            className="w-full sm:w-64"
           />
-          <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="flex items-center gap-2">
             <DatePicker
               selected={fromDate}
               onChange={setFromDate}
-              placeholderText="From Date"
-              className="rounded-lg border border-border px-4 py-2 text-sm focus:ring-2 focus:ring-primary font-medium w-full sm:w-36"
+              placeholderText="From"
+              className="rounded border border-gray-200 px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500/20 font-medium w-28"
               dateFormat="yyyy-MM-dd"
             />
             <DatePicker
               selected={toDate}
               onChange={setToDate}
-              placeholderText="To Date"
-              className="rounded-lg border border-border px-4 py-2 text-sm focus:ring-2 focus:ring-primary font-medium w-full sm:w-36"
+              placeholderText="To"
+              className="rounded border border-gray-200 px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500/20 font-medium w-28"
               dateFormat="yyyy-MM-dd"
             />
           </div>
@@ -263,361 +349,297 @@ const DataTableActivities: React.FC = () => {
         />
       )}
       {/* Table */}
-      <div className="overflow-x-auto px-2 ">
-        <table className="min-w-max divide-y divide-border border">
-          <thead className="bg-primary">
-            <tr>
+      <div className="overflow-x-auto rounded-md border shadow-sm">
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-primary hover:bg-primary/90">
+              {selectedColumns.includes("no") && (
+                <TableHead rowSpan={2} className="text-gray-50 font-medium uppercase tracking-wider px-4 py-4 border-r border-white/10">
+                  No
+                </TableHead>
+              )}
               {selectedColumns.includes("activity_name") && (
-                <th
-                  rowSpan={2}
-                  className="px-4 py-3 text-left text-sm font-medium text-gray-50"
-                >
+                <TableHead rowSpan={2} className="text-gray-50 font-medium uppercase tracking-wider px-4 py-4 border-r border-white/10">
                   Activity
-                </th>
+                </TableHead>
               )}
               {selectedColumns.includes("assignedUsers") && (
-                <th
-                  rowSpan={2}
-                  className="px-4 py-3 text-left text-sm font-medium text-gray-50"
-                >
+                <TableHead rowSpan={2} className="text-gray-50 font-medium uppercase tracking-wider px-4 py-4 border-r border-white/10">
                   Assigned To
-                </th>
+                </TableHead>
               )}
               {selectedColumns.includes("priority") && (
-                <th
-                  rowSpan={2}
-                  className="px-4 py-3 text-left text-sm font-medium text-gray-50"
-                >
-                  Priority
-                </th>
+                <TableHead rowSpan={2} className="text-gray-50 font-medium uppercase tracking-wider px-4 py-4 border-r border-white/10">
+                   Priority
+                </TableHead>
               )}
               {selectedColumns.includes("quantity") && (
-                <th
-                  rowSpan={2}
-                  className="px-4 py-3 text-left text-sm font-medium text-gray-50"
-                >
+                <TableHead rowSpan={2} className="text-gray-50 font-medium uppercase tracking-wider px-4 py-4 border-r border-white/10">
                   Quantity
-                </th>
+                </TableHead>
               )}
               {selectedColumns.includes("unit") && (
-                <th
-                  rowSpan={2}
-                  className="px-4 py-3 text-left text-sm font-medium text-gray-50"
-                >
+                <TableHead rowSpan={2} className="text-gray-50 font-medium uppercase tracking-wider px-4 py-4 border-r border-white/10">
                   Unit
-                </th>
+                </TableHead>
               )}
               {selectedColumns.includes("start_date") && (
-                <th
-                  rowSpan={2}
-                  className="px-4 py-3 text-left text-sm font-medium text-gray-50"
-                >
+                <TableHead rowSpan={2} className="text-gray-50 font-medium uppercase tracking-wider px-4 py-4 border-r border-white/10">
                   Start Date
-                </th>
+                </TableHead>
               )}
               {selectedColumns.includes("end_date") && (
-                <th
-                  rowSpan={2}
-                  className="px-4 py-3 text-left text-sm font-medium text-gray-50"
-                >
+                <TableHead rowSpan={2} className="text-gray-50 font-medium uppercase tracking-wider px-4 py-4 border-r border-white/10">
                   End Date
-                </th>
+                </TableHead>
               )}
               {selectedColumns.includes("duration") && (
-                <th
-                  rowSpan={2}
-                  className="px-4 py-3 text-left text-sm font-medium text-gray-50"
-                >
+                <TableHead rowSpan={2} className="text-gray-50 font-medium uppercase tracking-wider px-4 py-4 border-r border-white/10">
                   Duration
-                </th>
+                </TableHead>
               )}
               {selectedColumns.includes("progress") && (
-                <th
-                  rowSpan={2}
-                  className="px-4 py-3 text-left text-sm font-medium text-gray-50"
-                >
+                <TableHead rowSpan={2} className="text-gray-50 font-medium uppercase tracking-wider px-4 py-4 border-r border-white/10">
                   Progress
-                </th>
+                </TableHead>
               )}
               {(selectedColumns.includes("materials") ||
                 selectedColumns.includes("equipments") ||
                 selectedColumns.includes("labors")) && (
-                  <th
+                  <TableHead
                     colSpan={3}
-                    className="px-4 py-3 text-center border-b border-b-primary-foreground/30 text-sm font-medium text-primary-foreground"
+                    className="text-gray-50 font-medium uppercase tracking-wider px-4 py-3 text-center border-b border-white/10 border-r border-white/10"
                   >
                     Resource Cost
-                  </th>
+                  </TableHead>
                 )}
               {selectedColumns.includes("request") && (
-                <th
-                  rowSpan={2}
-                  className="px-4 py-3 text-left text-sm font-medium text-gray-50"
-                >
+                <TableHead rowSpan={2} className="text-gray-50 font-medium uppercase tracking-wider px-4 py-4 border-r border-white/10">
                   Request Resource
-                </th>
+                </TableHead>
               )}
               {selectedColumns.includes("status") && (
-                <th
-                  rowSpan={2}
-                  className="px-4 py-3 text-left text-sm font-medium text-gray-50"
-                >
-                  Status
-                </th>
+                <TableHead rowSpan={2} className="text-gray-50 font-medium uppercase tracking-wider px-4 py-4 border-r border-white/10">
+                   Status
+                </TableHead>
               )}
               {selectedColumns.includes("approvalStatus") && (
-                <th
-                  rowSpan={2}
-                  className="px-4 py-3 text-left text-sm font-medium text-gray-50"
-                >
+                <TableHead rowSpan={2} className="text-gray-50 font-medium uppercase tracking-wider px-4 py-4 border-r border-white/10">
                   Approval
-                </th>
+                </TableHead>
               )}
               {selectedColumns.includes("actions") && (
-                <th
-                  rowSpan={2}
-                  className="px-4 py-3 text-left text-sm font-medium text-gray-50"
-                >
+                <TableHead rowSpan={2} className="text-gray-50 font-medium uppercase tracking-wider px-4 py-4">
                   Actions
-                </th>
+                </TableHead>
               )}
-            </tr>
-            <tr>
+            </TableRow>
+            <TableRow className="bg-primary hover:bg-primary/90">
               {selectedColumns.includes("materials") && (
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+                <TableHead className="text-gray-50 font-medium uppercase tracking-wider text-[10px] py-3 px-4 border-r border-white/10">
                   Materials
-                </th>
+                </TableHead>
               )}
               {selectedColumns.includes("equipments") && (
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+                <TableHead className="text-gray-50 font-medium uppercase tracking-wider text-[10px] py-3 px-4 border-r border-white/10">
                   Equipments
-                </th>
+                </TableHead>
               )}
               {selectedColumns.includes("labors") && (
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+                <TableHead className="text-gray-50 font-medium uppercase tracking-wider text-[10px] py-3 px-4 border-r border-white/10">
                   Labors
-                </th>
+                </TableHead>
               )}
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-border">
-            {filteredActivities.length > 0 ? (
-              filteredActivities.map((activity) => (
-                <tr key={activity.id} className="hover:bg-accent">
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoading ? (
+              Array.from({ length: 5 }).map((_, index) => (
+                <TableRow key={index} className="hover:bg-gray-50">
+                  {Object.keys(columnOptions)
+                    .filter(key => selectedColumns.includes(key))
+                    .map((key) => {
+                      if (key === "materials" || key === "equipments" || key === "labors") return null;
+                      return (
+                        <TableCell key={key} className="px-4 py-3">
+                          <Skeleton className="h-4 w-full" />
+                        </TableCell>
+                      );
+                    })}
+                  {/* Handle resource cost columns if visible */}
+                  {selectedColumns.includes("materials") && <TableCell className="px-4 py-3"><Skeleton className="h-4 w-full" /></TableCell>}
+                  {selectedColumns.includes("equipments") && <TableCell className="px-4 py-3"><Skeleton className="h-4 w-full" /></TableCell>}
+                  {selectedColumns.includes("labors") && <TableCell className="px-4 py-3"><Skeleton className="h-4 w-full" /></TableCell>}
+                </TableRow>
+              ))
+            ) : error ? (
+              <TableRow>
+                <TableCell colSpan={selectedColumns.length} className="text-center py-8 text-red-500">
+                  Error fetching activities. Please try again.
+                </TableCell>
+              </TableRow>
+            ) : paginatedActivities.length > 0 ? (
+              paginatedActivities.map((activity, idx) => (
+                <TableRow key={activity.id} className="hover:bg-gray-50 transition-colors">
+                  {selectedColumns.includes("no") && (
+                    <TableCell className="px-4 py-2 text-sm text-gray-500 border-r border-gray-100">
+                      {(page - 1) * pageSize + idx + 1}
+                    </TableCell>
+                  )}
                   {selectedColumns.includes("activity_name") && (
-                    <td className="px-4 py-2 font-medium text-primary">
-                      <Link
-                        href={`/activities/${activity.id}`}
-                        className="hover:underline"
-                      >
-                        {activity.activity_name.charAt(0).toUpperCase() +
-                          activity.activity_name.slice(1)}
+                    <TableCell className="px-4 py-2 font-medium text-primary border-r border-gray-100">
+                      <Link href={`/activities/${activity.id}`} className="hover:underline">
+                        {activity.activity_name.charAt(0).toUpperCase() + activity.activity_name.slice(1)}
                       </Link>
-                    </td>
+                    </TableCell>
                   )}
                   {selectedColumns.includes("assignedUsers") && (
-                    <td className="px-4 py-2">
+                    <TableCell className="px-4 py-3 border-r border-gray-100">
                       {activity.assignedUsers?.length ? (
-                        <ul className="flex space-x-2">
+                        <div className="flex -space-x-2">
                           {activity.assignedUsers.map((u) => (
                             <ProfileAvatar key={u.id} user={u} />
                           ))}
-                        </ul>
+                        </div>
                       ) : (
-                        "N/A"
+                        <span className="text-gray-400">N/A</span>
                       )}
-                    </td>
+                    </TableCell>
                   )}
                   {selectedColumns.includes("priority") && (
-                    <td className="px-4 py-2">
-                      <span
-                        className={`px-2 py-1 rounded-full text-sm font-medium ${priorityBadgeClasses[activity.priority]
-                          }`}
-                      >
+                    <TableCell className="px-4 py-3 border-r border-gray-100">
+                      <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide ${priorityBadgeClasses[activity.priority]}`}>
                         {activity.priority}
                       </span>
-                    </td>
+                    </TableCell>
                   )}
                   {selectedColumns.includes("quantity") && (
-                    <td className="px-4 py-2">{activity.quantity ?? "–"}</td>
+                    <TableCell className="px-4 py-3 text-sm text-gray-600 border-r border-gray-100 font-medium">
+                      {activity.quantity ?? "–"}
+                    </TableCell>
                   )}
                   {selectedColumns.includes("unit") && (
-                    <td className="px-4 py-2">{activity.unit}</td>
+                    <TableCell className="px-4 py-3 text-sm text-gray-600 border-r border-gray-100 font-medium">
+                      {activity.unit}
+                    </TableCell>
                   )}
                   {selectedColumns.includes("start_date") && (
-                    <td className="px-4 py-2">
+                    <TableCell className="px-4 py-3 text-sm text-gray-500 border-r border-gray-100">
                       {format(activity.start_date)}
-                    </td>
+                    </TableCell>
                   )}
                   {selectedColumns.includes("end_date") && (
-                    <td className="px-4 py-2">
+                    <TableCell className="px-4 py-3 text-sm text-gray-500 border-r border-gray-100">
                       {format(activity.end_date)}
-                    </td>
+                    </TableCell>
                   )}
                   {selectedColumns.includes("duration") && (
-                    <td className="px-4 py-2">
+                    <TableCell className="px-4 py-3 text-sm text-gray-500 border-r border-gray-100 italic">
                       {getDuration(activity.start_date, activity.end_date)}
-                    </td>
+                    </TableCell>
                   )}
                   {selectedColumns.includes("progress") && (
-                    <td className="px-4 py-2">
-                      <div className="relative h-5 bg-muted rounded">
-                        <div
-                          className="absolute h-full bg-primary rounded"
-                          style={{ width: `${activity.progress}%` }}
-                        >
-                          <span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-primary-foreground">
-                            {activity.progress}%
-                          </span>
-                        </div>
+                    <TableCell className="px-4 py-3 border-r border-gray-100">
+                      <div className="relative h-4 bg-gray-100 rounded-full overflow-hidden w-24">
+                        <div className="absolute h-full bg-primary transition-all duration-500" style={{ width: `${activity.progress}%` }} />
+                        <span className="absolute inset-0 flex items-center justify-center text-[9px] font-bold text-gray-700 drop-shadow-sm">
+                          {activity.progress}%
+                        </span>
                       </div>
-                    </td>
+                    </TableCell>
                   )}
                   {selectedColumns.includes("materials") && (
-                    <td className="px-4 py-2">
-                      {activity.requests?.reduce(
-                        (sum, req) => sum + (req.materialCount || 0),
-                        0
-                      ) || 0}
-                    </td>
+                    <TableCell className="px-4 py-3 text-sm font-semibold text-primary border-r border-gray-100">
+                      {activity.requests?.reduce((sum, req) => sum + (req.materialCount || 0), 0) || 0}
+                    </TableCell>
                   )}
                   {selectedColumns.includes("equipments") && (
-                    <td className="px-4 py-2">
-                      {activity.requests?.reduce(
-                        (sum, req) => sum + (req.equipmentCount || 0),
-                        0
-                      ) || 0}
-                    </td>
+                    <TableCell className="px-4 py-3 text-sm font-semibold text-primary border-r border-gray-100">
+                      {activity.requests?.reduce((sum, req) => sum + (req.equipmentCount || 0), 0) || 0}
+                    </TableCell>
                   )}
                   {selectedColumns.includes("labors") && (
-                    <td className="px-4 py-2">
-                      {activity.requests?.reduce(
-                        (sum, req) => sum + (req.laborCount || 0),
-                        0
-                      ) || 0}
-                    </td>
+                    <TableCell className="px-4 py-3 text-sm font-semibold text-primary border-r border-gray-100">
+                      {activity.requests?.reduce((sum, req) => sum + (req.laborCount || 0), 0) || 0}
+                    </TableCell>
                   )}
                   {selectedColumns.includes("request") && (
-                    <td className="px-4 py-2">
-                      <Link
-                        href={`/resources/${activity.id}`}
-                        className="flex items-center text-primary-foreground bg-primary/80 px-2 py-0.5 rounded text-xs hover:bg-primary transition-colors inline-block w-fit"
-                      >
+                    <TableCell className="px-4 py-3 border-r border-gray-100">
+                      <Link href={`/resources/${activity.id}`} className="inline-flex items-center text-white bg-emerald-600 px-3 py-1 rounded text-[10px] font-bold uppercase hover:bg-emerald-700 transition-colors shadow-sm">
                         Request
                       </Link>
-                    </td>
+                    </TableCell>
                   )}
                   {selectedColumns.includes("status") && (
-                    <td className="px-4 py-2">
-                      <span
-                        className={`px-2 py-1 rounded-full text-sm font-medium ${statusBadgeClasses[activity.status]
-                          }`}
-                      >
+                    <TableCell className="px-4 py-3 border-r border-gray-100">
+                      <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide ${statusBadgeClasses[activity.status]}`}>
                         {activity.status}
                       </span>
-                    </td>
+                    </TableCell>
                   )}
                   {selectedColumns.includes("approvalStatus") && (
-                    <td className="px-4 py-2">{activity.approvalStatus}</td>
+                    <TableCell className="px-4 py-3 text-sm font-medium text-gray-600 border-r border-gray-100">
+                      {activity.approvalStatus}
+                    </TableCell>
                   )}
                   {selectedColumns.includes("actions") && (
-                    <td className="px-4 py-2">
-                      <Menu>
-                        <MenuButton className="flex items-center gap-1 px-3 py-1 text-sm bg-primary text-primary-foreground rounded hover:bg-primary/90">
-                          Action <ChevronDown className="w-4 h-4" />
-                        </MenuButton>
-                        <MenuItems className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-10">
-                          <MenuItem>
-                            {({ active }) => (
-                              <button
-                                className={`block w-full px-4 py-2 text-left ${active ? "bg-accent" : ""
-                                  }`}
-                                onClick={() => handleViewActivity(activity.id)}
-                              >
-                                Quick View
-                              </button>
-                            )}
-                          </MenuItem>
-                          <MenuItem>
-                            {({ active }) => (
-                              <button
-                                className={`block w-full px-4 py-2 text-left ${active ? "bg-accent" : ""
-                                  }`}
-                                onClick={() =>
-                                  handleEditClick(activity)
-                                }
-                              >
-                                Update
-                              </button>
-                            )}
-                          </MenuItem>
-                          <MenuItem>
-                            {({ active }) => (
-                              <button
-                                className={`block w-full px-4 py-2 text-left ${active ? "bg-accent" : ""
-                                  }`}
-                                onClick={() =>
-                                  handleDeleteActivityClick(activity.id)
-                                }
-                              >
-                                Delete
-                              </button>
-                            )}
-                          </MenuItem>
-                          <MenuItem>
-                            {({ active }) => (
-                              <button
-                                className={`block w-full px-4 py-2 text-left ${active ? "bg-accent" : ""
-                                  }`}
-                                onClick={() =>
-                                  handleManageClick(activity)
-                                }
-                              >
-                                Manage
-                              </button>
-                            )}
-                          </MenuItem>
-                        </MenuItems>
-                      </Menu>
-                    </td>
+                    <TableCell className="px-4 py-3">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="text-primary-foreground p-0 bg-primary hover:bg-primary/90 h-8 px-3">
+                            Action <ChevronDown className="ml-1 w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleViewActivity(activity.id)}>
+                            <FaEye className="mr-2 h-4 w-4" /> Quick View
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleEditClick(activity)}>
+                            <FaEdit className="mr-2 h-4 w-4" /> Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleDeleteActivityClick(activity.id)}>
+                            <FaTrash className="mr-2 h-4 w-4" /> Delete
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleManageClick(activity)}>
+                            <FaTasks className="mr-2 h-4 w-4" /> Manage
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
                   )}
-                </tr>
+                </TableRow>
               ))
             ) : (
-              <tr>
-                <td
-                  colSpan={selectedColumns.length}
-                  className="px-4 py-2 text-center text-muted-foreground"
-                >
+              <TableRow>
+                <TableCell colSpan={selectedColumns.length} className="px-4 py-2 text-center text-muted-foreground">
                   No activities found.
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             )}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
-      {/* Pagination placeholder */}
-      <div className="flex items-center justify-between p-4">
-        <div className="flex items-center gap-4">
-          <span className="text-sm text-foreground">
-            Showing {filteredActivities.length} rows
-          </span>
-          <select className="rounded border-border text-sm bg-white">
-            <option>10</option>
-            <option>20</option>
-            <option>50</option>
-          </select>
-        </div>
-        <div className="flex gap-2">
-          <button className="px-3 py-1 rounded border border-border hover:bg-accent">
-            ‹
-          </button>
-          <button className="px-3 py-1 rounded border border-border bg-muted">1</button>
-          <button className="px-3 py-1 rounded border border-border hover:bg-accent">
-            ›
-          </button>
-        </div>
-      </div>
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <Pagination>
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                className={page === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+              />
+            </PaginationItem>
+            {renderPageNumbers()}
+            <PaginationItem>
+              <PaginationNext
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                className={page === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      )}
     </div>
   );
 };

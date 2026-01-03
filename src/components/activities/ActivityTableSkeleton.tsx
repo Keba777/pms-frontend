@@ -12,38 +12,40 @@ const ActivityTableSkeleton: React.FC = () => {
           {/* Table Header */}
           <thead className="bg-primary">
             <tr>
-              <th className="px-4 py-3 whitespace-nowrap" />
-              <th className="px-4 py-3 whitespace-nowrap text-left text-sm font-medium text-primary-foreground">
+              <th className="px-4 py-3 whitespace-nowrap text-left text-xs font-bold text-gray-50 uppercase tracking-wider border-r border-cyan-700/50">
+                No
+              </th>
+              <th className="px-4 py-3 whitespace-nowrap text-left text-xs font-bold text-gray-50 uppercase tracking-wider border-r border-cyan-700/50">
                 Activity
               </th>
-              <th className="px-4 py-3 whitespace-nowrap text-left text-sm font-medium text-primary-foreground">
+              <th className="px-4 py-3 whitespace-nowrap text-left text-xs font-bold text-gray-50 uppercase tracking-wider border-r border-cyan-700/50">
                 Priority
               </th>
-              <th className="px-4 py-3 whitespace-nowrap text-left text-sm font-medium text-primary-foreground">
+              <th className="px-4 py-3 whitespace-nowrap text-left text-xs font-bold text-gray-50 uppercase tracking-wider border-r border-cyan-700/50">
                 Quantity
               </th>
-              <th className="px-4 py-3 whitespace-nowrap text-left text-sm font-medium text-primary-foreground">
+              <th className="px-4 py-3 whitespace-nowrap text-left text-xs font-bold text-gray-50 uppercase tracking-wider border-r border-cyan-700/50">
                 Unit
               </th>
-              <th className="px-4 py-3 whitespace-nowrap text-left text-sm font-medium text-primary-foreground">
+              <th className="px-4 py-3 whitespace-nowrap text-left text-xs font-bold text-gray-50 uppercase tracking-wider border-r border-cyan-700/50">
                 Start Date
               </th>
-              <th className="px-4 py-3 whitespace-nowrap text-left text-sm font-medium text-primary-foreground">
+              <th className="px-4 py-3 whitespace-nowrap text-left text-xs font-bold text-gray-50 uppercase tracking-wider border-r border-cyan-700/50">
                 End Date
               </th>
-              <th className="px-4 py-3 whitespace-nowrap text-left text-sm font-medium text-primary-foreground">
+              <th className="px-4 py-3 whitespace-nowrap text-left text-xs font-bold text-gray-50 uppercase tracking-wider border-r border-cyan-700/50">
                 Duration
               </th>
-              <th className="px-4 py-3 whitespace-nowrap text-left text-sm font-medium text-primary-foreground">
+              <th className="px-4 py-3 whitespace-nowrap text-left text-xs font-bold text-gray-50 uppercase tracking-wider border-r border-cyan-700/50">
                 Progress
               </th>
-              <th className="px-4 py-3 whitespace-nowrap text-left text-sm font-medium text-primary-foreground">
+              <th className="px-4 py-3 whitespace-nowrap text-left text-xs font-bold text-gray-50 uppercase tracking-wider border-r border-cyan-700/50">
                 Status
               </th>
-              <th className="px-4 py-3 whitespace-nowrap text-left text-sm font-medium text-primary-foreground">
+              <th className="px-4 py-3 whitespace-nowrap text-left text-xs font-bold text-gray-50 uppercase tracking-wider border-r border-cyan-700/50">
                 Approval
               </th>
-              <th className="px-4 py-3 whitespace-nowrap text-left text-sm font-medium text-primary-foreground">
+              <th className="px-4 py-3 whitespace-nowrap text-left text-xs font-bold text-gray-50 uppercase tracking-wider">
                 Actions
               </th>
             </tr>
@@ -53,59 +55,41 @@ const ActivityTableSkeleton: React.FC = () => {
           <tbody className="bg-white divide-y divide-border">
             {skeletonRows.map((_, idx) => (
               <tr key={idx} className="animate-pulse">
-                {/* Checkbox */}
-                <td className="px-4 py-2 whitespace-nowrap">
-                  <div className="h-4 w-4 bg-gray-300 rounded-full" />
+                <td className="px-4 py-3 border-r border-gray-100">
+                  <div className="h-4 w-6 bg-gray-200 rounded animate-pulse" />
                 </td>
-                {/* Activity Name */}
-                <td className="px-4 py-2 whitespace-nowrap">
-                  <div className="h-4 bg-muted rounded w-28" />
+                <td className="px-4 py-3 border-r border-gray-100">
+                  <div className="h-4 bg-muted rounded w-28 animate-pulse" />
                 </td>
-                {/* Priority */}
-                <td className="px-4 py-2 whitespace-nowrap">
-                  <div className="h-4 bg-muted rounded w-16" />
+                <td className="px-4 py-3 border-r border-gray-100">
+                  <div className="h-4 bg-muted rounded w-16 animate-pulse" />
                 </td>
-                {/* Quantity */}
-                <td className="px-4 py-2 whitespace-nowrap">
-                  <div className="h-4 bg-muted rounded w-12" />
+                <td className="px-4 py-3 border-r border-gray-100">
+                  <div className="h-4 bg-muted rounded w-12 animate-pulse" />
                 </td>
-                {/* Unit */}
-                <td className="px-4 py-2 whitespace-nowrap">
-                  <div className="h-4 bg-muted rounded w-16" />
+                <td className="px-4 py-3 border-r border-gray-100">
+                  <div className="h-4 bg-muted rounded w-16 animate-pulse" />
                 </td>
-                {/* Start Date */}
-                <td className="px-4 py-2 whitespace-nowrap">
-                  <div className="h-4 bg-muted rounded w-20" />
+                <td className="px-4 py-3 border-r border-gray-100">
+                  <div className="h-4 bg-muted rounded w-20 animate-pulse" />
                 </td>
-                {/* End Date */}
-                <td className="px-4 py-2 whitespace-nowrap">
-                  <div className="h-4 bg-muted rounded w-20" />
+                <td className="px-4 py-3 border-r border-gray-100">
+                  <div className="h-4 bg-muted rounded w-20 animate-pulse" />
                 </td>
-                {/* Duration */}
-                <td className="px-4 py-2 whitespace-nowrap">
-                  <div className="h-4 bg-muted rounded w-20" />
+                <td className="px-4 py-3 border-r border-gray-100">
+                  <div className="h-4 bg-muted rounded w-20 animate-pulse" />
                 </td>
-                {/* Progress */}
-                <td className="px-4 py-2 whitespace-nowrap">
-                  <div className="relative h-4 bg-muted rounded">
-                    {/* Simulated progress bar */}
-                    <div
-                      className="absolute left-0 top-0 h-full bg-primary rounded"
-                      style={{ width: "50%" }}
-                    />
-                  </div>
+                <td className="px-4 py-3 border-r border-gray-100">
+                  <div className="h-4 bg-muted rounded w-24 animate-pulse" />
                 </td>
-                {/* Status */}
-                <td className="px-4 py-2 whitespace-nowrap">
-                  <div className="h-4 bg-muted rounded w-16" />
+                <td className="px-4 py-3 border-r border-gray-100">
+                  <div className="h-4 bg-muted rounded w-16 animate-pulse" />
                 </td>
-                {/* Approval */}
-                <td className="px-4 py-2 whitespace-nowrap">
-                  <div className="h-4 bg-muted rounded w-20" />
+                <td className="px-4 py-3 border-r border-gray-100">
+                  <div className="h-4 bg-muted rounded w-20 animate-pulse" />
                 </td>
-                {/* Actions */}
-                <td className="px-4 py-2 whitespace-nowrap">
-                  <div className="h-4 bg-muted rounded w-24" />
+                <td className="px-4 py-3 border-r border-gray-100">
+                  <div className="h-4 bg-muted rounded w-24 animate-pulse" />
                 </td>
               </tr>
             ))}

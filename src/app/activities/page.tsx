@@ -62,18 +62,14 @@ const ActivitiesPage = () => {
     }
   })) || [];
 
-  if (isLoading) {
-    return <ActivityTableSkeleton />;
-  }
-
   return (
-    <div className="p-4">
+    <div className="p-4 bg-gray-50/50 min-h-screen">
       {/* Breadcrumb & Header */}
       <div className="flex flex-col sm:flex-row items-baseline justify-between mb-6 mt-4 gap-4">
         <nav aria-label="breadcrumb">
           <ol className="flex items-center space-x-2 text-sm font-medium">
             <li>
-              <Link href="/" className="text-bs-primary hover:underline flex items-center">
+              <Link href="/" className="text-emerald-600 hover:underline flex items-center">
                 Home
               </Link>
             </li>
@@ -82,10 +78,10 @@ const ActivitiesPage = () => {
           </ol>
         </nav>
         <div className="flex items-baseline gap-2">
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 uppercase tracking-tight">
             Project Activities
           </h1>
-          <span className="text-sm text-gray-400 font-medium">({activities?.length || 0} total)</span>
+          <span className="text-sm text-gray-400 font-medium tracking-wide">({activities?.length || 0} total)</span>
         </div>
       </div>
 
@@ -102,30 +98,29 @@ const ActivitiesPage = () => {
 
       {/* Tabs Navigation */}
       <div className="mt-8 border-b border-gray-200">
-        <nav className="-mb-px flex space-x-4 overflow-x-auto no-scrollbar whitespace-nowrap">
+        <nav className="-mb-px flex space-x-8 overflow-x-auto no-scrollbar whitespace-nowrap">
           <button
             onClick={() => setActiveTab("planned")}
-            className={`px-6 py-3 text-sm font-medium transition-all ${activeTab === "planned"
-              ? "border-b-2 border-emerald-600 text-emerald-600"
+            className={`px-4 py-4 text-sm font-bold transition-all relative ${activeTab === "planned"
+              ? "text-emerald-600 border-b-2 border-emerald-600"
               : "text-gray-500 hover:text-gray-700 border-b-2 border-transparent"
               }`}
           >
-            Planned Activities
+            PLANNED ACTIVITIES
           </button>
           <button
             onClick={() => setActiveTab("actual")}
-            className={`px-6 py-3 text-sm font-medium transition-all ${activeTab === "actual"
-              ? "border-b-2 border-emerald-600 text-emerald-600"
+            className={`px-4 py-4 text-sm font-bold transition-all relative ${activeTab === "actual"
+              ? "text-emerald-600 border-b-2 border-emerald-600"
               : "text-gray-500 hover:text-gray-700 border-b-2 border-transparent"
               }`}
           >
-            Actual Activities
+            ACTUAL ACTIVITIES
           </button>
         </nav>
       </div>
 
-      <div className="mt-6">
-
+      <div className="mt-8 min-h-[400px]">
         {activeTab === "planned" ? (
           <DataTableActivities />
         ) : (

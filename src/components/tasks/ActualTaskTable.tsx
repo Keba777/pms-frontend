@@ -36,7 +36,12 @@ interface ExtendedTask extends Task {
   remaining?: number | "";
 }
 
-const ActualTaskTable: React.FC = () => {
+interface ActualTaskTableProps {
+  searchTerm?: string;
+  statusFilter?: string | null;
+}
+
+const ActualTaskTable: React.FC<ActualTaskTableProps> = ({ searchTerm: globalSearch, statusFilter }) => {
 
   const {
     data: tasks,
@@ -143,9 +148,15 @@ const ActualTaskTable: React.FC = () => {
     setDirtyRows(new Set());
   }, [extendedTasks]);
 
-  const filtered = gridData.filter((t) =>
-    t.task_name.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = gridData.filter((t) => {
+    const matchesSearch =
+      t.task_name.toLowerCase().includes(search.toLowerCase()) &&
+      (globalSearch ? t.task_name.toLowerCase().includes(globalSearch.toLowerCase()) : true);
+
+    const matchesStatus = statusFilter ? t.actuals?.status === statusFilter : true;
+
+    return matchesSearch && matchesStatus;
+  });
 
   const handleViewTask = (id: string) => router.push(`/tasks/${id}`);
 
@@ -475,8 +486,8 @@ const ActualTaskTable: React.FC = () => {
     return defs;
   }, [selectedColumns, router]);
 
-  if (loadingTasks) return <div>Loading tasks...</div>;
-  if (errorTasks) return <div>Error fetching tasks.</div>;
+  // No early return for loadingTasks or errorTasks - handled inline to keep controls persistent.
+  const isDataAvailable = !loadingTasks && tasks;
 
   return (
     <div>
@@ -530,7 +541,17 @@ const ActualTaskTable: React.FC = () => {
         </div>
       </div>
 
-      <div className="ag-theme-alpine custom-grid" style={{ width: "100%" }}>
+      <div className="ag-theme-alpine custom-grid relative" style={{ width: "100%", minHeight: "400px" }}>
+        {loadingTasks ? (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/60 z-10 space-y-4">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-sm font-medium text-gray-500 uppercase tracking-widest animate-pulse">Synchronizing Tasks...</p>
+          </div>
+        ) : errorTasks ? (
+          <div className="absolute inset-0 flex items-center justify-center bg-white z-10 text-red-500 font-medium">
+            Error loading tasks. Please try again.
+          </div>
+        ) : null}
         <AgGridReact
           ref={gridRef}
           rowData={filtered}

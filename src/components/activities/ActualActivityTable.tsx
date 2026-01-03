@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import { Menu, MenuButton, MenuItems, MenuItem } from "@headlessui/react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
   useActivities,
@@ -15,6 +15,14 @@ import EditActivityForm from "../forms/EditActivityForm";
 import ConfirmModal from "../common/ui/ConfirmModal";
 import ActivityTableSkeleton from "./ActivityTableSkeleton";
 import Link from "next/link";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
@@ -57,8 +65,6 @@ const ActualActivityTable: React.FC = () => {
   const [selectedColumns, setSelectedColumns] = useState<string[]>(
     Object.keys(columnOptions)
   );
-  const [showColumnMenu, setShowColumnMenu] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
 
   // Edit/delete modals state
   const [showEditForm, setShowEditForm] = useState(false);
@@ -76,15 +82,9 @@ const ActualActivityTable: React.FC = () => {
   // Grid data state to hold local edits
   const [gridData, setGridData] = useState<ExtendedActivity[]>([]);
 
-  // Handle outside-click for column menu
+  // Handle outside-click removed as we use shadcn Popover
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setShowColumnMenu(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    // No-op for menuRef
   }, []);
 
   const defaultActuals: Actuals = {
@@ -289,9 +289,9 @@ const ActualActivityTable: React.FC = () => {
   const columnDefs = useMemo(() => {
     const allDefs: any[] = [
       {
-        headerName: "ID",
-        valueGetter: (params: any) =>
-          `RC${String(params.node.rowIndex + 1).padStart(3, "0")}`,
+        headerName: "No",
+        valueGetter: (params: any) => params.node.rowIndex + 1,
+        width: 70,
         hide: !selectedColumns.includes("id"),
       },
       {
@@ -508,11 +508,8 @@ const ActualActivityTable: React.FC = () => {
   }, [selectedColumns, router]); // Dependencies
 
   // Render
-  return loadingAct ? (
-    <ActivityTableSkeleton />
-  ) : errorAct ? (
-    <div>Error fetching activities.</div>
-  ) : (
+  // No early return for loadingAct or errorAct - handled inline to keep UI controls persistent
+  return (
     <div>
       {/* Edit Modal */}
       {showEditForm && activityToEdit && (
@@ -528,57 +525,68 @@ const ActualActivityTable: React.FC = () => {
       )}
 
       {/* Customize Columns and Save */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 mt-6">
-        <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
-          <div ref={menuRef} className="relative w-full sm:w-auto">
-            <button
-              onClick={() => setShowColumnMenu((prev) => !prev)}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 text-sm bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors shadow-sm font-medium"
-            >
-              Customize Columns <ChevronDown className="w-4 h-4" />
-            </button>
-            {showColumnMenu && (
-              <div className="absolute left-0 mt-2 w-56 bg-white border border-border rounded-lg shadow-xl z-20 py-2">
-                <div className="px-4 py-2 border-b border-border/50 mb-1">
-                  <span className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider">Visible Columns</span>
-                </div>
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-lg shadow-sm border border-gray-100 mb-6">
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className="w-full sm:w-auto">
+                Customize Columns <ChevronDown className="ml-2 h-4 w-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-56">
+              <div className="px-4 py-2 border-b border-border/50 mb-1">
+                <span className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider">Visible Columns</span>
+              </div>
+              <div className="space-y-2 p-2">
                 {Object.entries(columnOptions).map(([key, label]) => (
-                  <label
-                    key={key}
-                    className="flex items-center w-full px-4 py-2 hover:bg-accent cursor-pointer transition-colors"
-                  >
-                    <input
-                      type="checkbox"
+                  <div key={key} className="flex items-center space-x-2 px-2 py-1 hover:bg-accent rounded-sm cursor-pointer">
+                    <Checkbox
+                      id={`col-${key}`}
                       checked={selectedColumns.includes(key)}
-                      onChange={() => toggleColumn(key)}
-                      className="w-4 h-4 rounded border-border text-primary focus:ring-primary mr-3"
+                      onCheckedChange={() => toggleColumn(key)}
                     />
-                    <span className="text-sm text-foreground font-medium">{label}</span>
-                  </label>
+                    <label htmlFor={`col-${key}`} className="text-sm font-medium cursor-pointer flex-1">
+                      {label}
+                    </label>
+                  </div>
                 ))}
               </div>
-            )}
-          </div>
+            </PopoverContent>
+          </Popover>
+
           {dirtyRows.size > 0 && (
-            <button
+            <Button
               onClick={handleSave}
               disabled={isSaving}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 text-sm bg-primary text-primary-foreground rounded hover:bg-primary/90 disabled:opacity-50 shadow-md transition-all font-semibold"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white"
             >
               {isSaving ? "Saving..." : "Save Changes"}
-            </button>
+            </Button>
           )}
         </div>
-        <div className="w-full sm:w-auto">
-          {/* Add search if needed, or other controls */}
-        </div>
+
+        <Input
+          placeholder="Search by activity name..."
+          onChange={(e) => gridRef.current?.api.setGridOption('quickFilterText', e.target.value)}
+          className="w-full sm:w-64"
+        />
       </div>
 
       {/* AG Grid Table */}
       <div
-        className="ag-theme-alpine custom-grid"
-        style={{ height: 400, width: "100%" }}
+        className="ag-theme-alpine custom-grid relative"
+        style={{ height: 450, width: "100%" }}
       >
+        {loadingAct ? (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/60 z-10 space-y-4">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-sm font-medium text-gray-500 uppercase tracking-widest animate-pulse">Fetching Actuals...</p>
+          </div>
+        ) : errorAct ? (
+          <div className="absolute inset-0 flex items-center justify-center bg-white z-10 text-red-500 font-medium">
+            Error loading actual activities. Please try again.
+          </div>
+        ) : null}
         <AgGridReact
           ref={gridRef}
           rowData={gridData}

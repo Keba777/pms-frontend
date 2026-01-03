@@ -4,7 +4,7 @@
 import React, { useState } from "react";
 import BreadcrumbTasks from "@/components/tasks/BreadcrumbTasks";
 import Card from "@/components/common/ui/Card";
-import { CheckCircle, Loader, Clock, XCircle } from "lucide-react";
+import { CheckCircle, Loader, Clock, XCircle, Search } from "lucide-react";
 import DataTable from "@/components/tasks/DataTable";
 import ActualTaskTable from "@/components/tasks/ActualTaskTable";
 import DataTableSkeleton from "@/components/tasks/DataTableSkeleton";
@@ -14,10 +14,13 @@ import { Task } from "@/types/task";
 import { formatDate } from "@/utils/dateUtils";
 
 import { getDateDuration } from "@/utils/dateUtils";
+import TaskSection from "@/components/dashboard/TaskSection";
 
 const TasksPage: React.FC = () => {
   const { data: tasks, isLoading, isError } = useTasks();
   const [activeTab, setActiveTab] = useState<"planned" | "actual">("planned");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
 
   // Filter counts based on task status
   const statusCounts = tasks?.reduce(
@@ -31,136 +34,128 @@ const TasksPage: React.FC = () => {
       "Not Started": 0,
       Canceled: 0,
     }
-  );
-
-  // Planned columns
-  const plannedColumns: Column<Task>[] = [
-    { header: "Task Name", accessor: "task_name" },
-    { header: "Priority", accessor: "priority" },
-    { header: "Start Date", accessor: (row) => formatDate(row.start_date) },
-    { header: "End Date", accessor: (row) => formatDate(row.end_date) },
-    { header: "Progress", accessor: (row) => `${row.progress ?? 0}%` },
-    { header: "Status", accessor: "status" },
-    { header: "Approval", accessor: "approvalStatus" },
-  ];
-
-  // Actual columns
-  const actualColumns: Column<Task>[] = [
-    { header: "Task Name", accessor: "task_name" },
-    { header: "Priority", accessor: "priority" },
-    { header: "Actual Start Date", accessor: (row) => row.actuals?.start_date ? formatDate(row.actuals.start_date) : "N/A" },
-    { header: "Actual End Date", accessor: (row) => row.actuals?.end_date ? formatDate(row.actuals.end_date) : "N/A" },
-    {
-      header: "Actual Duration", accessor: (row) => {
-        if (row.actuals?.start_date && row.actuals?.end_date) {
-          return getDateDuration(row.actuals.start_date, row.actuals.end_date);
-        }
-        return "N/A";
-      }
-    },
-    { header: "Actual Progress", accessor: (row) => `${row.actuals?.progress ?? 0}%` },
-    { header: "Actual Status", accessor: (row) => row.actuals?.status ?? "N/A" },
-    { header: "Actual Budget", accessor: (row) => row.actuals?.budget ?? "N/A" },
-  ];
-
-  // Prepare actual data
-  const actualData = tasks?.map(task => ({
-    ...task,
-    actuals: task.actuals || {
-      start_date: null,
-      end_date: null,
-      progress: null,
-      status: null,
-      budget: null,
-    }
-  })) || [];
-
-  if (isLoading) {
-    return <DataTableSkeleton />;
-  }
+  ) || {
+    Completed: 0,
+    InProgress: 0,
+    "Not Started": 0,
+    Canceled: 0,
+  };
 
   if (isError) {
-    return <div>Failed to load tasks.</div>;
+    return <div className="p-8 text-center text-red-600 font-medium">Failed to load tasks. Please try again later.</div>;
   }
 
   return (
-    <div className="p-4">
-      <div className="flex flex-wrap justify-between items-center mb-4 mt-4 gap-2">
+    <div className="p-4 bg-gray-50/50 min-h-screen">
+      <div className="flex flex-wrap justify-between items-center mb-4 mt-2 gap-2">
         <BreadcrumbTasks />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
         <Card
           title="Completed"
-          count={statusCounts?.Completed || 0}
+          count={statusCounts.Completed}
           link="/projects"
           Icon={CheckCircle}
-          color="green-500"
+          color="emerald-500"
         />
         <Card
           title="In Progress"
-          count={statusCounts?.InProgress || 0}
+          count={statusCounts.InProgress}
           link="/tasks"
           Icon={Loader}
           color="blue-500"
         />
         <Card
           title="Not Started"
-          count={statusCounts?.["Not Started"] || 0}
+          count={statusCounts["Not Started"]}
           link="/users"
           Icon={Clock}
-          color="yellow-500"
+          color="amber-500"
         />
         <Card
           title="Cancelled"
-          count={statusCounts?.Canceled || 0}
+          count={statusCounts.Canceled}
           link="/clients"
           Icon={XCircle}
-          color="cyan-500"
+          color="red-500"
         />
       </div>
 
-      <GenericDownloads
-        data={tasks || []}
-        title="Planned Tasks"
-        columns={plannedColumns}
-        secondTable={{
-          data: actualData,
-          title: "Actual Tasks",
-          columns: actualColumns,
-        }}
-      />
+      {/* Global Filtering Section */}
+      <div className="mt-8 bg-white p-5 rounded-xl shadow-sm border border-gray-100 space-y-4">
+        <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
+          <div className="relative w-full md:w-96">
+            <input
+              type="text"
+              placeholder="Search by task name or project..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm"
+            />
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+              <Search size={18} />
+            </div>
+          </div>
+
+          <div className="flex gap-2 overflow-x-auto no-scrollbar w-full md:w-auto pb-1 md:pb-0">
+            <button
+              onClick={() => setStatusFilter(null)}
+              className={`px-4 py-2 rounded-lg text-xs font-semibold whitespace-nowrap border transition-all ${!statusFilter
+                ? "bg-emerald-600 border-emerald-600 text-white shadow-sm"
+                : "bg-white border-gray-200 text-gray-600 hover:border-emerald-200 hover:bg-emerald-50/30"
+                }`}
+            >
+              All Tasks
+            </button>
+            {["InProgress", "Completed", "Onhold", "Not Started", "Canceled"].map((status) => (
+              <button
+                key={status}
+                onClick={() => setStatusFilter(status)}
+                className={`px-4 py-2 rounded-lg text-xs font-semibold whitespace-nowrap border transition-all ${statusFilter === status
+                  ? "bg-emerald-600 border-emerald-600 text-white shadow-sm"
+                  : "bg-white border-gray-200 text-gray-600 hover:border-emerald-200 hover:bg-emerald-50/30"
+                  }`}
+              >
+                {status}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
 
       {/* Tabs */}
-      <div className="mt-8 border-b border-border">
-        <nav className="-mb-px flex space-x-4 overflow-x-auto no-scrollbar whitespace-nowrap">
+      <div className="mt-8 border-b border-gray-200">
+        <nav className="-mb-px flex space-x-8 overflow-x-auto no-scrollbar whitespace-nowrap">
           <button
             onClick={() => setActiveTab("planned")}
-            className={`px-6 py-3 text-sm font-medium transition-all ${activeTab === "planned"
-              ? "border-b-2 border-emerald-600 text-emerald-600"
-              : "text-muted-foreground hover:text-foreground border-b-2 border-transparent"
+            className={`px-4 py-4 text-sm font-bold transition-all relative ${activeTab === "planned"
+              ? "text-emerald-600 border-b-2 border-emerald-600"
+              : "text-gray-500 hover:text-gray-700 border-b-2 border-transparent"
               }`}
           >
-            Planned Tasks
+            PLANNED TASKS
           </button>
           <button
             onClick={() => setActiveTab("actual")}
-            className={`px-6 py-3 text-sm font-medium transition-all ${activeTab === "actual"
-              ? "border-b-2 border-emerald-600 text-emerald-600"
-              : "text-muted-foreground hover:text-foreground border-b-2 border-transparent"
+            className={`px-4 py-4 text-sm font-bold transition-all relative ${activeTab === "actual"
+              ? "text-emerald-600 border-b-2 border-emerald-600"
+              : "text-gray-500 hover:text-gray-700 border-b-2 border-transparent"
               }`}
           >
-            Actual Tasks
+            ACTUAL TASKS
           </button>
         </nav>
       </div>
 
       {/* Table Section */}
-      <div className="mt-6 max-w-full overflow-hidden">
-        {activeTab === "planned" ? (
-          <DataTable />
+      <div className="mt-6 max-w-full overflow-hidden min-h-[400px]">
+        {isLoading ? (
+          <DataTableSkeleton />
+        ) : activeTab === "planned" ? (
+          <TaskSection searchTerm={searchTerm} statusFilter={statusFilter} />
         ) : (
-          <ActualTaskTable />
+          <ActualTaskTable searchTerm={searchTerm} statusFilter={statusFilter} />
         )}
       </div>
     </div>
