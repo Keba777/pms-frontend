@@ -31,7 +31,11 @@ import {
 import { toast } from "react-toastify";
 
 
-const ActualProjectSection: React.FC = () => {
+interface ActualProjectSectionProps {
+  externalFilters?: Record<string, any>;
+}
+
+const ActualProjectSection: React.FC<ActualProjectSectionProps> = ({ externalFilters }) => {
 
   const router = useRouter();
   const { data: projects, isLoading, isError } = useProjects();
@@ -103,14 +107,44 @@ const ActualProjectSection: React.FC = () => {
     budget: null,
   };
 
-  // Extended projects with actuals handling
+  // Extended projects with actuals handling and filtering
   const extendedProjects = useMemo(() => {
     if (!projects) return [];
-    return projects.map((project) => ({
-      ...project,
-      actuals: { ...defaultActuals, ...(project.actuals || {}) },
-    }));
-  }, [projects]);
+
+    return projects
+      .filter((project) => {
+        if (!externalFilters) return true;
+
+        // External filters
+        const matchesStatus =
+          !externalFilters.status ||
+          externalFilters.status.length === 0 ||
+          externalFilters.status.includes(project.status);
+
+        const matchesPriority =
+          !externalFilters.priority ||
+          externalFilters.priority.length === 0 ||
+          externalFilters.priority.includes(project.priority);
+
+        const matchesDateRange = (() => {
+          if (!externalFilters.dateRange?.from) return true;
+          const projStart = new Date(project.start_date);
+          const projEnd = new Date(project.end_date);
+          const filterStart = new Date(externalFilters.dateRange.from);
+          const filterEnd = externalFilters.dateRange.to
+            ? new Date(externalFilters.dateRange.to)
+            : filterStart;
+
+          return projStart <= filterEnd && projEnd >= filterStart;
+        })();
+
+        return matchesStatus && matchesPriority && matchesDateRange;
+      })
+      .map((project) => ({
+        ...project,
+        actuals: { ...defaultActuals, ...(project.actuals || {}) },
+      }));
+  }, [projects, externalFilters]);
 
   // Column toggle
   const toggleColumn = (col: string) =>

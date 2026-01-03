@@ -28,24 +28,9 @@ import {
   getDateDuration,
   getDuration as calcRemaining,
 } from "@/utils/dateUtils"; // Updated import
-import { Input } from "@/components/ui/input";
 import ProfileAvatar from "../common/ProfileAvatar";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { ProgressUpdateItem } from "@/types/activity";
-import { Skeleton } from "@/components/ui/skeleton";
+import { ReusableTable, ColumnConfig } from "../common/ReusableTable";
 
 const priorityBadgeClasses: Record<Project["priority"], string> = {
   Critical: "bg-red-100 text-red-800",
@@ -63,7 +48,11 @@ const statusBadgeClasses: Record<Project["status"], string> = {
   Completed: "bg-green-100 text-green-800",
 };
 
-const ProjectSection: React.FC = () => {
+interface ProjectSectionProps {
+  externalFilters?: Record<string, any>;
+}
+
+const ProjectSection: React.FC<ProjectSectionProps> = ({ externalFilters }) => {
   const router = useRouter();
   const { data: projects, isLoading, isError } = useProjects();
   const { data: users } = useUsers();
@@ -71,33 +60,9 @@ const ProjectSection: React.FC = () => {
   const { mutate: deleteProject } = useDeleteProject();
   const { mutate: updateProject } = useUpdateProject();
 
-  const columnOptions = [
-    { value: "id", label: "ID" },
-    { value: "title", label: "Project" },
-    { value: "members", label: "Assigned To" },
-    { value: "client", label: "Client" },
-    { value: "site", label: "Site" },
-    { value: "status", label: "Status" },
-    { value: "priority", label: "Priority" },
-    { value: "progress", label: "Progress" },
-    { value: "start_date", label: "Starts At" },
-    { value: "end_date", label: "Ends At" },
-    { value: "duration", label: "Duration" },
-    { value: "remaining", label: "Remaining" },
-    { value: "actions", label: "Actions" },
-  ];
-
-  const [selectedColumns, setSelectedColumns] = useState<string[]>(
-    columnOptions.map((col) => col.value)
-  );
   const [searchTerm, setSearchTerm] = useState<string>("");
 
-  const toggleColumn = (col: string) => {
-    setSelectedColumns((prev) =>
-      prev.includes(col) ? prev.filter((c) => c !== col) : [...prev, col]
-    );
-  };
-
+  // ... (rest of the state)
   // Edit state
   const [showEditForm, setShowEditForm] = useState(false);
   const [projectToEdit, setProjectToEdit] = useState<UpdateProjectInput | null>(
@@ -170,262 +135,195 @@ const ProjectSection: React.FC = () => {
     setShowManageForm(true);
   };
 
-
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <Skeleton className="h-9 w-48" />
-
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <Skeleton className="h-10 w-full sm:w-40" />
-          <Skeleton className="h-10 w-full sm:w-64" />
-        </div>
-
-        <div className="overflow-x-auto rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-primary hover:bg-primary/90">
-                {columnOptions.map((col) => (
-                  <TableHead
-                    key={col.value}
-                    className="text-gray-50 font-medium px-4 py-4"
-                  >
-                    <Skeleton className="h-4 w-20 bg-gray-300" />
-                  </TableHead>
-                ))}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {Array.from({ length: 5 }).map((_, index) => (
-                <TableRow key={index} className="hover:bg-gray-50">
-                  {columnOptions.map((col) => (
-                    <TableCell key={col.value} className="px-4 py-2">
-                      <Skeleton className="h-4 w-full" />
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
-    );
-  }
-  if (isError)
-    return (
-      <div className="text-center py-8 text-red-600">
-        Error loading projects.
-      </div>
-    );
-
   const filtered =
-    projects?.filter(
-      (p) =>
-        p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.clientInfo?.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.projectSite?.name.toLowerCase().includes(searchTerm.toLowerCase())
-    ) || [];
+    projects?.filter((project) => {
+      // Local search
+      const matchesSearch =
+        !searchTerm ||
+        project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        project.clientInfo?.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        project.projectSite?.name.toLowerCase().includes(searchTerm.toLowerCase());
+
+      if (!externalFilters) return matchesSearch;
+
+      // External filters
+      const matchesStatus =
+        !externalFilters.status ||
+        externalFilters.status.length === 0 ||
+        externalFilters.status.includes(project.status);
+
+      const matchesPriority =
+        !externalFilters.priority ||
+        externalFilters.priority.length === 0 ||
+        externalFilters.priority.includes(project.priority);
+
+      const matchesDateRange = (() => {
+        if (!externalFilters.dateRange?.from) return true;
+        const projStart = new Date(project.start_date);
+        const projEnd = new Date(project.end_date);
+        const filterStart = new Date(externalFilters.dateRange.from);
+        const filterEnd = externalFilters.dateRange.to
+          ? new Date(externalFilters.dateRange.to)
+          : filterStart;
+
+        return projStart <= filterEnd && projEnd >= filterStart;
+      })();
+
+      return matchesSearch && matchesStatus && matchesPriority && matchesDateRange;
+    }) || [];
+
+  const columns: ColumnConfig<Project>[] = [
+    {
+      key: "id",
+      label: "ID",
+      render: (_, index) => index + 1,
+    },
+    {
+      key: "title",
+      label: "Project",
+      render: (project) => (
+        <Link
+          href={`/projects/${project.id}`}
+          className="text-primary hover:underline font-medium"
+        >
+          {project.title}
+        </Link>
+      ),
+    },
+    {
+      key: "members",
+      label: "Assigned To",
+      render: (project) => (
+        project.members?.length ? (
+          <div className="flex -space-x-2">
+            {project.members.map((m) => (
+              <ProfileAvatar key={m.id} user={m} />
+            ))}
+          </div>
+        ) : (
+          <span className="text-gray-500">N/A</span>
+        )
+      ),
+    },
+    {
+      key: "client",
+      label: "Client",
+      render: (project) => project.clientInfo?.companyName || "-",
+    },
+    {
+      key: "site",
+      label: "Site",
+      render: (project) => project.projectSite?.name || "-",
+    },
+    {
+      key: "status",
+      label: "Status",
+      render: (project) => (
+        <span
+          className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${statusBadgeClasses[project.status]
+            }`}
+        >
+          {project.status}
+        </span>
+      )
+    },
+    {
+      key: "priority",
+      label: "Priority",
+      render: (project) => (
+        <span
+          className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${priorityBadgeClasses[project.priority]
+            }`}
+        >
+          {project.priority}
+        </span>
+      ),
+    },
+    {
+      key: "progress",
+      label: "Progress",
+      render: (project) => `${project.progress ?? 0}%`,
+    },
+    {
+      key: "start_date",
+      label: "Starts At",
+      render: (project) => format(project.start_date),
+    },
+    {
+      key: "end_date",
+      label: "Ends At",
+      render: (project) => format(project.end_date),
+    },
+    {
+      key: "duration",
+      label: "Duration",
+      render: (project) => getDateDuration(project.start_date, project.end_date),
+    },
+    {
+      key: "remaining",
+      label: "Remaining",
+      render: (project) => (
+        project.end_date && new Date(project.end_date) > new Date()
+          ? calcRemaining(new Date(), project.end_date)
+          : "N/A"
+      ),
+    },
+    {
+      key: "actions",
+      label: "Actions",
+      render: (project) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              className="text-primary-foreground p-0 bg-primary hover:bg-primary/90 h-8 px-2"
+            >
+              Action
+              <ChevronDown className="h-4 w-4 ml-1" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem
+              onClick={() => handleEditClick(project)}
+            >
+              <FaEdit className="mr-2 h-4 w-4" /> Edit
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() =>
+                handleDeleteProjectClick(project.id)
+              }
+            >
+              <FaTrash className="mr-2 h-4 w-4" /> Delete
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => handleViewProject(project.id)}
+            >
+              <FaEye className="mr-2 h-4 w-4" /> Quick View
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => handleManageClick(project)}
+            >
+              <FaTasks className="mr-2 h-4 w-4" /> Manage
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+    },
+  ];
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row items-baseline gap-2">
-        <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800">
-          Available Projects
-        </h2>
-        <span className="text-sm text-gray-400 font-medium">({filtered.length} total)</span>
-      </div>
-
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-lg shadow-sm border border-gray-100">
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="outline" className="w-full sm:w-auto">
-              Customize Columns <ChevronDown className="ml-2 h-4 w-4" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-64">
-            <div className="space-y-2">
-              {columnOptions.map((col) => (
-                <div key={col.value} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={col.value}
-                    checked={selectedColumns.includes(col.value)}
-                    onCheckedChange={() => toggleColumn(col.value)}
-                  />
-                  <label htmlFor={col.value} className="">
-                    {col.label}
-                  </label>
-                </div>
-              ))}
-            </div>
-          </PopoverContent>
-        </Popover>
-        <Input
-          placeholder="Search projects..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full sm:w-64"
-        />
-      </div>
-
-      <div className="overflow-x-auto rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-primary hover:bg-primary/90">
-              {columnOptions
-                .filter((col) => selectedColumns.includes(col.value))
-                .map((col) => (
-                  <TableHead
-                    key={col.value}
-                    className="text-gray-50 font-medium  px-4 py-4"
-                  >
-                    {col.label}
-                  </TableHead>
-                ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filtered.length > 0 ? (
-              filtered.map((project, idx) => {
-                const remaining =
-                  project.end_date && new Date(project.end_date) > new Date()
-                    ? calcRemaining(new Date(), project.end_date)
-                    : "N/A";
-                return (
-                  <TableRow key={project.id} className="hover:bg-gray-50">
-                    {selectedColumns.includes("id") && (
-                      <TableCell className="px-4 py-2 ">{idx + 1}</TableCell>
-                    )}
-                    {selectedColumns.includes("title") && (
-                      <TableCell className="px-4 py-2 ">
-                        <Link
-                          href={`/projects/${project.id}`}
-                          className="text-primary hover:underline font-medium"
-                        >
-                          {project.title}
-                        </Link>
-                      </TableCell>
-                    )}
-                    {selectedColumns.includes("members") && (
-                      <TableCell className="px-4 py-2">
-                        {project.members?.length ? (
-                          <div className="flex -space-x-2">
-                            {project.members.map((m) => (
-                              <ProfileAvatar key={m.id} user={m} />
-                            ))}
-                          </div>
-                        ) : (
-                          <span className="text-gray-500">N/A</span>
-                        )}
-                      </TableCell>
-                    )}
-                    {selectedColumns.includes("client") && (
-                      <TableCell className="px-4 py-2 ">
-                        {project.clientInfo?.companyName || "-"}
-                      </TableCell>
-                    )}
-                    {selectedColumns.includes("site") && (
-                      <TableCell className="px-4 py-2 ">
-                        {project.projectSite?.name || "-"}
-                      </TableCell>
-                    )}
-                    {selectedColumns.includes("status") && (
-                      <TableCell className="px-4 py-2">
-                        <span
-                          className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${statusBadgeClasses[project.status]
-                            }`}
-                        >
-                          {project.status}
-                        </span>
-                      </TableCell>
-                    )}
-                    {selectedColumns.includes("priority") && (
-                      <TableCell className="px-4 py-2">
-                        <span
-                          className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${priorityBadgeClasses[project.priority]
-                            }`}
-                        >
-                          {project.priority}
-                        </span>
-                      </TableCell>
-                    )}
-                    {selectedColumns.includes("progress") && (
-                      <TableCell className="px-4 py-2 ">
-                        {project.progress ?? 0}%
-                      </TableCell>
-                    )}
-                    {selectedColumns.includes("start_date") && (
-                      <TableCell className="px-4 py-2 ">
-                        {format(project.start_date)}
-                      </TableCell>
-                    )}
-                    {selectedColumns.includes("end_date") && (
-                      <TableCell className="px-4 py-2 ">
-                        {format(project.end_date)}
-                      </TableCell>
-                    )}
-                    {selectedColumns.includes("duration") && (
-                      <TableCell className="px-4 py-2 ">
-                        {getDateDuration(project.start_date, project.end_date)}
-                      </TableCell>
-                    )}
-                    {selectedColumns.includes("remaining") && (
-                      <TableCell className="px-4 py-2 ">{remaining}</TableCell>
-                    )}
-                    {selectedColumns.includes("actions") && (
-                      <TableCell className="px-4 py-2">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              className="text-primary-foreground p-0 bg-primary hover:bg-primary/90"
-                            >
-                              Action
-                              <ChevronDown className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                              onClick={() => handleEditClick(project)}
-                            >
-                              <FaEdit className="mr-2 h-4 w-4" /> Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() =>
-                                handleDeleteProjectClick(project.id)
-                              }
-                            >
-                              <FaTrash className="mr-2 h-4 w-4" /> Delete
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => handleViewProject(project.id)}
-                            >
-                              <FaEye className="mr-2 h-4 w-4" /> Quick View
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => handleManageClick(project)}
-                            >
-                              <FaTasks className="mr-2 h-4 w-4" /> Manage
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    )}
-                  </TableRow>
-                );
-              })
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={selectedColumns.length}
-                  className="text-center py-8 text-gray-500"
-                >
-                  No projects found
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+    <>
+      <ReusableTable
+        title="Available Projects"
+        data={filtered}
+        columns={columns}
+        isLoading={isLoading}
+        isError={isError}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        placeholder="Search projects..."
+        emptyMessage="No projects found"
+      />
 
       {isDeleteModalOpen && (
         <ConfirmModal
@@ -463,7 +361,7 @@ const ProjectSection: React.FC = () => {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 };
 

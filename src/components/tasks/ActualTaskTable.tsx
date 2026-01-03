@@ -3,7 +3,7 @@
 
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import { Menu, MenuButton, MenuItems, MenuItem } from "@headlessui/react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AgGridReact } from "ag-grid-react";
@@ -21,6 +21,8 @@ import ConfirmModal from "@/components/common/ui/ConfirmModal";
 import ProfileAvatar from "@/components/common/ProfileAvatar";
 import SearchInput from "../common/ui/SearchInput";
 import { formatDate as format } from "@/utils/dateUtils";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
 
 const defaultActuals: TaskActuals = {
   start_date: null,
@@ -37,12 +39,10 @@ interface ExtendedTask extends Task {
 }
 
 interface ActualTaskTableProps {
-  searchTerm?: string;
-  statusFilter?: string | null;
+  externalFilters?: Record<string, any>;
 }
 
-const ActualTaskTable: React.FC<ActualTaskTableProps> = ({ searchTerm: globalSearch, statusFilter }) => {
-
+const ActualTaskTable: React.FC<ActualTaskTableProps> = ({ externalFilters }) => {
   const {
     data: tasks,
     isLoading: loadingTasks,
@@ -80,8 +80,7 @@ const ActualTaskTable: React.FC<ActualTaskTableProps> = ({ searchTerm: globalSea
   const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
-
-  const [search, setSearch] = useState("");
+  const [searchTerm, setSearchTerm] = useState<string>("");
 
   // Dirty tracking for saves
   const [dirtyRows, setDirtyRows] = useState<Set<string>>(new Set());
@@ -118,29 +117,65 @@ const ActualTaskTable: React.FC<ActualTaskTableProps> = ({ searchTerm: globalSea
   // Prepare tasks with default actuals and computed fields
   const extendedTasks: ExtendedTask[] = useMemo(() => {
     if (!tasks) return [];
-    return tasks.map((t) => {
-      const actuals = { ...defaultActuals, ...(t.actuals || {}) };
-      let duration: number | "" = "";
-      if (actuals.start_date && actuals.end_date) {
-        const d = Math.ceil(
-          (new Date(actuals.end_date).getTime() - new Date(actuals.start_date).getTime()) /
-          (1000 * 3600 * 24)
-        );
-        duration = isNaN(d) ? "" : d;
-      }
-      let remaining: number | "" = "";
-      if (actuals.end_date) {
-        const r = Math.ceil((new Date(actuals.end_date).getTime() - Date.now()) / (1000 * 3600 * 24));
-        remaining = isNaN(r) ? "" : r;
-      }
-      return {
-        ...t,
-        actuals,
-        duration,
-        remaining,
-      };
-    });
-  }, [tasks]);
+    return tasks
+      .filter((t) => {
+        // Local search
+        const matchesSearch =
+          !searchTerm ||
+          t.task_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          t.project?.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          t.project?.clientInfo?.companyName?.toLowerCase().includes(searchTerm.toLowerCase());
+
+        if (!externalFilters) return matchesSearch;
+
+        // External filters
+        const matchesStatus =
+          !externalFilters.status ||
+          externalFilters.status.length === 0 ||
+          externalFilters.status.includes(t.status);
+
+        const matchesPriority =
+          !externalFilters.priority ||
+          externalFilters.priority.length === 0 ||
+          externalFilters.priority.includes(t.priority);
+
+        const matchesDateRange = (() => {
+          if (!externalFilters.dateRange?.from) return true;
+          const taskStart = new Date(t.start_date);
+          const taskEnd = new Date(t.end_date);
+          const filterStart = new Date(externalFilters.dateRange.from);
+          const filterEnd = externalFilters.dateRange.to
+            ? new Date(externalFilters.dateRange.to)
+            : filterStart;
+
+          return taskStart <= filterEnd && taskEnd >= filterStart;
+        })();
+
+        return matchesSearch && matchesStatus && matchesPriority && matchesDateRange;
+      })
+      .map((t) => {
+        const actuals = { ...defaultActuals, ...(t.actuals || {}) };
+        let duration: number | "" = "";
+        if (actuals.start_date && actuals.end_date) {
+          const d = Math.ceil(
+            (new Date(actuals.end_date).getTime() - new Date(actuals.start_date).getTime()) /
+            (1000 * 3600 * 24)
+          );
+          duration = isNaN(d) ? "" : d;
+        }
+        let remaining: number | "" = "";
+        if (actuals.end_date) {
+          const r = Math.ceil((new Date(actuals.end_date).getTime() - Date.now()) / (1000 * 3600 * 24));
+          remaining = isNaN(r) ? "" : r;
+        }
+        return {
+          ...t,
+          actuals,
+          duration,
+          remaining,
+        };
+      });
+  }, [tasks, searchTerm, externalFilters]);
 
   // Sync gridData when extendedTasks change
   useEffect(() => {
@@ -148,15 +183,40 @@ const ActualTaskTable: React.FC<ActualTaskTableProps> = ({ searchTerm: globalSea
     setDirtyRows(new Set());
   }, [extendedTasks]);
 
-  const filtered = gridData.filter((t) => {
-    const matchesSearch =
-      t.task_name.toLowerCase().includes(search.toLowerCase()) &&
-      (globalSearch ? t.task_name.toLowerCase().includes(globalSearch.toLowerCase()) : true);
+  const filtered = useMemo(() => {
+    return gridData.filter((t) => {
+      if (!externalFilters) return true;
 
-    const matchesStatus = statusFilter ? t.actuals?.status === statusFilter : true;
+      // task_name search
+      const matchesSearch =
+        !externalFilters.task_name ||
+        t.task_name.toLowerCase().includes(externalFilters.task_name.toLowerCase());
 
-    return matchesSearch && matchesStatus;
-  });
+      // Advanced filters logic
+      const matchesAdvancedStatus =
+        !externalFilters.status ||
+        externalFilters.status.length === 0 ||
+        externalFilters.status.includes(t.actuals?.status || t.status); // Fallback to planned status if actuals status is not set
+
+      const matchesAdvancedPriority =
+        !externalFilters.priority ||
+        externalFilters.priority.length === 0 ||
+        externalFilters.priority.includes(t.priority);
+
+      const matchesDateRange = (() => {
+        if (!externalFilters.dateRange?.from) return true;
+        const taskStart = new Date(t.actuals?.start_date || t.start_date);
+        const taskEnd = new Date(t.actuals?.end_date || t.end_date);
+        const filterStart = new Date(externalFilters.dateRange.from);
+        const filterEnd = externalFilters.dateRange.to ? new Date(externalFilters.dateRange.to) : filterStart;
+
+        // Task overlaps with filter range
+        return (taskStart <= filterEnd && taskEnd >= filterStart);
+      })();
+
+      return matchesSearch && matchesAdvancedStatus && matchesAdvancedPriority && matchesDateRange;
+    });
+  }, [gridData, externalFilters]);
 
   const handleViewTask = (id: string) => router.push(`/tasks/${id}`);
 
@@ -491,15 +551,15 @@ const ActualTaskTable: React.FC<ActualTaskTableProps> = ({ searchTerm: globalSea
 
   return (
     <div>
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-lg shadow-sm border border-gray-100 mb-6">
         <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
           <div ref={menuRef} className="relative w-full sm:w-auto">
-            <button
+            <Button
               onClick={() => setShowColumnMenu((prev) => !prev)}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 text-sm bg-primary text-white rounded hover:bg-primary/90 transition-colors shadow-sm font-medium"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 text-sm bg-primary text-white hover:bg-primary/90 transition-colors shadow-sm font-medium"
             >
               Customize Columns <ChevronDown className="w-4 h-4" />
-            </button>
+            </Button>
             {showColumnMenu && (
               <div className="absolute left-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-xl z-20 py-2">
                 <div className="px-4 py-2 border-b border-gray-100 mb-1">
@@ -527,17 +587,23 @@ const ActualTaskTable: React.FC<ActualTaskTableProps> = ({ searchTerm: globalSea
             )}
           </div>
           {dirtyRows.size > 0 && (
-            <button
+            <Button
               onClick={handleSave}
               disabled={isSaving}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 shadow-md transition-all font-semibold"
+              className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white shadow-md transition-all font-semibold"
             >
               {isSaving ? "Saving..." : "Save Changes"}
-            </button>
+            </Button>
           )}
         </div>
-        <div className="w-full sm:w-auto">
-          <SearchInput placeholder="Search tasks..." value={search} onChange={setSearch} />
+        <div className="relative w-full sm:w-64">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Input
+            placeholder="Search tasks..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10 w-full"
+          />
         </div>
       </div>
 

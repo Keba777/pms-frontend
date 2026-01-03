@@ -13,6 +13,8 @@ import GenericDownloads, { Column } from "@/components/common/GenericDownloads";
 import { useProjectStore } from "@/store/projectStore";
 import { useAuthStore } from "@/store/authStore";
 import { formatDate, getDateDuration } from "@/utils/dateUtils";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { ClipboardList, Activity } from "lucide-react";
 import {
   FilterField,
   FilterValues,
@@ -21,8 +23,6 @@ import {
 } from "@/components/common/GenericFilter";
 import GenericImport, { ImportColumn } from "@/components/common/GenericImport";
 import { toast } from "react-toastify";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
 
 const ProjectPage: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
@@ -33,8 +33,6 @@ const ProjectPage: React.FC = () => {
 
   const hasPermission = useAuthStore((state) => state.hasPermission);
   const [filterValues, setFilterValues] = useState<FilterValues>({});
-  const [fromDate, setFromDate] = useState<Date | null>(null);
-  const [toDate, setToDate] = useState<Date | null>(null);
 
   const { mutateAsync: createProjectAsync } = useCreateProject(() => { });
 
@@ -124,11 +122,14 @@ const ProjectPage: React.FC = () => {
   ];
   const statusOptions: Option<string>[] = [
     { label: "Not Started", value: "Not Started" },
-    { label: "In Progress", value: "In Progress" },
+    { label: "Started", value: "Started" },
+    { label: "In Progress", value: "InProgress" },
     { label: "Completed", value: "Completed" },
+    { label: "Canceled", value: "Canceled" },
+    { label: "On Hold", value: "Onhold" },
   ];
 
-  const filterFields: FilterField<string>[] = [
+  const filterFields: FilterField[] = [
     {
       name: "title",
       label: "Project Name",
@@ -136,36 +137,55 @@ const ProjectPage: React.FC = () => {
       placeholder: "Search by name…",
     },
     {
-      name: "priority",
-      label: "All Priorities",
-      type: "select",
-      options: priorityOptions,
+      name: "status",
+      label: "Status",
+      type: "multiselect",
+      options: statusOptions,
+      placeholder: "Filter by Status"
     },
     {
-      name: "status",
-      label: "All Statuses",
-      type: "select",
-      options: statusOptions,
+      name: "priority",
+      label: "Priority",
+      type: "multiselect",
+      options: priorityOptions,
+      placeholder: "Filter by Priority"
     },
+    {
+      name: "dateRange",
+      label: "Date Range",
+      type: "daterange"
+    }
   ];
 
   const filteredProjects = projects?.filter((project) => {
-    return (
-      Object.entries(filterValues).every(([key, value]) => {
-        if (!value) return true;
-        if (key === "status" || key === "priority") {
-          return project[key] === value;
-        }
-        if (key === "title") {
-          return project.title
-            ?.toLowerCase()
-            .includes((value as string).toLowerCase());
-        }
-        return true;
-      }) &&
-      (fromDate ? new Date(project.start_date) >= fromDate : true) &&
-      (toDate ? new Date(project.end_date) <= toDate : true)
-    );
+    // title search
+    const matchesSearch =
+      !filterValues.title ||
+      project.title.toLowerCase().includes((filterValues.title as string).toLowerCase());
+
+    // Advanced filters logic
+    const matchesStatus =
+      !filterValues.status ||
+      filterValues.status.length === 0 ||
+      filterValues.status.includes(project.status);
+
+    const matchesPriority =
+      !filterValues.priority ||
+      filterValues.priority.length === 0 ||
+      filterValues.priority.includes(project.priority);
+
+    const matchesDateRange = (() => {
+      if (!filterValues.dateRange?.from) return true;
+      const projStart = new Date(project.start_date);
+      const projEnd = new Date(project.end_date);
+      const filterStart = new Date(filterValues.dateRange.from);
+      const filterEnd = filterValues.dateRange.to ? new Date(filterValues.dateRange.to) : filterStart;
+
+      // Project overlaps with filter range
+      return (projStart <= filterEnd && projEnd >= filterStart);
+    })();
+
+    return matchesSearch && matchesStatus && matchesPriority && matchesDateRange;
   });
 
   const handleImport = async (data: CreateProjectInput[]) => {
@@ -287,60 +307,46 @@ const ProjectPage: React.FC = () => {
         </div>
       )}
 
-      <div className="flex flex-col sm:flex-row gap-2">
+      <div className="mt-8">
         <GenericFilter fields={filterFields} onFilterChange={setFilterValues} />
-        <DatePicker
-          selected={fromDate}
-          onChange={setFromDate}
-          placeholderText="From Date"
-          className="rounded border border-gray-300 p-2 focus:outline-none focus:border-blue-500 w-full sm:w-auto"
-          dateFormat="yyyy-MM-dd"
-        />
-        <DatePicker
-          selected={toDate}
-          onChange={setToDate}
-          placeholderText="To Date"
-          className="rounded border border-gray-300 p-2 focus:outline-none focus:border-blue-500 w-full sm:w-auto"
-          dateFormat="yyyy-MM-dd"
-        />
       </div>
 
       <div className="mt-4">
-        <div className="border-b flex items-center overflow-x-auto no-scrollbar">
-          <button
-            className={`py-3 px-6 -mb-px border-b-2 font-medium transition-colors whitespace-nowrap ${activeTab === "planned"
-              ? "border-primary text-primary"
-              : "border-transparent text-gray-500 hover:text-gray-700"
-              }`}
-            onClick={() => setActiveTab("planned")}
-          >
-            Planned Projects
-          </button>
-          <button
-            className={`py-3 px-6 -mb-px border-b-2 font-medium transition-colors whitespace-nowrap ${activeTab === "actual"
-              ? "border-primary text-primary"
-              : "border-transparent text-gray-500 hover:text-gray-700"
-              }`}
-            onClick={() => setActiveTab("actual")}
-          >
-            Actual Projects
-          </button>
-        </div>
-        <div className="mt-6">
-          {activeTab === "planned" ? (
-            isListView ? (
-              <ProjectSection />
+        <Tabs value={activeTab} onValueChange={(val: any) => setActiveTab(val)} className="w-full">
+          <div className="flex justify-start w-full mb-6 border-b border-gray-200 pb-2">
+            <TabsList className="bg-muted p-1 rounded-full inline-flex h-auto">
+              <TabsTrigger
+                value="planned"
+                className="flex items-center space-x-2 py-2 px-6 text-sm font-bold rounded-full transition-all data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm text-muted-foreground hover:text-foreground uppercase"
+              >
+                <ClipboardList className="w-4 h-4" />
+                <span>Planned Projects</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="actual"
+                className="flex items-center space-x-2 py-2 px-6 text-sm font-bold rounded-full transition-all data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm text-muted-foreground hover:text-foreground uppercase"
+              >
+                <Activity className="w-4 h-4" />
+                <span>Actual Projects</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
+
+          <TabsContent value="planned" className="mt-6 outline-none">
+            {isListView ? (
+              <ProjectSection externalFilters={filterValues} />
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
                 {(filteredProjects || []).map((project: Project) => (
                   <ProjectCard key={project.id} project={project} />
                 ))}
               </div>
-            )
-          ) : (
-            <ActualProjectSection />
-          )}
-        </div>
+            )}
+          </TabsContent>
+          <TabsContent value="actual" className="mt-6 outline-none">
+            <ActualProjectSection externalFilters={filterValues} />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

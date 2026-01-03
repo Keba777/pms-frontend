@@ -18,34 +18,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 import { getDateDuration, getDuration as calcRemaining } from "@/utils/helper";
 import { formatDate as format } from "@/utils/dateUtils";
 import ProfileAvatar from "../common/ProfileAvatar";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
+import { ReusableTable, ColumnConfig } from "../common/ReusableTable";
+import { GenericFilter, FilterField } from "../common/GenericFilter";
 
 /**
  * Narrowed local type so we can guarantee `id: string` when passing to forms
@@ -72,45 +49,17 @@ const statusBadgeClasses: Record<Task["status"], string> = {
 };
 
 interface TaskSectionProps {
-  searchTerm?: string;
-  statusFilter?: string | null;
+  externalFilters?: Record<string, any>;
 }
 
-const TaskSection: React.FC<TaskSectionProps> = ({ searchTerm: globalSearch, statusFilter }) => {
-
+const TaskSection: React.FC<TaskSectionProps> = ({ externalFilters }) => {
   const router = useRouter();
   const { data: tasks, isLoading, isError } = useTasks();
   const { mutate: deleteTask } = useDeleteTask();
   const { mutate: updateTask } = useUpdateTask();
   const { data: users } = useUsers();
 
-  const columnOptions = [
-    { value: "id", label: "ID" },
-    { value: "task_name", label: "Task" },
-    { value: "assignedUsers", label: "Assigned To" },
-    { value: "priority", label: "Priority" },
-    { value: "progress", label: "Progress" },
-    { value: "start_date", label: "Starts At" },
-    { value: "end_date", label: "Ends At" },
-    { value: "duration", label: "Duration" },
-    { value: "remaining", label: "Remaining" },
-    { value: "status", label: "Status" },
-    { value: "approvalStatus", label: "Approval" },
-    { value: "actions", label: "Actions" },
-  ];
-
-  const [selectedColumns, setSelectedColumns] = useState<string[]>(
-    columnOptions.map((col) => col.value)
-  );
-  const [searchTerm, setSearchTerm] = useState("");
-  const [page, setPage] = useState(1);
-  const pageSize = 10;
-
-  const toggleColumn = (col: string) =>
-    setSelectedColumns((prev) =>
-      prev.includes(col) ? prev.filter((c) => c !== col) : [...prev, col]
-    );
-
+  const [searchTerm, setSearchTerm] = useState<string>("");
 
   // Edit/Delete modal state
   const [showEditForm, setShowEditForm] = useState(false);
@@ -160,135 +109,167 @@ const TaskSection: React.FC<TaskSectionProps> = ({ searchTerm: globalSearch, sta
     setShowManageForm(true);
   };
 
-  const handleManageSubmit = (data: UpdateTaskInput) => {
-    updateTask(data);
-    setShowManageForm(false);
-  };
-
-  // No early return for isLoading - we want to keep the title and filters visible.
-
-  const isDataAvailable = !isLoading && tasks;
   const filtered =
     tasks?.filter((t) => {
+      if (!externalFilters) return true;
+
+      // task_name search
       const matchesSearch =
-        t.task_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        t.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (globalSearch ? t.task_name.toLowerCase().includes(globalSearch.toLowerCase()) : true);
+        !externalFilters.task_name ||
+        t.task_name.toLowerCase().includes(externalFilters.task_name.toLowerCase());
 
-      const matchesStatus = statusFilter ? t.status === statusFilter : true;
+      // Advanced filters logic
+      const matchesAdvancedStatus =
+        !externalFilters.status ||
+        externalFilters.status.length === 0 ||
+        externalFilters.status.includes(t.status);
 
-      return matchesSearch && matchesStatus;
+      const matchesAdvancedPriority =
+        !externalFilters.priority ||
+        externalFilters.priority.length === 0 ||
+        externalFilters.priority.includes(t.priority);
+
+      const matchesDateRange = (() => {
+        if (!externalFilters.dateRange?.from) return true;
+        const taskStart = new Date(t.start_date);
+        const taskEnd = new Date(t.end_date);
+        const filterStart = new Date(externalFilters.dateRange.from);
+        const filterEnd = externalFilters.dateRange.to ? new Date(externalFilters.dateRange.to) : filterStart;
+
+        // Task overlaps with filter range
+        return (taskStart <= filterEnd && taskEnd >= filterStart);
+      })();
+
+      return matchesSearch && matchesAdvancedStatus && matchesAdvancedPriority && matchesDateRange;
     }) || [];
 
-  const totalPages = Math.ceil(filtered.length / pageSize);
-  const paginatedTasks = filtered.slice((page - 1) * pageSize, page * pageSize);
-
-  // Helper to render page numbers with ellipsis
-  const renderPageNumbers = () => {
-    const pages: React.ReactNode[] = [];
-    const maxVisible = 5;
-    const startPage = Math.max(1, page - Math.floor(maxVisible / 2));
-    const endPage = Math.min(totalPages, startPage + maxVisible - 1);
-
-    if (startPage > 1) {
-      pages.push(
-        <PaginationItem key={1}>
-          <PaginationLink
-            onClick={() => setPage(1)}
-            className="cursor-pointer"
-            isActive={page === 1}
-          >
-            1
-          </PaginationLink>
-        </PaginationItem>
-      );
-      if (startPage > 2) {
-        pages.push(
-          <PaginationItem key="ellipsis-start">
-            <PaginationEllipsis />
-          </PaginationItem>
-        );
-      }
-    }
-
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(
-        <PaginationItem key={i}>
-          <PaginationLink
-            onClick={() => setPage(i)}
-            className="cursor-pointer"
-            isActive={page === i}
-          >
-            {i}
-          </PaginationLink>
-        </PaginationItem>
-      );
-    }
-
-    if (endPage < totalPages) {
-      if (endPage < totalPages - 1) {
-        pages.push(
-          <PaginationItem key="ellipsis-end">
-            <PaginationEllipsis />
-          </PaginationItem>
-        );
-      }
-      pages.push(
-        <PaginationItem key={totalPages}>
-          <PaginationLink
-            onClick={() => setPage(totalPages)}
-            className="cursor-pointer"
-            isActive={page === totalPages}
-          >
-            {totalPages}
-          </PaginationLink>
-        </PaginationItem>
-      );
-    }
-
-    return pages;
-  };
+  const columns: ColumnConfig<Task>[] = [
+    {
+      key: "id",
+      label: "ID",
+      render: (_, index) => index + 1,
+    },
+    {
+      key: "task_name",
+      label: "Task",
+      render: (task) => (
+        <Link href={`/tasks/${task.id}`} className="font-medium text-primary hover:underline">
+          {task.task_name}
+        </Link>
+      ),
+    },
+    {
+      key: "assignedUsers",
+      label: "Assigned To",
+      render: (task) => (
+        task.assignedUsers?.length ? (
+          <div className="flex -space-x-2">
+            {task.assignedUsers.map((u) => (
+              <ProfileAvatar key={u.id} user={u} />
+            ))}
+          </div>
+        ) : (
+          <span className="text-gray-500">N/A</span>
+        )
+      ),
+    },
+    {
+      key: "priority",
+      label: "Priority",
+      render: (task) => (
+        <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${priorityBadgeClasses[task.priority]}`}>
+          {task.priority}
+        </span>
+      ),
+    },
+    {
+      key: "progress",
+      label: "Progress",
+      render: (task) => `${task.progress ?? 0}%`,
+    },
+    {
+      key: "start_date",
+      label: "Starts At",
+      render: (task) => format(task.start_date),
+    },
+    {
+      key: "end_date",
+      label: "Ends At",
+      render: (task) => format(task.end_date),
+    },
+    {
+      key: "duration",
+      label: "Duration",
+      render: (task) => getDateDuration(task.start_date, task.end_date),
+    },
+    {
+      key: "remaining",
+      label: "Remaining",
+      render: (task) => (
+        task.end_date && new Date(task.end_date) > new Date()
+          ? calcRemaining(new Date(), task.end_date)
+          : "N/A"
+      ),
+    },
+    {
+      key: "status",
+      label: "Status",
+      render: (task) => (
+        <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${statusBadgeClasses[task.status]}`}>
+          {task.status}
+        </span>
+      ),
+    },
+    {
+      key: "approvalStatus",
+      label: "Approval",
+    },
+    {
+      key: "actions",
+      label: "Actions",
+      render: (task) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              className="text-primary-foreground p-0 bg-primary hover:bg-primary/90 h-8 px-2"
+            >
+              Action
+              <ChevronDown className="h-4 w-4 ml-1" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => handleEditClick(task)}>
+              <FaEdit className="mr-2 h-4 w-4" /> Edit
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleDeleteClick(task.id)}>
+              <FaTrash className="mr-2 h-4 w-4" /> Delete
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleView(task.id)}>
+              <FaEye className="mr-2 h-4 w-4" /> Quick View
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleManageClick(task)}>
+              <FaTasks className="mr-2 h-4 w-4" /> Manage
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+    },
+  ];
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row items-baseline gap-2">
-        <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800">
-          Available Tasks
-        </h2>
-        <span className="text-sm text-gray-400 font-medium">({filtered.length} total)</span>
-      </div>
-
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-lg shadow-sm border border-gray-100">
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="outline" className="w-full sm:w-auto">
-              Customize Columns <ChevronDown className="ml-2 h-4 w-4" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-64 ">
-            <div className="space-y-2">
-              {columnOptions.map((col) => (
-                <div key={col.value} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={col.value}
-                    checked={selectedColumns.includes(col.value)}
-                    onCheckedChange={() => toggleColumn(col.value)}
-                  />
-                  <label htmlFor={col.value} className="">
-                    {col.label}
-                  </label>
-                </div>
-              ))}
-            </div>
-          </PopoverContent>
-        </Popover>
-        <Input
-          placeholder="Search tasks..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full sm:w-64"
-        />
-      </div>
+    <>
+      <ReusableTable
+        title="Available Tasks"
+        data={filtered}
+        columns={columns}
+        isLoading={isLoading}
+        isError={isError}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        placeholder="Search tasks..."
+        emptyMessage="No tasks found"
+      />
 
       {/* Edit modal */}
       {showEditForm && taskToEdit && (
@@ -319,201 +300,6 @@ const TaskSection: React.FC<TaskSectionProps> = ({ searchTerm: globalSearch, sta
         </div>
       )}
 
-      <div className="overflow-x-auto rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-primary hover:bg-primary/90">
-              {columnOptions
-                .filter((col) => selectedColumns.includes(col.value))
-                .map((col) => (
-                  <TableHead
-                    key={col.value}
-                    className="text-gray-50 font-medium  px-4 py-4"
-                  >
-                    {col.label}
-                  </TableHead>
-                ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              Array.from({ length: 5 }).map((_, index) => (
-                <TableRow key={index} className="hover:bg-gray-50">
-                  {columnOptions
-                    .filter((col) => selectedColumns.includes(col.value))
-                    .map((col) => (
-                      <TableCell key={col.value} className="px-4 py-2 text-center">
-                        <Skeleton className="h-4 w-full" />
-                      </TableCell>
-                    ))}
-                </TableRow>
-              ))
-            ) : isError ? (
-              <TableRow>
-                <TableCell
-                  colSpan={selectedColumns.length}
-                  className="text-center py-8 text-red-500"
-                >
-                  Error loading tasks.
-                </TableCell>
-              </TableRow>
-            ) : paginatedTasks.length > 0 ? (
-              paginatedTasks.map((task, idx) => {
-                const duration = getDateDuration(
-                  task.start_date,
-                  task.end_date
-                );
-                const remaining =
-                  task.end_date && new Date(task.end_date) > new Date()
-                    ? calcRemaining(new Date(), task.end_date)
-                    : "N/A";
-
-                return (
-                  <TableRow key={task.id} className="hover:bg-gray-50">
-                    {selectedColumns.includes("id") && (
-                      <TableCell className="px-4 py-2 ">
-                        {(page - 1) * pageSize + idx + 1}
-                      </TableCell>
-                    )}
-                    {selectedColumns.includes("task_name") && (
-                      <TableCell className="px-4 py-2  font-medium text-primary">
-                        <Link href={`/tasks/${task.id}`}>{task.task_name}</Link>
-                      </TableCell>
-                    )}
-                    {selectedColumns.includes("assignedUsers") && (
-                      <TableCell className="px-4 py-2">
-                        {task.assignedUsers?.length ? (
-                          <div className="flex -space-x-2">
-                            {task.assignedUsers.map((u) => (
-                              <ProfileAvatar key={u.id} user={u} />
-                            ))}
-                          </div>
-                        ) : (
-                          <span className="text-gray-500">N/A</span>
-                        )}
-                      </TableCell>
-                    )}
-                    {selectedColumns.includes("priority") && (
-                      <TableCell className="px-4 py-2">
-                        <span
-                          className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${priorityBadgeClasses[task.priority]
-                            }`}
-                        >
-                          {task.priority}
-                        </span>
-                      </TableCell>
-                    )}
-                    {selectedColumns.includes("progress") && (
-                      <TableCell className="px-4 py-2 ">
-                        {task.progress ?? 0}%
-                      </TableCell>
-                    )}
-                    {selectedColumns.includes("start_date") && (
-                      <TableCell className="px-4 py-2 ">
-                        {format(task.start_date)}
-                      </TableCell>
-                    )}
-                    {selectedColumns.includes("end_date") && (
-                      <TableCell className="px-4 py-2 ">
-                        {format(task.end_date)}
-                      </TableCell>
-                    )}
-                    {selectedColumns.includes("duration") && (
-                      <TableCell className="px-4 py-2 ">{duration}</TableCell>
-                    )}
-                    {selectedColumns.includes("remaining") && (
-                      <TableCell className="px-4 py-2 ">{remaining}</TableCell>
-                    )}
-                    {selectedColumns.includes("status") && (
-                      <TableCell className="px-4 py-2">
-                        <span
-                          className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${statusBadgeClasses[task.status]
-                            }`}
-                        >
-                          {task.status}
-                        </span>
-                      </TableCell>
-                    )}
-                    {selectedColumns.includes("approvalStatus") && (
-                      <TableCell className="px-4 py-2 ">
-                        {task.approvalStatus}
-                      </TableCell>
-                    )}
-                    {selectedColumns.includes("actions") && (
-                      <TableCell className="px-4 py-2">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              className="text-primary-foreground p-0 bg-primary hover:bg-primary/90"
-                            >
-                              Action
-                              <ChevronDown className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                              onClick={() => handleEditClick(task)}
-                            >
-                              <FaEdit className="mr-2 h-4 w-4" /> Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => handleDeleteClick(task.id)}
-                            >
-                              <FaTrash className="mr-2 h-4 w-4" /> Delete
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => handleView(task.id)}
-                            >
-                              <FaEye className="mr-2 h-4 w-4" /> Quick View
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => handleManageClick(task)}
-                            >
-                              <FaTasks className="mr-2 h-4 w-4" /> Manage
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    )}
-                  </TableRow>
-                );
-              })
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={selectedColumns.length}
-                  className="text-center py-8 text-gray-500"
-                >
-                  No tasks found
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
-
-      {/* Pagination Controls */}
-      {totalPages > 1 && (
-        <Pagination>
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                className={page === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-              />
-            </PaginationItem>
-            {renderPageNumbers()}
-            <PaginationItem>
-              <PaginationNext
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                className={page === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
-      )}
-
       {/* Delete Confirmation */}
       {isDeleteModalOpen && (
         <ConfirmModal
@@ -527,7 +313,7 @@ const TaskSection: React.FC<TaskSectionProps> = ({ searchTerm: globalSearch, sta
           onConfirm={handleDeleteConfirm}
         />
       )}
-    </div>
+    </>
   );
 };
 

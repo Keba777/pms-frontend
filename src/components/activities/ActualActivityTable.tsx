@@ -32,7 +32,11 @@ interface ExtendedActivity extends Activity {
   actuals: Actuals;
 }
 
-const ActualActivityTable: React.FC = () => {
+interface ActualActivityTableProps {
+  externalFilters?: Record<string, any>;
+}
+
+const ActualActivityTable: React.FC<ActualActivityTableProps> = ({ externalFilters }) => {
   const {
     data: activities,
     isLoading: loadingAct,
@@ -74,6 +78,7 @@ const ActualActivityTable: React.FC = () => {
   const [selectedActivityId, setSelectedActivityId] = useState<string | null>(
     null
   );
+  const [searchTerm, setSearchTerm] = useState<string>("");
 
   // Dirty tracking for saves
   const [dirtyRows, setDirtyRows] = useState<Set<string>>(new Set());
@@ -112,11 +117,50 @@ const ActualActivityTable: React.FC = () => {
     }));
   }, [activities]);
 
-  // Sync gridData when extendedActivities change (e.g., after refetch)
+  // Prepare data with external filters
+  const filteredData = useMemo(() => {
+    return extendedActivities.filter((act) => {
+      // Local search
+      const matchesSearch =
+        !searchTerm ||
+        act.activity_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        act.task?.project?.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        act.task?.project?.clientInfo?.companyName?.toLowerCase().includes(searchTerm.toLowerCase());
+
+      if (!externalFilters) return matchesSearch;
+
+      // External filters logic
+      const matchesAdvancedStatus =
+        !externalFilters.status ||
+        externalFilters.status.length === 0 ||
+        externalFilters.status.includes(act.actuals?.status || act.status);
+
+      const matchesAdvancedPriority =
+        !externalFilters.priority ||
+        externalFilters.priority.length === 0 ||
+        externalFilters.priority.includes(act.priority);
+
+      const matchesDateRange = (() => {
+        if (!externalFilters.dateRange?.from) return true;
+        const actStart = new Date(act.start_date);
+        const actEnd = new Date(act.end_date);
+        const filterStart = new Date(externalFilters.dateRange.from);
+        const filterEnd = externalFilters.dateRange.to
+          ? new Date(externalFilters.dateRange.to)
+          : filterStart;
+
+        return actStart <= filterEnd && actEnd >= filterStart;
+      })();
+
+      return matchesSearch && matchesAdvancedStatus && matchesAdvancedPriority && matchesDateRange;
+    });
+  }, [extendedActivities, searchTerm, externalFilters]);
+
+  // Sync gridData when filteredData change
   useEffect(() => {
-    setGridData(extendedActivities);
-    setDirtyRows(new Set()); // Clear dirty on refetch
-  }, [extendedActivities]);
+    setGridData(filteredData);
+    setDirtyRows(new Set()); // Clear dirty on filter/refetch
+  }, [filteredData]);
 
   // Column toggle (updates visibility in AG Grid)
   const toggleColumn = (col: string) =>
@@ -565,11 +609,15 @@ const ActualActivityTable: React.FC = () => {
           )}
         </div>
 
-        <Input
-          placeholder="Search by activity name..."
-          onChange={(e) => gridRef.current?.api.setGridOption('quickFilterText', e.target.value)}
-          className="w-full sm:w-64"
-        />
+        <div className="relative w-full sm:w-64">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Input
+            placeholder="Search activities..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10 w-full"
+          />
+        </div>
       </div>
 
       {/* AG Grid Table */}

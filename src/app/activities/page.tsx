@@ -9,10 +9,54 @@ import { useActivities } from "@/hooks/useActivities";
 import ActivityTableSkeleton from "@/components/activities/ActivityTableSkeleton";
 import { Activity } from "@/types/activity";
 import { formatDate } from "@/utils/dateUtils";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { GenericFilter, FilterField, FilterValues } from "@/components/common/GenericFilter";
+import { Activity as ActivityIcon, ClipboardList } from "lucide-react";
 
 const ActivitiesPage = () => {
   const { data: activities, isLoading } = useActivities();
   const [activeTab, setActiveTab] = useState<"planned" | "actual">("planned");
+  const [filterValues, setFilterValues] = useState<FilterValues>({});
+
+  const filterFields: FilterField[] = [
+    {
+      name: "activity_name",
+      label: "Activity Name",
+      type: "text",
+      placeholder: "Search by activity name..."
+    },
+    {
+      name: "status",
+      label: "Status",
+      type: "multiselect",
+      options: [
+        { label: "Not Started", value: "Not Started" },
+        { label: "Started", value: "Started" },
+        { label: "InProgress", value: "InProgress" },
+        { label: "Onhold", value: "Onhold" },
+        { label: "Completed", value: "Completed" },
+        { label: "Canceled", value: "Canceled" },
+      ],
+      placeholder: "Filter by Status"
+    },
+    {
+      name: "priority",
+      label: "Priority",
+      type: "multiselect",
+      options: [
+        { label: "Low", value: "Low" },
+        { label: "Medium", value: "Medium" },
+        { label: "High", value: "High" },
+        { label: "Critical", value: "Critical" },
+      ],
+      placeholder: "Filter by Priority"
+    },
+    {
+      name: "dateRange",
+      label: "Date Range",
+      type: "daterange"
+    }
+  ];
 
   // Planned columns
   const plannedColumns: Column<Activity>[] = [
@@ -96,37 +140,43 @@ const ActivitiesPage = () => {
         }}
       />
 
-      {/* Tabs Navigation */}
-      <div className="mt-8 border-b border-gray-200">
-        <nav className="-mb-px flex space-x-8 overflow-x-auto no-scrollbar whitespace-nowrap">
-          <button
-            onClick={() => setActiveTab("planned")}
-            className={`px-4 py-4 text-sm font-bold transition-all relative ${activeTab === "planned"
-              ? "text-emerald-600 border-b-2 border-emerald-600"
-              : "text-gray-500 hover:text-gray-700 border-b-2 border-transparent"
-              }`}
-          >
-            PLANNED ACTIVITIES
-          </button>
-          <button
-            onClick={() => setActiveTab("actual")}
-            className={`px-4 py-4 text-sm font-bold transition-all relative ${activeTab === "actual"
-              ? "text-emerald-600 border-b-2 border-emerald-600"
-              : "text-gray-500 hover:text-gray-700 border-b-2 border-transparent"
-              }`}
-          >
-            ACTUAL ACTIVITIES
-          </button>
-        </nav>
+      {/* Global Filtering Section */}
+      <div className="mt-8">
+        <GenericFilter fields={filterFields} onFilterChange={setFilterValues} />
       </div>
 
-      <div className="mt-8 min-h-[400px]">
-        {activeTab === "planned" ? (
-          <DataTableActivities />
-        ) : (
-          <ActualActivityTable />
-        )}
-      </div>
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={(val: any) => setActiveTab(val)} className="w-full mt-8">
+        <div className="flex justify-start w-full mb-6 border-b border-gray-200 pb-2">
+          <TabsList className="bg-muted p-1 rounded-full inline-flex h-auto">
+            <TabsTrigger
+              value="planned"
+              className="flex items-center space-x-2 py-2 px-6 text-sm font-bold rounded-full transition-all data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm text-muted-foreground hover:text-foreground uppercase"
+            >
+              <ClipboardList className="w-4 h-4" />
+              <span>Planned Activities</span>
+            </TabsTrigger>
+            <TabsTrigger
+              value="actual"
+              className="flex items-center space-x-2 py-2 px-6 text-sm font-bold rounded-full transition-all data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm text-muted-foreground hover:text-foreground uppercase"
+            >
+              <ActivityIcon className="w-4 h-4" />
+              <span>Actual Activities</span>
+            </TabsTrigger>
+          </TabsList>
+        </div>
+
+        <TabsContent value="planned" className="mt-6 outline-none">
+          <div className="max-w-full overflow-hidden min-h-[400px]">
+            <DataTableActivities externalFilters={filterValues} />
+          </div>
+        </TabsContent>
+        <TabsContent value="actual" className="mt-6 outline-none">
+          <div className="max-w-full overflow-hidden min-h-[400px]">
+            <ActualActivityTable externalFilters={filterValues} />
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
