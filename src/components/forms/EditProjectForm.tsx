@@ -7,6 +7,7 @@ import ReactDatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { Info, Plus } from "lucide-react";
 import AddClientModal from "./AddClientModal";
+import AddSiteModal from "./AddSiteModal";
 import { UpdateProjectInput } from "@/types/project";
 import { User } from "@/types/user";
 import { useSites } from "@/hooks/useSites";
@@ -43,6 +44,7 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
     (project as any).attachments || []
   );
   const [showClientModal, setShowClientModal] = useState(false);
+  const [showSiteModal, setShowSiteModal] = useState(false);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files ? Array.from(event.target.files) : [];
@@ -353,23 +355,37 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
                   Site <span className="text-red-500">*</span>
                   <Info className="inline ml-1 text-bs-primary h-4 w-4" />
                 </label>
-                <Controller
-                  name="site_id"
-                  control={control}
-                  rules={{ required: "Site is required" }}
-                  render={({ field }) => (
-                    <Select
-                      {...field}
-                      options={siteOptions}
-                      isLoading={sitesLoading}
-                      className="w-full text-sm"
-                      onChange={(selected) => field.onChange(selected?.value)}
-                      value={siteOptions.find(
-                        (option) => option.value === field.value
+                <div className="flex gap-2">
+                  <div className="flex-1">
+                    <Controller
+                      name="site_id"
+                      control={control}
+                      rules={{ required: "Site is required" }}
+                      render={({ field }) => (
+                        <Select
+                          {...field}
+                          options={siteOptions}
+                          isLoading={sitesLoading}
+                          className="w-full text-sm"
+                          onChange={(selected) => field.onChange(selected?.value)}
+                          value={siteOptions.find(
+                            (option) => option.value === field.value
+                          )}
+                          placeholder="Select a site..."
+                          isClearable
+                        />
                       )}
                     />
-                  )}
-                />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowSiteModal(true)}
+                    className="px-3 h-[38px] bg-green-600 text-white rounded hover:bg-green-700 flex items-center justify-center transition-colors"
+                    title="Add New Site"
+                  >
+                    <Plus size={18} />
+                  </button>
+                </div>
                 {errors.site_id && (
                   <p className="text-red-500 text-sm mt-1">{errors.site_id.message}</p>
                 )}
@@ -507,6 +523,15 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
           onSuccess={(newClient) => {
             setValue("client_id", newClient.id);
             setShowClientModal(false);
+          }}
+        />
+      )}
+      {showSiteModal && (
+        <AddSiteModal
+          onClose={() => setShowSiteModal(false)}
+          onSuccess={(newSite) => {
+            setValue("site_id", newSite.id);
+            setShowSiteModal(false);
           }}
         />
       )}

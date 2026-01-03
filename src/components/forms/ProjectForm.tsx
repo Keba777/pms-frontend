@@ -5,6 +5,7 @@ import React, { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { Info, Plus } from "lucide-react";
 import AddClientModal from "./AddClientModal";
+import AddSiteModal from "./AddSiteModal";
 import Select from "react-select";
 import { CreateProjectInput } from "@/types/project";
 import { useCreateProject } from "@/hooks/useProjects";
@@ -28,7 +29,12 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
     setValue,
     watch,
     formState: { errors },
-  } = useForm<CreateProjectInput>();
+  } = useForm<CreateProjectInput>({
+    defaultValues: {
+      priority: "Medium",
+      status: "Not Started",
+    },
+  });
 
   const { mutate: createProject, isPending } = useCreateProject();
   const { mutate: createNotification } = useCreateNotification();
@@ -37,6 +43,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
   const { data: clients, isLoading: clientsLoading } = useClients();
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [showClientModal, setShowClientModal] = useState(false);
+  const [showSiteModal, setShowSiteModal] = useState(false);
   const [duration, setDuration] = useState<string>("");
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -433,25 +440,39 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
                 Site
                 <Info className="inline ml-1 text-bs-primary h-4 w-4" />
               </label>
-              <Controller
-                name="site_id"
-                control={control}
-                rules={{ required: "Site is required" }}
-                render={({ field }) => (
-                  <Select
-                    {...field}
-                    options={siteOptions}
-                    isLoading={sitesLoading}
-                    className="w-full"
-                    onChange={(selectedOption) =>
-                      field.onChange(selectedOption?.value)
-                    }
-                    value={siteOptions.find(
-                      (option) => option.value === field.value
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <Controller
+                    name="site_id"
+                    control={control}
+                    rules={{ required: "Site is required" }}
+                    render={({ field }) => (
+                      <Select
+                        {...field}
+                        options={siteOptions}
+                        isLoading={sitesLoading}
+                        className="w-full"
+                        onChange={(selectedOption) =>
+                          field.onChange(selectedOption?.value)
+                        }
+                        value={siteOptions.find(
+                          (option) => option.value === field.value
+                        )}
+                        placeholder="Select a site..."
+                        isClearable
+                      />
                     )}
                   />
-                )}
-              />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowSiteModal(true)}
+                  className="px-3 h-[38px] bg-green-600 text-white rounded hover:bg-green-700 flex items-center justify-center transition-colors"
+                  title="Add New Site"
+                >
+                  <Plus size={18} />
+                </button>
+              </div>
               {errors.site_id && (
                 <p className="text-red-500 text-sm mt-1">{errors.site_id.message}</p>
               )}
@@ -610,6 +631,15 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
           onSuccess={(newClient) => {
             setValue("client_id", newClient.id);
             setShowClientModal(false);
+          }}
+        />
+      )}
+      {showSiteModal && (
+        <AddSiteModal
+          onClose={() => setShowSiteModal(false)}
+          onSuccess={(newSite) => {
+            setValue("site_id", newSite.id);
+            setShowSiteModal(false);
           }}
         />
       )}
