@@ -8,12 +8,12 @@ const TodoTableSkeleton: React.FC = () => {
 
     return (
         <div className="overflow-x-auto w-full">
-            <table className="min-w-[1400px] divide-y divide-gray-200 border border-gray-200 table-auto">
-                <thead className="bg-cyan-700">
+            <table className="min-w-[1400px] divide-y divide-gray-200 border border-border table-auto">
+                <thead className="bg-primary">
                     <tr>
                         {Array.from({ length: columnCount }).map((_, index) => (
                             <th key={index} className="px-4 py-3 whitespace-nowrap">
-                                <div className="h-3 w-20 bg-cyan-600/50 rounded animate-pulse" />
+                                <div className="h-3 w-20 bg-primary/50 rounded animate-pulse" />
                             </th>
                         ))}
                     </tr>
@@ -22,8 +22,8 @@ const TodoTableSkeleton: React.FC = () => {
                     {Array.from({ length: rowCount }).map((_, rowIndex) => (
                         <tr key={rowIndex} className="animate-pulse">
                             {Array.from({ length: columnCount }).map((_, colIndex) => (
-                                <td key={colIndex} className="px-4 py-4 border border-gray-200 whitespace-nowrap">
-                                    <div className="h-4 bg-gray-200 rounded w-full" />
+                                <td key={colIndex} className="px-4 py-4 border border-border whitespace-nowrap">
+                                    <div className="h-4 bg-muted rounded w-full" />
                                 </td>
                             ))}
                         </tr>

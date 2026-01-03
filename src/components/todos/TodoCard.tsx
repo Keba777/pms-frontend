@@ -12,27 +12,27 @@ interface TodoCardProps {
 }
 
 const priorityBadgeClasses: Record<Todo["priority"], string> = {
-  Urgent: "bg-red-100 text-red-800",
+  Urgent: "bg-destructive/10 text-destructive",
   High: "bg-orange-100 text-orange-800",
   Medium: "bg-yellow-100 text-yellow-800",
-  Low: "bg-green-100 text-green-800",
+  Low: "bg-primary/10 text-primary",
 };
 
 const statusBadgeClasses: Record<Todo["status"], string> = {
-  "Not Started": "bg-gray-100 text-gray-800",
+  "Not Started": "bg-muted text-muted-foreground",
   "In progress": "bg-yellow-100 text-yellow-800",
   Pending: "bg-orange-100 text-orange-800",
-  Completed: "bg-green-100 text-green-800",
+  Completed: "bg-primary/20 text-primary",
 };
 
 export default function TodoCard({ todo, departments }: TodoCardProps) {
   return (
-    <div className="bg-white rounded-xl shadow-sm hover:shadow-lg hover:scale-[1.01] transition-all duration-300 border border-gray-200 overflow-hidden">
+    <div className="bg-background rounded-xl shadow-sm hover:shadow-lg hover:scale-[1.01] transition-all duration-300 border border-border overflow-hidden">
       {/* Header */}
-      <div className="bg-cyan-700 px-5 py-4 flex justify-between items-center">
+      <div className="bg-primary px-5 py-4 flex justify-between items-center">
         <Link
           href={`/todos/${todo.id}`}
-          className="text-white font-semibold text-lg tracking-wide hover:underline"
+          className="text-primary-foreground font-semibold text-lg tracking-wide hover:underline"
         >
           {todo.task}
         </Link>
@@ -47,14 +47,14 @@ export default function TodoCard({ todo, departments }: TodoCardProps) {
       {/* Body */}
       <div className="p-5 space-y-4">
         {/* Info Grid */}
-        <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm text-gray-700">
+        <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm text-foreground">
           <InfoItem label="Type" value={todo.type || "-"} />
           <InfoItem
             label="Assigned By"
             value={todo.assignedBy?.first_name || "-"}
           />
           <div className="flex items-center gap-2">
-            <span className="text-cyan-700 font-medium">Team:</span>
+            <span className="text-primary font-medium">Team:</span>
             {todo.assignedUsers?.length ? (
               <div className="flex -space-x-2">
                 {todo.assignedUsers.map((user) => (
@@ -76,19 +76,19 @@ export default function TodoCard({ todo, departments }: TodoCardProps) {
 
           <div className="flex items-center justify-between col-span-2">
             <div className="flex items-center gap-2">
-              <span className="text-cyan-700 font-medium whitespace-nowrap">Given:</span>
+              <span className="text-primary font-medium whitespace-nowrap">Given:</span>
               <span className="whitespace-nowrap">
                 {todo.givenDate ? new Date(todo.givenDate).toLocaleDateString() : "-"}
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-cyan-700 font-medium whitespace-nowrap">Target:</span>
+              <span className="text-primary font-medium whitespace-nowrap">Target:</span>
               <span className="whitespace-nowrap">
                 {todo.target_date ? new Date(todo.target_date).toLocaleDateString() : "-"}
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-cyan-700 font-medium whitespace-nowrap">Due:</span>
+              <span className="text-primary font-medium whitespace-nowrap">Due:</span>
               <span className="whitespace-nowrap">
                 {todo.dueDate ? new Date(todo.dueDate).toLocaleDateString() : "-"}
               </span>
@@ -105,15 +105,15 @@ export default function TodoCard({ todo, departments }: TodoCardProps) {
           >
             {todo.status}
           </span>
-          <span className="text-xs text-gray-500">
+          <span className="text-xs text-muted-foreground">
             {todo.progress || 0}% Complete
           </span>
         </div>
 
         {/* Progress Bar */}
-        <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+        <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
           <div
-            className="bg-cyan-700 h-2 rounded-full transition-all duration-300"
+            className="bg-primary h-2 rounded-full transition-all duration-300"
             style={{ width: `${todo.progress || 0}%` }}
           />
         </div>
@@ -125,7 +125,7 @@ export default function TodoCard({ todo, departments }: TodoCardProps) {
 function InfoItem({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="flex items-center gap-2">
-      <span className="text-cyan-700 font-medium">{label}:</span>
+      <span className="text-primary font-medium">{label}:</span>
       <span>{value}</span>
     </div>
   );

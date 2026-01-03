@@ -115,7 +115,7 @@ const KpiTable = ({ kpis }: KpiProps) => {
         <div ref={menuRef} className="relative">
           <button
             onClick={() => setShowColumnMenu((prev) => !prev)}
-            className="flex items-center gap-1 md:px-4 px-2 py-2 text-sm bg-emerald-600 text-white rounded hover:bg-emerald-700"
+            className="flex items-center gap-1 md:px-4 px-2 py-2 text-sm bg-primary text-primary-foreground rounded hover:bg-primary/90"
           >
             Customize Columns <ChevronDown className="w-4 h-4" />
           </button>
@@ -124,7 +124,7 @@ const KpiTable = ({ kpis }: KpiProps) => {
               {Object.entries(columnOptions).map(([key, label]) => (
                 <label
                   key={key}
-                  className="flex items-center w-full md:px-4 px-2 py-2 hover:bg-gray-100 cursor-pointer"
+                  className="flex items-center w-full md:px-4 px-2 py-2 hover:bg-accent cursor-pointer"
                 >
                   <input
                     type="checkbox"
@@ -139,7 +139,7 @@ const KpiTable = ({ kpis }: KpiProps) => {
           )}
         </div>
         <button
-          className=" bg-cyan-700 hover:bg-cyan-800 text-white font-bold md:py-2 py-1 md:px-3 px-2 rounded text-sm"
+          className=" bg-primary hover:bg-primary/90 text-primary-foreground font-bold md:py-2 py-1 md:px-3 px-2 rounded text-sm"
           onClick={() => setShowForm(true)}
         >
           <PlusIcon width={15} height={12} />
@@ -174,11 +174,10 @@ const KpiTable = ({ kpis }: KpiProps) => {
           <li>
             <button
               onClick={() => setTableType("users")}
-              className={`md:px-4 px-2 md:py-2 py-1 rounded ${
-                tableType === "users"
-                  ? "bg-cyan-700 text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
+              className={`md:px-4 px-2 md:py-2 py-1 rounded ${tableType === "users"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground hover:bg-accent"
+                }`}
             >
               Users
             </button>
@@ -186,11 +185,10 @@ const KpiTable = ({ kpis }: KpiProps) => {
           <li>
             <button
               onClick={() => setTableType("labors")}
-              className={`md:px-4 px-2 md:py-2 py-1 rounded ${
-                tableType === "labors"
-                  ? "bg-cyan-700 text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
+              className={`md:px-4 px-2 md:py-2 py-1 rounded ${tableType === "labors"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground hover:bg-accent"
+                }`}
             >
               Labors
             </button>
@@ -198,11 +196,10 @@ const KpiTable = ({ kpis }: KpiProps) => {
           <li>
             <button
               onClick={() => setTableType("equipment")}
-              className={`md:px-4 px-2 md:py-2 py-1 rounded ${
-                tableType === "equipment"
-                  ? "bg-cyan-700 text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
+              className={`md:px-4 px-2 md:py-2 py-1 rounded ${tableType === "equipment"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground hover:bg-accent"
+                }`}
             >
               Equipment
             </button>
@@ -226,68 +223,68 @@ const KpiTable = ({ kpis }: KpiProps) => {
 
       {/* Table */}
       <div className="overflow-x-auto">
-        <table className="w-full divide-y divide-gray-200">
-          <thead className="bg-cyan-700">
+        <table className="w-full divide-y divide-border">
+          <thead className="bg-primary">
             <tr>
               {selectedColumns.includes("type") && (
-                <th className="md:px-4 px-2 md:py-3 py-2 text-left text-sm font-medium text-gray-50">
+                <th className="md:px-4 px-2 md:py-3 py-2 text-left text-sm font-medium text-primary-foreground">
                   Type
                 </th>
               )}
               {selectedColumns.includes("score") && (
-                <th className="md:px-4 px-2 md:py-3 py-2 text-left text-sm font-medium text-gray-50">
+                <th className="md:px-4 px-2 md:py-3 py-2 text-left text-sm font-medium text-primary-foreground">
                   Score
                 </th>
               )}
 
               {selectedColumns.includes("remark") && (
-                <th className="md:px-4 px-2 md:py-3 py-2 text-left text-sm font-medium text-gray-50">
+                <th className="md:px-4 px-2 md:py-3 py-2 text-left text-sm font-medium text-primary-foreground">
                   Remark
                 </th>
               )}
               {selectedColumns.includes("userLabor") &&
                 tableType === "users" && (
-                  <th className="md:px-4 px-2 md:py-3 py-2 text-left text-sm font-medium text-gray-50">
+                  <th className="md:px-4 px-2 md:py-3 py-2 text-left text-sm font-medium text-primary-foreground">
                     User
                   </th>
                 )}
               {selectedColumns.includes("laborInformation") &&
                 tableType === "labors" && (
-                  <th className="md:px-4 px-2 md:py-3 py-2 text-left text-sm font-medium text-gray-50">
+                  <th className="md:px-4 px-2 md:py-3 py-2 text-left text-sm font-medium text-primary-foreground">
                     Labor Info
                   </th>
                 )}
               {selectedColumns.includes("equipment") &&
                 tableType === "equipment" && (
-                  <th className="md:px-4 px-2 md:py-3 py-2 text-left text-sm font-medium text-gray-50">
+                  <th className="md:px-4 px-2 md:py-3 py-2 text-left text-sm font-medium text-primary-foreground">
                     Equipment
                   </th>
                 )}
               {selectedColumns.includes("target") && (
-                <th className="md:px-4 px-2 md:py-3 py-2 text-left text-sm font-medium text-gray-50">
+                <th className="md:px-4 px-2 md:py-3 py-2 text-left text-sm font-medium text-primary-foreground">
                   Target
                 </th>
               )}
 
               {selectedColumns.includes("status") && (
-                <th className="md:px-4 px-2 md:py-3 py-2 text-left text-sm font-medium text-gray-50">
+                <th className="md:px-4 px-2 md:py-3 py-2 text-left text-sm font-medium text-primary-foreground">
                   Status
                 </th>
               )}
 
               {selectedColumns.includes("actions") && (
-                <th className="md:px-4 px-2 md:py-3 py-2 text-left text-sm font-medium text-gray-50">
+                <th className="md:px-4 px-2 md:py-3 py-2 text-left text-sm font-medium text-primary-foreground">
                   Actions
                 </th>
               )}
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-white divide-y divide-border">
             {filteredKpis.length > 0 ? (
               filteredKpis.map((kpi) => (
-                <tr key={kpi.id} className="hover:bg-gray-50">
+                <tr key={kpi.id} className="hover:bg-accent">
                   {selectedColumns.includes("type") && (
-                    <td className="md:px-4 px-2 md:py-2 py-1 font-medium text-bs-primary">
+                    <td className="md:px-4 px-2 md:py-2 py-1 font-medium text-primary">
                       <Link
                         href={`/kpi/${kpi.id}`}
                         className="hover:underline"
@@ -351,15 +348,14 @@ const KpiTable = ({ kpis }: KpiProps) => {
                   {selectedColumns.includes("status") && (
                     <td className="md:px-4 px-2 md:py-2 py-1">
                       <span
-                        className={`badge bg-gray-100 md:px-2 px-1 md:py-1 py-0.5 rounded ${
-                          kpi.status === "Excellent"
-                            ? "text-green-600"
+                        className={`badge bg-muted md:px-2 px-1 md:py-1 py-0.5 rounded ${kpi.status === "Excellent"
+                            ? "text-primary"
                             : kpi.status === "V.Good"
-                            ? "text-blue-500"
-                            : kpi.status === "Good"
-                            ? "text-yellow-500"
-                            : "text-red-500"
-                        }`}
+                              ? "text-blue-500"
+                              : kpi.status === "Good"
+                                ? "text-yellow-500"
+                                : "text-destructive"
+                          }`}
                       >
                         {kpi.status}
                       </span>
@@ -369,16 +365,15 @@ const KpiTable = ({ kpis }: KpiProps) => {
                   {selectedColumns.includes("actions") && (
                     <td className="md:px-4 px-2 md:py-2 py-1">
                       <Menu>
-                        <MenuButton className="flex items-center gap-1 md:px-3 px-2 md:py-1 py-0.5 text-sm bg-cyan-700 text-white rounded hover:bg-cyan-800">
+                        <MenuButton className="flex items-center gap-1 md:px-3 px-2 md:py-1 py-0.5 text-sm bg-primary text-primary-foreground rounded hover:bg-primary/90">
                           Action <ChevronDown className="w-4 h-4" />
                         </MenuButton>
                         <MenuItems className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-10">
                           <MenuItem>
                             {({ active }) => (
                               <button
-                                className={`block w-full md:px-4 px-2 py-2 text-left ${
-                                  active ? "bg-blue-100" : ""
-                                }`}
+                                className={`block w-full md:px-4 px-2 py-2 text-left ${active ? "bg-accent" : ""
+                                  }`}
                                 onClick={() => handleViewKpi(kpi.id)}
                               >
                                 View
@@ -388,9 +383,8 @@ const KpiTable = ({ kpis }: KpiProps) => {
                           <MenuItem>
                             {({ active }) => (
                               <button
-                                className={`block w-full md:px-4 px-2 py-2 text-left ${
-                                  active ? "bg-blue-100" : ""
-                                }`}
+                                className={`block w-full md:px-4 px-2 py-2 text-left ${active ? "bg-accent" : ""
+                                  }`}
                                 onClick={() => handleEditKpiClick(kpi)}
                               >
                                 Edit
@@ -400,9 +394,8 @@ const KpiTable = ({ kpis }: KpiProps) => {
                           <MenuItem>
                             {({ active }) => (
                               <button
-                                className={`block w-full md:px-4 px-2 py-2 text-left ${
-                                  active ? "bg-blue-100" : ""
-                                }`}
+                                className={`block w-full md:px-4 px-2 py-2 text-left ${active ? "bg-accent" : ""
+                                  }`}
                                 onClick={() => handleDeleteKpiClick(kpi.id)}
                               >
                                 Delete
@@ -419,7 +412,7 @@ const KpiTable = ({ kpis }: KpiProps) => {
               <tr>
                 <td
                   colSpan={selectedColumns.length}
-                  className="md:px-4 px-2 md:py-2 py-1 text-center text-gray-500"
+                  className="md:px-4 px-2 md:py-2 py-1 text-center text-muted-foreground"
                 >
                   No KPIs found.
                 </td>

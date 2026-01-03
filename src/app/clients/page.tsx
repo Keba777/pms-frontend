@@ -42,23 +42,27 @@ const ClientsPage = () => {
     }
 
     if (isError) {
-        return <div className="p-8 text-center text-red-500">Failed to load clients.</div>;
+        return (
+            <div className="p-12 text-center bg-destructive/10 rounded-2xl border border-destructive/20 max-w-md mx-auto mt-8">
+                <p className="text-destructive font-black uppercase tracking-tight">Failed to load clients.</p>
+            </div>
+        );
     }
 
     return (
-        <div className="p-4 space-y-6">
+        <div className="p-6 bg-background min-h-screen space-y-6">
             {/* Header */}
             <div className="flex items-center justify-between mb-4">
                 <nav aria-label="breadcrumb">
-                    <ol className="flex space-x-2">
-                        <li><Link href="/" className="text-blue-600 hover:underline">Home</Link></li>
-                        <li className="text-gray-500">/</li>
-                        <li className="text-gray-900 font-semibold">Clients</li>
+                    <ol className="flex items-center space-x-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                        <li><Link href="/" className="hover:text-primary transition-colors">Home</Link></li>
+                        <li className="text-muted-foreground/40">/</li>
+                        <li className="text-foreground tracking-tighter">Clients</li>
                     </ol>
                 </nav>
 
                 <button
-                    className="bg-cyan-700 hover:bg-cyan-800 text-white font-bold py-2 px-3 rounded text-sm flex items-center gap-2"
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground font-black text-[10px] uppercase tracking-widest py-2.5 px-6 rounded-xl flex items-center gap-2 shadow-lg shadow-primary/20 transition-all active:scale-95"
                     onClick={() => setShowCreateForm(true)}
                 >
                     <PlusIcon className="w-4 h-4" /> Add Client
@@ -66,42 +70,42 @@ const ClientsPage = () => {
             </div>
 
             {/* Table */}
-            <div className="overflow-x-auto shadow-md sm:rounded-lg">
-                <table className="min-w-full text-sm text-left text-gray-500">
-                    <thead className="text-xs text-white uppercase bg-cyan-700">
+            <div className="overflow-x-auto bg-card rounded-2xl border border-border shadow-sm">
+                <table className="min-w-full text-sm text-left">
+                    <thead className="text-[10px] text-primary-foreground uppercase bg-primary font-black tracking-widest">
                         <tr>
-                            <th scope="col" className="px-6 py-3">Company Name</th>
-                            <th scope="col" className="px-6 py-3">Responsible Person</th>
-                            <th scope="col" className="px-6 py-3">Description</th>
-                            <th scope="col" className="px-6 py-3">Status</th>
-                            <th scope="col" className="px-6 py-3">Projects Info</th>
-                            <th scope="col" className="px-6 py-3">Attachments</th>
-                            <th scope="col" className="px-6 py-3 text-center">Actions</th>
+                            <th scope="col" className="px-6 py-4 border-b border-primary-foreground/10">Company Name</th>
+                            <th scope="col" className="px-6 py-4 border-b border-primary-foreground/10">Responsible Person</th>
+                            <th scope="col" className="px-6 py-4 border-b border-primary-foreground/10">Description</th>
+                            <th scope="col" className="px-6 py-4 border-b border-primary-foreground/10 text-center">Status</th>
+                            <th scope="col" className="px-6 py-4 border-b border-primary-foreground/10">Projects Info</th>
+                            <th scope="col" className="px-6 py-4 border-b border-primary-foreground/10">Attachments</th>
+                            <th scope="col" className="px-6 py-4 border-b border-primary-foreground/10 text-center">Actions</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody className="divide-y divide-border">
                         {clients.length === 0 ? (
-                            <tr className="bg-white border-b">
-                                <td colSpan={7} className="px-6 py-4 text-center">
+                            <tr className="bg-card">
+                                <td colSpan={7} className="px-6 py-12 text-center text-muted-foreground/40 font-black uppercase tracking-widest text-[10px] italic">
                                     No clients found.
                                 </td>
                             </tr>
                         ) : (
                             clients.map((client) => (
-                                <tr key={client.id} className="bg-white border-b hover:bg-gray-50">
-                                    <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
+                                <tr key={client.id} className="bg-card hover:bg-accent/50 transition-colors group">
+                                    <td className="px-6 py-4 font-bold text-foreground">
                                         {client.companyName}
                                     </td>
-                                    <td className="px-6 py-4">
+                                    <td className="px-6 py-4 text-muted-foreground font-medium">
                                         {client.responsiblePerson || "-"}
                                     </td>
                                     <td className="px-6 py-4">
-                                        <div className="truncate max-w-xs" title={client.description}>
+                                        <div className="truncate max-w-xs text-xs text-muted-foreground/80" title={client.description}>
                                             {client.description || "-"}
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4">
-                                        <span className={`px-2 py-1 rounded-full text-xs ${client.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                    <td className="px-6 py-4 text-center">
+                                        <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${client.status === 'Active' ? 'bg-primary/10 text-primary border-primary/20' : 'bg-destructive/10 text-destructive border-destructive/20'}`}>
                                             {client.status}
                                         </span>
                                     </td>
@@ -109,48 +113,48 @@ const ClientsPage = () => {
                                         {client.projects && client.projects.length > 0 ? (
                                             <div className="space-y-2">
                                                 {client.projects.map((project) => (
-                                                    <div key={project.id} className="p-2 bg-gray-50 rounded border text-xs">
-                                                        <div className="font-semibold text-cyan-700 mb-1 line-clamp-1" title={project.title}>{project.title}</div>
-                                                        <div className="grid grid-cols-2 gap-x-2 gap-y-1">
-                                                            <div><span className="text-gray-500">Start:</span> {project.start_date ? new Date(project.start_date).toLocaleDateString() : "-"}</div>
-                                                            <div><span className="text-gray-500">Due:</span> {project.end_date ? new Date(project.end_date).toLocaleDateString() : "-"}</div>
-                                                            <div><span className="text-gray-500">Site:</span> {(project as any).projectSite?.name || "-"}</div>
-                                                            <div><span className="text-gray-500">Rem:</span> {getRemainingDays(project.end_date)}d</div>
+                                                    <div key={project.id} className="p-3 bg-muted/30 rounded-xl border border-border text-[10px] transition-colors hover:bg-muted/50">
+                                                        <div className="font-black text-primary uppercase tracking-tight mb-1 line-clamp-1" title={project.title}>{project.title}</div>
+                                                        <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-muted-foreground">
+                                                            <div><span className="font-black opacity-50 uppercase text-[8px]">Start:</span> {project.start_date ? new Date(project.start_date).toLocaleDateString() : "-"}</div>
+                                                            <div><span className="font-black opacity-50 uppercase text-[8px]">Due:</span> {project.end_date ? new Date(project.end_date).toLocaleDateString() : "-"}</div>
+                                                            <div><span className="font-black opacity-50 uppercase text-[8px]">Site:</span> {(project as any).projectSite?.name || "-"}</div>
+                                                            <div><span className="font-black opacity-50 uppercase text-[8px]">Rem:</span> {getRemainingDays(project.end_date)}d</div>
                                                         </div>
                                                     </div>
                                                 ))}
                                             </div>
                                         ) : (
-                                            <span className="text-gray-400">No projects</span>
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/30 italic">No projects</span>
                                         )}
                                     </td>
                                     <td className="px-6 py-4">
                                         {client.attachments && client.attachments.length > 0 ? (
-                                             <div className="flex flex-col gap-1">
-                                                 {client.attachments.map((att, idx) => (
-                                                     <a key={idx} href={att} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline text-xs truncate max-w-[150px]">
-                                                         Attachment {idx + 1}
-                                                     </a>
-                                                 ))}
-                                             </div>
+                                            <div className="flex flex-col gap-1.5">
+                                                {client.attachments.map((att, idx) => (
+                                                    <a key={idx} href={att} target="_blank" rel="noreferrer" className="text-primary hover:text-primary/80 text-[10px] font-bold uppercase tracking-wide truncate max-w-[150px] flex items-center gap-1">
+                                                        <div className="w-1 h-1 rounded-full bg-primary/40" />
+                                                        Attachment {idx + 1}
+                                                    </a>
+                                                ))}
+                                            </div>
                                         ) : "-"}
                                     </td>
                                     <td className="px-6 py-4 text-center">
-                                       <Menu as="div" className="relative inline-block text-left">
-                                            <MenuButton className="inline-flex justify-center w-full px-2 py-1 text-sm font-medium text-white bg-cyan-700 rounded-md hover:bg-cyan-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75">
-                                                Action <ChevronDown className="w-4 h-4 ml-2 -mr-1" aria-hidden="true" />
+                                        <Menu as="div" className="relative inline-block text-left">
+                                            <MenuButton className="inline-flex justify-center items-center px-4 py-2 text-[10px] font-black uppercase tracking-widest text-primary-foreground bg-primary rounded-xl hover:bg-primary/90 focus:outline-none shadow-sm transition-all active:scale-95">
+                                                Action <ChevronDown className="w-4 h-4 ml-2" aria-hidden="true" />
                                             </MenuButton>
-                                            <MenuItems className="absolute right-0 w-32 mt-2 origin-top-right bg-white divide-y divide-gray-100 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-10">
-                                                <div className="px-1 py-1">
+                                            <MenuItems className="absolute right-0 w-32 mt-2 origin-top-right bg-card border border-border divide-y divide-border rounded-xl shadow-2xl focus:outline-none z-50 overflow-hidden animate-in fade-in slide-in-from-top-2">
+                                                <div className="p-1">
                                                     <MenuItem>
                                                         {({ active }) => (
                                                             <button
                                                                 onClick={() => handleEditClick(client)}
-                                                                className={`${
-                                                                    active ? 'bg-cyan-700 text-white' : 'text-gray-900'
-                                                                } group flex rounded-md items-center w-full px-2 py-2 text-sm`}
+                                                                className={`${active ? 'bg-primary text-primary-foreground' : 'text-foreground'
+                                                                    } group flex rounded-lg items-center w-full px-3 py-2.5 text-[10px] font-black uppercase tracking-widest transition-colors`}
                                                             >
-                                                                <Edit2 className="w-4 h-4 mr-2" />
+                                                                <Edit2 className="w-3.5 h-3.5 mr-2" />
                                                                 Edit
                                                             </button>
                                                         )}
@@ -159,9 +163,8 @@ const ClientsPage = () => {
                                                         {({ active }) => (
                                                             <button
                                                                 onClick={() => handleDeleteClick(client.id)}
-                                                                className={`${
-                                                                    active ? 'bg-red-500 text-white' : 'text-gray-900'
-                                                                } group flex rounded-md items-center w-full px-2 py-2 text-sm`}
+                                                                className={`${active ? 'bg-destructive text-white' : 'text-foreground'
+                                                                    } group flex rounded-lg items-center w-full px-3 py-2.5 text-[10px] font-black uppercase tracking-widest transition-colors`}
                                                             >
                                                                 Delete
                                                             </button>
@@ -180,16 +183,16 @@ const ClientsPage = () => {
 
             {/* Modals */}
             {showCreateForm && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-                    <div className="w-full max-w-lg mx-4">
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className="w-full max-w-lg mx-4 bg-card rounded-[2rem] shadow-2xl p-6 border border-border animate-in zoom-in-95 duration-300">
                         <ClientForm onClose={() => setShowCreateForm(false)} />
                     </div>
                 </div>
             )}
 
             {showEditForm && clientToEdit && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-                    <div className="w-full max-w-lg mx-4">
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className="w-full max-w-lg mx-4 bg-card rounded-[2rem] shadow-2xl p-6 border border-border animate-in zoom-in-95 duration-300">
                         <EditClientForm client={clientToEdit} onClose={() => setShowEditForm(false)} />
                     </div>
                 </div>

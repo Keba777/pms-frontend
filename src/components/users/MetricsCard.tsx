@@ -12,7 +12,7 @@ const MetricsCard = ({
   title,
   value,
   icon,
-  color = "text-cyan-700",
+  color = "text-primary",
 }: MetricsCardProps) => {
   return (
     <div className="bg-gray-50 p-4 rounded-lg shadow flex items-center space-x-4">

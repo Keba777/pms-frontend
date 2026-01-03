@@ -72,7 +72,7 @@ const ActualTaskTable: React.FC = () => {
   const menuRef = useRef<HTMLDivElement>(null);
 
   const [showEditForm, setShowEditForm] = useState(false);
-  const [taskToEdit, setTaskToEdit] = useState<UpdateTaskInput | null>(null);
+  const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
 
@@ -150,10 +150,7 @@ const ActualTaskTable: React.FC = () => {
   const handleViewTask = (id: string) => router.push(`/tasks/${id}`);
 
   const handleEditClick = (item: Task) => {
-    setTaskToEdit({
-      ...item,
-      assignedUsers: item.assignedUsers?.map((u) => u.id),
-    });
+    setTaskToEdit(item);
     setShowEditForm(true);
   };
 
@@ -165,7 +162,7 @@ const ActualTaskTable: React.FC = () => {
     if (selectedTaskId) deleteTask(selectedTaskId);
     setIsDeleteModalOpen(false);
   };
-  const handleEditSubmit = (data: UpdateTaskInput) => {
+  const handleEditSubmit = (data: UpdateTaskInput | FormData) => {
     updateTask(data);
     setShowEditForm(false);
   };
@@ -192,7 +189,7 @@ const ActualTaskTable: React.FC = () => {
     const data: Task = params.data;
     return (
       <Menu as="div" className="relative inline-block text-left">
-        <MenuButton className="flex items-center gap-1 px-3 py-1 text-sm bg-cyan-700 text-white rounded hover:bg-cyan-800">
+        <MenuButton className="flex items-center gap-1 px-3 py-1 text-sm bg-primary text-white rounded hover:bg-primary/90">
           Action <ChevronDown className="w-4 h-4" />
         </MenuButton>
         <MenuItems className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-10">
@@ -488,7 +485,7 @@ const ActualTaskTable: React.FC = () => {
           <div ref={menuRef} className="relative w-full sm:w-auto">
             <button
               onClick={() => setShowColumnMenu((prev) => !prev)}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 text-sm bg-cyan-700 text-white rounded hover:bg-cyan-800 transition-colors shadow-sm font-medium"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 text-sm bg-primary text-white rounded hover:bg-primary/90 transition-colors shadow-sm font-medium"
             >
               Customize Columns <ChevronDown className="w-4 h-4" />
             </button>
@@ -585,12 +582,12 @@ const ActualTaskTable: React.FC = () => {
 
       <style jsx global>{`
         .custom-grid .ag-header-cell {
-          background-color: #0e7490 !important; /* cyan-700 */
+          background-color: #0e7490 !important; /* primary */
           color: #f3f4f6 !important; /* gray-100 */
           border: 0.5px solid rgba(209,213,219,0.9) !important;
         }
         .custom-grid .ag-header-cell:hover {
-          background-color: #155e75 !important; /* cyan-800 */
+          background-color: #155e75 !important; /* primary/90 */
         }
         /* add bottom padding so header text isn't cut */
         .custom-grid .ag-header-cell, .custom-grid .ag-header-cell .ag-header-cell-label {

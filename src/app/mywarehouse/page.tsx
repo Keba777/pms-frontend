@@ -86,7 +86,7 @@ const WarehousePage = () => {
     <div className="p-4 sm:p-6 bg-white min-h-screen">
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8 bg-gray-50 p-4 rounded-xl border border-gray-100">
         <div>
-          <h1 className="text-xl sm:text-2xl font-black text-cyan-800 uppercase tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-black text-primary/90 uppercase tracking-tight">
             Registered Warehouses
           </h1>
           <p className="text-[10px] sm:text-xs font-black text-gray-400 uppercase tracking-widest mt-1">
@@ -94,7 +94,7 @@ const WarehousePage = () => {
           </p>
         </div>
         <button
-          className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 text-[10px] font-black uppercase tracking-widest bg-cyan-700 text-white rounded-xl hover:bg-cyan-800 transition-all shadow-md shadow-cyan-200"
+          className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 text-[10px] font-black uppercase tracking-widest bg-primary text-white rounded-xl hover:bg-primary/90 transition-all shadow-md shadow-cyan-200"
           onClick={() => setShowAddModal(true)}
         >
           <PlusIcon className="w-4 h-4" />

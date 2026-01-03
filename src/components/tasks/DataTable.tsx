@@ -33,17 +33,17 @@ const DataTable: React.FC = () => {
 
   // badge class mappings
   const priorityBadgeClasses: Record<Task["priority"], string> = {
-    Critical: "bg-red-100 text-red-800",
+    Critical: "bg-destructive/10 text-destructive",
     High: "bg-orange-100 text-orange-800",
     Medium: "bg-yellow-100 text-yellow-800",
     Low: "bg-green-100 text-green-800",
   };
   const statusBadgeClasses: Record<Task["status"], string> = {
-    "Not Started": "bg-gray-100 text-gray-800",
-    Started: "bg-blue-100 text-blue-800",
+    "Not Started": "bg-muted text-muted-foreground",
+    Started: "bg-primary/10 text-primary",
     InProgress: "bg-yellow-100 text-yellow-800",
     Onhold: "bg-amber-100 text-amber-800",
-    Canceled: "bg-red-100 text-red-800",
+    Canceled: "bg-destructive/10 text-destructive",
     Completed: "bg-green-100 text-green-800",
   };
 
@@ -116,7 +116,7 @@ const DataTable: React.FC = () => {
     if (selectedTaskId) deleteTask(selectedTaskId);
     setIsDeleteModalOpen(false);
   };
-  const handleEditSubmit = (data: UpdateTaskInput) => {
+  const handleEditSubmit = (data: UpdateTaskInput | FormData) => {
     updateTask(data);
     setShowEditForm(false);
   };
@@ -191,27 +191,27 @@ const DataTable: React.FC = () => {
         <div ref={menuRef} className="relative w-full lg:w-auto">
           <button
             onClick={() => setShowColumnMenu((prev) => !prev)}
-            className="w-full lg:w-auto flex items-center justify-center gap-2 px-5 py-2.5 text-sm bg-cyan-700 text-white rounded hover:bg-cyan-800 transition-colors shadow-sm font-medium"
+            className="w-full lg:w-auto flex items-center justify-center gap-2 px-5 py-2.5 text-sm bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors shadow-sm font-medium"
           >
             Customize Columns <ChevronDown className="w-4 h-4" />
           </button>
           {showColumnMenu && (
-            <div className="absolute left-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-xl z-20 py-2">
-              <div className="px-4 py-2 border-b border-gray-100 mb-1">
-                <span className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">Visible Columns</span>
+            <div className="absolute left-0 mt-2 w-56 bg-white border border-border rounded-lg shadow-xl z-20 py-2">
+              <div className="px-4 py-2 border-b border-border mb-1">
+                <span className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider">Visible Columns</span>
               </div>
               {Object.entries(columnOptions).map(([key, label]) => (
                 <label
                   key={key}
-                  className="flex items-center w-full px-4 py-2 hover:bg-gray-50 cursor-pointer transition-colors"
+                  className="flex items-center w-full px-4 py-2 hover:bg-accent cursor-pointer transition-colors"
                 >
                   <input
                     type="checkbox"
                     checked={selectedColumns.includes(key)}
                     onChange={() => toggleColumn(key)}
-                    className="w-4 h-4 rounded border-gray-300 text-cyan-600 focus:ring-cyan-500 mr-3"
+                    className="w-4 h-4 rounded border-border text-primary focus:ring-primary mr-3"
                   />
-                  <span className="text-sm text-gray-700 font-medium">{label}</span>
+                  <span className="text-sm text-foreground font-medium">{label}</span>
                 </label>
               ))}
             </div>
@@ -227,14 +227,14 @@ const DataTable: React.FC = () => {
               selected={fromDate}
               onChange={setFromDate}
               placeholderText="From Date"
-              className="rounded-lg border border-gray-300 px-4 py-2 text-sm focus:ring-2 focus:ring-cyan-500 font-medium w-full sm:w-36"
+              className="rounded-lg border border-border px-4 py-2 text-sm focus:ring-2 focus:ring-primary font-medium w-full sm:w-36"
               dateFormat="yyyy-MM-dd"
             />
             <DatePicker
               selected={toDate}
               onChange={setToDate}
               placeholderText="To Date"
-              className="rounded-lg border border-gray-300 px-4 py-2 text-sm focus:ring-2 focus:ring-cyan-500 font-medium w-full sm:w-36"
+              className="rounded-lg border border-border px-4 py-2 text-sm focus:ring-2 focus:ring-primary font-medium w-full sm:w-36"
               dateFormat="yyyy-MM-dd"
             />
           </div>
@@ -243,55 +243,55 @@ const DataTable: React.FC = () => {
 
       <div className="overflow-x-auto">
         <table className="min-w-max divide-y divide-gray-200 border">
-          <thead className="bg-cyan-700">
+          <thead className="bg-primary">
             <tr>
               {selectedColumns.includes("task_name") && (
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+                <th className="px-4 py-3 text-left text-sm font-medium text-primary-foreground">
                   Task
                 </th>
               )}
               {selectedColumns.includes("assignedUsers") && (
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+                <th className="px-4 py-3 text-left text-sm font-medium text-primary-foreground">
                   Assigned To
                 </th>
               )}
               {selectedColumns.includes("priority") && (
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+                <th className="px-4 py-3 text-left text-sm font-medium text-primary-foreground">
                   Priority
                 </th>
               )}
               {selectedColumns.includes("start_date") && (
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+                <th className="px-4 py-3 text-left text-sm font-medium text-primary-foreground">
                   Start Date
                 </th>
               )}
               {selectedColumns.includes("end_date") && (
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+                <th className="px-4 py-3 text-left text-sm font-medium text-primary-foreground">
                   End Date
                 </th>
               )}
               {selectedColumns.includes("duration") && (
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+                <th className="px-4 py-3 text-left text-sm font-medium text-primary-foreground">
                   Duration
                 </th>
               )}
               {selectedColumns.includes("progress") && (
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+                <th className="px-4 py-3 text-left text-sm font-medium text-primary-foreground">
                   Progress
                 </th>
               )}
               {selectedColumns.includes("status") && (
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+                <th className="px-4 py-3 text-left text-sm font-medium text-primary-foreground">
                   Status
                 </th>
               )}
               {selectedColumns.includes("approvalStatus") && (
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+                <th className="px-4 py-3 text-left text-sm font-medium text-primary-foreground">
                   Approval
                 </th>
               )}
               {selectedColumns.includes("actions") && (
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-50">
+                <th className="px-4 py-3 text-left text-sm font-medium text-primary-foreground">
                   Actions
                 </th>
               )}
@@ -300,9 +300,9 @@ const DataTable: React.FC = () => {
           <tbody className="bg-white divide-y divide-gray-200">
             {filteredTasks.length > 0 ? (
               filteredTasks.map((task) => (
-                <tr key={task.id} className="hover:bg-gray-50">
+                <tr key={task.id} className="hover:bg-accent">
                   {selectedColumns.includes("task_name") && (
-                    <td className="px-4 py-2 font-medium text-bs-primary">
+                    <td className="px-4 py-2 font-medium text-primary">
                       <Link
                         href={`/tasks/${task.id}`}
                         className="hover:underline"
@@ -347,9 +347,9 @@ const DataTable: React.FC = () => {
                   )}
                   {selectedColumns.includes("progress") && (
                     <td className="px-4 py-2">
-                      <div className="relative h-5 bg-gray-200 rounded">
+                      <div className="relative h-5 bg-muted rounded">
                         <div
-                          className="absolute h-full rounded bg-blue-600"
+                          className="absolute h-full rounded bg-primary"
                           style={{ width: `${task.progress ?? 0}%` }}
                         >
                           <span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-white">
@@ -378,22 +378,24 @@ const DataTable: React.FC = () => {
                         as="div"
                         className="relative inline-block text-left"
                       >
-                        <MenuButton className="flex items-center gap-1 px-3 py-1 text-sm bg-cyan-700 text-white rounded hover:bg-cyan-800">
+                        <MenuButton className="flex items-center gap-1 px-3 py-1 text-sm bg-primary text-primary-foreground rounded hover:bg-primary/90">
                           Action <ChevronDown className="w-4 h-4" />
                         </MenuButton>
                         <MenuItems className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-10">
                           <MenuItem>
                             {({ active }) => (
                               <button
-                                className={`block w-full px-4 py-2 text-left ${active ? "bg-blue-100" : ""
+                                className={`block w-full px-4 py-2 text-left ${active ? "bg-accent" : ""
                                   }`}
                                 onClick={() =>
                                   handleUpdateTask({
                                     ...task,
+                                    existingAttachments: task.attachments,
+                                    attachments: undefined,
                                     assignedUsers: task.assignedUsers?.map(
                                       (u) => u.id
                                     ),
-                                  })
+                                  } as UpdateTaskInput)
                                 }
                               >
                                 Update
@@ -403,7 +405,7 @@ const DataTable: React.FC = () => {
                           <MenuItem>
                             {({ active }) => (
                               <button
-                                className={`block w-full px-4 py-2 text-left ${active ? "bg-blue-100" : ""
+                                className={`block w-full px-4 py-2 text-left ${active ? "bg-accent" : ""
                                   }`}
                                 onClick={() => handleDeleteTaskClick(task.id)}
                               >
@@ -414,7 +416,7 @@ const DataTable: React.FC = () => {
                           <MenuItem>
                             {({ active }) => (
                               <button
-                                className={`block w-full px-4 py-2 text-left ${active ? "bg-blue-100" : ""
+                                className={`block w-full px-4 py-2 text-left ${active ? "bg-accent" : ""
                                   }`}
                                 onClick={() => handleViewTask(task.id)}
                               >
@@ -425,7 +427,7 @@ const DataTable: React.FC = () => {
                           <MenuItem>
                             {({ active }) => (
                               <button
-                                className={`block w-full px-4 py-2 text-left ${active ? "bg-blue-100" : ""
+                                className={`block w-full px-4 py-2 text-left ${active ? "bg-accent" : ""
                                   }`}
                                 onClick={() => handleManageClick(task)}
                               >
@@ -443,7 +445,7 @@ const DataTable: React.FC = () => {
               <tr>
                 <td
                   colSpan={selectedColumns.length}
-                  className="px-4 py-2 text-center text-gray-500"
+                  className="px-4 py-2 text-center text-muted-foreground"
                 >
                   No tasks found.
                 </td>
@@ -455,21 +457,21 @@ const DataTable: React.FC = () => {
 
       <div className="flex items-center justify-between p-4">
         <div className="flex items-center gap-4">
-          <span className="text-sm text-gray-700">
+          <span className="text-sm text-foreground">
             Showing {filteredTasks.length} rows
           </span>
-          <select className="rounded border-gray-300 text-sm">
+          <select className="rounded border-border text-sm">
             <option>10</option>
             <option>20</option>
             <option>50</option>
           </select>
         </div>
         <div className="flex gap-2">
-          <button className="px-3 py-1 rounded border hover:bg-gray-50">
+          <button className="px-3 py-1 rounded border border-border hover:bg-accent">
             &lsaquo;
           </button>
-          <button className="px-3 py-1 rounded border bg-gray-100">1</button>
-          <button className="px-3 py-1 rounded border hover:bg-gray-50">
+          <button className="px-3 py-1 rounded border border-border bg-accent">1</button>
+          <button className="px-3 py-1 rounded border border-border hover:bg-accent">
             &rsaquo;
           </button>
         </div>

@@ -14,15 +14,15 @@ const BreadcrumbTasks: React.FC = () => {
                 Home
               </Link>
             </li>
-            <li className="text-gray-400">/</li>
-            <li className="text-gray-800">Tasks</li>
+            <li className="text-muted-foreground">/</li>
+            <li className="text-foreground">Tasks</li>
           </ol>
         </nav>
       </div>
       <div className="flex space-x-2">
         <button
           type="button"
-          className="px-3 py-1 text-white bg-cyan-700 rounded hover:bg-cyan-800"
+          className="px-3 py-1 text-primary-foreground bg-primary rounded hover:bg-primary/90"
           title="Draggable"
         >
           <LayoutDashboard className="w-4 h-4" />

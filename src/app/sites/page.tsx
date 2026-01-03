@@ -38,8 +38,9 @@ export default function SitesPage() {
 
   if (isError) {
     return (
-      <div className="text-red-600 text-center py-4">
-        Failed to load sites. {(error as Error).message || "Please try again."}
+      <div className="p-12 text-center bg-destructive/10 rounded-2xl border border-destructive/20 max-w-md mx-auto mt-8">
+        <p className="text-destructive font-black uppercase tracking-tight">Failed to load sites.</p>
+        <p className="text-[10px] font-bold text-destructive/60 uppercase mt-2">{(error as Error).message || "Please try again."}</p>
       </div>
     );
   }
@@ -68,32 +69,32 @@ export default function SitesPage() {
     {
       title: "Sites",
       value: totalSites,
-      icon: <PlusIcon className="h-6 w-6 text-cyan-700" />,
+      icon: <PlusIcon className="h-6 w-6 text-primary" />,
     },
     {
       title: "Users",
       value: totalUsers,
-      icon: <Eye className="h-6 w-6 text-cyan-700" />,
+      icon: <Eye className="h-6 w-6 text-primary" />,
     },
     {
       title: "Projects",
       value: totalProjects,
-      icon: <Edit2 className="h-6 w-6 text-cyan-700" />,
+      icon: <Edit2 className="h-6 w-6 text-primary" />,
     },
     {
       title: "Warehouses",
       value: totalWarehouses,
-      icon: <Edit2 className="h-6 w-6 text-cyan-700" />,
+      icon: <Edit2 className="h-6 w-6 text-primary" />,
     },
     {
       title: "Equipment",
       value: totalEquipment,
-      icon: <Edit2 className="h-6 w-6 text-cyan-700" />,
+      icon: <Edit2 className="h-6 w-6 text-primary" />,
     },
     {
       title: "Labors",
       value: totalLabors,
-      icon: <Edit2 className="h-6 w-6 text-cyan-700" />,
+      icon: <Edit2 className="h-6 w-6 text-primary" />,
     },
   ];
 
@@ -115,26 +116,26 @@ export default function SitesPage() {
   };
 
   return (
-    <div className="p-4 space-y-6">
+    <div className="p-6 bg-background min-h-screen space-y-6">
       {/* Breadcrumb + New */}
       <div className="flex items-center mb-4">
         <nav aria-label="breadcrumb">
-          <ol className="flex space-x-2 text-gray-600">
+          <ol className="flex items-center space-x-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
             <li>
-              <Link href="/" className="hover:underline text-blue-600">
+              <Link href="/" className="hover:text-primary transition-colors">
                 Home
               </Link>
             </li>
-            <li>/</li>
-            <li className="font-semibold text-gray-900">Sites</li>
+            <li className="text-muted-foreground/40">/</li>
+            <li className="text-foreground tracking-tighter">Sites</li>
           </ol>
         </nav>
         <div className="ml-auto">
           <button
             onClick={() => setShowCreateForm(true)}
-            className="inline-flex items-center bg-cyan-700 hover:bg-cyan-800 text-white font-bold py-2 px-3 rounded text-sm transition"
+            className="inline-flex items-center bg-primary hover:bg-primary/90 text-primary-foreground font-black text-[10px] uppercase tracking-widest py-2.5 px-6 rounded-xl shadow-lg shadow-primary/20 transition-all active:scale-95"
           >
-            <PlusIcon className="w-5 h-5 mr-1" />
+            <PlusIcon className="w-4 h-4 mr-1.5" />
             New Site
           </button>
         </div>
@@ -142,15 +143,15 @@ export default function SitesPage() {
 
       {/* Create / Edit Modals */}
       {showCreateForm && (
-        <div className="modal-overlay">
-          <div className="modal-content">
+        <div className="modal-overlay fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="modal-content bg-card rounded-[2rem] shadow-2xl p-6 border border-border animate-in zoom-in-95 duration-300 w-full max-w-lg mx-4">
             <SiteForm onClose={() => setShowCreateForm(false)} />
           </div>
         </div>
       )}
       {showEditForm && siteToEdit && (
-        <div className="modal-overlay">
-          <div className="modal-content">
+        <div className="modal-overlay fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="modal-content bg-card rounded-[2rem] shadow-2xl p-6 border border-border animate-in zoom-in-95 duration-300 w-full max-w-lg mx-4">
             <EditSiteForm
               site={siteToEdit}
               onClose={() => setShowEditForm(false)}
@@ -168,86 +169,85 @@ export default function SitesPage() {
       </div>
 
       {/* Sites Table */}
-      <div className="overflow-x-auto">
-        <table className="min-w-max w-full border border-gray-200 divide-y divide-gray-200">
-          <thead className="bg-cyan-700">
+      <div className="overflow-x-auto bg-card rounded-2xl border border-border shadow-sm">
+        <table className="min-w-max w-full border-collapse">
+          <thead className="bg-primary text-primary-foreground">
             <tr>
-              <th className="px-4 py-2 text-center text-sm font-medium text-white">
+              <th className="px-6 py-4 text-center text-[10px] font-black uppercase tracking-widest border-b border-primary-foreground/10">
                 #
               </th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-white">
+              <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest border-b border-primary-foreground/10">
                 Name
               </th>
-              <th className="px-4 py-2 text-center text-sm font-medium text-white">
+              <th className="px-6 py-4 text-center text-[10px] font-black uppercase tracking-widest border-b border-primary-foreground/10">
                 Users
               </th>
-              <th className="px-4 py-2 text-center text-sm font-medium text-white">
+              <th className="px-6 py-4 text-center text-[10px] font-black uppercase tracking-widest border-b border-primary-foreground/10">
                 Projects
               </th>
-              <th className="px-4 py-2 text-center text-sm font-medium text-white">
+              <th className="px-6 py-4 text-center text-[10px] font-black uppercase tracking-widest border-b border-primary-foreground/10">
                 Warehouses
               </th>
-              <th className="px-4 py-2 text-center text-sm font-medium text-white">
+              <th className="px-6 py-4 text-center text-[10px] font-black uppercase tracking-widest border-b border-primary-foreground/10">
                 Equipment
               </th>
-              <th className="px-4 py-2 text-center text-sm font-medium text-white">
+              <th className="px-6 py-4 text-center text-[10px] font-black uppercase tracking-widest border-b border-primary-foreground/10">
                 Labors
               </th>
-              <th className="px-4 py-2 text-center text-sm font-medium text-white">
+              <th className="px-6 py-4 text-center text-[10px] font-black uppercase tracking-widest border-b border-primary-foreground/10">
                 Created
               </th>
-              <th className="px-4 py-2 text-center text-sm font-medium text-white">
+              <th className="px-6 py-4 text-center text-[10px] font-black uppercase tracking-widest border-b">
                 Actions
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white">
+          <tbody className="bg-card divide-y divide-border">
             {sites.map((site, idx) => (
-              <tr key={site.id} className="hover:bg-gray-50">
-                <td className="border px-4 py-2 text-center">{idx + 1}</td>
-                <td className="border px-6 py-3">
+              <tr key={site.id} className="hover:bg-accent/50 transition-colors group">
+                <td className="px-6 py-4 text-center text-xs font-bold text-muted-foreground">{idx + 1}</td>
+                <td className="px-6 py-4">
                   <Link
                     href={`/sites/${site.id}`}
-                    className="text-cyan-700 hover:text-cyan-900 font-medium"
+                    className="text-primary hover:text-primary/80 font-bold transition-colors"
                   >
                     {site.name}
                   </Link>
                 </td>
-                <td className="border px-4 py-2 text-center">
+                <td className="px-6 py-4 text-center text-xs font-black text-foreground/80">
                   {site.users?.length ?? 0}
                 </td>
-                <td className="border px-4 py-2 text-center">
+                <td className="px-6 py-4 text-center text-xs font-black text-foreground/80">
                   {site.projects?.length ?? 0}
                 </td>
-                <td className="border px-4 py-2 text-center">
+                <td className="px-6 py-4 text-center text-xs font-black text-foreground/80">
                   {site.warehouses?.length ?? 0}
                 </td>
-                <td className="border px-4 py-2 text-center">
+                <td className="px-6 py-4 text-center text-xs font-black text-foreground/80">
                   {site.equipments?.length ?? 0}
                 </td>
-                <td className="border px-4 py-2 text-center">
+                <td className="px-6 py-4 text-center text-xs font-black text-foreground/80">
                   {site.labors?.length ?? 0}
                 </td>
-                <td className="border px-4 py-2 text-center text-gray-500">
+                <td className="px-6 py-4 text-center text-[10px] font-bold text-muted-foreground">
                   {site.createdAt
                     ? new Date(site.createdAt).toLocaleDateString()
                     : "—"}
                 </td>
-                <td className="border px-4 py-2 text-center">
+                <td className="px-6 py-4 text-center">
                   <Menu as="div" className="relative inline-block text-left">
-                    <MenuButton className="inline-flex items-center px-3 py-1 bg-cyan-700 text-white rounded hover:bg-cyan-800">
-                      Actions <ChevronDown className="w-4 h-4 ml-1" />
+                    <MenuButton className="inline-flex items-center px-4 py-2 text-[10px] font-black uppercase tracking-widest text-primary-foreground bg-primary rounded-xl hover:bg-primary/90 focus:outline-none shadow-sm transition-all active:scale-95">
+                      Actions <ChevronDown className="w-4 h-4 ml-2" />
                     </MenuButton>
-                    <MenuItems className="absolute right-0 mt-2 w-40 bg-white border rounded shadow-lg z-10">
+                    <MenuItems className="absolute right-0 mt-2 w-40 bg-card border border-border divide-y divide-border rounded-xl shadow-2xl focus:outline-none z-50 overflow-hidden animate-in fade-in slide-in-from-top-2">
                       <MenuItem>
                         {({ active }) => (
                           <button
                             onClick={() => router.push(`/sites/${site.id}`)}
-                            className={`block w-full px-4 py-2 text-left ${
-                              active ? "bg-gray-100" : ""
-                            }`}
+                            className={`flex items-center w-full px-4 py-2.5 text-[10px] font-black uppercase tracking-widest transition-colors ${active ? "bg-primary text-primary-foreground" : "text-foreground"
+                              }`}
                           >
-                            <Eye className="inline-block w-4 h-4 mr-2" />
+                            <Eye className="w-3.5 h-3.5 mr-2" />
                             View
                           </button>
                         )}
@@ -259,11 +259,10 @@ export default function SitesPage() {
                               setSiteToEdit(site);
                               setShowEditForm(true);
                             }}
-                            className={`block w-full px-4 py-2 text-left ${
-                              active ? "bg-gray-100" : ""
-                            }`}
+                            className={`flex items-center w-full px-4 py-2.5 text-[10px] font-black uppercase tracking-widest transition-colors ${active ? "bg-primary text-primary-foreground" : "text-foreground"
+                              }`}
                           >
-                            <Edit2 className="inline-block w-4 h-4 mr-2" />
+                            <Edit2 className="w-3.5 h-3.5 mr-2" />
                             Edit
                           </button>
                         )}
@@ -272,11 +271,10 @@ export default function SitesPage() {
                         {({ active }) => (
                           <button
                             onClick={() => openDeleteModal(site.id)}
-                            className={`block w-full px-4 py-2 text-left text-red-600 ${
-                              active ? "bg-gray-100" : ""
-                            }`}
+                            className={`flex items-center w-full px-4 py-2.5 text-[10px] font-black uppercase tracking-widest transition-colors ${active ? "bg-destructive text-white" : "text-destructive"
+                              }`}
                           >
-                            <Trash2 className="inline-block w-4 h-4 mr-2" />
+                            <Trash2 className="w-3.5 h-3.5 mr-2" />
                             Delete
                           </button>
                         )}
@@ -288,7 +286,7 @@ export default function SitesPage() {
             ))}
             {sites.length === 0 && (
               <tr>
-                <td colSpan={9} className="px-4 py-4 text-center text-gray-500">
+                <td colSpan={9} className="px-6 py-20 text-center text-[10px] font-black uppercase tracking-widest text-muted-foreground/40 italic">
                   No sites found.
                 </td>
               </tr>

@@ -134,10 +134,10 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
         className="bg-white rounded-lg shadow-xl p-6 space-y-6"
       >
         <div className="flex justify-between items-center pb-4 border-b">
-          <h3 className="text-lg font-semibold text-gray-800">Edit Project</h3>
+          <h3 className="text-lg font-semibold text-foreground">Edit Project</h3>
           <button
             type="button"
-            className="text-3xl text-red-500 hover:text-red-600"
+            className="text-3xl text-destructive hover:text-destructive/90"
             onClick={onClose}
           >
             &times;
@@ -147,23 +147,23 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
         <div className="space-y-6">
           {/* Title Input */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-muted-foreground mb-2">
               Project Title <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               {...register("title", { required: "Title is required" })}
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+              className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
             />
             {errors.title && (
-              <p className="text-red-500 text-sm mt-1">{errors.title.message}</p>
+              <p className="text-destructive text-sm mt-1">{errors.title.message}</p>
             )}
           </div>
 
           {/* Status, Priority, and Favourite */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-muted-foreground mb-2">
                 Priority
               </label>
               <Controller
@@ -182,7 +182,7 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-muted-foreground mb-2">
                 Status <span className="text-red-500">*</span>
               </label>
               <Controller
@@ -200,14 +200,14 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
                 )}
               />
               {errors.status && (
-                <p className="text-red-500 text-sm mt-1">
+                <p className="text-destructive text-sm mt-1">
                   {errors.status.message}
                 </p>
               )}
             </div>
 
             <div className="flex items-center mt-5">
-              <label className="flex items-center text-sm font-medium text-gray-700">
+              <label className="flex items-center text-sm font-medium text-muted-foreground">
                 <input
                   type="checkbox"
                   {...register("isFavourite")}
@@ -221,28 +221,28 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
           {/* Budget, Progress, and Dates */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-muted-foreground mb-2">
                 Planned Budget
               </label>
               <div className="flex">
-                <span className="inline-flex items-center px-3 border border-r-0 rounded-l-md bg-gray-50 text-gray-500">
+                <span className="inline-flex items-center px-3 border border-r-0 rounded-l-md bg-muted text-muted-foreground">
                   ETB
                 </span>
                 <input
                   type="number"
                   {...register("budget", { required: "Budget is required" })}
-                  className="flex-1 px-3 py-2 border rounded-r-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+                  className="flex-1 px-3 py-2 border border-border rounded-r-md focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
               {errors.budget && (
-                <p className="text-red-500 text-sm mt-1">
+                <p className="text-destructive text-sm mt-1">
                   {errors.budget.message}
                 </p>
               )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-muted-foreground mb-2">
                 Progress (%)
               </label>
               <input
@@ -255,7 +255,7 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-muted-foreground mb-2">
                 Starts At <span className="text-red-500">*</span>
               </label>
               <Controller
@@ -277,12 +277,12 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
                 )}
               />
               {errors.start_date && (
-                <p className="text-red-500 text-sm mt-1">
+                <p className="text-destructive text-sm mt-1">
                   {errors.start_date?.message}
                 </p>
               )}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-muted-foreground mb-2">
                   Ends At <span className="text-red-500">*</span>
                 </label>
                 <Controller
@@ -304,7 +304,7 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
                   )}
                 />
                 {errors.end_date && (
-                  <p className="text-red-500 text-sm mt-1">
+                  <p className="text-destructive text-sm mt-1">
                     {errors.end_date.message}
                   </p>
                 )}
@@ -314,7 +314,7 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
             {/* Client and Site Section */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-muted-foreground mb-2">
                   Client <span className="text-red-500">*</span>
                 </label>
                 <div className="flex gap-2">
@@ -341,7 +341,7 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
                   <button
                     type="button"
                     onClick={() => setShowClientModal(true)}
-                    className="px-3 h-[38px] bg-green-600 text-white rounded hover:bg-green-700 flex items-center justify-center transition-colors"
+                    className="px-3 h-[38px] bg-primary text-primary-foreground rounded hover:bg-primary/90 flex items-center justify-center transition-colors"
                     title="Add New Client"
                   >
                     <Plus size={18} />
@@ -351,9 +351,9 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-muted-foreground mb-2">
                   Site <span className="text-red-500">*</span>
-                  <Info className="inline ml-1 text-bs-primary h-4 w-4" />
+                  <Info className="inline ml-1 text-primary h-4 w-4" />
                 </label>
                 <div className="flex gap-2">
                   <div className="flex-1">
@@ -387,17 +387,17 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
                   </button>
                 </div>
                 {errors.site_id && (
-                  <p className="text-red-500 text-sm mt-1">{errors.site_id.message}</p>
+                  <p className="text-destructive text-sm mt-1">{errors.site_id.message}</p>
                 )}
                 {sitesError && (
-                  <p className="text-red-500 text-sm mt-1">Error loading sites</p>
+                  <p className="text-destructive text-sm mt-1">Error loading sites</p>
                 )}
               </div>
             </div>
 
             {/* Members Section */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-muted-foreground mb-2">
                 Select Members
               </label>
               <Controller
@@ -422,7 +422,7 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
 
             {/* Description */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-muted-foreground mb-2">
                 Description
               </label>
               <textarea
@@ -431,7 +431,7 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
                 rows={5}
               />
               {errors.description && (
-                <p className="text-red-500 text-sm mt-1">
+                <p className="text-destructive text-sm mt-1">
                   {errors.description.message}
                 </p>
               )}
@@ -439,20 +439,20 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
 
             {/* Attachments Section */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-muted-foreground mb-2">
                 Existing Attachments
               </label>
               {existingAttachments.length > 0 ? (
                 <ul className="grid grid-cols-1 gap-2 mb-4">
                   {existingAttachments.map((url, idx) => (
-                    <li key={idx} className="flex justify-between items-center p-2 bg-gray-50 border rounded-md">
-                      <a href={url} target="_blank" rel="noreferrer" className="text-sm text-blue-600 hover:underline truncate max-w-xs" title={url}>
+                    <li key={idx} className="flex justify-between items-center p-2 bg-muted border border-border rounded-md">
+                      <a href={url} target="_blank" rel="noreferrer" className="text-sm text-primary hover:underline truncate max-w-xs" title={url}>
                         {url.split("/").pop()}
                       </a>
                       <button
                         type="button"
                         onClick={() => removeExistingAttachment(url)}
-                        className="text-xs text-red-500 hover:text-red-700 font-medium"
+                        className="text-xs text-destructive hover:text-destructive/90 font-medium"
                       >
                         Remove
                       </button>
@@ -460,34 +460,34 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
                   ))}
                 </ul>
               ) : (
-                <p className="text-sm text-gray-400 italic mb-4">No existing attachments</p>
+                <p className="text-sm text-muted-foreground italic mb-4">No existing attachments</p>
               )}
 
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-muted-foreground mb-2">
                 Add New Files
               </label>
-              <div className="w-full border-2 border-dashed border-gray-300 rounded-md p-4 bg-gray-50 hover:border-cyan-700 transition-colors duration-300">
+              <div className="w-full border-2 border-dashed border-border rounded-md p-4 bg-muted hover:border-primary transition-colors duration-300">
                 <input
                   type="file"
                   multiple
                   onChange={handleFileChange}
-                  className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-cyan-700 file:text-white hover:file:bg-cyan-800"
+                  className="w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
                 />
-                <p className="mt-2 text-sm text-gray-500">
+                <p className="mt-2 text-sm text-muted-foreground">
                   Select new files to add.
                 </p>
               </div>
               {selectedFiles.length > 0 && (
                 <div className="mt-2">
-                  <h4 className="text-sm font-semibold text-gray-700 mb-1">New Files Selected:</h4>
-                  <ul className="list-disc list-inside text-sm text-gray-600">
+                  <h4 className="text-sm font-semibold text-foreground mb-1">New Files Selected:</h4>
+                  <ul className="list-disc list-inside text-sm text-muted-foreground">
                     {selectedFiles.map((file, index) => (
                       <li key={index} className="flex justify-between items-center">
                         <span>{file.name} ({(file.size / 1024).toFixed(2)} KB)</span>
                         <button
                           type="button"
                           onClick={() => removeSelectedFile(index)}
-                          className="text-xs text-red-500 hover:text-red-700 font-medium ml-2"
+                          className="text-xs text-destructive hover:text-destructive/90 font-medium ml-2"
                         >
                           Remove
                         </button>
@@ -502,14 +502,14 @@ const EditProjectForm: React.FC<EditProjectFormProps> = ({
             <div className="flex justify-end gap-4">
               <button
                 type="button"
-                className="px-4 h-10 border rounded-md hover:bg-gray-50 flex items-center"
+                className="px-4 h-10 border border-border rounded-md hover:bg-accent flex items-center"
                 onClick={onClose}
               >
                 Close
               </button>
               <button
                 type="submit"
-                className="px-4 h-10 bg-cyan-700 text-white rounded-md hover:bg-cyan-800 flex items-center"
+                className="px-4 h-10 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 flex items-center"
               >
                 Update
               </button>

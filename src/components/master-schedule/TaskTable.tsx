@@ -53,10 +53,11 @@ const priorityBadgeClasses: Record<Task["priority"], string> = {
  * Use `any` for progressUpdates here to avoid importing ProgressUpdateItem.
  * Replace `any` with the real ProgressUpdateItem[] type if you want stricter typing.
  */
-type UpdatableTaskWithId = UpdateTaskInput & {
+type UpdatableTaskWithId = Omit<UpdateTaskInput, "attachments"> & {
   id: string;
   name?: string;
   progressUpdates?: any[] | null;
+  attachments?: string[] | File[];
 };
 
 export default function TaskTable({ tasks, projectId }: TaskTableProps) {
@@ -70,9 +71,9 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
   // Modals & forms
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
-  const [taskToEdit, setTaskToEdit] = useState<UpdatableTaskWithId | null>(null);
+  const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
   const [showManageForm, setShowManageForm] = useState(false);
-  const [taskToManage, setTaskToManage] = useState<UpdatableTaskWithId | null>(null);
+  const [taskToManage, setTaskToManage] = useState<Task | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
 
@@ -202,30 +203,16 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
   const handleView = (id: string) => router.push(`/tasks/${id}`);
 
   const handleEditClick = (t: Task) => {
-    const payload: UpdatableTaskWithId = {
-      ...t,
-      assignedUsers: t.assignedUsers?.map((u) => u.id) as any,
-      id: t.id,
-      name: (t as any).name ?? undefined,
-      progressUpdates: (t as any).progressUpdates ?? null,
-    };
-    setTaskToEdit(payload);
+    setTaskToEdit(t);
     setShowEditForm(true);
   };
-  const handleEditSubmit = (data: UpdateTaskInput) => {
+  const handleEditSubmit = (data: UpdateTaskInput | FormData) => {
     updateTask(data);
     setShowEditForm(false);
   };
 
   const handleManageClick = (t: Task) => {
-    const payload: UpdatableTaskWithId = {
-      ...t,
-      assignedUsers: t.assignedUsers?.map((u) => u.id) as any,
-      id: t.id,
-      name: (t as any).name ?? undefined,
-      progressUpdates: (t as any).progressUpdates ?? null,
-    };
-    setTaskToManage(payload);
+    setTaskToManage(t);
     setShowManageForm(true);
   };
   const handleManageSubmit = (data: UpdateTaskInput) => {
@@ -348,7 +335,7 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
           </div>
           <button
             onClick={() => setShowCreateForm(true)}
-            className="w-full sm:w-auto px-6 py-2.5 bg-cyan-700 text-white rounded-lg hover:bg-cyan-800 transition-all font-black uppercase text-xs tracking-widest shadow-sm"
+            className="w-full sm:w-auto px-6 py-2.5 bg-primary text-white rounded-lg hover:bg-cyan-800 transition-all font-black uppercase text-xs tracking-widest shadow-sm"
           >
             Create Task
           </button>

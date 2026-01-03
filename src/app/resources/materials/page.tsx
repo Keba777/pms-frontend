@@ -163,16 +163,16 @@ const ResourceMaterialsPage: React.FC = () => {
 
   return (
     <div>
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8 bg-gray-50 p-4 rounded-xl border border-gray-100">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8 bg-muted/30 p-4 rounded-xl border border-border">
         <nav aria-label="breadcrumb" className="w-full sm:w-auto">
           <ol className="flex items-center gap-2 text-sm">
             <li>
-              <Link href="/" className="text-cyan-600 hover:text-cyan-700 font-bold transition-colors">
+              <Link href="/" className="text-primary hover:text-primary/90 font-bold transition-colors">
                 Home
               </Link>
             </li>
-            <li className="text-gray-400 font-bold">/</li>
-            <li className="text-gray-900 font-black uppercase tracking-wider">Materials</li>
+            <li className="text-muted-foreground font-bold">/</li>
+            <li className="text-foreground font-black uppercase tracking-wider">Materials</li>
           </ol>
         </nav>
       </div>
@@ -192,14 +192,14 @@ const ResourceMaterialsPage: React.FC = () => {
         ].map((item) => (
           <div
             key={item.label}
-            className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between group hover:shadow-md transition-all"
+            className="bg-card p-6 rounded-2xl shadow-sm border border-border flex items-center justify-between group hover:shadow-md transition-all"
           >
             <div>
-              <p className="text-xs font-black uppercase text-gray-400 tracking-widest mb-1">{item.label}</p>
-              <h2 className="text-3xl font-black text-gray-800">{item.value}</h2>
+              <p className="text-xs font-black uppercase text-muted-foreground tracking-widest mb-1">{item.label}</p>
+              <h2 className="text-3xl font-black text-foreground">{item.value}</h2>
             </div>
-            <div className="p-3 bg-cyan-50 rounded-xl group-hover:bg-cyan-100 transition-colors">
-              <div className="w-6 h-6 bg-cyan-600 rounded-full opacity-20" />
+            <div className="p-3 bg-primary/10 rounded-xl group-hover:bg-primary/20 transition-colors">
+              <div className="w-6 h-6 bg-primary rounded-full opacity-20" />
             </div>
           </div>
         ))}
@@ -212,23 +212,23 @@ const ResourceMaterialsPage: React.FC = () => {
           columns={downloadColumns}
         />
 
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-4 pt-6 border-t border-gray-100">
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-4 pt-6 border-t border-border">
           <div ref={menuRef} className="relative w-full lg:w-auto">
             <button
               onClick={() => setShowColumnMenu((v) => !v)}
-              className="w-full lg:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-700 text-white rounded-lg hover:bg-emerald-800 transition-colors shadow-sm font-bold text-sm"
+              className="w-full lg:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors shadow-sm font-bold text-sm"
             >
               Customize Columns <ChevronDown className="w-4 h-4" />
             </button>
             {showColumnMenu && (
-              <div className="absolute left-0 mt-2 w-56 bg-white border border-gray-200 rounded-xl shadow-xl z-50 py-2">
-                <div className="px-4 py-2 border-b border-gray-100 mb-1">
-                  <span className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">Visible Columns</span>
+              <div className="absolute left-0 mt-2 w-56 bg-card border border-border rounded-xl shadow-xl z-50 py-2">
+                <div className="px-4 py-2 border-b border-border mb-1">
+                  <span className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider">Visible Columns</span>
                 </div>
                 {Object.entries(columnOptions).map(([key, label]) => (
                   <label
                     key={key}
-                    className="flex items-center w-full px-4 py-2 hover:bg-gray-50 cursor-pointer transition-colors"
+                    className="flex items-center w-full px-4 py-2 hover:bg-accent cursor-pointer transition-colors"
                   >
                     <input
                       type="checkbox"
@@ -236,9 +236,9 @@ const ResourceMaterialsPage: React.FC = () => {
                         key as keyof AggregatedRow
                       )}
                       onChange={() => toggleColumn(key as keyof AggregatedRow)}
-                      className="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 mr-3"
+                      className="w-4 h-4 rounded border-border text-primary focus:ring-primary mr-3"
                     />
-                    <span className="text-sm text-gray-700 font-bold">{label}</span>
+                    <span className="text-sm text-foreground font-bold">{label}</span>
                   </label>
                 ))}
               </div>
@@ -255,87 +255,87 @@ const ResourceMaterialsPage: React.FC = () => {
 
       {/* Table */}
       <div className="p-4 overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200 border border-gray-200">
-          <thead className="bg-cyan-700">
+        <table className="min-w-full divide-y divide-border border border-border">
+          <thead className="bg-primary">
             <tr>
               {selectedColumns.includes("id") && (
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase tracking-wider border border-gray-200">
+                <th className="px-4 py-2 text-left text-xs font-medium text-primary-foreground uppercase tracking-wider border border-border">
                   ID
                 </th>
               )}
               {selectedColumns.includes("site") && (
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase tracking-wider border border-gray-200">
+                <th className="px-4 py-2 text-left text-xs font-medium text-primary-foreground uppercase tracking-wider border border-border">
                   Warehouse Site
                 </th>
               )}
               {selectedColumns.includes("totalItems") && (
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase tracking-wider border border-gray-200">
+                <th className="px-4 py-2 text-left text-xs font-medium text-primary-foreground uppercase tracking-wider border border-border">
                   Total Item
                 </th>
               )}
               {selectedColumns.includes("outOfStore") && (
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase tracking-wider border border-gray-200">
+                <th className="px-4 py-2 text-left text-xs font-medium text-primary-foreground uppercase tracking-wider border border-border">
                   Out of Store
                 </th>
               )}
               {selectedColumns.includes("reQty") && (
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase tracking-wider border border-gray-200">
+                <th className="px-4 py-2 text-left text-xs font-medium text-primary-foreground uppercase tracking-wider border border-border">
                   Re-Qty
                 </th>
               )}
               {selectedColumns.includes("responsiblePerson") && (
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase tracking-wider border border-gray-200">
+                <th className="px-4 py-2 text-left text-xs font-medium text-primary-foreground uppercase tracking-wider border border-border">
                   Responsible Person
                 </th>
               )}
               {selectedColumns.includes("status") && (
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase tracking-wider border border-gray-200">
+                <th className="px-4 py-2 text-left text-xs font-medium text-primary-foreground uppercase tracking-wider border border-border">
                   Status
                 </th>
               )}
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-background divide-y divide-border">
             {filteredRows.length ? (
               filteredRows.map((row) => (
-                <tr key={row.id} className="hover:bg-gray-50">
+                <tr key={row.id} className="hover:bg-accent">
                   {selectedColumns.includes("id") && (
-                    <td className="px-4 py-2 border border-gray-200">
+                    <td className="px-4 py-2 border border-border">
                       {row.id}
                     </td>
                   )}
                   {selectedColumns.includes("site") && (
-                    <td className="px-4 py-2 border border-gray-200">
+                    <td className="px-4 py-2 border border-border">
                       <Link
                         href={`/resources/materials/${row.site.id}`}
-                        className="text-blue-600 hover:underline"
+                        className="text-primary hover:underline font-medium"
                       >
                         {row.site.name}
                       </Link>
                     </td>
                   )}
                   {selectedColumns.includes("totalItems") && (
-                    <td className="px-4 py-2 border border-gray-200">
+                    <td className="px-4 py-2 border border-border">
                       {row.totalItems}
                     </td>
                   )}
                   {selectedColumns.includes("outOfStore") && (
-                    <td className="px-4 py-2 border border-gray-200">
+                    <td className="px-4 py-2 border border-border">
                       {row.outOfStore}
                     </td>
                   )}
                   {selectedColumns.includes("reQty") && (
-                    <td className="px-4 py-2 border border-gray-200">
+                    <td className="px-4 py-2 border border-border">
                       {row.reQty}
                     </td>
                   )}
                   {selectedColumns.includes("responsiblePerson") && (
-                    <td className="px-4 py-2 border border-gray-200">
+                    <td className="px-4 py-2 border border-border">
                       {row.responsiblePerson}
                     </td>
                   )}
                   {selectedColumns.includes("status") && (
-                    <td className="px-4 py-2 border border-gray-200">
+                    <td className="px-4 py-2 border border-border">
                       {row.status}
                     </td>
                   )}
@@ -345,7 +345,7 @@ const ResourceMaterialsPage: React.FC = () => {
               <tr>
                 <td
                   colSpan={selectedColumns.length}
-                  className="px-4 py-2 text-center border border-gray-200"
+                  className="px-4 py-2 text-center border border-border"
                 >
                   No materials found.
                 </td>

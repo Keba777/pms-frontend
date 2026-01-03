@@ -30,8 +30,8 @@ interface ActualTaskTableProps {
   projectId?: string;
 }
 
-const HEADER_BG = "#0e7490"; // same as activity table (cyan-700)
-const ACTION_BG = "bg-cyan-700"; // tailwind class used for action buttons
+const HEADER_BG = "#0e7490"; // same as activity table (primary)
+const ACTION_BG = "bg-primary"; // tailwind class used for action buttons
 
 const defaultActuals: TaskActuals = {
   start_date: null,
@@ -56,9 +56,9 @@ export default function ActualTaskTable({
 
   // local UI state
   const [showEditForm, setShowEditForm] = useState(false);
-  const [taskToEdit, setTaskToEdit] = useState<UpdateTaskInput | null>(null);
+  const [taskToEdit, setTaskToEdit] = useState<Task | (UpdateTaskInput & { id: string }) | null>(null);
   const [showManageForm, setShowManageForm] = useState(false);
-  const [taskToManage, setTaskToManage] = useState<UpdateTaskInput | null>(
+  const [taskToManage, setTaskToManage] = useState<Task | null>(
     null
   );
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -159,13 +159,10 @@ export default function ActualTaskTable({
   // actions
   const handleView = (id: string) => router.push(`/tasks/${id}`);
   const handleEditClick = (t: Task) => {
-    setTaskToEdit({
-      ...t,
-      assignedUsers: t.assignedUsers?.map((u) => u.id),
-    });
+    setTaskToEdit(t);
     setShowEditForm(true);
   };
-  const handleEditSubmit = (data: UpdateTaskInput) => {
+  const handleEditSubmit = (data: UpdateTaskInput | FormData) => {
     updateTask(data, {
       onSuccess: () => toast.success("Task updated"),
       onError: () => toast.error("Failed to update task"),
@@ -173,10 +170,7 @@ export default function ActualTaskTable({
     setShowEditForm(false);
   };
   const handleManageClick = (t: Task) => {
-    setTaskToManage({
-      ...t,
-      assignedUsers: t.assignedUsers?.map((u) => u.id),
-    });
+    setTaskToManage(t);
     setShowManageForm(true);
   };
   const handleManageSubmit = (data: UpdateTaskInput) => {
@@ -649,17 +643,16 @@ export default function ActualTaskTable({
         </div>
       )}
 
-      {/* {showManageForm && taskToManage && (
+      {showManageForm && taskToManage && (
         <div className="modal-overlay fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="modal-content bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl">
             <ManageTaskForm
               task={taskToManage}
-              onSubmit={handleManageSubmit}
               onClose={() => setShowManageForm(false)}
             />
           </div>
         </div>
-      )} */}
+      )}
 
       <div className="flex items-center justify-between p-4">
         <span className="text-sm text-[#697a8d]">

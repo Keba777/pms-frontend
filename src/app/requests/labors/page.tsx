@@ -47,9 +47,10 @@ const LaborRequest = () => {
   } = useDepartments();
 
   // loading / error guards
-  if (reqLoading || siteLoading || deptLoading) return <div>Loading...</div>;
+  if (reqLoading || siteLoading || deptLoading)
+    return <div className="p-10 text-center text-primary font-bold">Loading...</div>;
   if (reqError || siteError || deptError)
-    return <div className="text-red-500">Error loading data.</div>;
+    return <div className="text-destructive font-bold p-10 text-center">Error loading data.</div>;
 
   const total = searchFilteredRequests?.length ?? 0;
   const pending =
@@ -151,9 +152,9 @@ const LaborRequest = () => {
   });
 
   return (
-    <div className="p-4 sm:p-6 bg-white min-h-screen">
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8 bg-gray-50 p-4 rounded-xl border border-gray-100">
-        <h1 className="text-xl sm:text-2xl font-black text-cyan-800 uppercase tracking-tight">
+    <div className="p-4 sm:p-6 bg-background min-h-screen">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8 bg-muted/30 p-4 rounded-xl border border-border">
+        <h1 className="text-xl sm:text-2xl font-black text-primary uppercase tracking-tight">
           Labor Requests
         </h1>
       </div>
@@ -169,16 +170,16 @@ const LaborRequest = () => {
         ].map((item) => (
           <div
             key={item.label}
-            className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex flex-col justify-center items-center text-center group hover:bg-gray-50 transition-all"
+            className="bg-card p-4 rounded-xl border border-border shadow-sm flex flex-col justify-center items-center text-center group hover:bg-accent transition-all"
           >
-            <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest mb-1 group-hover:text-cyan-600 transition-colors">{item.label}</p>
-            <span className="text-2xl font-black text-gray-800">
+            <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest mb-1 group-hover:text-primary transition-colors">{item.label}</p>
+            <span className="text-2xl font-black text-foreground">
               {item.value}
             </span>
           </div>
         ))}
       </div>
-      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-8 flex flex-col gap-6">
+      <div className="bg-card p-4 rounded-xl shadow-sm border border-border mb-8 flex flex-col gap-6">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
           <div className="w-full lg:w-72">
             <SearchInput value={searchQuery} onChange={setSearchQuery} />
@@ -198,18 +199,18 @@ const LaborRequest = () => {
           </div>
         </div>
 
-        <div className="pt-6 border-t border-gray-100">
+        <div className="pt-6 border-t border-border">
           <GenericFilter fields={filterFields} onFilterChange={setFilterValues} />
         </div>
       </div>
 
       {/* Requests Table */}
       {filteredRequests.length === 0 ? (
-        <p className="text-gray-600">No Labor requests match your search.</p>
+        <p className="text-muted-foreground">No Labor requests match your search.</p>
       ) : (
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200 border border-gray-200">
-            <thead className="bg-cyan-700">
+          <table className="min-w-full divide-y divide-border border border-border">
+            <thead className="bg-primary">
               <tr>
                 <th className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase">
                   #
@@ -228,67 +229,67 @@ const LaborRequest = () => {
                 ].map((h) => (
                   <th
                     key={h}
-                    className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase"
+                    className="px-4 py-2 text-left text-xs font-medium text-primary-foreground uppercase"
                   >
                     {h}
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-background divide-y divide-border">
               {filteredRequests.map((req, idx) => {
                 const displayId = `RC${String(idx + 1).padStart(3, "0")}`;
                 return (
                   <tr key={req.id}>
-                    <td className="px-4 py-2 border border-gray-200">
+                    <td className="px-4 py-2 border border-border">
                       {idx + 1}
                     </td>
-                    <td className="px-4 py-2 border border-gray-200">
+                    <td className="px-4 py-2 border border-border">
                       <Link
                         href={`/requests/${req.id}`}
-                        className="text-blue-600 hover:underline"
+                        className="text-primary hover:underline font-medium"
                       >
                         {displayId}
                       </Link>
                     </td>
-                    <td className="px-4 py-2 border border-gray-200">
+                    <td className="px-4 py-2 border border-border">
                       {req.user?.first_name || "-"}
                     </td>
-                    <td className="px-4 py-2 border border-gray-200">
+                    <td className="px-4 py-2 border border-border">
                       {req.department?.name || "-"}
                     </td>
-                    <td className="px-4 py-2 border border-gray-200">
+                    <td className="px-4 py-2 border border-border">
                       {req.activity?.activity_name || "-"}
                     </td>
-                    <td className="px-4 py-2 border border-gray-200">
+                    <td className="px-4 py-2 border border-border">
                       {req.site?.name || "-"}
                     </td>
-                    <td className="px-4 py-2 border border-gray-200">
+                    <td className="px-4 py-2 border border-border">
                       {req.laborCount ?? "-"}
                     </td>
-                    <td className="px-4 py-2 border border-gray-200">
+                    <td className="px-4 py-2 border border-border">
                       {req.status}
                     </td>
-                    <td className="px-4 py-2 border border-gray-200">
+                    <td className="px-4 py-2 border border-border">
                       {new Date(req.createdAt).toLocaleDateString()}
                     </td>
-                    <td className="px-4 py-2 border border-gray-200">
+                    <td className="px-4 py-2 border border-border">
                       {new Date(req.updatedAt).toLocaleDateString()}
                     </td>
-                    <td className="px-4 py-2 border border-gray-200">
+                    <td className="px-4 py-2 border border-border">
                       <Menu
                         as="div"
                         className="relative inline-block text-left"
                       >
-                        <MenuButton className="flex items-center gap-1 px-3 py-1 text-sm bg-cyan-700 text-white rounded hover:bg-cyan-800">
+                        <MenuButton className="flex items-center gap-1 px-3 py-1 text-sm bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors">
                           Action <ChevronDown className="w-4 h-4" />
                         </MenuButton>
-                        <MenuItems className="absolute left-0 mt-2 w-full origin-top-left bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow-lg focus:outline-none z-50">
+                        <MenuItems className="absolute right-0 mt-2 w-40 origin-top-right bg-card border border-border divide-y divide-border rounded-md shadow-lg focus:outline-none z-50">
                           <MenuItem>
                             {({ active }) => (
                               <button
-                                className={`${active ? "bg-gray-100" : ""
-                                  } w-full text-left px-3 py-2 text-sm text-gray-700`}
+                                className={`${active ? "bg-accent" : ""
+                                  } w-full text-left px-3 py-2 text-sm text-foreground transition-colors`}
                               >
                                 View
                               </button>
@@ -297,8 +298,8 @@ const LaborRequest = () => {
                           <MenuItem>
                             {({ active }) => (
                               <button
-                                className={`${active ? "bg-gray-100" : ""
-                                  } w-full text-left px-3 py-2 text-sm text-gray-700`}
+                                className={`${active ? "bg-accent" : ""
+                                  } w-full text-left px-3 py-2 text-sm text-foreground transition-colors`}
                               >
                                 Edit
                               </button>
@@ -307,8 +308,8 @@ const LaborRequest = () => {
                           <MenuItem>
                             {({ active }) => (
                               <button
-                                className={`${active ? "bg-gray-100" : ""
-                                  } w-full text-left px-3 py-2 text-sm text-red-600`}
+                                className={`${active ? "bg-accent" : ""
+                                  } w-full text-left px-3 py-2 text-sm text-destructive transition-colors`}
                               >
                                 Delete
                               </button>

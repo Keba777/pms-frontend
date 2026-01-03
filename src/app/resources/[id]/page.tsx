@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ClipboardList, Home, ChevronRight, ArrowRight } from "lucide-react";
+import { ClipboardList, ArrowRight, ArrowLeft, Send, Search } from "lucide-react";
 import Select from "react-select";
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
@@ -166,26 +166,23 @@ export default function ActivityResourcesPage() {
     .filter((l) => l.role.toLowerCase().includes(searchTerm.toLowerCase()));
 
   return (
-    <div className="p-6">
-      {/* Breadcrumb */}
-      <nav className="flex items-center text-sm text-gray-500 mb-4">
-        <ol className="inline-flex items-center space-x-2">
-          <li>
-            <Link
-              href="/"
-              className="inline-flex items-center hover:text-gray-700"
-            >
-              <Home className="w-4 h-4 mr-1" /> Home
-            </Link>
-          </li>
-          <ChevronRight className="w-4 h-4 text-gray-400" />
-          <li className="font-medium text-gray-700">Create Request</li>
-        </ol>
-      </nav>
+    <div className="p-4 sm:p-6 bg-background min-h-screen">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 bg-muted/30 p-4 rounded-xl border border-border">
+        <button
+          className="flex items-center text-primary hover:text-primary/80 font-bold transition-colors group"
+          onClick={() => router.back()}
+        >
+          <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform" />
+          Back
+        </button>
+        <h1 className="text-xl sm:text-2xl font-black text-primary uppercase tracking-tight">
+          Create Request: {currentSite?.name || "Unknown Site"}
+        </h1>
+      </div>
 
       {/* Site selector */}
       <div className="my-4">
-        <label className="block text-cyan-700 text-sm font-semibold mb-2">
+        <label className="block text-primary text-sm font-semibold mb-2">
           Select Site
         </label>
         <Select
@@ -200,9 +197,9 @@ export default function ActivityResourcesPage() {
         />
       </div>
 
-      <div className="bg-white shadow-lg rounded-2xl p-6 space-y-6">
+      <div className="bg-card shadow-lg rounded-2xl p-6 space-y-6 border border-border">
         {/* Header */}
-        <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-cyan-600 to-blue-500 text-white rounded-lg">
+        <div className="flex items-center gap-3 p-4 bg-primary text-primary-foreground rounded-lg">
           <ClipboardList size={28} />
           <h2 className="text-2xl font-bold">{activity?.activity_name}</h2>
         </div>
@@ -210,12 +207,12 @@ export default function ActivityResourcesPage() {
         {/* Project & Task */}
         <div className="mt-4 flex flex-col md:flex-row md:gap-10">
           {project && (
-            <div className="flex-1 p-4 bg-white shadow rounded-xl">
-              <p className="text-cyan-700 font-bold">Project</p>
-              <p className="text-gray-800 text-lg font-medium">
+            <div className="flex-1 p-4 bg-card shadow-sm rounded-xl border border-border">
+              <p className="text-primary font-bold">Project</p>
+              <p className="text-foreground text-lg font-medium">
                 {project.title}
               </p>
-              <div className="flex items-center gap-2 text-gray-600 text-sm">
+              <div className="flex items-center gap-2 text-muted-foreground text-sm">
                 {formatDate(project.start_date)}
                 <ArrowRight size={16} />
                 {formatDate(project.end_date)}
@@ -223,12 +220,12 @@ export default function ActivityResourcesPage() {
             </div>
           )}
           {task && (
-            <div className="flex-1 p-4 bg-white shadow rounded-xl">
-              <p className="text-blue-700 font-bold">Task</p>
-              <p className="text-gray-800 text-lg font-medium">
+            <div className="flex-1 p-4 bg-card shadow-sm rounded-xl border border-border">
+              <p className="text-primary font-bold">Task</p>
+              <p className="text-foreground text-lg font-medium">
                 {task.task_name}
               </p>
-              <div className="flex items-center gap-2 text-gray-600 text-sm">
+              <div className="flex items-center gap-2 text-muted-foreground text-sm">
                 {formatDate(task.start_date)}
                 <ArrowRight size={16} />
                 {formatDate(task.end_date)}
@@ -250,8 +247,8 @@ export default function ActivityResourcesPage() {
                     setSearchTerm("");
                   }}
                   className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === tab
-                      ? "border-cyan-500 text-cyan-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700"
+                    ? "border-primary text-primary"
+                    : "border-transparent text-muted-foreground hover:text-foreground"
                     }`}
                 >
                   {tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -266,7 +263,7 @@ export default function ActivityResourcesPage() {
                 placeholder={`Search ${activeTab}...`}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="px-4 py-2 border rounded-md w-1/3"
+                className="px-4 py-2 border rounded-md w-1/3 bg-input text-foreground border-border"
               />
             </div>
 
@@ -305,7 +302,7 @@ export default function ActivityResourcesPage() {
                 disabled={
                   !(selMats.length || selEquips.length || selLabors.length)
                 }
-                className="px-6 py-2 bg-cyan-700 text-white rounded-md hover:bg-cyan-800"
+                className="px-6 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
               >
                 Next
               </button>
@@ -316,7 +313,7 @@ export default function ActivityResourcesPage() {
         {/* Step 2 */}
         {step === 2 && (
           <>
-            <h3 className="text-lg font-semibold mb-4">Request Summary</h3>
+            <h3 className="text-xl font-bold text-primary mb-4">Request Summary</h3>
             {requestType === "materials" && (
               <MaterialsTable
                 materials={materials.filter((m) => selMats.includes(m.id))}
@@ -356,7 +353,7 @@ export default function ActivityResourcesPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-6">
               <div>
-                <label className="block text-sm font-medium mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Department
                 </label>
                 <Select
@@ -380,16 +377,16 @@ export default function ActivityResourcesPage() {
             <div className="flex justify-between">
               <button
                 onClick={() => setStep(1)}
-                className="px-6 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
+                className="px-6 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80"
               >
                 Back
               </button>
               <button
                 onClick={handleRequest}
                 disabled={isReqLoading || !selectedSite || !selectedDept}
-                className="px-6 py-2 bg-cyan-700 text-white rounded-md hover:bg-cyan-800"
+                className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all font-black uppercase tracking-widest shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isReqLoading ? "Submitting..." : "Submit Request"}
+                {isReqLoading ? "Submitting..." : "Submit Request"} <Send className="w-5 h-5" />
               </button>
             </div>
           </>

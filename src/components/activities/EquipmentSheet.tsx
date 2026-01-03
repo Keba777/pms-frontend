@@ -170,7 +170,7 @@ export const EquipmentSheet: React.FC = () => {
 
   if (isErrorTimes) {
     return (
-      <p className="p-4 text-red-600">
+      <p className="p-4 text-destructive">
         Error loading equipment timesheets: {timesError?.message}
       </p>
     );
@@ -178,7 +178,7 @@ export const EquipmentSheet: React.FC = () => {
 
   if (isErrorEquipment) {
     return (
-      <p className="p-4 text-red-600">
+      <p className="p-4 text-destructive">
         Error loading equipment: {equipmentError?.message}
       </p>
     );
@@ -188,36 +188,36 @@ export const EquipmentSheet: React.FC = () => {
     <div>
       <Button
         onClick={() => handleOpenModal("create")}
-        className="mb-2 bg-cyan-700 text-white"
+        className="mb-2 bg-primary text-primary-foreground hover:bg-primary/90"
       >
         Add New
       </Button>
 
       <div className="overflow-x-auto">
-        <Table className="min-w-full border border-gray-200 divide-y divide-gray-200 table-auto">
-          <TableHeader className="bg-cyan-700">
+        <Table className="min-w-full border border-border divide-y divide-border table-auto">
+          <TableHeader className="bg-primary">
             <TableRow>
               {columns.map((col) => (
                 <TableHead
                   key={col}
-                  className="text-white px-5 py-3 text-left text-sm font-medium truncate"
+                  className="text-primary-foreground px-5 py-3 text-left text-sm font-medium truncate"
                 >
                   {col}
                 </TableHead>
               ))}
-              <TableHead className="text-white px-5 py-3 text-left text-sm font-medium w-32 truncate">
+              <TableHead className="text-primary-foreground px-5 py-3 text-left text-sm font-medium w-32 truncate">
                 Action
               </TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody className="bg-white divide-y divide-gray-200">
+          <TableBody className="bg-white divide-y divide-border">
             {equipmentTimesheets?.map((row, idx) => {
               const equipmentName =
                 equipment?.find((e) => e.id === row.equipmentId)?.item ||
                 row.equipmentId;
 
               return (
-                <TableRow key={row.id} className="hover:bg-gray-50">
+                <TableRow key={row.id} className="hover:bg-accent">
                   <TableCell className="px-5 py-2">{idx + 1}</TableCell>
                   <TableCell className="px-5 py-2">{equipmentName}</TableCell>
                   <TableCell className="px-5 py-2">
@@ -250,7 +250,7 @@ export const EquipmentSheet: React.FC = () => {
                   <TableCell className="px-5 py-2">{row.status}</TableCell>
                   <TableCell className="px-5 py-2 w-32">
                     <Menu as="div" className="relative inline-block text-left">
-                      <MenuButton className="flex items-center gap-1 px-3 py-1 text-sm bg-cyan-700 text-white rounded hover:bg-cyan-800 w-full">
+                      <MenuButton className="flex items-center gap-1 px-3 py-1 text-sm bg-primary text-primary-foreground rounded hover:bg-primary/90 w-full">
                         Action <ChevronDown className="w-4 h-4" />
                       </MenuButton>
                       <MenuItems className="absolute left-0 mt-2 w-40 bg-white border divide-y divide-gray-100 rounded-md shadow-lg z-50">
@@ -269,7 +269,7 @@ export const EquipmentSheet: React.FC = () => {
                           {({ active }) => (
                             <button
                               onClick={() => handleOpenModal("edit", row)}
-                              className={`w-full text-left px-3 py-2 text-sm ${active ? "bg-gray-100" : ""
+                              className={`w-full text-left px-3 py-2 text-sm ${active ? "bg-accent" : ""
                                 }`}
                             >
                               Edit
@@ -280,7 +280,7 @@ export const EquipmentSheet: React.FC = () => {
                           {({ active }) => (
                             <button
                               onClick={() => handleDeleteClick(row)}
-                              className={`w-full text-left px-3 py-2 text-sm text-red-600 ${active ? "bg-gray-100" : ""
+                              className={`w-full text-left px-3 py-2 text-sm text-destructive ${active ? "bg-accent" : ""
                                 }`}
                             >
                               Delete

@@ -63,7 +63,7 @@ const ActualActivityTable: React.FC = () => {
   // Edit/delete modals state
   const [showEditForm, setShowEditForm] = useState(false);
   const [activityToEdit, setActivityToEdit] =
-    useState<UpdateActivityInput | null>(null);
+    useState<Activity | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedActivityId, setSelectedActivityId] = useState<string | null>(
     null
@@ -134,13 +134,10 @@ const ActualActivityTable: React.FC = () => {
     setIsDeleteModalOpen(false);
   };
   const handleEditClick = (item: ExtendedActivity) => {
-    setActivityToEdit({
-      ...item,
-      assignedUsers: item.assignedUsers?.map((u) => u.id) || [],
-    });
+    setActivityToEdit(item);
     setShowEditForm(true);
   };
-  const handleEditSubmit = (data: UpdateActivityInput) => {
+  const handleEditSubmit = (data: UpdateActivityInput | FormData) => {
     updateActivity(data);
     setShowEditForm(false);
   };
@@ -148,12 +145,12 @@ const ActualActivityTable: React.FC = () => {
   // Custom cell renderer for progress bar
   const ProgressRenderer = (params: any) => {
     return (
-      <div className="relative h-full bg-gray-200 rounded">
+      <div className="relative h-full bg-muted rounded">
         <div
-          className="absolute h-full bg-blue-600 rounded"
+          className="absolute h-full bg-primary rounded"
           style={{ width: `${params.value}%` }}
         >
-          <span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-white">
+          <span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-primary-foreground">
             {params.value}%
           </span>
         </div>
@@ -165,14 +162,14 @@ const ActualActivityTable: React.FC = () => {
   const ActionsRenderer = (params: any) => {
     return (
       <Menu as="div" className="relative inline-block text-left">
-        <MenuButton className="flex items-center gap-1 px-3 py-1 text-sm bg-cyan-700 text-white rounded hover:bg-cyan-800">
+        <MenuButton className="flex items-center gap-1 px-3 py-1 text-sm bg-primary text-primary-foreground rounded hover:bg-primary/90">
           Action <ChevronDown className="w-4 h-4" />
         </MenuButton>
-        <MenuItems className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-10">
+        <MenuItems className="absolute right-0 mt-2 w-48 bg-white border border-border rounded shadow-lg z-10">
           <MenuItem>
             {({ active }) => (
               <button
-                className={`block w-full px-4 py-2 text-left ${active ? "bg-blue-100" : ""
+                className={`block w-full px-4 py-2 text-left ${active ? "bg-accent" : ""
                   }`}
                 onClick={() => router.push(`/activities/${params.data.id}`)}
               >
@@ -183,7 +180,7 @@ const ActualActivityTable: React.FC = () => {
           <MenuItem>
             {({ active }) => (
               <button
-                className={`block w-full px-4 py-2 text-left ${active ? "bg-blue-100" : ""
+                className={`block w-full px-4 py-2 text-left ${active ? "bg-accent" : ""
                   }`}
                 onClick={() => handleEditClick(params.data)}
               >
@@ -194,7 +191,7 @@ const ActualActivityTable: React.FC = () => {
           <MenuItem>
             {({ active }) => (
               <button
-                className={`block w-full px-4 py-2 text-left ${active ? "bg-blue-100" : ""
+                className={`block w-full px-4 py-2 text-left ${active ? "bg-accent" : ""
                   }`}
                 onClick={() => handleDeleteClick(params.data.id)}
               >
@@ -536,27 +533,27 @@ const ActualActivityTable: React.FC = () => {
           <div ref={menuRef} className="relative w-full sm:w-auto">
             <button
               onClick={() => setShowColumnMenu((prev) => !prev)}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 text-sm bg-cyan-700 text-white rounded hover:bg-cyan-800 transition-colors shadow-sm font-medium"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 text-sm bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors shadow-sm font-medium"
             >
               Customize Columns <ChevronDown className="w-4 h-4" />
             </button>
             {showColumnMenu && (
-              <div className="absolute left-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-xl z-20 py-2">
-                <div className="px-4 py-2 border-b border-gray-100 mb-1">
-                  <span className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">Visible Columns</span>
+              <div className="absolute left-0 mt-2 w-56 bg-white border border-border rounded-lg shadow-xl z-20 py-2">
+                <div className="px-4 py-2 border-b border-border/50 mb-1">
+                  <span className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider">Visible Columns</span>
                 </div>
                 {Object.entries(columnOptions).map(([key, label]) => (
                   <label
                     key={key}
-                    className="flex items-center w-full px-4 py-2 hover:bg-gray-50 cursor-pointer transition-colors"
+                    className="flex items-center w-full px-4 py-2 hover:bg-accent cursor-pointer transition-colors"
                   >
                     <input
                       type="checkbox"
                       checked={selectedColumns.includes(key)}
                       onChange={() => toggleColumn(key)}
-                      className="w-4 h-4 rounded border-gray-300 text-cyan-600 focus:ring-cyan-500 mr-3"
+                      className="w-4 h-4 rounded border-border text-primary focus:ring-primary mr-3"
                     />
-                    <span className="text-sm text-gray-700 font-medium">{label}</span>
+                    <span className="text-sm text-foreground font-medium">{label}</span>
                   </label>
                 ))}
               </div>
@@ -566,7 +563,7 @@ const ActualActivityTable: React.FC = () => {
             <button
               onClick={handleSave}
               disabled={isSaving}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 shadow-md transition-all font-semibold"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 text-sm bg-primary text-primary-foreground rounded hover:bg-primary/90 disabled:opacity-50 shadow-md transition-all font-semibold"
             >
               {isSaving ? "Saving..." : "Save Changes"}
             </button>
@@ -616,28 +613,30 @@ const ActualActivityTable: React.FC = () => {
 
       {/* Footer */}
       <div className="flex items-center justify-between p-4">
-        <span className="text-sm text-gray-700">
+        <span className="text-sm text-foreground">
           Showing {gridData.length} rows
         </span>
       </div>
       <style jsx global>{`
         .custom-grid .ag-header-cell {
-          background-color: #0e7490 !important; /* cyan-700 */
-          color: #f3f4f6 !important; /* gray-100 */
-          border: 1px solid #d1d5db !important; /* gray-300 */
+          background-color: var(--primary) !important;
+          color: var(--primary-foreground) !important;
+          border: 1px solid var(--border) !important;
         }
         .custom-grid .ag-header-cell:hover {
-          background-color: #155e75 !important; /* cyan-800 */
+          background-color: var(--primary) !important;
+          opacity: 0.9;
         }
 
         /* group headers (Labor / Material / Equipment) */
         .custom-grid .ag-header-group-cell {
-          background-color: #0e7490 !important; /* cyan-700 */
-          color: #f3f4f6 !important; /* gray-100 */
-          border: 1px solid #d1d5db !important;
+          background-color: var(--primary) !important;
+          color: var(--primary-foreground) !important;
+          border: 1px solid var(--border) !important;
         }
         .custom-grid .ag-header-group-cell:hover {
-          background-color: #155e75 !important; /* cyan-800 */
+          background-color: var(--primary) !important;
+          opacity: 0.9;
         }
 
         /* Filter icon color - target svg, font icons and path fill/stroke */
@@ -645,14 +644,14 @@ const ActualActivityTable: React.FC = () => {
         .custom-grid .ag-header-cell .ag-icon-filter,
         .custom-grid .ag-header-cell .ag-filter-button svg,
         .custom-grid .ag-header-cell .ag-filter-button path {
-          color: #f3f4f6 !important;
-          fill: #f3f4f6 !important;
-          stroke: #f3f4f6 !important;
+          color: var(--primary-foreground) !important;
+          fill: var(--primary-foreground) !important;
+          stroke: var(--primary-foreground) !important;
         }
 
         /* ensure header text for group looks same */
         .custom-grid .ag-header-group-cell .ag-header-group-cell-label {
-          color: #f3f4f6 !important;
+          color: var(--primary-foreground) !important;
         }
       `}</style>
     </div>

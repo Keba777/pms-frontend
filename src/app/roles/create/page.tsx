@@ -70,26 +70,26 @@ const CreateRolePage = () => {
   };
 
   const checkboxClass =
-    "h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500";
+    "h-4 w-4 text-primary border-border rounded focus:ring-primary";
 
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="space-y-6 p-6 bg-white mt-10 rounded-xl shadow-md"
+      className="space-y-6 p-6 bg-card mt-10 rounded-xl shadow-sm border border-border"
     >
       {/* Role Name */}
       <div>
-        <label className="block text-xs font-semibold">Name</label>
+        <label className="block text-xs font-semibold text-foreground">Name</label>
         <input
           {...register("name")}
           disabled={isCreating}
-          className="mt-1 block w-full rounded-md border p-2 shadow-sm border-gray-300 focus:border-cyan-700 focus:ring-cyan-700 focus:outline-none disabled:opacity-50"
+          className="mt-1 block w-full rounded-md border p-2 shadow-sm border-border bg-background focus:border-primary focus:ring-primary focus:outline-none disabled:opacity-50"
         />
       </div>
 
       {/* Permissions Table */}
-      <div className="border-t mt-2 pt-6">
-        <label className="flex items-center space-x-2 mb-4">
+      <div className="border-t border-border mt-2 pt-6">
+        <label className="flex items-center space-x-2 mb-4 cursor-pointer">
           <input
             type="checkbox"
             className={checkboxClass}
@@ -97,17 +97,17 @@ const CreateRolePage = () => {
             onChange={handleSelectAllChange}
             disabled={isCreating}
           />
-          <span className="text-xs font-bold uppercase text-gray-600">
+          <span className="text-xs font-bold uppercase text-muted-foreground">
             Select All
           </span>
         </label>
 
         <table className="w-full table-auto">
-          <tbody>
+          <tbody className="divide-y divide-border">
             {permissionTable.map(({ key, label }) => {
               const allSelected = permissions[key]?.length === actions.length;
               return (
-                <tr key={key} className="border-t border-gray-200">
+                <tr key={key}>
                   <td className="px-4 py-3">
                     <label className="flex items-center space-x-2 cursor-pointer">
                       <input
@@ -127,7 +127,7 @@ const CreateRolePage = () => {
                   </td>
                   {actions.map((action) => (
                     <td key={action} className="px-4 py-3 text-center">
-                      <label className="inline-flex items-center space-x-1">
+                      <label className="inline-flex items-center space-x-1 cursor-pointer">
                         <input
                           type="checkbox"
                           className={checkboxClass}
@@ -135,7 +135,7 @@ const CreateRolePage = () => {
                           onChange={() => handlePermissionChange(key, action)}
                           disabled={isCreating}
                         />
-                        <span className="capitalize">{action}</span>
+                        <span className="capitalize text-muted-foreground group-hover:text-foreground">{action}</span>
                       </label>
                     </td>
                   ))}
@@ -151,7 +151,7 @@ const CreateRolePage = () => {
         <button
           type="submit"
           disabled={isCreating}
-          className="bg-cyan-700 hover:bg-cyan-800 text-white font-bold py-2 px-5 rounded disabled:opacity-50"
+          className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-2 px-5 rounded shadow-sm transition-all active:scale-95 disabled:opacity-50"
         >
           {isCreating ? "Creating..." : "Create"}
         </button>

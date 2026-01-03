@@ -18,8 +18,8 @@ import {
 } from "@/components/common/GenericFilter";
 
 const statusBadgeClasses: Record<Material["status"], string> = {
-  Available: "bg-green-100 text-green-800",
-  Unavailable: "bg-red-100 text-red-800",
+  Available: "bg-primary/20 text-primary",
+  Unavailable: "bg-destructive/10 text-destructive",
 };
 
 const columnOptions: Record<string, string> = {
@@ -103,12 +103,12 @@ export default function MaterialPage() {
   }, [filterValues, materials, siteWarehouseIds]);
 
   // Early returns after all Hooks
-  if (matLoading || whLoading || siteLoading) return <div>Loading...</div>;
+  if (matLoading || whLoading || siteLoading) return <div className="p-10 text-center text-primary font-bold">Loading...</div>;
   if (matError || whError || siteError)
-    return <div className="text-red-500">Error loading data.</div>;
+    return <div className="text-destructive font-bold p-10 text-center">Error loading data.</div>;
   if (!site) {
     return (
-      <div className="text-center text-red-500 mt-10">Site not found.</div>
+      <div className="text-center text-destructive font-bold mt-10">Site not found.</div>
     );
   }
 
@@ -167,16 +167,16 @@ export default function MaterialPage() {
   };
 
   return (
-    <div className="p-4 sm:p-6 bg-white min-h-screen">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 bg-gray-50 p-4 rounded-xl border border-gray-100">
+    <div className="p-4 sm:p-6 bg-background min-h-screen">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 bg-muted/30 p-4 rounded-xl border border-border">
         <button
-          className="flex items-center text-cyan-700 hover:text-cyan-800 font-bold transition-colors group"
+          className="flex items-center text-primary hover:text-primary/80 font-bold transition-colors group"
           onClick={() => router.push("/resources/materials")}
         >
           <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform" />
           Back to Sites
         </button>
-        <h1 className="text-xl sm:text-2xl font-black text-cyan-800 uppercase tracking-tight">
+        <h1 className="text-xl sm:text-2xl font-black text-primary uppercase tracking-tight">
           Materials at "{site.name}"
         </h1>
       </div>
@@ -190,48 +190,48 @@ export default function MaterialPage() {
         ].map((item) => (
           <div
             key={item.label}
-            className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex flex-col justify-center items-center text-center group hover:bg-gray-50 transition-all"
+            className="bg-card p-4 rounded-xl border border-border shadow-sm flex flex-col justify-center items-center text-center group hover:bg-accent transition-all"
           >
-            <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest mb-1 group-hover:text-cyan-600 transition-colors">{item.label}</p>
-            <span className="text-2xl font-black text-gray-800">
+            <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest mb-1 group-hover:text-primary transition-colors">{item.label}</p>
+            <span className="text-2xl font-black text-foreground">
               {item.value}
             </span>
           </div>
         ))}
       </div>
 
-      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-8 flex flex-col gap-6">
+      <div className="bg-card p-4 rounded-xl shadow-sm border border-border mb-8 flex flex-col gap-6">
         <GenericDownloads
           data={filteredMaterials}
           title={`Materials_${site.name}`}
           columns={columns}
         />
 
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-4 pt-6 border-t border-gray-100">
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-4 pt-6 border-t border-border">
           <div ref={menuRef} className="relative w-full lg:w-auto">
             <button
               onClick={() => setShowColumnMenu((prev) => !prev)}
-              className="w-full lg:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-700 text-white rounded-lg hover:bg-emerald-800 transition-colors shadow-sm font-bold text-sm"
+              className="w-full lg:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors shadow-sm font-bold text-sm"
             >
               Customize Columns <ChevronDown className="w-4 h-4" />
             </button>
             {showColumnMenu && (
-              <div className="absolute left-0 mt-2 w-56 bg-white border border-gray-200 rounded-xl shadow-xl z-50 py-2">
-                <div className="px-4 py-2 border-b border-gray-100 mb-1">
-                  <span className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">Visible Columns</span>
+              <div className="absolute left-0 mt-2 w-56 bg-card border border-border rounded-xl shadow-xl z-50 py-2">
+                <div className="px-4 py-2 border-b border-border mb-1">
+                  <span className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider">Visible Columns</span>
                 </div>
                 {Object.entries(columnOptions).map(([key, label]) => (
                   <label
                     key={key}
-                    className="flex items-center w-full px-4 py-2 hover:bg-gray-50 cursor-pointer transition-colors"
+                    className="flex items-center w-full px-4 py-2 hover:bg-accent cursor-pointer transition-colors"
                   >
                     <input
                       type="checkbox"
                       checked={selectedColumns.includes(key)}
                       onChange={() => toggleColumn(key)}
-                      className="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 mr-3"
+                      className="w-4 h-4 rounded border-border text-primary focus:ring-primary mr-3"
                     />
-                    <span className="text-sm text-gray-700 font-bold">{label}</span>
+                    <span className="text-sm text-foreground font-bold">{label}</span>
                   </label>
                 ))}
               </div>
@@ -247,110 +247,110 @@ export default function MaterialPage() {
       </div>
 
       {filteredMaterials.length === 0 ? (
-        <p className="text-gray-600">No materials found for this site.</p>
+        <p className="text-muted-foreground">No materials found for this site.</p>
       ) : (
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200 border border-gray-200">
-            <thead className="bg-cyan-700">
+          <table className="min-w-full divide-y divide-border border border-border">
+            <thead className="bg-primary">
               <tr>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase">
+                <th className="px-4 py-2 text-left text-xs font-medium text-primary-foreground uppercase">
                   #
                 </th>
                 {selectedColumns.includes("id") && (
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase">
+                  <th className="px-4 py-2 text-left text-xs font-medium text-primary-foreground uppercase">
                     ID
                   </th>
                 )}
                 {selectedColumns.includes("item") && (
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase">
+                  <th className="px-4 py-2 text-left text-xs font-medium text-primary-foreground uppercase">
                     Item Name
                   </th>
                 )}
                 {selectedColumns.includes("type") && (
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase">
+                  <th className="px-4 py-2 text-left text-xs font-medium text-primary-foreground uppercase">
                     Type
                   </th>
                 )}
                 {selectedColumns.includes("unit") && (
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase">
+                  <th className="px-4 py-2 text-left text-xs font-medium text-primary-foreground uppercase">
                     Unit
                   </th>
                 )}
                 {selectedColumns.includes("quantity") && (
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase">
+                  <th className="px-4 py-2 text-left text-xs font-medium text-primary-foreground uppercase">
                     Qty
                   </th>
                 )}
                 {selectedColumns.includes("totalPrice") && (
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase">
+                  <th className="px-4 py-2 text-left text-xs font-medium text-primary-foreground uppercase">
                     Unit Price
                   </th>
                 )}
                 {selectedColumns.includes("reorderQuantity") && (
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase">
+                  <th className="px-4 py-2 text-left text-xs font-medium text-primary-foreground uppercase">
                     Re-Qty
                   </th>
                 )}
                 {selectedColumns.includes("shelfNo") && (
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase">
+                  <th className="px-4 py-2 text-left text-xs font-medium text-primary-foreground uppercase">
                     Shelf No
                   </th>
                 )}
                 {selectedColumns.includes("status") && (
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase">
+                  <th className="px-4 py-2 text-left text-xs font-medium text-primary-foreground uppercase">
                     Status
                   </th>
                 )}
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-background divide-y divide-border">
               {filteredMaterials.map((mat, idx) => (
                 <tr key={mat.id}>
-                  <td className="px-4 py-2 border border-gray-200">
+                  <td className="px-4 py-2 border border-border">
                     {idx + 1}
                   </td>
                   {selectedColumns.includes("id") && (
-                    <td className="px-4 py-2 border border-gray-200">
+                    <td className="px-4 py-2 border border-border">
                       {`RC00${idx + 1}`}
                     </td>
                   )}
                   {selectedColumns.includes("item") && (
-                    <td className="px-4 py-2 border border-gray-200">
+                    <td className="px-4 py-2 border border-border">
                       {mat.item}
                     </td>
                   )}
                   {selectedColumns.includes("type") && (
-                    <td className="px-4 py-2 border border-gray-200">
+                    <td className="px-4 py-2 border border-border">
                       {mat.type || "-"}
                     </td>
                   )}
                   {selectedColumns.includes("unit") && (
-                    <td className="px-4 py-2 border border-gray-200">
+                    <td className="px-4 py-2 border border-border">
                       {mat.unit}
                     </td>
                   )}
                   {selectedColumns.includes("quantity") && (
-                    <td className="px-4 py-2 border border-gray-200">
+                    <td className="px-4 py-2 border border-border">
                       {mat.quantity ?? "-"}
                     </td>
                   )}
                   {selectedColumns.includes("totalPrice") && (
-                    <td className="px-4 py-2 border border-gray-200">
+                    <td className="px-4 py-2 border border-border">
                       {mat.totalPrice ?? "-"}
                     </td>
                   )}
                   {selectedColumns.includes("reorderQuantity") && (
-                    <td className="px-4 py-2 border border-gray-200">
+                    <td className="px-4 py-2 border border-border">
                       {mat.reorderQuantity ?? "-"}
                     </td>
                   )}
                   {selectedColumns.includes("shelfNo") && (
-                    <td className="px-4 py-2 border border-gray-200">
+                    <td className="px-4 py-2 border border-border">
                       {mat.shelfNo ?? "-"}
                     </td>
                   )}
                   {selectedColumns.includes("status") && (
-                    <td className="px-4 py-2 border border-gray-200">
+                    <td className="px-4 py-2 border border-border">
                       <span
                         className={`px-2 py-1 rounded-full text-sm font-medium ${statusBadgeClasses[mat.status]
                           }`}

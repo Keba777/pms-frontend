@@ -97,78 +97,88 @@ const Schedule = () => {
   }, [selectedMonth, currentYear]);
 
   return (
-    <div className="p-4">
-      <h1 className="text-4xl font-bold text-gray-800">
-        Task Management Schedule
-      </h1>
+    <div className="p-4 sm:p-8 bg-background min-h-screen">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+          <div>
+            <h1 className="text-4xl font-black text-primary uppercase tracking-tighter">
+              Deployment Timeline
+            </h1>
+            <p className="text-[10px] sm:text-xs font-black text-muted-foreground/60 uppercase tracking-[0.3em] mt-2 flex items-center gap-3">
+              <span className="w-12 h-px bg-primary/30" /> Orchestrate mission critical operations
+            </p>
+          </div>
 
-      {/* Month Selector */}
-      <div className="flex items-center justify-between mt-4">
-        <h2 className="text-2xl font-bold text-gray-700">
-          {currentMonthName} {currentYear}
-        </h2>
-        <select
-          value={selectedMonth}
-          onChange={(e) => updateCalendar(parseInt(e.target.value, 10))}
-          className="p-2 border border-gray-300 rounded"
-        >
-          {months.map((month, index) => (
-            <option key={index} value={index}>
-              {month} {currentYear}
-            </option>
-          ))}
-        </select>
-      </div>
+          <div className="flex items-center gap-4 bg-card border border-border p-2 rounded-2xl shadow-xl shadow-black/5">
+            <h2 className="pl-4 pr-2 text-sm font-black text-foreground uppercase tracking-tight">
+              {currentMonthName} {currentYear}
+            </h2>
+            <select
+              value={selectedMonth}
+              onChange={(e) => updateCalendar(parseInt(e.target.value, 10))}
+              className="px-4 py-2 bg-primary/10 border border-primary/20 rounded-xl text-[10px] font-black uppercase tracking-widest text-primary hover:bg-primary/20 transition-all outline-none appearance-none cursor-pointer min-w-[140px] text-center"
+            >
+              {months.map((month, index) => (
+                <option key={index} value={index}>
+                  {month}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
 
-      {/* Calendar Table */}
-      <div className="mt-6">
-        <table className="w-full border-collapse border border-gray-300">
-          <thead>
-            <tr className="border border-gray-300">
-              {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
-                (day, idx) => (
-                  <th
-                    key={idx}
-                    className="text-gray-700 p-2 border border-gray-300 bg-teal-100"
-                  >
-                    {day}
-                  </th>
-                )
-              )}
-            </tr>
-          </thead>
-          <tbody>
-            {calendarWeeks.map((week, weekIndex) => (
-              <tr key={weekIndex} className="border border-gray-300">
-                {week.map((day, dayIndex) => (
-                  <td
-                    key={dayIndex}
-                    className={`p-2 border border-gray-300 ${
-                      day.isCurrentMonth ? "bg-rose-100" : "bg-lime-100"
-                    }`}
-                    style={{ minHeight: "80px" }}
-                  >
-                    <div className="min-h-[60px]">
-                      {/* Day number */}
-                      <div className="font-bold text-gray-600">{day.day}</div>
-                      {/* Task badges */}
-                      {day.date &&
-                        getTasksForDay(new Date(day.date)).map((task) => (
-                          <div
-                            key={task.id}
-                            className="inline-block text-xs font-semibold text-white px-2 py-1 rounded mt-1 mr-1"
-                            style={{ backgroundColor: getTaskColor(task.id) }}
-                          >
-                            {task.task_name}
-                          </div>
-                        ))}
-                    </div>
-                  </td>
-                ))}
+        <div className="bg-card border border-border rounded-[2.5rem] shadow-2xl shadow-black/5 overflow-hidden">
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="border-b border-border">
+                {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
+                  (day, idx) => (
+                    <th
+                      key={idx}
+                      className="text-[10px] font-black text-primary uppercase tracking-[0.2em] p-6 bg-primary/5 text-center first:rounded-tl-[2.5rem] last:rounded-tr-[2.5rem]"
+                    >
+                      {day}
+                    </th>
+                  )
+                )}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {calendarWeeks.map((week, weekIndex) => (
+                <tr key={weekIndex} className="divide-x divide-border">
+                  {week.map((day, dayIndex) => (
+                    <td
+                      key={dayIndex}
+                      className={`p-4 transition-colors relative min-h-[140px] group ${day.isCurrentMonth ? "bg-card" : "bg-muted/5 opacity-40 grayscale"
+                        }`}
+                    >
+                      <div className="min-h-[100px] flex flex-col">
+                        {/* Day number */}
+                        <div className={`text-lg font-black transition-colors ${day.isCurrentMonth ? "text-foreground group-hover:text-primary" : "text-muted-foreground/30"}`}>
+                          {day.day}
+                        </div>
+                        {/* Task badges */}
+                        <div className="flex flex-col gap-1.5 mt-2">
+                          {day.date &&
+                            getTasksForDay(new Date(day.date)).map((task) => (
+                              <div
+                                key={task.id}
+                                className="block text-[8px] font-black uppercase tracking-widest text-primary-foreground px-2 py-1.5 rounded-lg shadow-sm truncate hover:scale-105 transition-transform cursor-pointer border border-black/5"
+                                style={{ backgroundColor: getTaskColor(task.id) }}
+                                title={task.task_name}
+                              >
+                                {task.task_name}
+                              </div>
+                            ))}
+                        </div>
+                      </div>
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

@@ -191,19 +191,19 @@ const TodosPage = () => {
   return (
     <div className="p-4 sm:p-6 bg-white min-h-screen">
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8 bg-gray-50 p-4 rounded-xl border border-gray-100">
-        <h1 className="text-xl sm:text-2xl font-black text-cyan-800 uppercase tracking-tight">
+        <h1 className="text-xl sm:text-2xl font-black text-primary/90 uppercase tracking-tight">
           Todos
         </h1>
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <button
-            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold text-gray-600 bg-white border border-gray-200 rounded-lg hover:border-cyan-200 hover:text-cyan-700 transition-all shadow-sm"
+            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold text-gray-600 bg-white border border-gray-200 rounded-lg hover:border-cyan-200 hover:text-primary transition-all shadow-sm"
             onClick={() => setIsListView((prev) => !prev)}
           >
             {isListView ? <Grid width={16} height={16} /> : <List width={16} height={16} />}
             <span>{isListView ? "Grid View" : "List View"}</span>
           </button>
           <button
-            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold text-white bg-cyan-700 rounded-lg hover:bg-cyan-800 transition-colors shadow-sm"
+            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold text-white bg-primary rounded-lg hover:bg-primary/90 transition-colors shadow-sm"
             onClick={() => setShowForm(true)}
           >
             <PlusIcon width={16} height={16} />

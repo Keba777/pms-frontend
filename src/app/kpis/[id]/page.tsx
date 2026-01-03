@@ -59,12 +59,12 @@ const KpiDetailPage = () => {
         <div className="flex items-center gap-4">
           <button
             onClick={() => router.back()}
-            className="p-2 hover:bg-white rounded-lg transition-colors border border-transparent hover:border-gray-200 text-gray-400 hover:text-cyan-700 shadow-sm hover:shadow-md"
+            className="p-2 hover:bg-white rounded-lg transition-colors border border-transparent hover:border-gray-200 text-gray-400 hover:text-primary/90 shadow-sm hover:shadow-md"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
-            <h1 className="text-xl sm:text-2xl font-black text-cyan-800 uppercase tracking-tight">
+            <h1 className="text-xl sm:text-2xl font-black text-primary/90 uppercase tracking-tight">
               KPI Details
             </h1>
             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5 mt-0.5">
@@ -108,7 +108,7 @@ const KpiDetailPage = () => {
               </div>
 
               <div className="flex flex-col items-center justify-center p-6 bg-gradient-to-br from-cyan-50 to-indigo-50 rounded-2xl border border-cyan-100 shadow-inner min-w-[140px]">
-                <span className="text-5xl font-black text-cyan-700 mb-1">{kpi.score}</span>
+                <span className="text-5xl font-black text-primary/90 mb-1">{kpi.score}</span>
                 <span className="text-[10px] font-black text-cyan-600 uppercase tracking-[0.2em]">Overall Score</span>
               </div>
             </div>

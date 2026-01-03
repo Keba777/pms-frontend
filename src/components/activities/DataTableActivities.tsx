@@ -27,18 +27,18 @@ import { useUsers } from "@/hooks/useUsers";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 const priorityBadgeClasses: Record<Activity["priority"], string> = {
-  Critical: "bg-red-100 text-red-800",
+  Critical: "bg-destructive/10 text-destructive",
   High: "bg-orange-100 text-orange-800",
   Medium: "bg-yellow-100 text-yellow-800",
-  Low: "bg-green-100 text-green-800",
+  Low: "bg-primary/10 text-primary",
 };
 const statusBadgeClasses: Record<Activity["status"], string> = {
-  "Not Started": "bg-gray-100 text-gray-800",
-  Started: "bg-blue-100 text-blue-800",
+  "Not Started": "bg-muted text-muted-foreground",
+  Started: "bg-primary/10 text-primary",
   InProgress: "bg-yellow-100 text-yellow-800",
-  Canceled: "bg-red-100 text-red-800",
+  Canceled: "bg-destructive/10 text-destructive",
   Onhold: "bg-amber-100 text-amber-800",
-  Completed: "bg-green-100 text-green-800",
+  Completed: "bg-primary/20 text-primary",
 };
 const columnOptions: Record<string, string> = {
   activity_name: "Activity",
@@ -77,7 +77,7 @@ const DataTableActivities: React.FC = () => {
   // Modal state
   const [showEditForm, setShowEditForm] = useState(false);
   const [activityToEdit, setActivityToEdit] =
-    useState<UpdateActivityInput | null>(null);
+    useState<Activity | null>(null);
   const [showManageForm, setShowManageForm] = useState(false);
   const [activityToManage, setActivityToManage] =
     useState<UpdateActivityInput | null>(null);
@@ -160,16 +160,16 @@ const DataTableActivities: React.FC = () => {
     }
   };
   const handleViewActivity = (id: string) => router.push(`/activities/${id}`);
-  const handleEditClick = (activity: UpdateActivityInput) => {
+  const handleEditClick = (activity: Activity) => {
     setActivityToEdit(activity);
     setShowEditForm(true);
   };
-  const handleEditSubmit = (data: UpdateActivityInput) => {
+  const handleEditSubmit = (data: UpdateActivityInput | FormData) => {
     updateActivity(data);
     setShowEditForm(false);
   };
-  const handleManageClick = (activity: UpdateActivityInput) => {
-    setActivityToManage(activity);
+  const handleManageClick = (activity: Activity) => {
+    setActivityToManage(activity as any);
     setShowManageForm(true);
   };
   return (
@@ -178,27 +178,27 @@ const DataTableActivities: React.FC = () => {
         <div ref={menuRef} className="relative w-full lg:w-auto">
           <button
             onClick={() => setShowColumnMenu((prev) => !prev)}
-            className="w-full lg:w-auto flex items-center justify-center gap-2 px-5 py-2.5 text-sm bg-cyan-700 text-white rounded hover:bg-cyan-800 transition-colors shadow-sm font-medium"
+            className="w-full lg:w-auto flex items-center justify-center gap-2 px-5 py-2.5 text-sm bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors shadow-sm font-medium"
           >
             Customize Columns <ChevronDown className="w-4 h-4" />
           </button>
           {showColumnMenu && (
-            <div className="absolute left-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-xl z-20 py-2">
-              <div className="px-4 py-2 border-b border-gray-100 mb-1">
-                <span className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">Visible Columns</span>
+            <div className="absolute left-0 mt-2 w-56 bg-white border border-border rounded-lg shadow-xl z-20 py-2">
+              <div className="px-4 py-2 border-b border-border/50 mb-1">
+                <span className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider">Visible Columns</span>
               </div>
               {Object.entries(columnOptions).map(([key, label]) => (
                 <label
                   key={key}
-                  className="flex items-center w-full px-4 py-2 hover:bg-gray-50 cursor-pointer transition-colors"
+                  className="flex items-center w-full px-4 py-2 hover:bg-accent cursor-pointer transition-colors"
                 >
                   <input
                     type="checkbox"
                     checked={selectedColumns.includes(key)}
                     onChange={() => toggleColumn(key)}
-                    className="w-4 h-4 rounded border-gray-300 text-cyan-600 focus:ring-cyan-500 mr-3"
+                    className="w-4 h-4 rounded border-border text-primary focus:ring-primary mr-3"
                   />
-                  <span className="text-sm text-gray-700 font-medium">{label}</span>
+                  <span className="text-sm text-foreground font-medium">{label}</span>
                 </label>
               ))}
             </div>
@@ -214,14 +214,14 @@ const DataTableActivities: React.FC = () => {
               selected={fromDate}
               onChange={setFromDate}
               placeholderText="From Date"
-              className="rounded-lg border border-gray-300 px-4 py-2 text-sm focus:ring-2 focus:ring-cyan-500 font-medium w-full sm:w-36"
+              className="rounded-lg border border-border px-4 py-2 text-sm focus:ring-2 focus:ring-primary font-medium w-full sm:w-36"
               dateFormat="yyyy-MM-dd"
             />
             <DatePicker
               selected={toDate}
               onChange={setToDate}
               placeholderText="To Date"
-              className="rounded-lg border border-gray-300 px-4 py-2 text-sm focus:ring-2 focus:ring-cyan-500 font-medium w-full sm:w-36"
+              className="rounded-lg border border-border px-4 py-2 text-sm focus:ring-2 focus:ring-primary font-medium w-full sm:w-36"
               dateFormat="yyyy-MM-dd"
             />
           </div>
@@ -264,8 +264,8 @@ const DataTableActivities: React.FC = () => {
       )}
       {/* Table */}
       <div className="overflow-x-auto px-2 ">
-        <table className="min-w-max divide-y divide-gray-200 border">
-          <thead className="bg-cyan-700">
+        <table className="min-w-max divide-y divide-border border">
+          <thead className="bg-primary">
             <tr>
               {selectedColumns.includes("activity_name") && (
                 <th
@@ -344,7 +344,7 @@ const DataTableActivities: React.FC = () => {
                 selectedColumns.includes("labors")) && (
                   <th
                     colSpan={3}
-                    className="px-4 py-3 text-center border-b border-b-gray-400 text-sm font-medium text-gray-50"
+                    className="px-4 py-3 text-center border-b border-b-primary-foreground/30 text-sm font-medium text-primary-foreground"
                   >
                     Resource Cost
                   </th>
@@ -400,12 +400,12 @@ const DataTableActivities: React.FC = () => {
               )}
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-white divide-y divide-border">
             {filteredActivities.length > 0 ? (
               filteredActivities.map((activity) => (
-                <tr key={activity.id} className="hover:bg-gray-50">
+                <tr key={activity.id} className="hover:bg-accent">
                   {selectedColumns.includes("activity_name") && (
-                    <td className="px-4 py-2 font-medium text-bs-primary">
+                    <td className="px-4 py-2 font-medium text-primary">
                       <Link
                         href={`/activities/${activity.id}`}
                         className="hover:underline"
@@ -461,12 +461,12 @@ const DataTableActivities: React.FC = () => {
                   )}
                   {selectedColumns.includes("progress") && (
                     <td className="px-4 py-2">
-                      <div className="relative h-5 bg-gray-200 rounded">
+                      <div className="relative h-5 bg-muted rounded">
                         <div
-                          className="absolute h-full bg-blue-600 rounded"
+                          className="absolute h-full bg-primary rounded"
                           style={{ width: `${activity.progress}%` }}
                         >
-                          <span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-white">
+                          <span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-primary-foreground">
                             {activity.progress}%
                           </span>
                         </div>
@@ -501,7 +501,7 @@ const DataTableActivities: React.FC = () => {
                     <td className="px-4 py-2">
                       <Link
                         href={`/resources/${activity.id}`}
-                        className="flex items-center text-emerald-700 hover:underline"
+                        className="flex items-center text-primary-foreground bg-primary/80 px-2 py-0.5 rounded text-xs hover:bg-primary transition-colors inline-block w-fit"
                       >
                         Request
                       </Link>
@@ -523,14 +523,14 @@ const DataTableActivities: React.FC = () => {
                   {selectedColumns.includes("actions") && (
                     <td className="px-4 py-2">
                       <Menu>
-                        <MenuButton className="flex items-center gap-1 px-3 py-1 text-sm bg-cyan-700 text-white rounded hover:bg-cyan-800">
+                        <MenuButton className="flex items-center gap-1 px-3 py-1 text-sm bg-primary text-primary-foreground rounded hover:bg-primary/90">
                           Action <ChevronDown className="w-4 h-4" />
                         </MenuButton>
                         <MenuItems className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-10">
                           <MenuItem>
                             {({ active }) => (
                               <button
-                                className={`block w-full px-4 py-2 text-left ${active ? "bg-blue-100" : ""
+                                className={`block w-full px-4 py-2 text-left ${active ? "bg-accent" : ""
                                   }`}
                                 onClick={() => handleViewActivity(activity.id)}
                               >
@@ -541,15 +541,10 @@ const DataTableActivities: React.FC = () => {
                           <MenuItem>
                             {({ active }) => (
                               <button
-                                className={`block w-full px-4 py-2 text-left ${active ? "bg-blue-100" : ""
+                                className={`block w-full px-4 py-2 text-left ${active ? "bg-accent" : ""
                                   }`}
                                 onClick={() =>
-                                  handleEditClick({
-                                    ...activity,
-                                    assignedUsers: activity.assignedUsers?.map(
-                                      (u) => u.id
-                                    ),
-                                  })
+                                  handleEditClick(activity)
                                 }
                               >
                                 Update
@@ -559,7 +554,7 @@ const DataTableActivities: React.FC = () => {
                           <MenuItem>
                             {({ active }) => (
                               <button
-                                className={`block w-full px-4 py-2 text-left ${active ? "bg-blue-100" : ""
+                                className={`block w-full px-4 py-2 text-left ${active ? "bg-accent" : ""
                                   }`}
                                 onClick={() =>
                                   handleDeleteActivityClick(activity.id)
@@ -572,15 +567,10 @@ const DataTableActivities: React.FC = () => {
                           <MenuItem>
                             {({ active }) => (
                               <button
-                                className={`block w-full px-4 py-2 text-left ${active ? "bg-blue-100" : ""
+                                className={`block w-full px-4 py-2 text-left ${active ? "bg-accent" : ""
                                   }`}
                                 onClick={() =>
-                                  handleManageClick({
-                                    ...activity,
-                                    assignedUsers: activity.assignedUsers?.map(
-                                      (u) => u.id
-                                    ),
-                                  })
+                                  handleManageClick(activity)
                                 }
                               >
                                 Manage
@@ -597,7 +587,7 @@ const DataTableActivities: React.FC = () => {
               <tr>
                 <td
                   colSpan={selectedColumns.length}
-                  className="px-4 py-2 text-center text-gray-500"
+                  className="px-4 py-2 text-center text-muted-foreground"
                 >
                   No activities found.
                 </td>
@@ -609,21 +599,21 @@ const DataTableActivities: React.FC = () => {
       {/* Pagination placeholder */}
       <div className="flex items-center justify-between p-4">
         <div className="flex items-center gap-4">
-          <span className="text-sm text-gray-700">
+          <span className="text-sm text-foreground">
             Showing {filteredActivities.length} rows
           </span>
-          <select className="rounded border-gray-300 text-sm">
+          <select className="rounded border-border text-sm bg-white">
             <option>10</option>
             <option>20</option>
             <option>50</option>
           </select>
         </div>
         <div className="flex gap-2">
-          <button className="px-3 py-1 rounded border hover:bg-gray-50">
+          <button className="px-3 py-1 rounded border border-border hover:bg-accent">
             ‹
           </button>
-          <button className="px-3 py-1 rounded border bg-gray-100">1</button>
-          <button className="px-3 py-1 rounded border hover:bg-gray-50">
+          <button className="px-3 py-1 rounded border border-border bg-muted">1</button>
+          <button className="px-3 py-1 rounded border border-border hover:bg-accent">
             ›
           </button>
         </div>

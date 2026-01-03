@@ -162,12 +162,12 @@ const DispatchesPage: React.FC = () => {
   return (
     <div className="p-4 sm:p-6 bg-white min-h-screen">
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8 bg-gray-50 p-4 rounded-xl border border-gray-100">
-        <h1 className="text-xl sm:text-2xl font-black text-cyan-800 uppercase tracking-tight">
+        <h1 className="text-xl sm:text-2xl font-black text-primary/90 uppercase tracking-tight">
           Dispatch Log
         </h1>
         <div className="flex items-center gap-2">
           <button
-            className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-white bg-cyan-700 rounded-lg hover:bg-cyan-800 transition-colors shadow-sm"
+            className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-white bg-primary rounded-lg hover:bg-primary/90 transition-colors shadow-sm"
             onClick={() => setShowForm(true)}
           >
             <PlusIcon width={16} height={16} />
@@ -343,7 +343,7 @@ const DispatchesPage: React.FC = () => {
                   {selectedColumns.includes("actions") && (
                     <td className="px-5 py-4 whitespace-nowrap">
                       <Menu as="div" className="relative inline-block text-left">
-                        <MenuButton className="flex items-center gap-1 px-3 py-1 text-xs font-black uppercase bg-cyan-700 text-white rounded-lg hover:bg-cyan-800 transition-all shadow-sm">
+                        <MenuButton className="flex items-center gap-1 px-3 py-1 text-xs font-black uppercase bg-cyan-700 text-white rounded-lg hover:bg-primary/90 transition-all shadow-sm">
                           Action <ChevronDown className="w-3 h-3" />
                         </MenuButton>
                         <MenuItems className="absolute right-0 mt-2 w-48 bg-white border border-gray-100 divide-y divide-gray-50 rounded-xl shadow-xl focus:outline-none z-[9999] py-1 backdrop-blur-sm bg-white/95">

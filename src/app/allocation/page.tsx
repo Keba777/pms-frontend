@@ -108,7 +108,7 @@ const RequestRow: React.FC<{
       <td className="px-5 py-4 whitespace-nowrap text-right">
         <button
           onClick={() => onAllocate(req.id)}
-          className={`px-4 py-2 text-xs font-black uppercase tracking-widest bg-cyan-700 text-white rounded-lg hover:bg-cyan-800 transition-all shadow-sm ${allocated ? "opacity-50 cursor-not-allowed" : "hover:scale-105"
+          className={`px-4 py-2 text-xs font-black uppercase tracking-widest bg-primary text-white rounded-lg hover:bg-primary/90 transition-all shadow-sm ${allocated ? "opacity-50 cursor-not-allowed" : "hover:scale-105"
             }`}
           disabled={allocated}
         >
@@ -153,14 +153,14 @@ const ResourceAllocationPage: React.FC = () => {
 
   const history = useApprovalHistory(activeRequestId).data || [];
 
-  if (isLoading) return <div className="p-4 text-cyan-700">Loading…</div>;
+  if (isLoading) return <div className="p-4 text-primary">Loading…</div>;
   if (isError)
     return <div className="p-4 text-red-500">Error loading requests</div>;
 
   return (
     <div className="p-4 sm:p-6 bg-white min-h-screen">
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8 bg-gray-50 p-4 rounded-xl border border-gray-100">
-        <h1 className="text-xl sm:text-2xl font-black text-cyan-800 uppercase tracking-tight">
+        <h1 className="text-xl sm:text-2xl font-black text-primary/90 uppercase tracking-tight">
           Resource Allocation
         </h1>
       </div>
@@ -210,7 +210,7 @@ const ResourceAllocationPage: React.FC = () => {
         <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto flex flex-col">
             <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-              <h2 className="text-lg font-black text-cyan-800 uppercase tracking-tight">Allocate Resource</h2>
+              <h2 className="text-lg font-black text-primary/90 uppercase tracking-tight">Allocate Resource</h2>
               <button onClick={closeModal} className="text-gray-400 hover:text-gray-600 transition-colors">
                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

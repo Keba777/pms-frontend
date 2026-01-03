@@ -214,19 +214,19 @@ const menuItems = [
     iconColor: "text-orange-400",
   },
 
-  {
-    title: "Schedule",
-    link: "/schedule",
-    icon: ClipboardList,
+  // {
+  //   title: "Schedule",
+  //   link: "/schedule",
+  //   icon: ClipboardList,
 
-  },
+  // },
 
-  {
-    title: "Task Reports",
-    link: "/taskreports",
-    icon: FileText,
-    iconColor: "text-rose-600",
-  },
+  // {
+  //   title: "Task Reports",
+  //   link: "/taskreports",
+  //   icon: FileText,
+  //   iconColor: "text-rose-600",
+  // },
 
   {
     title: "Leave Requests",

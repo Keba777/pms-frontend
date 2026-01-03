@@ -22,14 +22,14 @@ const PermissionsPage: React.FC = () => {
   const renderBadges = (role: Role) => {
     if (role.name.toLowerCase() === "admin") {
       return (
-        <span className="inline-block bg-green-500 text-white text-xs px-3 py-1 rounded">
+        <span className="inline-block bg-primary text-primary-foreground text-xs px-3 py-1 rounded">
           ADMIN HAS ALL THE PERMISSIONS
         </span>
       );
     }
     if (!role.permissions || Object.keys(role.permissions).length === 0) {
       return (
-        <span className="text-gray-500 italic">No Permissions Assigned!</span>
+        <span className="text-muted-foreground italic">No Permissions Assigned!</span>
       );
     }
     return Object.entries(role.permissions).flatMap(([resource, actions]) => {
@@ -39,7 +39,7 @@ const PermissionsPage: React.FC = () => {
         .map(([action]) => (
           <span
             key={`${resource}-${action}`}
-            className="inline-block bg-indigo-600 text-white text-xs px-2 py-1 rounded mr-2 mb-1"
+            className="inline-block bg-primary/20 text-primary text-xs px-2 py-1 rounded mr-2 mb-1 border border-primary/20"
           >
             {action.toUpperCase()} {resource.replace(/_/g, " ").toUpperCase()}
           </span>
@@ -47,27 +47,27 @@ const PermissionsPage: React.FC = () => {
     });
   };
 
-  if (isLoading) return <div className="p-6">Loading…</div>;
+  if (isLoading) return <div className="p-6 text-muted-foreground">Loading…</div>;
   if (isError)
-    return <div className="p-6 text-red-500">Error loading roles.</div>;
+    return <div className="p-6 text-destructive">Error loading roles.</div>;
 
   return (
-    <div className="p-6">
+    <div className="p-6 bg-background min-h-screen">
       {/* Breadcrumb */}
-      <nav className="text-sm text-gray-500 mb-6 flex justify-between items-center">
+      <nav className="text-sm text-muted-foreground mb-6 flex justify-between items-center">
         <div>
-          <Link href="/" className="hover:underline">
+          <Link href="/" className="hover:underline hover:text-primary">
             Home
           </Link>{" "}
-          &gt; <span className="hover:underline px-2">Settings</span> &gt;{" "}
-          <span className="font-semibold text-gray-800">Permissions</span>
+          &gt; <span className="hover:underline px-2 cursor-pointer">Settings</span> &gt;{" "}
+          <span className="font-semibold text-foreground">Permissions</span>
         </div>
 
         {/* Header */}
         <div className=" px-6 py-4 ">
           <button
             onClick={() => router.push("/roles/create")}
-            className="flex items-center bg-cyan-700 hover:bg-cyan-800 text-white text-sm font-medium rounded-md px-3 py-2"
+            className="flex items-center bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-medium rounded-md px-3 py-2 shadow-sm transition-colors"
           >
             <Plus className="w-4 h-4 mr-1" />
           </button>
@@ -75,30 +75,30 @@ const PermissionsPage: React.FC = () => {
       </nav>
 
       {/* Card */}
-      <div className="bg-white shadow rounded-lg">
+      <div className="bg-card shadow-sm rounded-lg border border-border">
         {/* Table */}
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
+          <table className="min-w-full divide-y divide-border">
             <thead>
               <tr className="pt-6">
-                <th className="px-6 py-6 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-6 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Role
                 </th>
-                <th className="px-6 py-6 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-6 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Permissions
                 </th>
-                <th className="px-6 py-6 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-6 text-center text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
 
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-card divide-y divide-border">
               {roles!.map((role) => {
                 const isAdmin = role.name.toLowerCase() === "admin";
                 return (
                   <tr key={role.id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-xl font-bold ">
+                    <td className="px-6 py-4 whitespace-nowrap text-xl font-bold text-foreground">
                       {role.name}
                     </td>
                     <td className="px-6 py-4">
@@ -106,21 +106,21 @@ const PermissionsPage: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                       {isAdmin ? (
-                        <span className="text-gray-400">–</span>
+                        <span className="text-muted-foreground/50">–</span>
                       ) : (
                         <>
                           <button
                             onClick={() =>
                               router.push(`/roles/edit/${role.id}`)
                             }
-                            className="text-blue-600 hover:text-blue-800 mr-4"
+                            className="text-primary hover:text-primary/80 mr-4 transition-colors"
                             title="Edit Role"
                           >
                             <Edit className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => handleDelete(role.id!)}
-                            className="text-red-600 hover:text-red-800"
+                            className="text-destructive hover:text-destructive/80 transition-colors"
                             title="Delete Role"
                           >
                             <Trash2 className="w-4 h-4" />

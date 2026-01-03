@@ -6,7 +6,7 @@ const ProjectTableSkeleton = () => {
       <h2 className="text-3xl font-semibold mb-4 mt-6">Available Projects</h2>
       <div className="overflow-x-auto">
         <table className="min-w-max w-full border border-gray-200 divide-y divide-gray-200">
-          <thead className="bg-cyan-700">
+          <thead className="bg-primary">
             <tr>
               {[
                 "No",

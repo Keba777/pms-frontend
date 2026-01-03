@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { ChevronRight, FileText, Calendar, User, Clock, CheckCircle2, XCircle } from "lucide-react";
+import { ChevronRight, FileText, Calendar, User, Clock, CheckCircle2, XCircle, Plus } from "lucide-react";
 
 const LeaveRequestsPage = () => {
   const [requests] = useState([
@@ -31,99 +31,98 @@ const LeaveRequestsPage = () => {
   ]);
 
   return (
-    <div className="p-4 sm:p-6 bg-white min-h-screen">
-      <div className="max-w-6xl mx-auto">
+    <div className="p-4 sm:p-8 bg-background min-h-screen">
+      <div className="max-w-7xl mx-auto space-y-12">
         {/* Header Section */}
-        <div className="flex flex-col gap-4 mb-8 bg-gray-50 p-4 sm:p-6 rounded-2xl border border-gray-100 shadow-sm relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-50 rounded-full -mr-32 -mt-32 blur-3xl opacity-50" />
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
+        <header className="flex flex-col sm:flex-row items-center justify-between gap-6 bg-card p-8 sm:p-12 rounded-[3.5rem] border border-border shadow-2xl shadow-black/5 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full -mr-48 -mt-48 blur-[100px] pointer-events-none" />
+          <div className="flex items-center gap-8 relative z-10 w-full sm:w-auto">
+            <div className="rounded-[2.5rem] bg-primary/10 p-6 shadow-xl border border-primary/20">
+              <Calendar className="text-primary" size={32} />
+            </div>
             <div>
-              <nav className="mb-2" aria-label="Breadcrumb">
-                <ol className="flex items-center space-x-2 text-[10px] font-black uppercase tracking-widest text-gray-400">
-                  <li><Link href="/" className="hover:text-cyan-700 transition-colors">Home</Link></li>
-                  <li className="flex items-center space-x-2">
-                    <span>/</span>
-                    <span className="text-gray-900">Leave Requests</span>
-                  </li>
-                </ol>
-              </nav>
-              <h1 className="text-xl sm:text-2xl font-black text-cyan-800 uppercase tracking-tight">
-                Leave Management
+              <h1 className="text-3xl sm:text-4xl font-black text-primary uppercase tracking-tighter">
+                Leave Protocol
               </h1>
-              <p className="text-[10px] sm:text-xs font-black text-gray-400 uppercase tracking-widest mt-1">
-                Manage employee time-off requests and approvals
+              <p className="text-[10px] sm:text-xs font-black text-muted-foreground/60 uppercase tracking-[0.3em] mt-3 flex items-center gap-3">
+                <span className="w-12 h-px bg-primary/30" /> Personnel Time-Off Registry
               </p>
             </div>
-            <button className="flex items-center gap-2 px-6 h-12 bg-cyan-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-cyan-800 transition-all shadow-lg shadow-cyan-100 active:scale-95">
-              New Request
+          </div>
+          <div className="flex items-center gap-4 relative z-10 w-full sm:w-auto justify-end">
+            <button className="bg-primary text-primary-foreground hover:bg-primary/90 font-black rounded-2xl text-[10px] uppercase tracking-widest px-8 py-4 flex items-center gap-3 transition-all shadow-2xl shadow-primary/20 hover:scale-105 active:scale-95">
+              <Plus size={16} />
+              <span>Initiate Request</span>
             </button>
           </div>
-        </div>
+        </header>
 
         {/* Requests List */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {requests.map((request) => (
-            <div key={request.id} className="bg-white rounded-2xl border border-gray-100 p-6 flex flex-col transition-all hover:shadow-xl hover:shadow-cyan-100/30 group">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center text-cyan-700 border border-gray-100 group-hover:bg-cyan-50 group-hover:border-cyan-100 transition-colors">
-                    <User className="w-6 h-6" />
+            <div key={request.id} className="bg-card rounded-[3rem] border border-border p-8 flex flex-col transition-all hover:shadow-2xl hover:shadow-black/10 group hover:border-primary/20">
+              <div className="flex items-center justify-between mb-10">
+                <div className="flex items-center gap-6">
+                  <div className="w-16 h-16 bg-primary/5 rounded-[1.5rem] flex items-center justify-center text-primary border border-primary/10 group-hover:bg-primary/10 group-hover:border-primary/20 transition-all shadow-inner">
+                    <User className="w-8 h-8" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-black text-gray-900 uppercase tracking-tight">{request.name}</h3>
-                    <p className="text-[10px] font-black text-cyan-600 uppercase tracking-widest mt-0.5">{request.type}</p>
+                    <h3 className="text-lg font-black text-foreground uppercase tracking-tight group-hover:text-primary transition-colors">{request.name}</h3>
+                    <p className="text-[10px] font-black text-primary/60 uppercase tracking-widest mt-1 slashed-zero">{request.type}</p>
                   </div>
                 </div>
-                <span className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border ${request.status === "Approved" ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-amber-50 text-amber-600 border-amber-100"
+                <span className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border shadow-sm ${request.status === "Approved" ? "bg-primary/10 text-primary border-primary/20" : "bg-amber-500/10 text-amber-500 border-amber-500/20"
                   }`}>
                   {request.status}
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="bg-gray-50/50 p-3 rounded-xl border border-gray-50">
-                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1 flex items-center gap-1.5">
-                    <Calendar className="w-3 h-3 text-cyan-600" /> Start Date
+              <div className="grid grid-cols-2 gap-6 mb-10">
+                <div className="bg-muted/10 p-6 rounded-2xl border border-border group-hover:bg-primary/[0.02] transition-colors">
+                  <p className="text-[9px] font-black text-muted-foreground/40 uppercase tracking-widest mb-3 flex items-center gap-3">
+                    <Calendar className="w-4 h-4 text-primary/40" /> Start Vector
                   </p>
-                  <p className="text-xs font-black text-gray-900">{request.startDate}</p>
+                  <p className="text-sm font-black text-foreground tracking-tight">{request.startDate}</p>
                 </div>
-                <div className="bg-gray-50/50 p-3 rounded-xl border border-gray-50">
-                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1 flex items-center gap-1.5">
-                    <Calendar className="w-3 h-3 text-rose-500" /> End Date
+                <div className="bg-muted/10 p-6 rounded-2xl border border-border group-hover:bg-primary/[0.02] transition-colors">
+                  <p className="text-[9px] font-black text-muted-foreground/40 uppercase tracking-widest mb-3 flex items-center gap-3">
+                    <Calendar className="w-4 h-4 text-destructive/40" /> End Target
                   </p>
-                  <p className="text-xs font-black text-gray-900">{request.endDate}</p>
+                  <p className="text-sm font-black text-foreground tracking-tight">{request.endDate}</p>
                 </div>
               </div>
 
-              <div className="mb-6">
-                <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">
-                  <FileText className="w-3 h-3 text-cyan-600" /> Reason
+              <div className="mb-10">
+                <p className="text-[9px] font-black text-muted-foreground/40 uppercase tracking-widest mb-4 flex items-center gap-3">
+                  <FileText className="w-4 h-4 text-primary/40" /> Operational Narrative
                 </p>
-                <p className="text-xs font-bold text-gray-500 leading-relaxed italic">"{request.reason}"</p>
+                <div className="bg-muted/5 p-6 rounded-[2rem] border border-border italic font-medium">
+                  <p className="text-sm text-muted-foreground leading-relaxed">"{request.reason}"</p>
+                </div>
               </div>
 
-              <div className="mt-auto pt-6 border-t border-gray-50 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Clock className="w-3.5 h-3.5 text-gray-300" />
-                  <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest">Applied on {request.appliedOn}</span>
+              <div className="mt-auto pt-8 border-t border-border flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Clock className="w-4 h-4 text-muted-foreground/20" />
+                  <span className="text-[10px] font-black text-muted-foreground/30 uppercase tracking-wider">Synced {request.appliedOn}</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <button className="p-2 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all active:scale-90">
-                    <CheckCircle2 className="w-5 h-5" />
+                <div className="flex items-center gap-4">
+                  <button className="p-4 text-muted-foreground/40 hover:text-primary hover:bg-primary/10 rounded-2xl transition-all active:scale-90 border border-transparent hover:border-primary/20 shadow-sm">
+                    <CheckCircle2 className="w-6 h-6" />
                   </button>
-                  <button className="p-2 text-gray-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all active:scale-90">
-                    <XCircle className="w-5 h-5" />
+                  <button className="p-4 text-muted-foreground/40 hover:text-destructive hover:bg-destructive/10 rounded-2xl transition-all active:scale-90 border border-transparent hover:border-destructive/20 shadow-sm">
+                    <XCircle className="w-6 h-6" />
                   </button>
                 </div>
               </div>
             </div>
           ))}
           {requests.length === 0 && (
-            <div className="md:col-span-2 p-20 flex flex-col items-center justify-center text-center bg-gray-50/50 rounded-[2.5rem] border border-dashed border-gray-200">
-              <div className="w-24 h-24 bg-white rounded-3xl flex items-center justify-center mb-6 shadow-sm border border-gray-100">
-                <Calendar className="w-10 h-10 text-gray-200" />
+            <div className="md:col-span-2 p-24 flex flex-col items-center justify-center text-center bg-muted/5 rounded-[4rem] border-4 border-dashed border-border group hover:border-primary/20 transition-all">
+              <div className="w-24 h-24 bg-card rounded-[2rem] flex items-center justify-center mb-8 shadow-2xl border border-border group-hover:scale-110 transition-transform">
+                <Calendar className="w-12 h-12 text-muted-foreground/20" />
               </div>
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">No pending requests</p>
+              <p className="text-[10px] font-black text-muted-foreground/20 uppercase tracking-[0.5em] mt-2">Zero Pending Protocols</p>
             </div>
           )}
         </div>

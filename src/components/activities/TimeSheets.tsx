@@ -15,7 +15,7 @@ const Timesheet: React.FC = () => {
         <CardContent className="px-2 py-3 sm:px-6 sm:py-6">
           <Tabs defaultValue="labor" className="w-full">
             {/* Tabs header */}
-            <TabsList className="flex w-full overflow-x-auto sm:overflow-visible gap-1 sm:gap-4 border-b border-gray-200 pb-1 sm:pb-2 no-scrollbar">
+            <TabsList className="flex w-full overflow-x-auto sm:overflow-visible gap-1 sm:gap-4 border-b border-border pb-1 sm:pb-2 no-scrollbar">
               <TabsTrigger
                 value="labor"
                 className="flex-shrink-0 text-xs sm:text-base px-2 sm:px-4 py-1.5 sm:py-2"

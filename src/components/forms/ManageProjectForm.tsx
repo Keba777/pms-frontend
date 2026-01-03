@@ -219,11 +219,11 @@ const ManageProjectForm: React.FC<{
         }
       `}</style>
       <div className="flex justify-between items-center border-b pb-2 mb-4">
-        <h3 className="text-lg font-semibold text-gray-800">Manage {project.name ?? "Project"} Progress</h3>
+        <h3 className="text-lg font-semibold text-foreground">Manage {project.name ?? "Project"} Progress</h3>
         <Button
           type="button"
           variant="ghost"
-          className="text-3xl text-red-500 hover:text-red-600 p-0"
+          className="text-3xl text-destructive hover:text-destructive/90 p-0"
           onClick={onClose}
         >
           ×
@@ -231,7 +231,7 @@ const ManageProjectForm: React.FC<{
       </div>
       {/* Keep the overall project progress control (optional) */}
       <div className="flex items-center space-x-4 my-4">
-        <Label className="w-32 text-sm font-medium text-gray-700">Project Progress:</Label>
+        <Label className="w-32 text-sm font-medium text-muted-foreground">Project Progress:</Label>
         <Controller
           name="progress"
           control={control}
@@ -275,7 +275,7 @@ const ManageProjectForm: React.FC<{
                   {[0, 25, 50, 75, 100].map((mark) => (
                     <span
                       key={mark}
-                      className="text-xs text-gray-800"
+                      className="text-xs text-foreground"
                       style={{
                         position: "absolute",
                         left: `${(mark - minProgress) / (100 - minProgress) * 100}%`,
@@ -293,21 +293,21 @@ const ManageProjectForm: React.FC<{
       </div>
       <Table>
         <TableHeader>
-          <TableRow className="bg-cyan-700 hover:bg-cyan-800">
-            <TableHead className="text-gray-50 px-4 py-3 text-left text-sm font-medium">#</TableHead>
-            <TableHead className="text-gray-50 px-4 py-3 text-left text-sm font-medium">Date & Time</TableHead>
-            <TableHead className="text-gray-50 px-4 py-3 text-left text-sm font-medium">From</TableHead>
-            <TableHead className="text-gray-50 px-4 py-3 text-left text-sm font-medium">Progress%</TableHead>
-            <TableHead className="text-gray-50 px-4 py-3 text-left text-sm font-medium">Status</TableHead>
-            <TableHead className="text-gray-50 px-4 py-3 text-left text-sm font-medium">Checked By</TableHead>
-            <TableHead className="text-gray-50 px-4 py-3 text-left text-sm font-medium">Approved By</TableHead>
-            <TableHead className="text-gray-50 px-4 py-3 text-left text-sm font-medium">Approved Date</TableHead>
+          <TableRow className="bg-primary hover:bg-primary/90">
+            <TableHead className="text-primary-foreground px-4 py-3 text-left text-sm font-medium">#</TableHead>
+            <TableHead className="text-primary-foreground px-4 py-3 text-left text-sm font-medium">Date & Time</TableHead>
+            <TableHead className="text-primary-foreground px-4 py-3 text-left text-sm font-medium">From</TableHead>
+            <TableHead className="text-primary-foreground px-4 py-3 text-left text-sm font-medium">Progress%</TableHead>
+            <TableHead className="text-primary-foreground px-4 py-3 text-left text-sm font-medium">Status</TableHead>
+            <TableHead className="text-primary-foreground px-4 py-3 text-left text-sm font-medium">Checked By</TableHead>
+            <TableHead className="text-primary-foreground px-4 py-3 text-left text-sm font-medium">Approved By</TableHead>
+            <TableHead className="text-primary-foreground px-4 py-3 text-left text-sm font-medium">Approved Date</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {/* existing (read-only) rows */}
           {rows.map((row, idx) => (
-            <TableRow key={row.uiId} className="bg-white even:bg-gray-100">
+            <TableRow key={row.uiId} className="bg-white even:bg-muted">
               <TableCell>{idx + 1}</TableCell>
               <TableCell>
                 <div>{row.dateTime ? new Date(row.dateTime).toLocaleString() : "-"}</div>
@@ -322,7 +322,7 @@ const ManageProjectForm: React.FC<{
           ))}
           {/* new editable row (only one allowed) */}
           {newRow && (
-            <TableRow key={newRow.uiId} className="bg-sky-50">
+            <TableRow key={newRow.uiId} className="bg-primary/10">
               <TableCell>{rows.length + 1}</TableCell>
               <TableCell>
                 <ReactDatePicker
@@ -337,7 +337,7 @@ const ManageProjectForm: React.FC<{
                   timeIntervals={15}
                   timeFormat="h:mm aa"
                   dateFormat="MM/dd/yyyy h:mm aa"
-                  className="w-full px-2 py-1 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
+                  className="border-border focus:ring-primary"
                   placeholderText="Select date & time"
                   popperContainer={PopperContainer}
                   popperPlacement="bottom-start"
@@ -378,14 +378,14 @@ const ManageProjectForm: React.FC<{
                 <Input
                   value={newRow.checkedBy}
                   onChange={(e) => updateNewRowField("checkedBy", e.target.value)}
-                  className="border-gray-300 focus:ring-cyan-700"
+                  className="border-border focus:ring-primary"
                 />
               </TableCell>
               <TableCell>
                 <Input
                   value={newRow.approvedBy}
                   onChange={(e) => updateNewRowField("approvedBy", e.target.value)}
-                  className="border-gray-300 focus:ring-cyan-700"
+                  className="border-border focus:ring-primary"
                 />
               </TableCell>
               <TableCell>
@@ -401,7 +401,7 @@ const ManageProjectForm: React.FC<{
                   timeIntervals={15}
                   timeFormat="h:mm aa"
                   dateFormat="MM/dd/yyyy h:mm aa"
-                  className="w-full px-2 py-1 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
+                  className="border-border focus:ring-primary"
                   placeholderText="Approved date"
                   popperContainer={PopperContainer}
                   popperPlacement="bottom-start"
@@ -447,7 +447,7 @@ const ManageProjectForm: React.FC<{
           type="button"
           onClick={() => onSubmit()}
           disabled={!newRow || newRow.progress <= (newRow.fromProgress ?? 0) || updateProgressMutation.isPending}
-          className="bg-cyan-700 text-white hover:bg-cyan-800"
+          className="bg-primary text-primary-foreground hover:bg-primary/90"
         >
           Update Progress
         </Button>

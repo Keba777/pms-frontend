@@ -63,7 +63,7 @@ export default function TodoPage() {
 
   if (!todo) {
     return (
-      <div className="text-center text-red-500 mt-10">Todo not found.</div>
+      <div className="text-center text-destructive mt-10">Todo not found.</div>
     );
   }
 
@@ -93,34 +93,34 @@ export default function TodoPage() {
   }
 
   return (
-    <div className="p-4 sm:p-6 bg-white min-h-screen">
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8 bg-gray-50 p-4 rounded-xl border border-gray-100">
+    <div className="p-4 sm:p-6 bg-background min-h-screen">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8 bg-muted/30 p-4 rounded-xl border border-border">
         <div className="flex items-center gap-4">
           <button
             onClick={() => router.push("/todos")}
-            className="p-2 hover:bg-white rounded-lg transition-colors border border-transparent hover:border-gray-200 text-gray-400 hover:text-cyan-700 shadow-sm hover:shadow-md"
+            className="p-2 hover:bg-background rounded-lg transition-colors border border-transparent hover:border-border text-muted-foreground hover:text-primary shadow-sm hover:shadow-md"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
-            <h1 className="text-xl sm:text-2xl font-black text-cyan-800 uppercase tracking-tight">
+            <h1 className="text-xl sm:text-2xl font-black text-primary uppercase tracking-tight">
               Todo Details
             </h1>
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5 mt-0.5">
+            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest flex items-center gap-1.5 mt-0.5">
               <RefreshCw className="w-3 h-3 hover:rotate-180 transition-transform cursor-pointer" onClick={() => router.refresh()} />
               Status: {todo.status}
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <Badge className={`w-full sm:w-auto flex justify-center py-1.5 text-[10px] font-black uppercase tracking-widest ${todo.priority === 'High' || todo.priority === 'Urgent' ? 'bg-rose-100 text-rose-800' :
+          <Badge className={`w-full sm:w-auto flex justify-center py-1.5 text-[10px] font-black uppercase tracking-widest ${todo.priority === 'High' || todo.priority === 'Urgent' ? 'bg-destructive/10 text-destructive' :
             todo.priority === 'Medium' ? 'bg-amber-100 text-amber-800' :
-              'bg-emerald-100 text-emerald-800'
+              'bg-primary/10 text-primary'
             }`}>
             {todo.priority} Priority
           </Badge>
           {todo.type && (
-            <Badge variant="outline" className="w-full sm:w-auto flex justify-center py-1.5 text-[10px] font-black uppercase tracking-widest border-cyan-200 text-cyan-700">
+            <Badge variant="outline" className="w-full sm:w-auto flex justify-center py-1.5 text-[10px] font-black uppercase tracking-widest border-primary/20 text-primary">
               {todo.type}
             </Badge>
           )}
@@ -129,15 +129,15 @@ export default function TodoPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          <section className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-            <h2 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
-              <Paperclip className="w-4 h-4 text-cyan-600" />
+          <section className="bg-background rounded-2xl border border-border p-6 shadow-sm">
+            <h2 className="text-xs font-black text-muted-foreground uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+              <Paperclip className="w-4 h-4 text-primary" />
               Task Description
             </h2>
-            <h3 className="text-lg font-bold text-gray-800 mb-4">{todo.task}</h3>
+            <h3 className="text-lg font-bold text-foreground mb-4">{todo.task}</h3>
             {todo.remark && (
-              <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                <p className="text-sm text-gray-600 italic whitespace-pre-wrap leading-relaxed">
+              <div className="bg-muted/30 p-4 rounded-xl border border-border">
+                <p className="text-sm text-muted-foreground italic whitespace-pre-wrap leading-relaxed">
                   {todo.remark}
                 </p>
               </div>
@@ -154,20 +154,20 @@ export default function TodoPage() {
 
             <div className="mt-8">
               <div className="flex items-center justify-between mb-3 text-[10px] font-black uppercase tracking-widest">
-                <span className="text-gray-400">Task Completion</span>
-                <span className="text-cyan-700">{latestProgress}%</span>
+                <span className="text-muted-foreground">Task Completion</span>
+                <span className="text-primary">{latestProgress}%</span>
               </div>
-              <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
+              <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-cyan-600 rounded-full transition-all duration-500 ease-out"
+                  className="h-full bg-primary rounded-full transition-all duration-500 ease-out"
                   style={{ width: `${latestProgress}%` }}
                 />
               </div>
             </div>
 
             {todo.attachment && todo.attachment.length > 0 && (
-              <div className="mt-8 pt-8 border-t border-gray-50">
-                <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Attachments</h4>
+              <div className="mt-8 pt-8 border-t border-border/50">
+                <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-4">Attachments</h4>
                 <div className="flex flex-wrap gap-2">
                   {todo.attachment.map((url, i) => (
                     <a
@@ -175,9 +175,9 @@ export default function TodoPage() {
                       href={url}
                       target="_blank"
                       rel="noreferrer"
-                      className="group flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-50 border border-gray-100 hover:border-cyan-200 hover:bg-cyan-50 transition-all text-xs font-bold text-gray-600 hover:text-cyan-700 shadow-sm"
+                      className="group flex items-center gap-2 px-3 py-2 rounded-xl bg-muted/30 border border-border hover:border-primary/20 hover:bg-primary/5 transition-all text-xs font-bold text-muted-foreground hover:text-primary shadow-sm"
                     >
-                      <Paperclip className="h-3.5 w-3.5 text-gray-400 group-hover:text-cyan-500" />
+                      <Paperclip className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary" />
                       <span className="truncate max-w-[150px]">{url.split("/").pop()}</span>
                     </a>
                   ))}
@@ -186,22 +186,22 @@ export default function TodoPage() {
             )}
           </section>
 
-          <Card className="rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-            <CardHeader className="bg-gray-50 border-b border-gray-100 py-4">
-              <CardTitle className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                <RefreshCw className="w-4 h-4 text-cyan-600" />
+          <Card className="rounded-2xl border border-border shadow-sm overflow-hidden">
+            <CardHeader className="bg-muted/30 border-b border-border py-4">
+              <CardTitle className="text-xs font-black text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-2">
+                <RefreshCw className="w-4 h-4 text-primary" />
                 Progress Timeline
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6">
               {sortedUpdates.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-center bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                  <RefreshCw className="w-8 h-8 text-gray-300 mb-2 animate-pulse" />
-                  <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">No progress updates yet</p>
+                <div className="flex flex-col items-center justify-center py-12 text-center bg-muted/30 rounded-xl border border-dashed border-border">
+                  <RefreshCw className="w-8 h-8 text-muted-foreground mb-2 animate-pulse" />
+                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">No progress updates yet</p>
                 </div>
               ) : (
                 <ScrollArea className="max-h-[60vh]">
-                  <ul className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-cyan-500 before:via-cyan-200 before:to-transparent">
+                  <ul className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-primary before:via-primary/30 before:to-transparent">
                     {sortedUpdates.map((p, idx) => (
                       <TimelineItem
                         key={p.id ?? idx}
@@ -221,14 +221,14 @@ export default function TodoPage() {
         </div>
 
         <div className="space-y-6">
-          <section className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
-            <div className="bg-gray-50 border-b border-gray-100 px-6 py-4">
-              <h2 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                <RefreshCw className="w-4 h-4 text-cyan-600" />
+          <section className="bg-background rounded-2xl border border-border overflow-hidden shadow-sm">
+            <div className="bg-muted/30 border-b border-border px-6 py-4">
+              <h2 className="text-xs font-black text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-2">
+                <RefreshCw className="w-4 h-4 text-primary" />
                 Update Progress
               </h2>
             </div>
-            <div className="p-6 bg-gradient-to-br from-white to-gray-50">
+            <div className="p-6 bg-gradient-to-br from-background to-muted/30">
               <CreateTodoProgressForm
                 todoId={todoId}
                 onClose={() => router.refresh()}
@@ -237,24 +237,24 @@ export default function TodoPage() {
             </div>
           </section>
 
-          <section className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
-            <div className="bg-gray-50 border-b border-gray-100 px-6 py-4">
-              <h2 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                <RefreshCw className="w-4 h-4 text-cyan-600" />
+          <section className="bg-background rounded-2xl border border-border overflow-hidden shadow-sm">
+            <div className="bg-muted/30 border-b border-border px-6 py-4">
+              <h2 className="text-xs font-black text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-2">
+                <RefreshCw className="w-4 h-4 text-primary" />
                 Stakeholders
               </h2>
             </div>
             <CardContent className="p-6 space-y-6">
               <div className="space-y-3">
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Assigned By</p>
+                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Assigned By</p>
                 <PersonRow
                   name={todo.assignedBy ? `${todo.assignedBy.first_name} ${todo.assignedBy.last_name ?? ""}` : "N/A"}
                   avatar={todo.assignedBy?.profile_picture}
                 />
               </div>
-              <Separator className="bg-gray-100" />
+              <Separator className="bg-border" />
               <div className="space-y-3">
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Assigned To</p>
+                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Assigned To</p>
                 <div className="flex flex-wrap gap-2">
                   {(todo.assignedUsers ?? []).length ? (
                     todo.assignedUsers!.map((u) => (
@@ -266,7 +266,7 @@ export default function TodoPage() {
                       />
                     ))
                   ) : (
-                    <span className="text-sm font-bold text-gray-400 italic">No users assigned</span>
+                    <span className="text-sm font-bold text-muted-foreground italic">No users assigned</span>
                   )}
                 </div>
               </div>
@@ -282,9 +282,9 @@ export default function TodoPage() {
 
 function InfoChip({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-gray-100 p-4 bg-gray-50/50 shadow-sm hover:shadow-md transition-shadow">
-      <div className="text-[10px] font-black uppercase text-gray-400 tracking-widest mb-1">{label}</div>
-      <div className="text-xs font-bold text-gray-700">{value}</div>
+    <div className="rounded-xl border border-border p-4 bg-muted/30 shadow-sm hover:shadow-md transition-shadow">
+      <div className="text-[10px] font-black uppercase text-muted-foreground tracking-widest mb-1">{label}</div>
+      <div className="text-xs font-bold text-foreground">{value}</div>
     </div>
   );
 }
@@ -300,16 +300,16 @@ function PersonRow({
 }) {
   return (
     <div
-      className={`inline-flex items-center gap-3 transition-all ${compact ? "px-3 py-1.5 rounded-xl bg-gray-50 border border-gray-100 hover:border-cyan-200 hover:bg-cyan-50 shadow-sm" : ""
+      className={`inline-flex items-center gap-3 transition-all ${compact ? "px-3 py-1.5 rounded-xl bg-muted/30 border border-border hover:border-primary/20 hover:bg-primary/5 shadow-sm" : ""
         }`}
     >
-      <Avatar className="h-9 w-9 border-2 border-white shadow-sm">
+      <Avatar className="h-9 w-9 border-2 border-background shadow-sm">
         <AvatarImage src={avatar} />
-        <AvatarFallback className="bg-cyan-100 text-cyan-700 font-bold text-xs">
+        <AvatarFallback className="bg-primary/10 text-primary font-bold text-xs">
           {name?.slice(0, 2).toUpperCase()}
         </AvatarFallback>
       </Avatar>
-      <span className="text-sm font-bold text-gray-700 truncate max-w-[120px]">{name}</span>
+      <span className="text-sm font-bold text-foreground truncate max-w-[120px]">{name}</span>
     </div>
   );
 }
@@ -339,25 +339,25 @@ function TimelineItem({
   const dateStr = new Date(createdAt).toLocaleString();
   return (
     <li className="relative pl-12 pb-10 last:pb-0">
-      <div className="absolute left-0 mt-1.5 h-10 w-10 rounded-xl bg-white border-2 border-cyan-500 flex items-center justify-center z-10 shadow-sm">
-        <span className="text-[10px] font-black text-cyan-700">{index}</span>
+      <div className="absolute left-0 mt-1.5 h-10 w-10 rounded-xl bg-background border-2 border-primary flex items-center justify-center z-10 shadow-sm">
+        <span className="text-[10px] font-black text-primary">{index}</span>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+      <div className="bg-background rounded-2xl border border-border p-5 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
         <div className="absolute top-0 right-0 p-3">
-          <Badge className="bg-cyan-50 text-cyan-700 border-cyan-100 text-[10px] font-black uppercase tracking-widest">
+          <Badge className="bg-primary/5 text-primary border-primary/10 text-[10px] font-black uppercase tracking-widest">
             {progress}%
           </Badge>
         </div>
 
         <div className="flex flex-col gap-1 mb-3">
-          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Update Added</p>
-          <p className="text-xs font-bold text-gray-600 italic">{dateStr}</p>
+          <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Update Added</p>
+          <p className="text-xs font-bold text-muted-foreground italic">{dateStr}</p>
         </div>
 
         {remark && (
-          <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 mb-4">
-            <p className="text-sm text-gray-700 leading-relaxed italic">
+          <div className="bg-muted/30 p-4 rounded-xl border border-border mb-4">
+            <p className="text-sm text-foreground leading-relaxed italic">
               {remark}
             </p>
           </div>
@@ -371,9 +371,9 @@ function TimelineItem({
                 href={url}
                 target="_blank"
                 rel="noreferrer"
-                className="group/file flex items-center gap-2 px-3 py-1.5 rounded-xl border border-gray-100 bg-white hover:bg-cyan-50 hover:border-cyan-200 transition-all text-[10px] font-bold text-gray-600 hover:text-cyan-700 shadow-sm"
+                className="group/file flex items-center gap-2 px-3 py-1.5 rounded-xl border border-border bg-background hover:bg-primary/5 hover:border-primary/20 transition-all text-[10px] font-bold text-muted-foreground hover:text-primary shadow-sm"
               >
-                <Paperclip className="h-3 w-3 text-gray-400 group-hover/file:text-cyan-500" />
+                <Paperclip className="h-3 w-3 text-muted-foreground group-hover/file:text-primary" />
                 <span>{url.split("/").pop()}</span>
               </a>
             ))}
@@ -381,14 +381,14 @@ function TimelineItem({
         )}
 
         {author && (
-          <div className="mt-4 pt-4 border-t border-gray-50 flex items-center gap-2">
+          <div className="mt-4 pt-4 border-t border-border/50 flex items-center gap-2">
             <Avatar className="h-6 w-6">
               <AvatarImage src={author.avatar} />
-              <AvatarFallback className="bg-cyan-50 text-cyan-700 text-[10px] uppercase">
+              <AvatarFallback className="bg-primary/5 text-primary text-[10px] uppercase">
                 {`${author.first_name?.[0] ?? ""}${author.last_name?.[0] ?? ""}`.toUpperCase()}
               </AvatarFallback>
             </Avatar>
-            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+            <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
               By {author.first_name} {author.last_name ?? ""}
             </span>
           </div>

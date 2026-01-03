@@ -566,7 +566,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
               Attach Files
             </label>
 
-            <div className="w-full border-2 border-dashed border-gray-300 rounded-md p-4 bg-gray-50 hover:border-cyan-700 transition-colors duration-300">
+            <div className="w-full border-2 border-dashed border-gray-300 rounded-md p-4 bg-gray-50 hover:border-primary transition-colors duration-300">
               <input
                 type="file"
                 multiple
@@ -574,8 +574,8 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
                 className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 
                        file:rounded-md file:border-0 
                        file:text-sm file:font-semibold 
-                       file:bg-cyan-700 file:text-white 
-                       hover:file:bg-cyan-800"
+                       file:bg-primary file:text-white 
+                       hover:file:bg-primary/90"
               />
               <p className="mt-2 text-sm text-gray-500">
                 You can select multiple files.
@@ -618,7 +618,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose }) => {
           </button>
           <button
             type="submit"
-            className="px-4 h-10 bg-cyan-700 text-white rounded-md hover:bg-cyan-800 flex items-center"
+            className="px-4 h-10 bg-primary text-white rounded-md hover:bg-primary/90 flex items-center"
             disabled={isPending}
           >
             {isPending ? "Creating..." : "Create"}

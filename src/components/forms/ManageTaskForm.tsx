@@ -1,5 +1,5 @@
 "use client";
-import { UpdateTaskInput } from "@/types/task";
+import { Task, UpdateTaskInput } from "@/types/task";
 import React, { useEffect, useMemo, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -50,10 +50,11 @@ type Row = {
 
 const ManageTaskForm: React.FC<{
   onClose: () => void;
-  task: UpdateTaskInput & { id: string; name?: string; progressUpdates?: ProgressUpdateItem[] | null };
+  task: Task | (UpdateTaskInput & { id: string; name?: string; progressUpdates?: ProgressUpdateItem[] | null });
 }> = ({ onClose, task }) => {
+  const { attachments, assignedUsers, ...taskWithoutConflict } = task as any;
   const { handleSubmit, control, setValue } = useForm<UpdateTaskInput>({
-    defaultValues: task,
+    defaultValues: taskWithoutConflict,
   });
   const [rows, setRows] = useState<Row[]>([]);
   const [newRow, setNewRow] = useState<Row | null>(null);
@@ -222,7 +223,7 @@ const ManageTaskForm: React.FC<{
         }
       `}</style>
       <div className="flex justify-between items-center border-b pb-2 mb-4">
-        <h3 className="text-lg font-semibold text-gray-800">Manage {task.name ?? "Task"} Progress</h3>
+        <h3 className="text-lg font-semibold text-gray-800">Manage {(task as any).task_name || (task as any).name || "Task"} Progress</h3>
         <Button
           type="button"
           variant="ghost"

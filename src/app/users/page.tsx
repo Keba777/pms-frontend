@@ -201,11 +201,11 @@ const UsersPage = () => {
   const rolesCount = roles.length;
 
   const metrics = [
-    { title: "Total Users", value: totalUsers, icon: <UsersIcon className="h-6 w-6 text-cyan-700" /> },
-    { title: "Active Users", value: activeUsers, icon: <ActiveIcon className="h-6 w-6 text-cyan-700" /> },
-    { title: "Non-Active Users", value: nonActiveUsers, icon: <InactiveIcon className="h-6 w-6 text-cyan-700" /> },
-    { title: "Departments", value: departmentCount, icon: <DepartmentsIcon className="h-6 w-6 text-cyan-700" /> },
-    { title: "Roles", value: rolesCount, icon: <RolesIcon className="h-6 w-6 text-cyan-700" /> },
+    { title: "Total Users", value: totalUsers, icon: <UsersIcon className="h-6 w-6 text-primary" /> },
+    { title: "Active Users", value: activeUsers, icon: <ActiveIcon className="h-6 w-6 text-primary" /> },
+    { title: "Non-Active Users", value: nonActiveUsers, icon: <InactiveIcon className="h-6 w-6 text-primary" /> },
+    { title: "Departments", value: departmentCount, icon: <DepartmentsIcon className="h-6 w-6 text-primary" /> },
+    { title: "Roles", value: rolesCount, icon: <RolesIcon className="h-6 w-6 text-primary" /> },
   ];
 
   // === ACTION HANDLERS ===
@@ -395,7 +395,7 @@ const UsersPage = () => {
         <div className="flex items-center gap-3">
           <GenericDownloads data={filteredUsers} title="Users List" columns={downloadColumns} />
           <button
-            className="bg-cyan-700 hover:bg-cyan-800 text-white font-bold py-2 px-3 rounded text-sm flex items-center gap-2"
+            className="bg-primary hover:bg-primary/90 text-white font-bold py-2 px-3 rounded text-sm flex items-center gap-2"
             onClick={() => setShowForm(true)}
           >
             <PlusIcon width={15} height={15} /> Add User
@@ -524,7 +524,7 @@ const UsersPage = () => {
                   )}
                   {selectedColumns.includes("name") && (
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <Link href={`/users/profile/${user.id}`} className="text-cyan-700 hover:text-cyan-900 font-medium">
+                      <Link href={`/users/profile/${user.id}`} className="text-primary hover:text-cyan-900 font-medium">
                         {user.first_name} {user.last_name}
                       </Link>
                       <div className="text-xs text-gray-500">{user.email}</div>

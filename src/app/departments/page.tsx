@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import { useDepartments, useDeleteDepartment } from "@/hooks/useDepartments";
 import { Department } from "@/types/department";
 import { format } from "date-fns";
@@ -41,23 +42,27 @@ const DepartmentPage = () => {
   };
 
   return (
-    <div className="p-6 bg-transparent">
+    <div className="p-6 bg-background min-h-screen">
       <div className="flex justify-between items-center mb-8">
-        <p className="font-semibold">
-          Home {" > "} Departments {" > "} List
-        </p>
+        <nav className="text-xs font-black uppercase tracking-widest text-muted-foreground">
+          <Link href="/" className="hover:text-primary transition-colors">Home</Link>
+          <span className="mx-2">/</span>
+          <span className="text-foreground">Departments</span>
+          <span className="mx-2">/</span>
+          <span className="text-foreground">List</span>
+        </nav>
         <button
           onClick={handleCreate}
-          className="bg-cyan-700 flex text-gray-200 font-medium text-xs px-3 py-2 rounded-md hover:bg-cyan-600 transition"
+          className="bg-primary flex text-primary-foreground font-black text-[10px] uppercase tracking-widest px-4 py-2.5 rounded-xl hover:bg-primary/90 transition shadow-lg shadow-primary/20 active:scale-95"
         >
-          <Plus size={14} className="mr-1" /> Create
+          <Plus size={14} className="mr-1.5" /> Create
         </button>
       </div>
 
       {/* Create / Edit Modal */}
       {(showCreateForm || showEditForm) && (
-        <div className="modal-overlay fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="modal-content bg-white rounded-lg shadow-xl p-6 max-w-lg w-full">
+        <div className="modal-overlay fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-50">
+          <div className="modal-content bg-card rounded-2xl shadow-2xl p-6 max-w-lg w-full border border-border">
             <DepartmentForm
               onClose={() => {
                 setShowCreateForm(false);
@@ -84,77 +89,81 @@ const DepartmentPage = () => {
         />
       )}
 
-      {isLoading && <p className="text-center text-gray-600">Loading...</p>}
+      {isLoading && <p className="text-center text-muted-foreground py-12 font-black uppercase tracking-widest text-[10px]">Loading...</p>}
       {error && (
-        <p className="text-center text-red-500">Error fetching departments.</p>
+        <div className="p-12 text-center bg-destructive/10 rounded-2xl border border-destructive/20 max-w-md mx-auto">
+          <p className="text-destructive font-black uppercase tracking-tight">Error fetching departments.</p>
+        </div>
       )}
 
       {departments?.length ? (
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse border border-gray-300 shadow-lg rounded-lg overflow-hidden">
-            <thead className="bg-cyan-700 text-white">
+        <div className="overflow-x-auto bg-card rounded-2xl border border-border shadow-sm">
+          <table className="w-full border-collapse overflow-hidden">
+            <thead className="bg-primary text-primary-foreground">
               <tr>
-                <th className="border border-gray-300 px-4 py-2">Name</th>
-                <th className="border border-gray-300 px-4 py-2">
+                <th className="border-b border-r border-primary-foreground/10 px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest">Name</th>
+                <th className="border-b border-r border-primary-foreground/10 px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest">
                   Sub-Departments
                 </th>
-                <th className="border border-gray-300 px-4 py-2">Created At</th>
-                <th className="border border-gray-300 px-4 py-2">Status</th>
-                <th className="border border-gray-300 px-4 py-2">Actions</th>
+                <th className="border-b border-r border-primary-foreground/10 px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest">Created At</th>
+                <th className="border-b border-r border-primary-foreground/10 px-6 py-4 text-center text-[10px] font-black uppercase tracking-widest">Status</th>
+                <th className="border-b px-6 py-4 text-center text-[10px] font-black uppercase tracking-widest">Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-border">
               {departments.map((dept) => (
                 <tr
                   key={dept.id}
-                  className="bg-white hover:bg-gray-100 transition"
+                  className="bg-card hover:bg-accent/50 transition-colors group"
                 >
-                  <td className="border border-gray-300 px-4 py-2 font-semibold">
+                  <td className="px-6 py-4 font-bold text-foreground">
                     {dept.name}
                   </td>
-                  <td className="border border-gray-300 px-4 py-2">
+                  <td className="px-6 py-4">
                     {dept.subDepartment?.length ? (
-                      <ul className="list-disc pl-5">
+                      <ul className="space-y-1">
                         {dept.subDepartment.map((sub, idx) => (
-                          <li key={idx} className="text-gray-700">
+                          <li key={idx} className="text-xs font-bold text-muted-foreground flex items-center gap-2">
+                            <div className="w-1.5 h-1.5 rounded-full bg-primary/40" />
                             {sub.name}
                           </li>
                         ))}
                       </ul>
                     ) : (
-                      <span className="text-gray-500">No sub-departments</span>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40 italic">No sub-departments</span>
                     )}
                   </td>
-                  <td className="border border-gray-300 px-4 py-2 text-gray-600">
+                  <td className="px-6 py-4 text-xs font-bold text-muted-foreground">
                     {dept.createdAt
-                      ? format(new Date(dept.createdAt), "PPpp")
+                      ? format(new Date(dept.createdAt), "PP")
                       : "N/A"}
                   </td>
-                  <td className="border border-gray-300 px-4 py-2 text-center">
+                  <td className="px-6 py-4 text-center">
                     <span
-                      className={`px-3 py-1 text-sm font-semibold rounded-full ${
-                        dept.status === "Active"
-                          ? "bg-green-100 text-green-700"
-                          : dept.status === "Inactive"
-                          ? "bg-red-100 text-red-700"
-                          : "bg-yellow-100 text-yellow-700"
-                      }`}
+                      className={`px-3 py-1 text-[9px] font-black uppercase tracking-widest rounded-full ${dept.status === "Active"
+                        ? "bg-primary/10 text-primary border border-primary/20"
+                        : dept.status === "Inactive"
+                          ? "bg-destructive/10 text-destructive border border-destructive/20"
+                          : "bg-amber-100 text-amber-700 border border-amber-200"
+                        }`}
                     >
                       {dept.status}
                     </span>
                   </td>
-                  <td className="border border-gray-300 px-4 py-2 text-center space-x-2">
+                  <td className="px-6 py-4 text-center space-x-2">
                     <button
                       onClick={() => handleEdit(dept)}
-                      className="p-2 text-cyan-700 border border-cyan-700 rounded-lg hover:bg-cyan-700 hover:text-white transition"
+                      className="p-2 text-primary border border-border rounded-xl hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all shadow-sm active:scale-90"
+                      title="Edit Department"
                     >
-                      <Pencil size={16} />
+                      <Pencil size={14} />
                     </button>
                     <button
                       onClick={() => handleDeleteClick(dept)}
-                      className="p-2 text-red-600 border border-red-600 rounded-lg hover:bg-red-600 hover:text-white transition"
+                      className="p-2 text-destructive border border-border rounded-xl hover:bg-destructive hover:text-white hover:border-destructive transition-all shadow-sm active:scale-90"
+                      title="Delete Department"
                     >
-                      <Trash2 size={16} />
+                      <Trash2 size={14} />
                     </button>
                   </td>
                 </tr>
@@ -163,7 +172,9 @@ const DepartmentPage = () => {
           </table>
         </div>
       ) : (
-        <p className="text-center text-gray-600">No departments available.</p>
+        <div className="py-20 text-center bg-card rounded-2xl border border-dashed border-border">
+          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40 italic">No departments available.</p>
+        </div>
       )}
     </div>
   );
