@@ -111,7 +111,7 @@ export default function DashboardStats() {
   const projectStats = generateStats(
     projects,
     <Briefcase size={18} />,
-    "#3b82f6",
+    "var(--primary)",
     "/projects"
   );
   const tasksStats = generateStats(
@@ -136,7 +136,7 @@ export default function DashboardStats() {
           count={isLoadingProjects ? 0 : totalProjects}
           link="/projects"
           Icon={Briefcase}
-          color="green-500"
+          color="primary"
         />
         <Card
           title="Total Tasks"
@@ -157,7 +157,7 @@ export default function DashboardStats() {
           count={isLoadingTodos ? 0 : todos?.length || 0}
           link="/todos"
           Icon={ListTodo}
-          color="cyan-500"
+          color="primary"
         />
       </div>
 
@@ -166,10 +166,10 @@ export default function DashboardStats() {
       </div>
 
       <div className="text-center space-y-2">
-        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-cyan-800">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary">
           Project Statistics
         </h2>
-        <div className="w-24 h-1 bg-cyan-600 mx-auto rounded-full" />
+        <div className="w-24 h-1 bg-primary mx-auto rounded-full" />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mt-6 mb-12">

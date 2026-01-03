@@ -57,7 +57,7 @@ const InvoicesTable: React.FC<InvoicesTableProps> = ({
   return (
     <div className="overflow-x-auto w-full">
       <table className="min-w-[1400px] divide-y divide-gray-200 border border-gray-200 table-auto">
-        <thead className="bg-cyan-700">
+        <thead className="bg-primary text-primary-foreground">
           <tr>
             <th className="px-4 py-2 text-left text-xs font-medium text-gray-50 uppercase whitespace-nowrap">
               #
@@ -96,7 +96,7 @@ const InvoicesTable: React.FC<InvoicesTableProps> = ({
                 {idx + 1}
               </td>
               {selectedColumns.includes("project") && (
-                <td className="px-4 py-2 text-bs-primary border border-gray-200 whitespace-nowrap">
+                <td className="px-4 py-2 text-primary border border-gray-200 whitespace-nowrap">
                   <Link href={`/invoices/${invoice.id}`} className="hover:underline">
                     {invoice.project?.title || "-"}
                   </Link>
@@ -127,7 +127,7 @@ const InvoicesTable: React.FC<InvoicesTableProps> = ({
               {selectedColumns.includes("action") && (
                 <td className="px-4 py-2 border border-gray-200">
                   <Menu as="div" className="relative inline-block text-left">
-                    <MenuButton className="flex items-center gap-1 px-3 py-1 text-sm bg-cyan-700 text-white rounded hover:bg-cyan-800 w-full">
+                    <MenuButton className="flex items-center gap-1 px-3 py-1 text-sm bg-primary text-primary-foreground rounded hover:bg-primary/90 w-full">
                       Action <ChevronDown className="w-4 h-4" />
                     </MenuButton>
                     <MenuItems className="absolute left-0 mt-2 w-40 bg-white border divide-y divide-gray-100 rounded-md shadow-lg z-50">

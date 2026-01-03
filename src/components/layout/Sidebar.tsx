@@ -85,8 +85,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
       return true;
     }
 
-    // HR-only dashboard item (keep as you had it)
-    if (item.title === "HR Dashboard") {
+    // HR-only dashboard item (renamed to Dashboard, identified by link)
+    if (item.link === "/hrm") {
       return user?.role?.name === "HR Manager" || isHR;
     }
 

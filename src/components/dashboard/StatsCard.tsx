@@ -31,7 +31,7 @@ const StatsCard = ({ title, items, total }: StatsCardProps) => {
     <div className="h-full bg-white border border-gray-200 rounded-lg shadow-sm flex flex-col">
       {/* Card Header */}
       <div className="flex items-center justify-between p-4">
-        <h5 className="text-lg font-semibold text-gray-700">{title}</h5>
+        <h5 className="text-lg font-semibold text-secondary">{title}</h5>
       </div>
 
       {/* Card Body */}
@@ -69,7 +69,7 @@ const StatsCard = ({ title, items, total }: StatsCardProps) => {
             >
               <div className="flex items-center">
                 <div
-                  className="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full mr-3"
+                  className="w-8 h-8 flex items-center justify-center bg-muted rounded-full mr-3"
                   style={{ color: item.iconColor }}
                 >
                   {item.icon}
@@ -77,13 +77,13 @@ const StatsCard = ({ title, items, total }: StatsCardProps) => {
                 <div>
                   <Link
                     href={item.link}
-                    className="text-sm font-medium text-gray-700 hover:text-blue-500"
+                    className="text-sm font-medium text-secondary hover:text-primary"
                   >
                     {item.label}
                   </Link>
                 </div>
               </div>
-              <div className="text-sm font-semibold text-gray-700">
+              <div className="text-sm font-semibold text-secondary">
                 {item.value}
               </div>
             </li>

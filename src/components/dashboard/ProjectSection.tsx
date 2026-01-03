@@ -184,7 +184,7 @@ const ProjectSection: React.FC = () => {
         <div className="overflow-x-auto rounded-md border">
           <Table>
             <TableHeader>
-              <TableRow className="bg-cyan-700 hover:bg-cyan-700">
+              <TableRow className="bg-primary hover:bg-primary/90">
                 {columnOptions.map((col) => (
                   <TableHead
                     key={col.value}
@@ -270,7 +270,7 @@ const ProjectSection: React.FC = () => {
       <div className="overflow-x-auto rounded-md border">
         <Table>
           <TableHeader>
-            <TableRow className="bg-cyan-700 hover:bg-cyan-700">
+            <TableRow className="bg-primary hover:bg-primary/90">
               {columnOptions
                 .filter((col) => selectedColumns.includes(col.value))
                 .map((col) => (
@@ -299,7 +299,7 @@ const ProjectSection: React.FC = () => {
                       <TableCell className="px-4 py-2 ">
                         <Link
                           href={`/projects/${project.id}`}
-                          className="text-cyan-700 hover:underline font-medium"
+                          className="text-primary hover:underline font-medium"
                         >
                           {project.title}
                         </Link>
@@ -377,7 +377,7 @@ const ProjectSection: React.FC = () => {
                           <DropdownMenuTrigger asChild>
                             <Button
                               variant="ghost"
-                              className="text-white p-0 bg-cyan-700"
+                              className="text-primary-foreground p-0 bg-primary hover:bg-primary/90"
                             >
                               Action
                               <ChevronDown className="h-4 w-4" />

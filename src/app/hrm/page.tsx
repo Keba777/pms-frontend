@@ -415,7 +415,7 @@ export default function HRDashboardPage() {
           </div>
           <div>
             <h1 className="text-3xl font-extrabold text-slate-900">
-              HR Dashboard
+              Dashboard
             </h1>
             <p className="text-sm text-slate-500">
               Sites, people and labor allocations — with clear visual insights
@@ -455,9 +455,9 @@ export default function HRDashboardPage() {
               {Math.max(
                 0,
                 (laborTimesheets ?? []).length -
-                  (laborTimesheets ?? []).filter(
-                    (t: any) => t.status === "Approved"
-                  ).length
+                (laborTimesheets ?? []).filter(
+                  (t: any) => t.status === "Approved"
+                ).length
               )}
             </div>
             <div className="text-xs text-slate-400 mt-1">Requires action</div>
@@ -468,7 +468,7 @@ export default function HRDashboardPage() {
             <div className="mt-2 text-2xl font-bold text-emerald-600">
               {`${Math.round(
                 (siteSummaries.reduce((s, a) => s + a.compliance, 0) || 100) /
-                  Math.max(1, siteSummaries.length || 1)
+                Math.max(1, siteSummaries.length || 1)
               )}%`}
             </div>
             <div className="text-xs text-slate-400 mt-1">
@@ -530,8 +530,7 @@ export default function HRDashboardPage() {
                       ];
                     }}
                   />
-                  <Legend verticalAlign="top" />
-                  <Bar
+                  <Legend verticalAlign="top" />  <Bar
                     yAxisId="left"
                     dataKey="headcount"
                     name="Headcount"

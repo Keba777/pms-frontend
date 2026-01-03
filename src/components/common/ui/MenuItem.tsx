@@ -60,8 +60,8 @@ const MenuItem: React.FC<MenuItemProps> = ({ item, onItemClick }) => {
           }
         }}
         className={`flex items-center py-2.5 px-4 rounded-md transition-colors duration-200 text-sm font-medium ${isActive
-          ? "bg-gray-100 text-blue-600 shadow-sm"
-          : "hover:bg-gray-50 text-gray-700"
+          ? "bg-primary/10 text-primary shadow-sm"
+          : "hover:bg-accent text-muted-foreground"
           }`}
       >
         {Icon && <Icon className={`w-5 h-5 mr-3 flex-shrink-0 ${item.iconColor}`} />}
@@ -79,7 +79,7 @@ const MenuItem: React.FC<MenuItemProps> = ({ item, onItemClick }) => {
         )}
       </Link>
       {hasSubmenu && open && (
-        <ul className="pl-4 mt-1 space-y-1 border-l-2 border-gray-200">
+        <ul className="pl-4 mt-1 space-y-1 border-l-2 border-border">
           {filteredSubmenu?.map((sub, index) => (
             <MenuItem key={index} item={sub} onItemClick={onItemClick} />
           ))}

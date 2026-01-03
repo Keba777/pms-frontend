@@ -56,7 +56,7 @@ export default function ProjectPage() {
       </div>
 
       {/* Title */}
-      <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-cyan-800 mb-2">
+      <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-primary mb-2">
         {project.title}
       </h1>
       <div className="mb-6">
@@ -68,11 +68,11 @@ export default function ProjectPage() {
       <div className="flex flex-col lg:flex-row gap-6 mb-8">
         {/* Statistics Section */}
         <div className="lg:w-1/4 grid grid-cols-1 gap-4">
-          <div className="bg-gradient-to-br from-cyan-50 to-blue-50 p-6 rounded-xl border border-cyan-100 shadow-sm">
-            <h3 className="text-cyan-800 text-sm font-semibold uppercase tracking-wider mb-2">Total Tasks</h3>
+          <div className="bg-primary/5 p-6 rounded-xl border border-primary/20 shadow-sm">
+            <h3 className="text-primary text-sm font-semibold uppercase tracking-wider mb-2">Total Tasks</h3>
             <div className="flex items-baseline gap-2">
-              <span className="text-4xl font-bold text-cyan-900">{totalTasks}</span>
-              <span className="text-cyan-600 text-sm">tasks defined</span>
+              <span className="text-4xl font-bold text-primary">{totalTasks}</span>
+              <span className="text-primary/70 text-sm">tasks defined</span>
             </div>
           </div>
 
@@ -92,17 +92,17 @@ export default function ProjectPage() {
             <div className="flex items-center gap-2">
               <div className="w-32 h-2 bg-gray-100 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-cyan-600 rounded-full"
+                  className="h-full bg-primary rounded-full"
                   style={{ width: `${project.progress || 0}%` }}
                 />
               </div>
-              <span className="text-sm font-medium text-cyan-700">{project.progress || 0}%</span>
+              <span className="text-sm font-medium text-primary">{project.progress || 0}%</span>
             </div>
           </div>
 
           {project.description && (
-            <div className="mb-6 p-4 bg-gray-50 rounded-lg border-l-4 border-cyan-500 shadow-sm">
-              <p className="text-gray-700 text-sm leading-relaxed italic">
+            <div className="mb-6 p-4 bg-muted/30 rounded-lg border-l-4 border-primary shadow-sm">
+              <p className="text-secondary text-sm leading-relaxed italic">
                 {project.description}
               </p>
             </div>
@@ -259,7 +259,7 @@ export default function ProjectPage() {
                       href={url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-xs text-blue-600 hover:text-blue-800 hover:underline block truncate"
+                      className="text-xs text-primary hover:text-primary/80 hover:underline block truncate"
                       title={fileName}
                     >
                       {fileName}
@@ -354,7 +354,7 @@ export default function ProjectPage() {
           <div className="flex justify-center">
             <button
               onClick={() => setShowCreateForm(true)}
-              className="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 transition"
+              className="px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90 transition"
             >
               <Plus className="inline-block mr-2 w-4 h-4" /> Add Task
             </button>

@@ -90,7 +90,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
         <h4 className="text-2xl font-semibold">
           <Link
             href={`/projects/${project.id}`}
-            className="text-green-700 hover:underline"
+            className="text-primary hover:underline"
           >
             {project.title}
           </Link>
@@ -99,7 +99,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
           <button
             ref={buttonRef}
             onClick={toggleDropdown}
-            className="text-green-700 focus:outline-none"
+            className="text-muted-foreground focus:outline-none"
           >
             <Settings size={18} />
           </button>
@@ -112,15 +112,15 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
               className="absolute mt-2 w-48 bg-white rounded-md shadow-lg py-1 ring-1 ring-black ring-opacity-5 z-10"
               style={{ top: dropdownPosition.y, left: dropdownPosition.x }}
             >
-              <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center space-x-2">
+              <li className="px-4 py-2 hover:bg-accent hover:text-accent-foreground cursor-pointer flex items-center space-x-2">
                 <Edit size={16} />
                 <span>Update</span>
               </li>
-              <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center space-x-2 text-red-500">
+              <li className="px-4 py-2 hover:bg-accent hover:text-accent-foreground cursor-pointer flex items-center space-x-2 text-red-500">
                 <Trash2 size={16} />
                 <span>Delete</span>
               </li>
-              <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center space-x-2 text-yellow-500">
+              <li className="px-4 py-2 hover:bg-accent hover:text-accent-foreground cursor-pointer flex items-center space-x-2 text-yellow-500">
                 <Copy size={16} />
                 <span>Duplicate</span>
               </li>
@@ -133,7 +133,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
       {project.budget !== undefined && (
         <div className="mb-3">
           Planned Budget{" "}
-          <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">
+          <span className="bg-primary/10 text-primary px-2 py-1 rounded">
             ${project.budget}
           </span>
         </div>
@@ -142,7 +142,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
       {/* Status & Priority */}
       <div className="my-3 flex flex-wrap justify-between">
         <div>
-          <label className="block text-sm font-medium text-gray-700">
+          <label className="block text-sm font-medium text-muted-foreground">
             Status
           </label>
           <span
@@ -155,7 +155,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
           </span>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">
+          <label className="block text-sm font-medium text-muted-foreground">
             Priority
           </label>
           <span
@@ -177,7 +177,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
       <div className="my-4">
         <span
           onClick={() => setShowTasksModal(true)}
-          className="cursor-pointer flex items-center justify-center text-cyan-700 hover:underline"
+          className="cursor-pointer flex items-center justify-center text-primary hover:underline"
         >
           <CheckCircle size={16} className="mr-1" />
           <b>{tasksCount}</b> Tasks
@@ -187,19 +187,19 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
       {/* Members & Client */}
       <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Assigned to:</p>
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Assigned to:</p>
           <ul className="flex flex-wrap items-center gap-2">
             {memberDetails.length > 0 ? (
               memberDetails.map((m, i) => (
                 <li
                   key={i}
-                  className="bg-green-50 text-green-700 text-[11px] font-bold px-2 py-0.5 rounded-full border border-green-200"
+                  className="bg-muted text-muted-foreground text-[11px] font-bold px-2 py-0.5 rounded-full border border-border"
                 >
                   {m}
                 </li>
               ))
             ) : (
-              <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-[11px]">
+              <span className="bg-muted text-muted-foreground px-2 py-0.5 rounded text-[11px]">
                 Not Assigned
               </span>
             )}
@@ -207,25 +207,25 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
         </div>
         <div>
           <div className="mb-3">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Client:</p>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Client:</p>
             {project.clientInfo ? (
-              <span className="bg-blue-50 text-blue-700 text-[11px] font-bold px-2 py-0.5 rounded-full border border-blue-200">
+              <span className="bg-primary/10 text-primary text-[11px] font-bold px-2 py-0.5 rounded-full border border-primary/20">
                 <Link href={`/clients/${project.client_id}`}>{project.clientInfo.companyName}</Link>
               </span>
             ) : (
-              <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-[11px]">
+              <span className="bg-muted text-muted-foreground px-2 py-0.5 rounded text-[11px]">
                 Not Assigned
               </span>
             )}
           </div>
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Site:</p>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Site:</p>
             {project.projectSite ? (
-              <span className="bg-indigo-50 text-indigo-700 text-[11px] font-bold px-2 py-0.5 rounded-full border border-indigo-200">
+              <span className="bg-muted text-muted-foreground text-[11px] font-bold px-2 py-0.5 rounded-full border border-border">
                 {project.projectSite.name}
               </span>
             ) : (
-              <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-[11px]">
+              <span className="bg-muted text-muted-foreground px-2 py-0.5 rounded text-[11px]">
                 No Site
               </span>
             )}
@@ -234,9 +234,9 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
       </div>
 
       {/* Dates & Duration */}
-      <div className="mt-6 pt-4 border-t border-gray-100 grid grid-cols-2 gap-4 text-[11px] text-gray-500 font-medium">
+      <div className="mt-6 pt-4 border-t border-border grid grid-cols-2 gap-4 text-[11px] text-muted-foreground font-medium">
         <div className="flex items-center gap-1.5">
-          <Calendar size={14} className="text-green-600" />
+          <Calendar size={14} className="text-primary" />
           <div className="flex flex-col">
             <span className="text-[10px] uppercase text-gray-400">Starts</span>
             <span>{format(project.start_date)}</span>
@@ -249,16 +249,16 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
             <span>{format(project.end_date)}</span>
           </div>
         </div>
-        <div className="col-span-2 flex items-center justify-center bg-gray-50 rounded py-1 text-cyan-700">
+        <div className="col-span-2 flex items-center justify-center bg-muted/50 rounded py-1 text-primary">
           Duration: <span className="ml-1 font-bold">{duration}</span>
         </div>
       </div>
 
       {/* Progress Bar with % inside */}
       <div className="mt-4 w-full">
-        <div className="relative bg-gray-200 rounded-full h-5">
+        <div className="relative bg-muted rounded-full h-5">
           <div
-            className="flex items-center justify-center h-full rounded-full bg-blue-500 text-white text-xs font-medium transition-all"
+            className="flex items-center justify-center h-full rounded-full bg-primary text-primary-foreground text-xs font-medium transition-all"
             style={{ width: `${project.progress ?? 0}%` }}
             role="progressbar"
             aria-valuenow={project.progress ?? 0}
@@ -290,7 +290,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
             )}
             <button
               onClick={() => setShowTasksModal(false)}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              className="px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90"
             >
               Close
             </button>

@@ -124,11 +124,11 @@ export default function IssueTab({ projectId }: IssueTabProps) {
         </div>
         <div className="rounded-md border overflow-hidden">
           <Table>
-            <TableHeader className="bg-cyan-700">
+            <TableHeader className="bg-primary">
               <TableRow>
                 {columnOptions.slice(0, 6).map((col) => (
                   <TableHead key={col.value} className="text-white">
-                    <Skeleton className="h-4 w-16 bg-cyan-600/50" />
+                    <Skeleton className="h-4 w-16 bg-primary/50" />
                   </TableHead>
                 ))}
               </TableRow>
@@ -227,7 +227,7 @@ export default function IssueTab({ projectId }: IssueTabProps) {
 
             <Button
               size="sm"
-              className="h-9 bg-cyan-700 hover:bg-cyan-800 w-full sm:w-auto"
+              className="h-9 bg-primary hover:bg-primary/90 text-primary-foreground w-full sm:w-auto"
               onClick={() => setShowForm(true)}
             >
               <PlusIcon className="mr-2 h-4 w-4" /> New
@@ -292,8 +292,8 @@ export default function IssueTab({ projectId }: IssueTabProps) {
 
       <div className="overflow-x-auto rounded-md border shadow-sm">
         <Table>
-          <TableHeader className="bg-cyan-700">
-            <TableRow className="hover:bg-cyan-700">
+          <TableHeader className="bg-primary">
+            <TableRow className="hover:bg-primary/90">
               {columnOptions
                 .filter((col) => selectedColumns.includes(col.value))
                 .map((col) => (
@@ -359,7 +359,7 @@ export default function IssueTab({ projectId }: IssueTabProps) {
                       <TableCell className="px-4 py-3">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm" className="h-8 px-2 bg-cyan-700 text-white hover:bg-cyan-800">
+                            <Button variant="ghost" size="sm" className="h-8 px-2 bg-primary text-primary-foreground hover:bg-primary/90">
                               Action <ChevronDown className="ml-1 h-3 w-3" />
                             </Button>
                           </DropdownMenuTrigger>

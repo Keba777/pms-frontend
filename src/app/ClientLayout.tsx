@@ -14,14 +14,78 @@ import { AllCommunityModule } from 'ag-grid-community';
 
 const queryClient = new QueryClient();
 
-// Helper to convert decimal/hex color to CSS variable compatible string
-const formatColor = (color: number | string | null | undefined) => {
-  if (!color) return null;
-  if (typeof color === "number") {
-    return `#${color.toString(16).padStart(6, "0")}`;
-  }
-  return color;
+import { BrandingProvider, useBranding } from "@/context/BrandingContext";
+import { ThemeColors } from "@/utils/theme-utils";
+
+// Helper to safely parse color from string or number
+const parseColor = (val: number | string | null | undefined, defaultVal: number): number => {
+  if (val === null || val === undefined) return defaultVal;
+  if (typeof val === 'number') return val;
+  if (typeof val === 'string') return parseInt(val.replace('#', ''), 16);
+  return defaultVal;
 };
+
+// Component to sync organization store with branding context
+const BrandingSync = () => {
+  const { organization } = useOrganizationStore();
+  const { setBranding } = useBranding();
+
+  useEffect(() => {
+    if (organization) {
+      const branding: ThemeColors = {
+        primaryColor: parseColor(organization.primaryColor as any, 0x0e7490),
+        backgroundColor: parseColor(organization.backgroundColor as any, 0xffffff),
+        secondaryColor: parseColor(organization.secondaryColor as any, 0x374151),
+        cardColor: parseColor(organization.cardColor as any, 0xffffff),
+        cardForegroundColor: parseColor(organization.cardForegroundColor as any, 0x1a1a1a),
+        popoverColor: parseColor(organization.popoverColor as any, 0xffffff),
+        popoverForegroundColor: parseColor(organization.popoverForegroundColor as any, 0x1a1a1a),
+        primaryForegroundColor: parseColor(organization.primaryForegroundColor as any, 0xffffff),
+        secondaryForegroundColor: parseColor(organization.secondaryForegroundColor as any, 0xffffff),
+        mutedColor: parseColor(organization.mutedColor as any, 0xf3f4f6),
+        mutedForegroundColor: parseColor(organization.mutedForegroundColor as any, 0x6b7280),
+        accentColor: parseColor(organization.accentColor as any, 0xf3f4f6),
+        accentForegroundColor: parseColor(organization.accentForegroundColor as any, 0x1a1a1a),
+        destructiveColor: parseColor(organization.destructiveColor as any, 0xdc3545),
+        destructiveForegroundColor: parseColor(organization.destructiveForegroundColor as any, 0xffffff),
+        borderColor: parseColor(organization.borderColor as any, 0xe5e7eb),
+      };
+      setBranding(branding);
+    } else {
+      // Reset to defaults if no organization (e.g. System Admin or logged out)
+      // We import DEFAULT_THEME_COLORS safely or reconstruct logic?
+      // Since we can't easily import from here without context, let's use the hardcoded defaults matching branding.ts
+      // Actually, BrandingProvider initializes with defaults. We just need to RE-apply them.
+      // The cleanest way is to import DEFAULT_THEME_COLORS. Let's check imports.
+      // ClientLayout imports `ThemeColors` from `utils`, but NOT constants.
+      // I'll add the import first if needed, or just hardcode the reset.
+      // Hardcoding is fail-safe here to avoid import issues in this large file context.
+      const defaultBranding: ThemeColors = {
+        primaryColor: 0x0e7490,
+        backgroundColor: 0xffffff,
+        cardColor: 0xffffff,
+        cardForegroundColor: 0x1a1a1a,
+        popoverColor: 0xffffff,
+        popoverForegroundColor: 0x1a1a1a,
+        primaryForegroundColor: 0xffffff,
+        secondaryColor: 0x374151,
+        secondaryForegroundColor: 0xffffff,
+        mutedColor: 0xf3f4f6,
+        mutedForegroundColor: 0x6b7280,
+        accentColor: 0xf3f4f6,
+        accentForegroundColor: 0x1a1a1a,
+        destructiveColor: 0xdc3545,
+        destructiveForegroundColor: 0xffffff,
+        borderColor: 0xe5e7eb,
+      };
+      setBranding(defaultBranding);
+    }
+  }, [organization, setBranding]);
+
+  return null;
+};
+
+
 
 export default function ClientLayout({
   children,
@@ -43,43 +107,17 @@ export default function ClientLayout({
     ModuleRegistry.registerModules([AllCommunityModule]);
   }, []);
 
-  // Fetch organization details when user changes
+  // Fetch organization details when user changes or valid session exists
+  // We fetch indiscriminately on orgId validity to ensure branding is always up to date (syncing with any DB changes)
   useEffect(() => {
     if (_hasHydrated && user?.orgId) {
-      if (!organization || organization.id !== user.orgId) {
-        fetchOrganization(user.orgId);
-      }
+      fetchOrganization(user.orgId);
     } else if (_hasHydrated && !user) {
       clearOrganization();
     }
-  }, [_hasHydrated, user, organization, fetchOrganization, clearOrganization]);
+  }, [_hasHydrated, user?.orgId, fetchOrganization, clearOrganization]);
 
-  // Apply dynamic theme
-  useEffect(() => {
-    if (organization) {
-      const root = document.documentElement;
-
-      const themeColors = {
-        "--primary": formatColor(organization.primaryColor),
-        "--background": formatColor(organization.backgroundColor),
-        "--secondary": formatColor(organization.secondaryColor),
-        "--accent": formatColor(organization.accentColor),
-        "--destructive": formatColor(organization.destructiveColor),
-        "--card": formatColor(organization.cardColor),
-        "--border": formatColor(organization.borderColor),
-      };
-
-      Object.entries(themeColors).forEach(([key, value]) => {
-        if (value) {
-          root.style.setProperty(key, value as string);
-        }
-      });
-
-      // Update document title if needed (optional)
-      // document.title = organization.orgName || "pms";
-    }
-  }, [organization]);
-
+  // Auth redirection & loading logic (existing)
   useEffect(() => {
     if (!_hasHydrated) return;
 
@@ -89,7 +127,6 @@ export default function ClientLayout({
       return;
     }
 
-    // If user exists and expiresAt is in the future, schedule a timeout
     if (user && expiresAt) {
       const msUntilExpiry = expiresAt - Date.now();
       logoutTimer.current = window.setTimeout(() => {
@@ -98,7 +135,6 @@ export default function ClientLayout({
       }, msUntilExpiry);
     }
 
-    // Cleanup on unmount or when user changes
     return () => {
       if (logoutTimer.current) {
         clearTimeout(logoutTimer.current);
@@ -107,16 +143,13 @@ export default function ClientLayout({
     };
   }, [_hasHydrated, user, expiresAt, logout, router]);
 
-  // Auth redirection & loading logic
   useEffect(() => {
     if (!_hasHydrated) return;
 
-    // Redirect unauthenticated users to login, except for public paths
     if (!user && !publicPaths.includes(pathname)) {
       router.push("/login");
     }
     else if (user && publicPaths.includes(pathname)) {
-      // If authenticated, redirect away from public paths to dashboard
       router.push("/");
     }
 
@@ -133,42 +166,47 @@ export default function ClientLayout({
     );
   }
 
-  // For public paths, render children without layout wrapper
   if (publicPaths.includes(pathname)) {
     return (
       <QueryClientProvider client={queryClient}>
-        <ToastContainer />
-        {children}
+        <BrandingProvider>
+          <ToastContainer />
+          <BrandingSync />
+          {children}
+        </BrandingProvider>
       </QueryClientProvider>
     );
   }
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ToastContainer />
-      <div className="flex min-h-screen bg-gray-50">
-        {/* Mobile Backdrop Overlay */}
-        {isSidebarOpen && (
-          <div
-            className="fixed inset-0 bg-black/50 z-40 lg:hidden transition-opacity duration-300"
-            onClick={() => setIsSidebarOpen(false)}
+      <BrandingProvider>
+        <ToastContainer />
+        <BrandingSync />
+        <div className="flex min-h-screen bg-gray-50">
+          {/* Mobile Backdrop Overlay */}
+          {isSidebarOpen && (
+            <div
+              className="fixed inset-0 bg-black/50 z-40 lg:hidden transition-opacity duration-300"
+              onClick={() => setIsSidebarOpen(false)}
+            />
+          )}
+
+          <Sidebar
+            isOpen={isSidebarOpen}
+            toggleSidebar={() => setIsSidebarOpen(false)}
           />
-        )}
 
-        <Sidebar
-          isOpen={isSidebarOpen}
-          toggleSidebar={() => setIsSidebarOpen(false)}
-        />
+          <div className="flex flex-col flex-1 min-w-0 lg:pl-64">
+            <Header toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
 
-        <div className="flex flex-col flex-1 min-w-0 lg:pl-64">
-          <Header toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
+            <main className="flex-1 p-4 sm:p-6 md:p-8 w-full max-w-7xl 2xl:max-w-[1600px] mx-auto">
+              {children}
+            </main>
 
-          <main className="flex-1 p-4 sm:p-6 md:p-8 w-full max-w-7xl 2xl:max-w-[1600px] mx-auto">
-            {children}
-          </main>
-
+          </div>
         </div>
-      </div>
+      </BrandingProvider>
     </QueryClientProvider>
   );
 }

@@ -17,11 +17,11 @@ import Link from "next/link";
 
 
 const ICON_COLORS = {
-  cyan700: "#0e7490",
-  gray200: "#e5e7eb",
-  gray400: "#9ca3af",
-  gray500: "#6b7280",
-  gray700: "#374151",
+  cyan700: "var(--primary)",
+  gray200: "var(--muted)",
+  gray400: "var(--muted-foreground)",
+  gray500: "var(--muted-foreground)",
+  gray700: "var(--secondary)",
 };
 
 function startOfDay(d: Date) {
@@ -57,11 +57,15 @@ export default function TodosStats() {
 
   const totalTodos = todos?.length || 0;
 
-  const parsedTodos: Todo[] = (todos || []).map((t) => ({
+  interface ParsedTodo extends Omit<Todo, "target"> {
+    target: Date;
+  }
+
+  const parsedTodos: ParsedTodo[] = (todos || []).map((t) => ({
     ...t,
 
     dueDate: t.dueDate ? new Date(t.dueDate) : new Date(),
-    target: t.target ? new Date(t.target) : new Date(),
+    target: t.target_date ? new Date(t.target_date) : new Date(),
     givenDate: t.givenDate ? new Date(t.givenDate) : new Date(),
   }));
 
@@ -164,10 +168,10 @@ export default function TodosStats() {
   return (
     <div>
       <div className="text-center space-y-2 mt-8 mb-6">
-        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-cyan-800">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary">
           Todo Statistics
         </h2>
-        <div className="w-24 h-1 bg-cyan-600 mx-auto rounded-full" />
+        <div className="w-24 h-1 bg-primary mx-auto rounded-full" />
       </div>
 
       {/* Top summary cards */}
@@ -177,28 +181,28 @@ export default function TodosStats() {
           count={isLoading ? 0 : totalTodos}
           link="/todos"
           Icon={ListTodo}
-          color="cyan-700"
+          color="primary"
         />
         <Card
           title="Due Today"
           count={isLoading ? 0 : todayCount}
           link="/todos?filter=due_today"
           Icon={Calendar}
-          color="cyan-700"
+          color="primary"
         />
         <Card
           title="Due This Week"
           count={isLoading ? 0 : thisWeekCount}
           link="/todos?filter=due_week"
           Icon={Clock}
-          color="cyan-700"
+          color="primary"
         />
         <Card
           title="Due This Month"
           count={isLoading ? 0 : thisMonthCount}
           link="/todos?filter=due_month"
           Icon={Calendar}
-          color="cyan-700"
+          color="primary"
         />
       </div>
 

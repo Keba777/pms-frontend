@@ -12,7 +12,7 @@ import { User } from "@/types/user";
 interface EditTaskFormProps {
   onSubmit: (data: UpdateTaskInput | FormData) => void;
   onClose: () => void;
-  task: Task;
+  task: Task | (UpdateTaskInput & { id: string });
   users?: User[];
 }
 
@@ -24,14 +24,27 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({
 }) => {
   const [selectedFiles, setSelectedFiles] = React.useState<File[]>([]);
   const [keptAttachments, setKeptAttachments] = React.useState<string[]>(
-    task.attachments || []
+    (task as any).existingAttachments ||
+    (Array.isArray(task.attachments) && typeof task.attachments[0] === 'string'
+      ? (task.attachments as string[])
+      : [])
   );
 
   // Transform task data to match UpdateTaskInput structure
   const { attachments, ...taskWithoutAttachments } = task;
+
+  let initialAssignedUsers: string[] = [];
+  if (task.assignedUsers) {
+    if (task.assignedUsers.length > 0 && typeof task.assignedUsers[0] === 'string') {
+      initialAssignedUsers = task.assignedUsers as any as string[];
+    } else {
+      initialAssignedUsers = (task.assignedUsers as any[]).map(user => user.id);
+    }
+  }
+
   const defaultValues: UpdateTaskInput = {
     ...taskWithoutAttachments,
-    assignedUsers: task.assignedUsers?.map(user => user.id) || []
+    assignedUsers: initialAssignedUsers
   };
 
   const {

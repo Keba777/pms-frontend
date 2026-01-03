@@ -42,7 +42,9 @@ export const useOrganizationStore = create<OrganizationStore>()(
 
             clearOrganization: () => set({ organization: null, error: null }),
 
-            setOrganization: (org: Organization) => set({ organization: org })
+            setOrganization: (org: Organization) => {
+                set({ organization: org });
+            }
         }),
         {
             name: "organization-store",

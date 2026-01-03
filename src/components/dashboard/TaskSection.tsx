@@ -124,6 +124,8 @@ const TaskSection: React.FC = () => {
       id: t.id,
       name: (t as any).name ?? undefined,
       progressUpdates: (t as any).progressUpdates ?? null,
+      existingAttachments: (t as any).attachments,
+      attachments: undefined,
     };
     setTaskToEdit(payload);
     setShowEditForm(true);
@@ -146,6 +148,8 @@ const TaskSection: React.FC = () => {
       id: t.id,
       name: (t as any).name ?? undefined,
       progressUpdates: (t as any).progressUpdates ?? null,
+      existingAttachments: (t as any).attachments,
+      attachments: undefined,
     };
     setTaskToManage(payload);
     setShowManageForm(true);
@@ -169,7 +173,7 @@ const TaskSection: React.FC = () => {
         <div className="overflow-x-auto rounded-md border">
           <Table>
             <TableHeader>
-              <TableRow className="bg-cyan-700 hover:bg-cyan-700">
+              <TableRow className="bg-primary hover:bg-primary/90">
                 {columnOptions.map((col) => (
                   <TableHead
                     key={col.value}
@@ -349,7 +353,7 @@ const TaskSection: React.FC = () => {
       <div className="overflow-x-auto rounded-md border">
         <Table>
           <TableHeader>
-            <TableRow className="bg-cyan-700 hover:bg-cyan-700">
+            <TableRow className="bg-primary hover:bg-primary/90">
               {columnOptions
                 .filter((col) => selectedColumns.includes(col.value))
                 .map((col) => (
@@ -382,7 +386,7 @@ const TaskSection: React.FC = () => {
                       </TableCell>
                     )}
                     {selectedColumns.includes("task_name") && (
-                      <TableCell className="px-4 py-2  font-medium text-cyan-700">
+                      <TableCell className="px-4 py-2  font-medium text-primary">
                         <Link href={`/tasks/${task.id}`}>{task.task_name}</Link>
                       </TableCell>
                     )}
@@ -451,7 +455,7 @@ const TaskSection: React.FC = () => {
                           <DropdownMenuTrigger asChild>
                             <Button
                               variant="ghost"
-                              className="text-white p-0 bg-cyan-700"
+                              className="text-primary-foreground p-0 bg-primary hover:bg-primary/90"
                             >
                               Action
                               <ChevronDown className="h-4 w-4" />

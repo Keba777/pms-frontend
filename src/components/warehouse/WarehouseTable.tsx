@@ -82,7 +82,7 @@ const WarehouseTable: React.FC<WarehouseTableProps> = ({
                   {warehouse.workingStatus}
                 </span>
               </td>
-              <td className="px-5 py-4 text-sm font-bold text-cyan-700">
+              <td className="px-5 py-4 text-sm font-bold text-primary">
                 {warehouse?.site.name ?? "-"}
               </td>
               {showApprovedBy && (
@@ -103,7 +103,7 @@ const WarehouseTable: React.FC<WarehouseTableProps> = ({
               </td>
               <td className="px-5 py-4">
                 <Menu as="div" className="relative inline-block text-left">
-                  <MenuButton className="flex items-center gap-1 px-4 py-1.5 text-[10px] font-black uppercase bg-cyan-700 text-white rounded-lg hover:bg-cyan-800 transition-all shadow-sm">
+                  <MenuButton className="flex items-center gap-1 px-4 py-1.5 text-[10px] font-black uppercase bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all shadow-sm">
                     Action <ChevronDown className="w-3 h-3" />
                   </MenuButton>
                   <MenuItems className="absolute right-0 mt-2 w-48 bg-white border border-gray-100 divide-y divide-gray-50 rounded-xl shadow-xl focus:outline-none z-[9999] py-1 backdrop-blur-sm bg-white/95">
@@ -115,7 +115,7 @@ const WarehouseTable: React.FC<WarehouseTableProps> = ({
                       <MenuItem key={item.label}>
                         {({ active }) => (
                           <button
-                            className={`block w-full px-4 py-2 text-left text-xs font-bold ${item.color || 'text-gray-700'} ${active ? "bg-gray-50 text-cyan-700" : ""
+                            className={`block w-full px-4 py-2 text-left text-xs font-bold ${item.color || 'text-secondary'} ${active ? "bg-accent text-primary" : ""
                               }`}
                             onClick={item.action}
                           >

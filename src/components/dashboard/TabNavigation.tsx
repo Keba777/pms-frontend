@@ -9,22 +9,24 @@ const TabNavigation = () => {
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-      <TabsList className="bg-white border-b flex justify-start space-x-0 overflow-x-auto no-scrollbar w-full whitespace-nowrap">
-        <TabsTrigger
-          value="projects"
-          className="flex items-center space-x-2 py-3 px-6 text-sm font-medium transition-all data-[state=active]:border-b-2 data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 rounded-none bg-transparent"
-        >
-          <Folder className="w-5 h-5" />
-          <span>Projects</span>
-        </TabsTrigger>
-        <TabsTrigger
-          value="tasks"
-          className="flex items-center space-x-2 py-3 px-6 text-sm font-medium transition-all data-[state=active]:border-b-2 data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 rounded-none bg-transparent"
-        >
-          <CheckSquare className="w-5 h-5" />
-          <span>Tasks</span>
-        </TabsTrigger>
-      </TabsList>
+      <div className="flex justify-center w-full mb-6">
+        <TabsList className="bg-muted p-1 rounded-full inline-flex h-auto">
+          <TabsTrigger
+            value="projects"
+            className="flex items-center space-x-2 py-2 px-6 text-sm font-medium rounded-full transition-all data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm text-muted-foreground hover:text-foreground"
+          >
+            <Folder className="w-5 h-5" />
+            <span>Projects</span>
+          </TabsTrigger>
+          <TabsTrigger
+            value="tasks"
+            className="flex items-center space-x-2 py-2 px-6 text-sm font-medium rounded-full transition-all data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm text-muted-foreground hover:text-foreground"
+          >
+            <CheckSquare className="w-5 h-5" />
+            <span>Tasks</span>
+          </TabsTrigger>
+        </TabsList>
+      </div>
       <TabsContent value="projects" className="mt-6">
         <ProjectSection />
       </TabsContent>

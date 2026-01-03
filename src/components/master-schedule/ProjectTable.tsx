@@ -131,8 +131,8 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
     router.push(`/projects/${id}`);
   };
 
-  const handleEditSubmit = (data: UpdateProjectInput) => {
-    updateProject(data);
+  const handleEditSubmit = (data: UpdateProjectInput | FormData) => {
+    updateProject(data as any);
     setShowEditForm(false);
   };
 
@@ -166,7 +166,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
         <div ref={menuRef} className="relative w-full sm:w-auto">
           <button
             onClick={() => setShowColumnMenu((v) => !v)}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-700 text-white rounded-lg hover:bg-emerald-800 transition-colors shadow-sm font-bold text-sm"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors shadow-sm font-bold text-sm"
           >
             Customize Columns <ChevronDown className="w-4 h-4" />
           </button>
@@ -184,7 +184,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                     type="checkbox"
                     checked={selectedColumns.includes(key)}
                     onChange={() => toggleColumn(key)}
-                    className="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 mr-3"
+                    className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary mr-3"
                   />
                   <span className="text-sm text-gray-700 font-bold">{label}</span>
                 </label>
@@ -204,7 +204,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
 
       <div className="overflow-x-auto">
         <table className="min-w-full border border-gray-200 divide-y divide-gray-200 table-auto">
-          <thead className="bg-cyan-700">
+          <thead className="bg-primary">
             <tr>
               {selectedColumns.includes("no") && (
                 <th className="px-5 py-3 text-left text-sm font-medium text-white w-16 truncate-ellipsis">
@@ -268,7 +268,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                       </td>
                     )}
                     {selectedColumns.includes("title") && (
-                      <td className="px-5 py-2 font-medium text-blue-600 hover:underline min-w-[200px]">
+                      <td className="px-5 py-2 font-medium text-primary hover:underline min-w-[200px]">
                         <Link href={`/master-schedule/project/${project.id}`}>
                           {project.title}
                         </Link>
@@ -320,7 +320,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                           as="div"
                           className="relative inline-block text-left"
                         >
-                          <MenuButton className="flex items-center gap-1 px-3 py-1 text-sm bg-cyan-700 text-white rounded hover:bg-cyan-800 w-full">
+                          <MenuButton className="flex items-center gap-1 px-3 py-1 text-sm bg-primary text-primary-foreground rounded hover:bg-primary/90 w-full">
                             Action <ChevronDown className="w-4 h-4" />
                           </MenuButton>
                           <MenuItems className="absolute left-0 mt-2 w-40 bg-white border divide-y divide-gray-100 rounded-md shadow-lg z-50">
@@ -344,6 +344,8 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                                       members: project.members?.map(
                                         (m) => m.id
                                       ),
+                                      existingAttachments: project.attachments,
+                                      attachments: undefined,
                                     } as UpdateProjectInput & { id: string });
                                     setShowEditForm(true);
                                   }}
@@ -379,6 +381,8 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
                                       members: project.members?.map(
                                         (m) => m.id
                                       ),
+                                      existingAttachments: project.attachments,
+                                      attachments: undefined,
                                     } as UpdateProjectInput & { id: string });
                                     setShowManageForm(true);
                                   }}

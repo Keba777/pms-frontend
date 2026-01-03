@@ -98,7 +98,7 @@ const ProjectPage: React.FC = () => {
   const importColumns: ImportColumn<CreateProjectInput>[] = [
     { header: "Project Name", accessor: "title", type: "string" },
     { header: "Priority", accessor: "priority", type: "string" },
-    { header: "Client", accessor: "client", type: "string" },
+    { header: "Client", accessor: "client_id", type: "string" },
     { header: "Progress", accessor: "progress", type: "number" },
     { header: "Budget", accessor: "budget", type: "number" },
     { header: "Start Date", accessor: "start_date", type: "date" },
@@ -109,7 +109,7 @@ const ProjectPage: React.FC = () => {
   const requiredAccessors: (keyof CreateProjectInput)[] = [
     "title",
     "priority",
-    "client",
+    "client_id",
     "budget",
     "start_date",
     "end_date",
@@ -217,7 +217,7 @@ const ProjectPage: React.FC = () => {
         <nav className="hidden md:block" aria-label="breadcrumb">
           <ol className="flex space-x-2 text-sm sm:text-base">
             <li>
-              <Link href="/" className="text-blue-600 hover:underline">
+              <Link href="/" className="text-primary hover:underline">
                 Home
               </Link>
             </li>
@@ -230,7 +230,7 @@ const ProjectPage: React.FC = () => {
         <div className="flex flex-wrap gap-2 items-center w-full md:w-auto">
           {canCreate && (
             <button
-              className="bg-cyan-700 hover:bg-cyan-800 text-white font-bold rounded text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2 flex items-center gap-1"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2 flex items-center gap-1"
               onClick={() => setShowForm(true)}
             >
               <span className="md:hidden">Add New</span>
@@ -238,7 +238,7 @@ const ProjectPage: React.FC = () => {
             </button>
           )}
           <button
-            className="bg-cyan-700 hover:bg-cyan-800 text-white font-bold rounded text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
             onClick={() => setIsListView((prev) => !prev)}
           >
             {isListView ? (
@@ -309,7 +309,7 @@ const ProjectPage: React.FC = () => {
         <div className="border-b flex items-center overflow-x-auto no-scrollbar">
           <button
             className={`py-3 px-6 -mb-px border-b-2 font-medium transition-colors whitespace-nowrap ${activeTab === "planned"
-              ? "border-cyan-700 text-cyan-700"
+              ? "border-primary text-primary"
               : "border-transparent text-gray-500 hover:text-gray-700"
               }`}
             onClick={() => setActiveTab("planned")}
@@ -318,7 +318,7 @@ const ProjectPage: React.FC = () => {
           </button>
           <button
             className={`py-3 px-6 -mb-px border-b-2 font-medium transition-colors whitespace-nowrap ${activeTab === "actual"
-              ? "border-cyan-700 text-cyan-700"
+              ? "border-primary text-primary"
               : "border-transparent text-gray-500 hover:text-gray-700"
               }`}
             onClick={() => setActiveTab("actual")}

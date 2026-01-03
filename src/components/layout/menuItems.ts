@@ -36,15 +36,15 @@ const menuItems = [
   { title: "Dashboard", link: "/", icon: Home, iconColor: "text-rose-500" },
 
   {
-    title: "HR Dashboard",
+    title: "Dashboard",
     link: "/hrm",
     icon: Users,
-    iconColor: "text-cyan-700",
+
   },
   {
     title: "Projects",
     icon: Briefcase,
-    iconColor: "text-emerald-600",
+
     submenu: [
       { title: "Manage Projects", link: "/projects", active: true, icon: Grid, iconColor: "text-sky-600" },
       { title: "Favorite Projects", link: "/projects/favorite", icon: Star, iconColor: "text-yellow-500" },
@@ -56,26 +56,26 @@ const menuItems = [
     title: "Tasks",
     link: "/tasks",
     icon: ClipboardList,
-    iconColor: "text-sky-600",
+
   },
   {
     title: "Activities",
     link: "/activities",
     icon: Activity,
-    iconColor: "text-orange-500",
+
   },
   {
     title: "Master-schedule",
     link: "/master-schedule",
     icon: CalendarRange,
-    iconColor: "text-indigo-600",
+
   },
 
   {
     title: "Issues",
     link: "/issues",
     icon: ArrowUp,
-    iconColor: "text-red-600",
+
   },
 
   {
@@ -189,7 +189,7 @@ const menuItems = [
     title: "Chat",
     link: "/chat",
     icon: MessageSquare,
-    iconColor: "text-yellow-500",
+
     badge: 0,
   },
   // {
@@ -218,7 +218,7 @@ const menuItems = [
     title: "Schedule",
     link: "/schedule",
     icon: ClipboardList,
-    iconColor: "text-indigo-500",
+
   },
 
   {
@@ -252,13 +252,13 @@ const menuItems = [
         title: "Invoices",
         link: "/finance/invoices",
         icon: Receipt,
-        iconColor: "text-emerald-600",
+
       },
       {
         title: "Payments",
         link: "/finance/payments",
         icon: CreditCard,
-        iconColor: "text-indigo-600",
+
       },
       {
         title: "Budgets",
@@ -295,7 +295,7 @@ const menuItems = [
         title: "Users",
         link: "/users",
         icon: Users,
-        iconColor: "text-indigo-600",
+
       },
       {
         title: "Department",
@@ -319,7 +319,7 @@ const menuItems = [
         title: "Clients",
         link: "/clients",
         icon: Users,
-        iconColor: "text-emerald-600",
+
       },
       {
         title: "Sites",
@@ -362,7 +362,7 @@ export const systemAdminMenuItems = [
     title: "Global Users",
     link: "/users",
     icon: Users,
-    iconColor: "text-indigo-600",
+
   },
   {
     title: "Settings",
@@ -387,7 +387,7 @@ export const systemAdminMenuItems = [
 
 // Super Admin sees everything Admin sees + Organizations menu
 export const superAdminMenuItems = [
-  ...menuItems.slice(0, -2), // Remove the two empty items at the end
+  ...menuItems.slice(0, -2).filter(item => item.link !== "/hrm"), // Remove empty items and HR dashboard
   {
     title: "Organizations",
     link: "/organizations",

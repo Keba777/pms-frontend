@@ -35,8 +35,15 @@ const OrganizationsPage = () => {
         return <SystemAdminOrganizationsPage />;
     }
 
+    // Redirect unauthorized users (Not System Admin AND Not Super Admin)
+    React.useEffect(() => {
+        if (!isSystemAdmin && !isSuperAdmin) {
+            router.push("/");
+        }
+    }, [isSystemAdmin, isSuperAdmin, router]);
+
     if (!isSystemAdmin && !isSuperAdmin) {
-        return <div className="p-8 text-center text-red-600">Not authorized</div>;
+        return null; // Don't render anything while redirecting
     }
 
     if (isLoading) return <div className="flex justify-center p-12"><Spinner /></div>;

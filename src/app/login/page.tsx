@@ -101,7 +101,7 @@ export default function LoginPage() {
       </div>
       {/* Login Form Section */}
       <div className="flex-1 flex items-center justify-center px-4 py-8 sm:py-12">
-        <Card className="w-full max-w-md shadow-2xl border-0">
+        <Card className="w-full max-w-md shadow-2xl border-0 bg-white text-gray-900">
           {" "}
           {/* Modern card with no border */}
           <CardHeader className="space-y-4 text-center pb-0">

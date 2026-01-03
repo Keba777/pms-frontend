@@ -69,9 +69,9 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
             className="p-2 lg:hidden"
             onClick={toggleSidebar}
           >
-            <MenuIcon className="w-10 h-10 text-gray-600" />
+            <MenuIcon className="w-10 h-10 text-muted-foreground" />
           </Button>
-          <span className="text-lg font-semibold text-gray-800 hidden sm:block">
+          <span className="text-lg font-semibold text-foreground hidden sm:block">
             Dashboard
           </span>
         </div>
@@ -83,7 +83,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
             placeholder="Search..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full py-2 px-4 text-sm border-gray-200 focus:border-blue-500"
+            className="w-full py-2 px-4 text-sm border-border focus:border-primary"
           />
         </div>
 
@@ -95,7 +95,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
             className="p-2 md:hidden"
             onClick={() => setSearchOpen(!searchOpen)}
           >
-            <Search className="w-6 h-6 text-gray-600" />
+            <Search className="w-6 h-6 text-muted-foreground" />
           </Button>
 
           {/* Notifications */}
@@ -105,7 +105,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
           >
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="p-2 relative">
-                <Bell className="w-8 h-8 text-gray-600" />
+                <Bell className="w-8 h-8 text-muted-foreground" />
                 {unreadCount > 0 && (
                   <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center border-2 border-white">
                     {unreadCount}
@@ -118,7 +118,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
                 Notifications
                 <Button
                   variant="link"
-                  className="text-sm text-blue-600"
+                  className="text-sm text-primary"
                   onClick={() => markAllAsReadMutation.mutate()}
                 >
                   Mark all as read
@@ -127,18 +127,18 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
               <DropdownMenuSeparator />
               <div className="max-h-64 overflow-y-auto">
                 {isLoading ? (
-                  <p className="p-4 text-center text-sm text-gray-500">
+                  <p className="p-4 text-center text-sm text-muted-foreground">
                     Loading...
                   </p>
                 ) : notifications.length === 0 ? (
-                  <p className="p-4 text-center text-sm text-gray-500">
+                  <p className="p-4 text-center text-sm text-muted-foreground">
                     No notifications
                   </p>
                 ) : (
                   notifications.map((n) => (
                     <DropdownMenuItem
                       key={n.id}
-                      className={`flex flex-col px-4 py-2 text-sm cursor-pointer ${n.read ? "" : "bg-blue-50"
+                      className={`flex flex-col px-4 py-2 text-sm cursor-pointer ${n.read ? "" : "bg-muted"
                         }`}
                       onClick={() => markAsReadMutation.mutate(n.id!)}
                     >
@@ -165,7 +165,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
           {/* User */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="p-0 rounded-full border-2 border-gray-100 hover:border-blue-100 transition-colors">
+              <Button variant="ghost" className="p-0 rounded-full border-2 border-border hover:border-accent transition-colors">
                 <Image
                   src={
                     user?.profile_picture ? user.profile_picture : userAvatar
@@ -206,7 +206,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
             placeholder="Search..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full py-2 px-4 text-sm border-gray-200 focus:border-blue-500"
+            className="w-full py-2 px-4 text-sm border-border focus:border-primary"
           />
         </div>
       )}
