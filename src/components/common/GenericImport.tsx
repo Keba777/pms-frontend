@@ -1,6 +1,7 @@
 import React, { ChangeEvent, useState } from "react";
 import * as XLSX from "xlsx";
 import { toast } from "react-toastify";
+import { cn } from "@/lib/utils";
 
 export interface ImportColumn<T> {
   header: string;
@@ -14,6 +15,7 @@ interface GenericImportProps<T extends object> {
   title: string;
   onError?: (error: string) => void;
   requiredAccessors?: (keyof T)[];
+  className?: string; // Added className support
 }
 
 const GenericImport = <T extends object>({
@@ -22,6 +24,7 @@ const GenericImport = <T extends object>({
   title,
   onError,
   requiredAccessors,
+  className, // Added className destructuring
 }: GenericImportProps<T>) => {
   const [loading, setLoading] = useState(false);
 
@@ -101,8 +104,7 @@ const GenericImport = <T extends object>({
                   const num = Number(value);
                   if (isNaN(num)) {
                     throw new Error(
-                      `Invalid number in column "${column.header}" at row ${
-                        rowIndex + 2
+                      `Invalid number in column "${column.header}" at row ${rowIndex + 2
                       }.`
                     );
                   }
@@ -115,8 +117,7 @@ const GenericImport = <T extends object>({
                   const date = new Date(value as string);
                   if (isNaN(date.getTime())) {
                     throw new Error(
-                      `Invalid date in column "${column.header}" at row ${
-                        rowIndex + 2
+                      `Invalid date in column "${column.header}" at row ${rowIndex + 2
                       }.`
                     );
                   }
@@ -129,8 +130,7 @@ const GenericImport = <T extends object>({
                   else if (lower === "false") parsedValue = false;
                   else
                     throw new Error(
-                      `Invalid boolean in column "${column.header}" at row ${
-                        rowIndex + 2
+                      `Invalid boolean in column "${column.header}" at row ${rowIndex + 2
                       }.`
                     );
                 } else {
@@ -216,12 +216,14 @@ const GenericImport = <T extends object>({
   };
 
   return (
-    <div className="space-y-4">
+    <div className={cn("inline-block", className)}>
       <label
         htmlFor="file-import"
-        className="btn-import flex items-center gap-2 text-white bg-purple-600 px-4 py-2 rounded hover:bg-purple-700 cursor-pointer"
+        className="flex items-center gap-2 px-4 py-2 bg-primary/80 text-primary-foreground border border-slate-200 rounded-lg hover:bg-primary/90 transition-all cursor-pointer font-semibold shadow-sm text-sm"
       >
-        {loading ? "Importing..." : `Import ${title} from XLS`}
+        <span className="flex items-center gap-2 text-xs sm:text-sm">
+          {loading ? "Importing..." : `Import ${title}`}
+        </span>
         <input
           id="file-import"
           type="file"

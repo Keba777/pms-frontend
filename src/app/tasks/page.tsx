@@ -4,7 +4,7 @@
 import React, { useState } from "react";
 import BreadcrumbTasks from "@/components/tasks/BreadcrumbTasks";
 import Card from "@/components/common/ui/Card";
-import { CheckCircle, Loader, Clock, XCircle, Search } from "lucide-react";
+import { CheckCircle, Loader, XCircle, Search } from "lucide-react";
 import DataTable from "@/components/tasks/DataTable";
 import ActualTaskTable from "@/components/tasks/ActualTaskTable";
 import DataTableSkeleton from "@/components/tasks/DataTableSkeleton";
@@ -12,12 +12,15 @@ import { useTasks } from "@/hooks/useTasks";
 import GenericDownloads, { Column } from "@/components/common/GenericDownloads";
 import { Task } from "@/types/task";
 import { formatDate } from "@/utils/dateUtils";
+import { ListTodo, CheckSquare, LayoutGrid, ClipboardCheck, Clock, AlertCircle } from "lucide-react";
+import ModernStatsCard from "@/components/common/ModernStatsCard";
 
 import { getDateDuration } from "@/utils/dateUtils";
 import TaskSection from "@/components/dashboard/TaskSection";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { GenericFilter, FilterField, FilterValues } from "@/components/common/GenericFilter";
-import { CheckSquare, ListTodo } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const TasksPage: React.FC = () => {
   const { data: tasks, isLoading, isError } = useTasks();
@@ -90,41 +93,75 @@ const TasksPage: React.FC = () => {
     return <div className="p-8 text-center text-red-600 font-medium">Failed to load tasks. Please try again later.</div>;
   }
 
-  return (
-    <div className="p-4 bg-gray-50/50 min-h-screen">
-      <div className="flex flex-wrap justify-between items-center mb-4 mt-2 gap-2">
-        <BreadcrumbTasks />
-      </div>
+  // Define columns for the planned tasks report
+  const plannedTaskColumns: Column<Task>[] = [
+    { header: "Task Name", accessor: "task_name" },
+    { header: "Status", accessor: "status" },
+    { header: "Priority", accessor: "priority" },
+    { header: "Start Date", accessor: (row) => formatDate(row.start_date) },
+    { header: "End Date", accessor: (row) => formatDate(row.end_date) },
+  ];
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
-        <Card
-          title="Completed"
-          count={statusCounts.Completed}
-          link="/projects"
-          Icon={CheckCircle}
-          color="emerald-500"
-        />
-        <Card
-          title="In Progress"
-          count={statusCounts.InProgress}
-          link="/tasks"
-          Icon={Loader}
-          color="blue-500"
-        />
-        <Card
-          title="Not Started"
-          count={statusCounts["Not Started"]}
-          link="/users"
-          Icon={Clock}
-          color="amber-500"
-        />
-        <Card
-          title="Cancelled"
-          count={statusCounts.Canceled}
-          link="/clients"
-          Icon={XCircle}
-          color="red-500"
-        />
+  // Define columns for the actual tasks report
+  const actualTaskColumns: Column<Task>[] = [
+    { header: "Task Name", accessor: "task_name" },
+    { header: "Status", accessor: "status" },
+    { header: "Priority", accessor: "priority" },
+    { header: "Actual Start Date", accessor: (row) => row.actuals?.start_date ? formatDate(row.actuals.start_date) : "N/A" },
+    { header: "Actual End Date", accessor: (row) => row.actuals?.end_date ? formatDate(row.actuals.end_date) : "N/A" },
+  ];
+
+  return (
+    <div className="p-6 bg-gray-50/30 min-h-screen">
+      {/* Header Section */}
+      <div className="flex flex-col mb-8 gap-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Tasks Management</h1>
+            <p className="text-muted-foreground mt-1">Track and organize all project tasks and their progress.</p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <GenericDownloads
+              data={tasks || []}
+              title="Planned Tasks Report"
+              columns={plannedTaskColumns}
+              secondTable={{
+                data: tasks || [],
+                title: "Actual Tasks Report",
+                columns: actualTaskColumns,
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Stats Row */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <ModernStatsCard
+            label="Total Tasks"
+            count={tasks?.length || 0}
+            icon={ListTodo}
+            color="primary"
+          />
+          <ModernStatsCard
+            label="In Progress"
+            count={statusCounts.InProgress}
+            icon={Clock}
+            color="blue"
+          />
+          <ModernStatsCard
+            label="Completed"
+            count={statusCounts.Completed}
+            icon={ClipboardCheck}
+            color="emerald"
+          />
+          <ModernStatsCard
+            label="Not Started"
+            count={statusCounts["Not Started"]}
+            icon={AlertCircle}
+            color="amber"
+          />
+        </div>
       </div>
 
       {/* Global Filtering Section */}

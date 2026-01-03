@@ -11,7 +11,8 @@ import { Activity } from "@/types/activity";
 import { formatDate } from "@/utils/dateUtils";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { GenericFilter, FilterField, FilterValues } from "@/components/common/GenericFilter";
-import { Activity as ActivityIcon, ClipboardList } from "lucide-react";
+import { Activity as ActivityIcon, ClipboardList, CheckCircle2, Clock, AlertCircle } from "lucide-react";
+import ModernStatsCard from "@/components/common/ModernStatsCard";
 
 const ActivitiesPage = () => {
   const { data: activities, isLoading } = useActivities();
@@ -106,39 +107,70 @@ const ActivitiesPage = () => {
     }
   })) || [];
 
+  const statusCounts = activities?.reduce(
+    (acc, act) => {
+      acc.total++;
+      const status = act.actuals?.status || act.status;
+      if (status === "Completed") acc.completed++;
+      if (status === "InProgress" || status === "Started") acc.active++;
+      if (status === "Not Started") acc.notStarted++;
+      return acc;
+    },
+    { total: 0, completed: 0, active: 0, notStarted: 0 } as Record<string, number>
+  ) || { total: 0, completed: 0, active: 0, notStarted: 0 };
+
   return (
-    <div className="p-4 bg-gray-50/50 min-h-screen">
-      {/* Breadcrumb & Header */}
-      <div className="flex flex-col sm:flex-row items-baseline justify-between mb-6 mt-4 gap-4">
-        <nav aria-label="breadcrumb">
-          <ol className="flex items-center space-x-2 text-sm font-medium">
-            <li>
-              <Link href="/" className="text-emerald-600 hover:underline flex items-center">
-                Home
-              </Link>
-            </li>
-            <li className="text-gray-400">/</li>
-            <li className="text-gray-900 font-bold">Activities</li>
-          </ol>
-        </nav>
-        <div className="flex items-baseline gap-2">
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 uppercase tracking-tight">
-            Project Activities
-          </h1>
-          <span className="text-sm text-gray-400 font-medium tracking-wide">({activities?.length || 0} total)</span>
+    <div className="p-6 bg-gray-50/30 min-h-screen">
+      {/* Header Section */}
+      <div className="flex flex-col mb-8 gap-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Project Activities</h1>
+            <p className="text-muted-foreground mt-1">Detailed breakdown of planned and actual project activities.</p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <GenericDownloads
+              data={activities || []}
+              title="Activity Report"
+              columns={plannedColumns}
+              secondTable={{
+                data: actualData,
+                title: "Actual Activities",
+                columns: actualColumns,
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Stats Row */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <ModernStatsCard
+            label="Total Activities"
+            count={statusCounts.total}
+            icon={ClipboardList}
+            color="primary"
+          />
+          <ModernStatsCard
+            label="In Progress"
+            count={statusCounts.active}
+            icon={Clock}
+            color="blue"
+          />
+          <ModernStatsCard
+            label="Completed"
+            count={statusCounts.completed}
+            icon={CheckCircle2}
+            color="emerald"
+          />
+          <ModernStatsCard
+            label="Not Started"
+            count={statusCounts.notStarted}
+            icon={AlertCircle}
+            color="amber"
+          />
         </div>
       </div>
-
-      <GenericDownloads
-        data={activities || []}
-        title="Planned Activities"
-        columns={plannedColumns}
-        secondTable={{
-          data: actualData,
-          title: "Actual Activities",
-          columns: actualColumns,
-        }}
-      />
 
       {/* Global Filtering Section */}
       <div className="mt-8">

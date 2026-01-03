@@ -14,7 +14,8 @@ import { useProjectStore } from "@/store/projectStore";
 import { useAuthStore } from "@/store/authStore";
 import { formatDate, getDateDuration } from "@/utils/dateUtils";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { ClipboardList, Activity } from "lucide-react";
+import { ClipboardList, Activity, LayoutGrid, LayoutList } from "lucide-react";
+import ModernStatsCard from "@/components/common/ModernStatsCard";
 import {
   FilterField,
   FilterValues,
@@ -23,6 +24,8 @@ import {
 } from "@/components/common/GenericFilter";
 import GenericImport, { ImportColumn } from "@/components/common/GenericImport";
 import { toast } from "react-toastify";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const ProjectPage: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
@@ -231,49 +234,41 @@ const ProjectPage: React.FC = () => {
     toast.error(error);
   };
 
+  const statusCounts = projects?.reduce(
+    (acc, p) => {
+      acc.total++;
+      if (p.status === "InProgress" || p.status === "Started") acc.active++;
+      if (p.status === "Completed") acc.completed++;
+      if (p.status === "Onhold") acc.onhold++;
+      return acc;
+    },
+    { total: 0, active: 0, completed: 0, onhold: 0 } as Record<string, number>
+  ) || { total: 0, active: 0, completed: 0, onhold: 0 };
+
   return (
-    <div className="p-4">
-      <div className="flex flex-wrap justify-between items-center mb-4 mt-4 gap-2">
-        <nav className="hidden md:block" aria-label="breadcrumb">
-          <ol className="flex space-x-2 text-sm sm:text-base">
-            <li>
-              <Link href="/" className="text-primary hover:underline">
-                Home
-              </Link>
-            </li>
-            <li className="text-gray-500">/</li>
-            <li className="text-gray-900 font-semibold">Projects</li>
-          </ol>
-        </nav>
+    <div className="p-6 bg-gray-50/30 min-h-screen">
+      {/* Dynamic Header Section */}
+      <div className="flex flex-col mb-8 gap-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Project Overview</h1>
+            <p className="text-muted-foreground mt-1">Manage and track your construction projects in real-time.</p>
+          </div>
 
-        {/* Button group */}
-        <div className="flex flex-wrap gap-2 items-center w-full md:w-auto">
-          {canCreate && (
-            <button
-              className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2 flex items-center gap-1"
-              onClick={() => setShowForm(true)}
-            >
-              <span className="md:hidden">Add New</span>
-              <PlusIcon width={14} height={14} className="hidden md:inline" />
-            </button>
-          )}
-          <button
-            className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
-            onClick={() => setIsListView((prev) => !prev)}
-          >
-            {isListView ? (
-              <Grid width={14} height={14} />
-            ) : (
-              <List width={14} height={14} />
+          <div className="flex flex-wrap items-center gap-3">
+            {canManage && (
+              <GenericImport<CreateProjectInput>
+                expectedColumns={importColumns}
+                requiredAccessors={requiredAccessors}
+                onImport={handleImport}
+                title="Import Projects"
+                onError={handleError}
+              />
             )}
-          </button>
-
-          {/* GenericDownloads: full width on small, inline on md+ */}
-          {canManage && (
-            <div className="w-full md:w-auto mt-2 md:mt-0">
+            {canManage && (
               <GenericDownloads
                 data={storeProjects || []}
-                title="Planned Projects"
+                title="Export Data"
                 columns={columns}
                 secondTable={{
                   data: actualData,
@@ -281,22 +276,76 @@ const ProjectPage: React.FC = () => {
                   columns: actualColumns,
                 }}
               />
-            </div>
-          )}
+            )}
+            {canCreate && (
+              <Button
+                onClick={() => setShowForm(true)}
+                className="bg-primary hover:bg-primary/90 text-white font-semibold shadow-md px-6"
+              >
+                <PlusIcon className="w-4 h-4 mr-2" />
+                Add New Project
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* Updated Stats Row */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <ModernStatsCard
+            label="Total Projects"
+            count={statusCounts.total}
+            icon={ClipboardList}
+            color="emerald"
+          />
+          <ModernStatsCard
+            label="Active Projects"
+            count={statusCounts.active}
+            icon={Activity}
+            color="blue"
+          />
+          <ModernStatsCard
+            label="In Progress"
+            count={statusCounts.active} // Adjusted for visual variety if needed, but correct for active
+            icon={LayoutGrid}
+            color="cyan"
+          />
+          <ModernStatsCard
+            label="Completed"
+            count={statusCounts.completed}
+            icon={ClipboardList} // Using appropriate icons
+            color="purple"
+          />
         </div>
       </div>
 
-      {/* Import */}
-      <div className="flex justify-end mb-4">
-        {canManage && (
-          <GenericImport<CreateProjectInput>
-            expectedColumns={importColumns}
-            requiredAccessors={requiredAccessors}
-            onImport={handleImport}
-            title="Projects"
-            onError={handleError}
-          />
-        )}
+      {/* Controls Row */}
+      <div className="flex justify-between items-center mb-6 bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+        <div className="flex items-center gap-2">
+          <Button
+            variant={isListView ? "default" : "outline"}
+            size="sm"
+            onClick={() => setIsListView(true)}
+            className={cn(
+              "rounded-lg px-4 font-medium transition-all",
+              isListView ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground"
+            )}
+          >
+            <LayoutList className="w-4 h-4 mr-2" />
+            List View
+          </Button>
+          <Button
+            variant={!isListView ? "default" : "outline"}
+            size="sm"
+            onClick={() => setIsListView(false)}
+            className={cn(
+              "rounded-lg px-4 font-medium transition-all",
+              !isListView ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground"
+            )}
+          >
+            <LayoutGrid className="w-4 h-4 mr-2" />
+            Grid View
+          </Button>
+        </div>
       </div>
 
       {showForm && canCreate && (
