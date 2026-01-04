@@ -26,6 +26,12 @@ const EditBudgetForm: React.FC<EditBudgetFormProps> = ({
 
   const { data: projects } = useProjects();
 
+  const statusOptions = [
+    { value: "planned", label: "Planned" },
+    { value: "active", label: "Active" },
+    { value: "closed", label: "Closed" },
+  ];
+
   const projectOptions =
     projects?.map((project) => ({
       value: project.id,
@@ -35,90 +41,116 @@ const EditBudgetForm: React.FC<EditBudgetFormProps> = ({
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="bg-white rounded-lg shadow-xl p-6 space-y-4"
+      className="bg-white rounded-xl shadow-2xl p-8 space-y-6 max-w-2xl w-full"
     >
-      <div className="flex justify-between items-center border-b pb-2 mb-4">
-        <h3 className="text-lg font-semibold text-gray-800">Edit Budget</h3>
+      <div className="flex justify-between items-center pb-4 border-b">
+        <h3 className="text-2xl font-bold text-gray-800 tracking-tight">Edit Budget Allocation</h3>
         <button
           type="button"
           onClick={onClose}
-          className="text-3xl text-red-500 hover:text-red-600"
+          className="text-3xl text-gray-400 hover:text-red-500 transition-colors"
         >
           &times;
         </button>
       </div>
 
-      <div className="flex items-center space-x-4">
-        <label className="w-32 text-sm font-medium text-gray-700">
-          Project
-        </label>
-        <Controller
-          name="projectId"
-          control={control}
-          render={({ field }) => (
-            <Select
-              options={projectOptions}
-              className="flex-1"
-              onChange={(option) => field.onChange(option?.value)}
-              value={projectOptions.find((o) => o.value === field.value)}
-            />
-          )}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="md:col-span-2">
+          <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+            Project
+          </label>
+          <Controller
+            name="project_id"
+            control={control}
+            render={({ field }) => (
+              <Select
+                options={projectOptions}
+                className="w-full"
+                styles={{
+                  control: (base) => ({
+                    ...base,
+                    borderRadius: '0.75rem',
+                  })
+                }}
+                onChange={(option) => field.onChange(option?.value)}
+                value={projectOptions.find((o) => o.value === field.value)}
+              />
+            )}
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-1.5">Allocated Amount (ETB)</label>
+          <input
+            type="number"
+            {...register("allocated_amount", { min: 0, valueAsNumber: true })}
+            className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-mono"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-1.5">Spent Amount</label>
+          <input
+            type="number"
+            {...register("spent_amount", { min: 0, valueAsNumber: true })}
+            className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-mono"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-1.5">Remaining Amount</label>
+          <input
+            type="number"
+            {...register("remaining_amount", { min: 0, valueAsNumber: true })}
+            className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-mono"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-1.5">Status</label>
+          <Controller
+            name="status"
+            control={control}
+            render={({ field }) => (
+              <Select
+                options={statusOptions}
+                className="w-full"
+                styles={{
+                  control: (base) => ({
+                    ...base,
+                    borderRadius: '0.75rem',
+                  })
+                }}
+                onChange={(option) => field.onChange(option?.value)}
+                value={statusOptions.find((o) => o.value === field.value)}
+              />
+            )}
+          />
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-semibold text-gray-700 mb-1.5">Description</label>
+        <textarea
+          {...register("description")}
+          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+          rows={3}
         />
       </div>
 
-      <div className="flex items-center space-x-4">
-        <label className="w-32 text-sm font-medium text-gray-700">Total</label>
-        <input
-          type="number"
-          {...register("total", { min: 0 })}
-          className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-        />
-      </div>
-
-      <div className="flex items-center space-x-4">
-        <label className="w-32 text-sm font-medium text-gray-700">
-          Allocated
-        </label>
-        <input
-          type="number"
-          {...register("allocated", { min: 0 })}
-          className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-        />
-      </div>
-
-      <div className="flex items-center space-x-4">
-        <label className="w-32 text-sm font-medium text-gray-700">Spent</label>
-        <input
-          type="number"
-          {...register("spent", { min: 0 })}
-          className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-        />
-      </div>
-
-      <div className="flex items-center space-x-4">
-        <label className="w-32 text-sm font-medium text-gray-700">
-          Remaining
-        </label>
-        <input
-          type="number"
-          {...register("remaining", { min: 0 })}
-          className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-        />
-      </div>
-
-      <div className="flex justify-end space-x-4 mt-4">
+      <div className="flex justify-end gap-3 pt-6 border-t mt-4">
         <button
           type="button"
           onClick={onClose}
-          className="px-4 py-2 border rounded-md hover:bg-gray-50"
+          className="px-6 py-2.5 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors font-medium"
         >
-          Close
+          Cancel
         </button>
         <button
           type="submit"
-          className="px-4 py-2 bg-bs-primary text-white rounded-md hover:bg-bs-primary"
+          className="px-8 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors font-bold shadow-lg shadow-indigo-100"
         >
-          Update
+          Update Budget
         </button>
       </div>
     </form>

@@ -19,14 +19,48 @@ const EditInvoiceForm: React.FC<EditInvoiceFormProps> = ({ onSubmit, onClose, in
     register,
     handleSubmit,
     control,
+    watch,
+    setValue,
+    formState: { errors },
   } = useForm<UpdateInvoiceInput>({ defaultValues: invoice });
 
   const { data: projects } = useProjects();
 
+  const grossAmount = watch("gross_amount");
+  const vatAmount = watch("vat_amount");
+  const whAmount = watch("withholding_amount");
+  const retAmount = watch("retention_amount");
+  const advAmount = watch("advance_recovery_amount");
+
+  // Auto-calculate logic
+  React.useEffect(() => {
+    if (grossAmount) {
+      const vat = grossAmount * 0.15;
+      const wh = grossAmount * 0.02;
+      const ret = grossAmount * 0.10;
+
+      setValue("vat_amount", Number(vat.toFixed(2)));
+      setValue("withholding_amount", Number(wh.toFixed(2)));
+      setValue("retention_amount", Number(ret.toFixed(2)));
+    }
+  }, [grossAmount, setValue]);
+
+  React.useEffect(() => {
+    const gross = Number(grossAmount) || 0;
+    const vat = Number(vatAmount) || 0;
+    const wh = Number(whAmount) || 0;
+    const ret = Number(retAmount) || 0;
+    const adv = Number(advAmount) || 0;
+
+    const net = gross + vat - wh - ret - adv;
+    setValue("net_amount", Number(net.toFixed(2)));
+    setValue("amount", Number(net.toFixed(2)));
+  }, [grossAmount, vatAmount, whAmount, retAmount, advAmount, setValue]);
+
   const statusOptions = [
-    { value: "Pending", label: "Pending" },
-    { value: "Paid", label: "Paid" },
-    { value: "Overdue", label: "Overdue" },
+    { value: "pending", label: "Pending" },
+    { value: "paid", label: "Paid" },
+    { value: "overdue", label: "Overdue" },
   ];
 
   const projectOptions = projects?.map((project) => ({
@@ -35,81 +69,149 @@ const EditInvoiceForm: React.FC<EditInvoiceFormProps> = ({ onSubmit, onClose, in
   })) || [];
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="bg-white rounded-lg shadow-xl p-6 space-y-4">
-      <div className="flex justify-between items-center border-b pb-2 mb-4">
-        <h3 className="text-lg font-semibold text-gray-800">Edit Invoice</h3>
-        <button type="button" onClick={onClose} className="text-3xl text-red-500 hover:text-red-600">&times;</button>
+    <form onSubmit={handleSubmit(onSubmit)} className="bg-white rounded-xl shadow-2xl p-8 space-y-6 max-w-2xl w-full">
+      <div className="flex justify-between items-center pb-4 border-b">
+        <h3 className="text-2xl font-bold text-gray-800 tracking-tight">Edit IPC Details</h3>
+        <button type="button" onClick={onClose} className="text-3xl text-gray-400 hover:text-red-500 transition-colors">&times;</button>
       </div>
 
-      <div className="flex items-center space-x-4">
-        <label className="w-32 text-sm font-medium text-gray-700">Project</label>
-        <Controller
-          name="projectId"
-          control={control}
-          render={({ field }) => (
-            <Select
-              {...field}
-              options={projectOptions}
-              className="flex-1"
-              onChange={(option) => field.onChange(option?.value)}
-              value={projectOptions.find((o) => o.value === field.value)}
-            />
-          )}
-        />
-      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="md:col-span-2">
+          <label className="block text-sm font-semibold text-gray-700 mb-1.5">Project</label>
+          <Controller
+            name="project_id"
+            control={control}
+            render={({ field }) => (
+              <Select
+                {...field}
+                options={projectOptions}
+                className="w-full"
+                styles={{
+                  control: (base) => ({
+                    ...base,
+                    borderRadius: '0.75rem',
+                  })
+                }}
+                onChange={(option) => field.onChange(option?.value)}
+                value={projectOptions.find((o) => o.value === field.value)}
+              />
+            )}
+          />
+        </div>
 
-      <div className="flex items-center space-x-4">
-        <label className="w-32 text-sm font-medium text-gray-700">Amount</label>
-        <input
-          type="number"
-          {...register("amount", { min: 0 })}
-          className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-        />
-      </div>
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-1.5">Gross Amount (ETB)</label>
+          <input
+            type="number"
+            {...register("gross_amount", { min: 0, valueAsNumber: true })}
+            className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-mono"
+          />
+        </div>
 
-      <div className="flex items-center space-x-4">
-        <label className="w-32 text-sm font-medium text-gray-700">Due Date</label>
-        <Controller
-          name="dueDate"
-          control={control}
-          render={({ field }) => (
-            <>
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-1.5">VAT Amount (15%)</label>
+          <input
+            type="number"
+            {...register("vat_amount")}
+            className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none font-mono text-blue-600"
+            readOnly
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-1.5">Withholding (2%)</label>
+          <input
+            type="number"
+            {...register("withholding_amount")}
+            className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none font-mono text-orange-600"
+            readOnly
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-1.5">Retention (10%)</label>
+          <input
+            type="number"
+            {...register("retention_amount")}
+            className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none font-mono text-purple-600"
+            readOnly
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-1.5">Advance Recovery</label>
+          <input
+            type="number"
+            {...register("advance_recovery_amount", { valueAsNumber: true })}
+            className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-mono"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-1.5">Net IPC Amount</label>
+          <input
+            type="number"
+            {...register("net_amount")}
+            className="w-full px-4 py-2.5 bg-blue-50 border border-blue-200 rounded-xl focus:outline-none font-mono font-bold text-blue-700"
+            readOnly
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-1.5">Due Date</label>
+          <Controller
+            name="due_date"
+            control={control}
+            render={({ field }) => (
               <ReactDatePicker
-                showFullMonthYearPicker
-                showYearDropdown
                 selected={field.value ? new Date(field.value) : undefined}
-                onChange={(date: any, event?: any) => {
+                onChange={(date: any) => {
                   const d = Array.isArray(date) ? date[0] : date;
                   field.onChange(d ? d.toISOString() : undefined);
                 }}
-                placeholderText="Enter Due Date"
-                className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+                placeholderText="Select Date"
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-            </>
-          )}
+            )}
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-1.5">Status</label>
+          <Controller
+            name="status"
+            control={control}
+            render={({ field }) => (
+              <Select
+                {...field}
+                options={statusOptions}
+                className="w-full"
+                styles={{
+                  control: (base) => ({
+                    ...base,
+                    borderRadius: '0.75rem',
+                  })
+                }}
+                onChange={(option) => field.onChange(option?.value)}
+                value={statusOptions.find((o) => o.value === field.value)}
+              />
+            )}
+          />
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-semibold text-gray-700 mb-1.5">Description / Remarks</label>
+        <textarea
+          {...register("description")}
+          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+          rows={3}
         />
       </div>
 
-      <div className="flex items-center space-x-4">
-        <label className="w-32 text-sm font-medium text-gray-700">Status</label>
-        <Controller
-          name="status"
-          control={control}
-          render={({ field }) => (
-            <Select
-              {...field}
-              options={statusOptions}
-              className="flex-1"
-              onChange={(option) => field.onChange(option?.value)}
-              value={statusOptions.find((o) => o.value === field.value)}
-            />
-          )}
-        />
-      </div>
-
-      <div className="flex justify-end space-x-4 mt-4">
-        <button type="button" onClick={onClose} className="px-4 py-2 border rounded-md hover:bg-gray-50">Close</button>
-        <button type="submit" className="px-4 py-2 bg-bs-primary text-white rounded-md hover:bg-bs-primary">Update</button>
+      <div className="flex justify-end gap-3 pt-6 border-t mt-4">
+        <button type="button" onClick={onClose} className="px-6 py-2.5 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors font-medium">Cancel</button>
+        <button type="submit" className="px-8 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-bold shadow-lg shadow-blue-100">Update IPC</button>
       </div>
     </form>
   );

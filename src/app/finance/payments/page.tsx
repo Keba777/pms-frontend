@@ -18,8 +18,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 const columnOptions: Record<string, string> = {
   project: "Project",
-  amount: "Amount",
-  date: "Date",
+  amount_paid: "Amount",
+  payment_date: "Date",
   method: "Method",
   action: "Action",
 };
@@ -66,39 +66,19 @@ const PaymentsPage = () => {
     });
   }, [filterValues, payments]);
 
-  if (paymentLoading) {
-    return (
-      <div className="p-6 space-y-6">
-        <Skeleton className="h-24 w-full rounded-2xl" />
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-24 rounded-2xl" />)}
-        </div>
-        <Skeleton className="h-96 w-full rounded-2xl" />
-      </div>
-    );
-  }
-
-  if (paymentError) {
-    return (
-      <div className="p-12 flex flex-col items-center justify-center text-center bg-destructive/10 rounded-3xl border border-destructive/20">
-        <AlertCircle className="w-12 h-12 text-destructive mb-4" />
-        <h3 className="text-lg font-black text-destructive uppercase tracking-tight">Financial Sync Failed</h3>
-        <p className="text-xs font-bold text-destructive mt-2 max-w-xs">{paymentError.message}</p>
-      </div>
-    );
-  }
+  // Layout remains static during loading
 
   const total = payments?.length ?? 0;
-  const cashCount = payments?.filter((p) => p.method === "Cash").length ?? 0;
-  const bankTransferCount = payments?.filter((p) => p.method === "Bank Transfer").length ?? 0;
-  const creditCardCount = payments?.filter((p) => p.method === "Credit Card").length ?? 0;
-  const mobileMoneyCount = payments?.filter((p) => p.method === "Mobile Money").length ?? 0;
+  const cashCount = payments?.filter((p) => p.method === "cash").length ?? 0;
+  const bankTransferCount = payments?.filter((p) => p.method === "bank_transfer").length ?? 0;
+  const checkCount = payments?.filter((p) => p.method === "check").length ?? 0;
+  const mobileMoneyCount = payments?.filter((p) => p.method === "mobile_money").length ?? 0;
 
   const columns: Column<Payment>[] = [
-    { header: "Project", accessor: (row) => row.project?.title || "-" },
-    { header: "Amount", accessor: "amount" },
-    { header: "Date", accessor: (row) => row.date ? new Date(row.date).toISOString().split("T")[0] : "-" },
-    { header: "Method", accessor: "method" },
+    { header: "Project", accessor: (row) => row.invoice?.project?.title || "-" },
+    { header: "Amount", accessor: "amount_paid" },
+    { header: "Date", accessor: (row) => row.payment_date ? new Date(row.payment_date).toISOString().split("T")[0] : "-" },
+    { header: "Method", accessor: (row) => row.method.replace('_', ' ') },
   ];
 
   const filterFields: FilterField<string>[] = [
@@ -107,10 +87,10 @@ const PaymentsPage = () => {
       label: "Method",
       type: "select",
       options: [
-        { label: "Cash", value: "Cash" },
-        { label: "Bank Transfer", value: "Bank Transfer" },
-        { label: "Credit Card", value: "Credit Card" },
-        { label: "Mobile Money", value: "Mobile Money" },
+        { label: "Cash", value: "cash" },
+        { label: "Bank Transfer", value: "bank_transfer" },
+        { label: "Check", value: "check" },
+        { label: "Mobile Money", value: "mobile_money" },
       ],
     },
   ];
@@ -119,7 +99,7 @@ const PaymentsPage = () => {
     <div className="p-4 sm:p-6 bg-background min-h-screen">
       <div className="max-w-7xl mx-auto">
         {/* Header Section */}
-        <div className="flex flex-col gap-4 mb-8 bg-muted/30 p-4 sm:p-6 rounded-2xl border border-border shadow-sm relative overflow-hidden">
+        <div className="flex flex-col gap-4 mb-8 bg-muted/30 p-4 sm:p-6 rounded-xl border border-border shadow-sm relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full -mr-32 -mt-32 blur-3xl opacity-50" />
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
             <div>
@@ -164,10 +144,10 @@ const PaymentsPage = () => {
           {[
             { label: "Cash Flow", value: cashCount, icon: Banknote, color: "text-primary", bg: "bg-primary/10" },
             { label: "Bank Wire", value: bankTransferCount, icon: Wallet, color: "text-primary", bg: "bg-primary/20" },
-            { label: "Cards", value: creditCardCount, icon: CreditCard, color: "text-destructive", bg: "bg-destructive/10" },
+            { label: "Checks", value: checkCount, icon: CreditCard, color: "text-destructive", bg: "bg-destructive/10" },
             { label: "Mobile Pay", value: mobileMoneyCount, icon: Smartphone, color: "text-amber-600", bg: "bg-amber-50" },
           ].map((item) => (
-            <div key={item.label} className="bg-card p-4 sm:p-5 rounded-2xl border border-border shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-4 hover:shadow-md transition-shadow">
+            <div key={item.label} className="bg-card p-4 sm:p-5 rounded-xl border border-border shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-4 hover:shadow-md transition-shadow">
               <div className={`w-10 h-10 sm:w-12 sm:h-12 ${item.bg} ${item.color} rounded-xl flex items-center justify-center shadow-inner shrink-0`}>
                 <item.icon className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
@@ -180,49 +160,32 @@ const PaymentsPage = () => {
         </div>
 
         {/* Controls Bar */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
-          <div ref={menuRef} className="relative w-full lg:w-auto">
-            <button
-              onClick={() => setShowColumnMenu((prev) => !prev)}
-              className="w-full lg:w-auto flex items-center justify-between lg:justify-start gap-3 px-5 h-11 bg-card border border-border rounded-xl text-[10px] font-black uppercase tracking-widest text-primary hover:bg-accent transition-colors shadow-sm focus:ring-4 focus:ring-primary/5 outline-none"
-            >
-              <span className="flex items-center gap-2">Customize Columns</span>
-              <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${showColumnMenu ? "rotate-180" : ""}`} />
-            </button>
-            {showColumnMenu && (
-              <div className="absolute left-0 mt-2 w-full lg:w-64 bg-card border border-border rounded-2xl shadow-2xl z-50 p-2 animate-in fade-in slide-in-from-top-2">
-                <div className="p-4 mb-2 border-b border-border">
-                  <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Select Visibility</p>
-                </div>
-                {Object.entries(columnOptions).map(([key, label]) => (
-                  <label key={key} className="flex items-center gap-3 px-4 py-3 hover:bg-accent rounded-xl cursor-pointer transition-colors group">
-                    <input
-                      type="checkbox"
-                      checked={selectedColumns.includes(key)}
-                      onChange={() => toggleColumn(key)}
-                      className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
-                    />
-                    <span className="text-xs font-bold text-muted-foreground group-hover:text-primary">{label}</span>
-                  </label>
-                ))}
-              </div>
-            )}
-          </div>
-          <div className="flex flex-col sm:flex-row items-stretch gap-4">
-            <GenericFilter fields={filterFields} onFilterChange={setFilterValues} />
-          </div>
+        <div className="flex flex-col lg:flex-row lg:items-center justify-end gap-4 mb-6">
+          <GenericFilter fields={filterFields} onFilterChange={setFilterValues} />
         </div>
 
         {/* List Content */}
-        <div className="bg-card rounded-[2.5rem] border border-border shadow-sm overflow-hidden p-1">
-          <PaymentsTable filteredPayments={filteredPayments} selectedColumns={selectedColumns} />
+        <div className="bg-card rounded-xl border border-border shadow-sm p-1 min-h-[400px]">
+          {paymentError ? (
+            <div className="p-12 flex flex-col items-center justify-center text-center bg-destructive/5 rounded-xl">
+              <AlertCircle className="w-12 h-12 text-destructive mb-4" />
+              <h3 className="text-lg font-black text-destructive uppercase tracking-tight">Financial Sync Failed</h3>
+              <p className="text-xs font-bold text-destructive mt-2 max-w-xs">{paymentError.message}</p>
+            </div>
+          ) : (
+            <PaymentsTable
+              filteredPayments={filteredPayments}
+              selectedColumns={selectedColumns}
+              isLoading={paymentLoading}
+            />
+          )}
         </div>
       </div>
 
       {/* Payment Entry Form Modal */}
       {showForm && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="bg-card rounded-[2.5rem] shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto no-scrollbar relative animate-in zoom-in-95 duration-300">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-card rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto no-scrollbar relative animate-in zoom-in-95 duration-300">
             <PaymentForm onClose={() => setShowForm(false)} />
           </div>
         </div>

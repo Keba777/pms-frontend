@@ -18,8 +18,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 const columnOptions: Record<string, string> = {
   user: "User",
-  salary: "Salary",
-  month: "Month",
+  net_pay: "Net Pay",
+  pay_period: "Period",
   status: "Status",
   action: "Action",
 };
@@ -59,12 +59,12 @@ const PayrollsPage = () => {
     if (!payrolls) return [];
     return payrolls.filter((p: Payroll) => {
       let matches = true;
-      if (filterValues.month) {
+      if (filterValues.pay_period) {
         matches =
           matches &&
-          p.month
+          p.pay_period
             .toLowerCase()
-            .includes((filterValues.month as string).toLowerCase());
+            .includes((filterValues.pay_period as string).toLowerCase());
       }
       if (filterValues.status) {
         matches = matches && p.status === filterValues.status;
@@ -73,53 +73,33 @@ const PayrollsPage = () => {
     });
   }, [filterValues, payrolls]);
 
-  if (payrollLoading) {
-    return (
-      <div className="p-6 space-y-6">
-        <Skeleton className="h-24 w-full rounded-2xl" />
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-24 rounded-2xl" />)}
-        </div>
-        <Skeleton className="h-96 w-full rounded-2xl" />
-      </div>
-    );
-  }
-
-  if (payrollError) {
-    return (
-      <div className="p-12 flex flex-col items-center justify-center text-center bg-destructive/10 rounded-3xl border border-destructive/20">
-        <AlertCircle className="w-12 h-12 text-destructive mb-4" />
-        <h3 className="text-lg font-black text-destructive uppercase tracking-tight">Payroll Sync Error</h3>
-        <p className="text-xs font-bold text-destructive mt-2 max-w-xs">{payrollError.message}</p>
-      </div>
-    );
-  }
+  // No early return for loading
 
   const total = payrolls?.length ?? 0;
-  const pendingCount = payrolls?.filter((p) => p.status === "Pending").length ?? 0;
-  const paidCount = payrolls?.filter((p) => p.status === "Paid").length ?? 0;
+  const pendingCount = payrolls?.filter((p) => p.status === "pending").length ?? 0;
+  const paidCount = payrolls?.filter((p) => p.status === "paid").length ?? 0;
 
   const columns: Column<Payroll>[] = [
     { header: "User", accessor: (row: Payroll) => row.user?.first_name || "-" },
-    { header: "Salary", accessor: "salary" },
-    { header: "Month", accessor: "month" },
+    { header: "Net Pay", accessor: "net_pay" },
+    { header: "Period", accessor: "pay_period" },
     { header: "Status", accessor: "status" },
   ];
 
   const filterFields: FilterField<string>[] = [
     {
-      name: "month",
-      label: "Month",
+      name: "pay_period",
+      label: "Period",
       type: "text",
-      placeholder: "Search by month…",
+      placeholder: "Search by period (YYYY-MM)…",
     },
     {
       name: "status",
       label: "Status",
       type: "select",
       options: [
-        { label: "Pending", value: "Pending" },
-        { label: "Paid", value: "Paid" },
+        { label: "Pending", value: "pending" },
+        { label: "Paid", value: "paid" },
       ],
     },
   ];
@@ -188,49 +168,34 @@ const PayrollsPage = () => {
         </div>
 
         {/* Controls Section */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
-          <div ref={menuRef} className="relative w-full lg:w-auto">
-            <button
-              onClick={() => setShowColumnMenu((prev) => !prev)}
-              className="w-full lg:w-auto flex items-center justify-between lg:justify-start gap-3 px-5 h-11 bg-card border border-border rounded-xl text-[10px] font-black uppercase tracking-widest text-primary hover:bg-accent transition-colors shadow-sm focus:ring-4 focus:ring-primary/5 outline-none"
-            >
-              <span className="flex items-center gap-2">Customize Columns</span>
-              <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${showColumnMenu ? "rotate-180" : ""}`} />
-            </button>
-            {showColumnMenu && (
-              <div className="absolute left-0 mt-2 w-full lg:w-64 bg-card border border-border rounded-2xl shadow-2xl z-50 p-2 animate-in fade-in slide-in-from-top-2">
-                <div className="p-4 mb-1 border-b border-border">
-                  <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Adjust View</p>
-                </div>
-                {Object.entries(columnOptions).map(([key, label]) => (
-                  <label key={key} className="flex items-center gap-3 px-4 py-3 hover:bg-accent rounded-xl cursor-pointer transition-colors group">
-                    <input
-                      type="checkbox"
-                      checked={selectedColumns.includes(key)}
-                      onChange={() => toggleColumn(key)}
-                      className="w-4 h-4 rounded border-border text-primary focus:ring-primary shadow-sm"
-                    />
-                    <span className="text-xs font-bold text-muted-foreground group-hover:text-primary">{label}</span>
-                  </label>
-                ))}
-              </div>
-            )}
-          </div>
+        <div className="flex flex-col lg:flex-row lg:items-center justify-end gap-4 mb-6">
           <div className="flex flex-col sm:flex-row items-stretch gap-4">
             <GenericFilter fields={filterFields} onFilterChange={setFilterValues} />
           </div>
         </div>
 
         {/* Payrolls Table Wrapper */}
-        <div className="bg-card rounded-[2.5rem] border border-border shadow-sm overflow-hidden p-1">
-          <PayrollsTable filteredPayrolls={filteredPayrolls} selectedColumns={selectedColumns} />
+        <div className="bg-card rounded-2xl border border-border shadow-sm p-1 min-h-[400px]">
+          {payrollError ? (
+            <div className="p-12 flex flex-col items-center justify-center text-center bg-destructive/5 rounded-2xl">
+              <AlertCircle className="w-12 h-12 text-destructive mb-4" />
+              <h3 className="text-lg font-black text-destructive uppercase tracking-tight">Payroll Sync Error</h3>
+              <p className="text-xs font-bold text-destructive mt-2 max-w-xs">{payrollError.message}</p>
+            </div>
+          ) : (
+            <PayrollsTable
+              filteredPayrolls={filteredPayrolls}
+              selectedColumns={selectedColumns}
+              isLoading={payrollLoading}
+            />
+          )}
         </div>
       </div>
 
       {/* Payroll Processing Form Modal */}
       {showForm && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="bg-card rounded-[2.5rem] shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto no-scrollbar relative animate-in zoom-in-95 duration-300">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-card rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto no-scrollbar relative animate-in zoom-in-95 duration-300">
             <PayrollForm onClose={() => setShowForm(false)} />
           </div>
         </div>

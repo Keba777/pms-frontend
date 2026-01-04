@@ -18,8 +18,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 const columnOptions: Record<string, string> = {
   project: "Project",
-  amount: "Amount",
-  dueDate: "Due Date",
+  gross_amount: "Gross",
+  due_date: "Due Date",
   status: "Status",
   action: "Action",
 };
@@ -62,37 +62,17 @@ const InvoicesPage = () => {
     });
   }, [filterValues, invoices]);
 
-  if (invoiceLoading) {
-    return (
-      <div className="p-6 space-y-6">
-        <Skeleton className="h-24 w-full rounded-2xl" />
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-24 rounded-2xl" />)}
-        </div>
-        <Skeleton className="h-96 w-full rounded-2xl" />
-      </div>
-    );
-  }
-
-  if (invoiceError) {
-    return (
-      <div className="p-12 flex flex-col items-center justify-center text-center bg-destructive/10 rounded-3xl border border-destructive/20">
-        <AlertCircle className="w-12 h-12 text-destructive mb-4" />
-        <h3 className="text-lg font-black text-destructive uppercase tracking-tight">Failed to load invoices</h3>
-        <p className="text-xs font-bold text-destructive mt-2 max-w-xs">{invoiceError.message}</p>
-      </div>
-    );
-  }
+  // No early return for loading to keep layout static
 
   const total = invoices?.length ?? 0;
-  const pendingCount = invoices?.filter((i) => i.status === "Pending").length ?? 0;
-  const paidCount = invoices?.filter((i) => i.status === "Paid").length ?? 0;
-  const overdueCount = invoices?.filter((i) => i.status === "Overdue").length ?? 0;
+  const pendingCount = invoices?.filter((i) => i.status === "pending").length ?? 0;
+  const paidCount = invoices?.filter((i) => i.status === "paid").length ?? 0;
+  const overdueCount = invoices?.filter((i) => i.status === "overdue").length ?? 0;
 
   const columns: Column<Invoice>[] = [
     { header: "Project", accessor: (row) => row.project?.title || "-" },
-    { header: "Amount", accessor: "amount" },
-    { header: "Due Date", accessor: (row) => row.dueDate ? new Date(row.dueDate).toISOString().split("T")[0] : "-" },
+    { header: "Gross", accessor: "gross_amount" },
+    { header: "Due Date", accessor: (row) => row.due_date ? new Date(row.due_date).toISOString().split("T")[0] : "-" },
     { header: "Status", accessor: "status" },
   ];
 
@@ -174,49 +154,32 @@ const InvoicesPage = () => {
         </div>
 
         {/* Controls Section */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
-          <div ref={menuRef} className="relative w-full lg:w-auto">
-            <button
-              onClick={() => setShowColumnMenu((prev) => !prev)}
-              className="w-full lg:w-auto flex items-center justify-between lg:justify-start gap-3 px-5 h-11 bg-card border border-border rounded-xl text-[10px] font-black uppercase tracking-widest text-primary hover:bg-accent transition-colors shadow-sm"
-            >
-              <span className="flex items-center gap-2">Customize Columns</span>
-              <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${showColumnMenu ? "rotate-180" : ""}`} />
-            </button>
-            {showColumnMenu && (
-              <div className="absolute left-0 mt-2 w-full lg:w-64 bg-card border border-border rounded-2xl shadow-2xl z-50 p-2 animate-in fade-in slide-in-from-top-2">
-                <div className="p-3 mb-2 border-b border-border">
-                  <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Toggle Columns</p>
-                </div>
-                {Object.entries(columnOptions).map(([key, label]) => (
-                  <label key={key} className="flex items-center gap-3 px-3 py-2.5 hover:bg-accent rounded-xl cursor-pointer transition-colors group">
-                    <input
-                      type="checkbox"
-                      checked={selectedColumns.includes(key)}
-                      onChange={() => toggleColumn(key)}
-                      className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
-                    />
-                    <span className="text-[11px] font-bold text-muted-foreground group-hover:text-primary">{label}</span>
-                  </label>
-                ))}
-              </div>
-            )}
-          </div>
-          <div className="flex flex-col sm:flex-row items-stretch gap-4">
-            <GenericFilter fields={filterFields} onFilterChange={setFilterValues} />
-          </div>
+        <div className="flex flex-col lg:flex-row lg:items-center justify-end gap-4 mb-6">
+          <GenericFilter fields={filterFields} onFilterChange={setFilterValues} />
         </div>
 
         {/* Table Section */}
-        <div className="bg-card rounded-[2.5rem] border border-border shadow-sm overflow-hidden p-1">
-          <InvoicesTable filteredInvoices={filteredInvoices} selectedColumns={selectedColumns} />
+        <div className="bg-card rounded-2xl border border-border shadow-sm p-1 min-h-[400px]">
+          {invoiceError ? (
+            <div className="p-12 flex flex-col items-center justify-center text-center bg-destructive/5 rounded-2xl">
+              <AlertCircle className="w-12 h-12 text-destructive mb-4" />
+              <h3 className="text-lg font-black text-destructive uppercase tracking-tight">Failed to load invoices</h3>
+              <p className="text-xs font-bold text-destructive mt-2 max-w-xs">{invoiceError.message}</p>
+            </div>
+          ) : (
+            <InvoicesTable
+              filteredInvoices={filteredInvoices}
+              selectedColumns={selectedColumns}
+              isLoading={invoiceLoading}
+            />
+          )}
         </div>
       </div>
 
       {/* Form Modal */}
       {showForm && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="bg-card rounded-[2rem] shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto no-scrollbar relative animate-in zoom-in-95 duration-300">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-card rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto no-scrollbar relative animate-in zoom-in-95 duration-300">
             <InvoiceForm onClose={() => setShowForm(false)} />
           </div>
         </div>

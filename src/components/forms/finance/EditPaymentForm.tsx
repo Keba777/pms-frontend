@@ -27,10 +27,10 @@ const EditPaymentForm: React.FC<EditPaymentFormProps> = ({
   const { data: projects } = useProjects();
 
   const methodOptions = [
-    { value: "Cash", label: "Cash" },
-    { value: "Bank Transfer", label: "Bank Transfer" },
-    { value: "Credit Card", label: "Credit Card" },
-    { value: "Mobile Money", label: "Mobile Money" },
+    { value: "cash", label: "Cash" },
+    { value: "bank_transfer", label: "Bank Transfer" },
+    { value: "check", label: "Check" },
+    { value: "mobile_money", label: "Mobile Money" },
   ];
 
   const projectOptions =
@@ -55,34 +55,42 @@ const EditPaymentForm: React.FC<EditPaymentFormProps> = ({
         </button>
       </div>
 
-      <div className="flex items-center space-x-4">
-        <label className="w-32 text-sm font-medium text-gray-700">Project</label>
+      <div className="flex flex-col space-y-1.5">
+        <label className="text-sm font-medium text-gray-700">Invoice Reference</label>
         <Controller
-          name="projectId"
+          name="invoice_id"
           control={control}
           render={({ field }) => (
-            <Select
+            <input
               {...field}
-              options={projectOptions}
-              className="flex-1"
-              onChange={(option) => field.onChange(option?.value)}
-              value={projectOptions.find((o) => o.value === field.value)}
+              readOnly
+              className="w-full px-4 py-2 border rounded-lg bg-gray-50 focus:outline-none"
             />
           )}
         />
       </div>
 
-      <div className="flex items-center space-x-4">
-        <label className="w-32 text-sm font-medium text-gray-700">Amount</label>
+      <div className="flex flex-col space-y-1.5">
+        <label className="text-sm font-medium text-gray-700">Amount Paid (ETB)</label>
         <input
           type="number"
-          {...register("amount", { min: 0 })}
-          className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+          {...register("amount_paid", { min: 0 })}
+          className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-shadow shadow-sm"
         />
       </div>
 
-      <div className="flex items-center space-x-4">
-        <label className="w-32 text-sm font-medium text-gray-700">Method</label>
+      <div className="flex flex-col space-y-1.5">
+        <label className="text-sm font-medium text-gray-700">Payment Reason</label>
+        <textarea
+          {...register("reason")}
+          className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-shadow shadow-sm"
+          rows={2}
+          placeholder="Update the reason for this payment..."
+        />
+      </div>
+
+      <div className="flex flex-col space-y-1.5">
+        <label className="text-sm font-medium text-gray-700">Method</label>
         <Controller
           name="method"
           control={control}
@@ -90,7 +98,14 @@ const EditPaymentForm: React.FC<EditPaymentFormProps> = ({
             <Select
               {...field}
               options={methodOptions}
-              className="flex-1"
+              className="w-full"
+              styles={{
+                control: (base) => ({
+                  ...base,
+                  borderRadius: '0.5rem',
+                  borderColor: '#e5e7eb',
+                })
+              }}
               onChange={(option) => field.onChange(option?.value)}
               value={methodOptions.find((o) => o.value === field.value)}
             />
@@ -98,32 +113,39 @@ const EditPaymentForm: React.FC<EditPaymentFormProps> = ({
         />
       </div>
 
-      <div className="flex items-center space-x-4">
-        <label className="w-32 text-sm font-medium text-gray-700">Date</label>
+      <div className="flex flex-col space-y-1.5">
+        <label className="text-sm font-medium text-gray-700">Payment Date</label>
         <Controller
-          name="date"
+          name="payment_date"
           control={control}
           render={({ field }) => (
-            <>
-              <ReactDatePicker
-                showFullMonthYearPicker
-                showYearDropdown
-                selected={field.value ? new Date(field.value) : undefined}
-                onChange={(date: any, event?: any) => {
-                  const d = Array.isArray(date) ? date[0] : date;
-                  field.onChange(d ? d.toISOString() : undefined);
-                }}
-                placeholderText="Enter Date"
-                className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
-              />
-            </>
+            <ReactDatePicker
+              selected={field.value ? new Date(field.value) : undefined}
+              onChange={(date: any) => {
+                const d = Array.isArray(date) ? date[0] : date;
+                field.onChange(d ? d.toISOString() : undefined);
+              }}
+              placeholderText="Select Date"
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-shadow shadow-sm"
+            />
           )}
         />
       </div>
 
-      <div className="flex justify-end space-x-4 mt-4">
-        <button type="button" onClick={onClose} className="px-4 py-2 border rounded-md hover:bg-gray-50">Close</button>
-        <button type="submit" className="px-4 py-2 bg-bs-primary text-white rounded-md hover:bg-bs-primary">Update</button>
+      <div className="flex justify-end gap-3 pt-6 border-t mt-4">
+        <button
+          type="button"
+          onClick={onClose}
+          className="px-6 py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors font-medium"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          className="px-8 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-semibold shadow-md shadow-emerald-100"
+        >
+          Update Record
+        </button>
       </div>
     </form>
   );

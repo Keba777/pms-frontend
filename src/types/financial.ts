@@ -6,28 +6,56 @@ import { Project } from "./project";
 // =======================
 export interface Invoice {
     id: string;
-    projectId: string;
+    project_id: string;
     project?: Project;
+    created_by: string;
+    user?: User;
+    type: "income" | "expense";
     amount: number;
-    dueDate: Date;
-    status: "Pending" | "Paid" | "Overdue";
+    due_date: Date;
+    status: "pending" | "paid" | "overdue";
+    description?: string;
+    gross_amount: number;
+    vat_amount: number;
+    withholding_amount: number;
+    retention_amount: number;
+    advance_recovery_amount: number;
+    net_amount: number;
     createdAt?: Date;
     updatedAt?: Date;
 }
 
 export interface CreateInvoiceInput {
-    projectId: string;
+    project_id: string;
+    created_by: string;
+    type: "income" | "expense";
     amount: number;
-    dueDate: Date;
-    status?: "Pending" | "Paid" | "Overdue";
+    due_date: Date;
+    status?: "pending" | "paid" | "overdue";
+    description?: string;
+    gross_amount: number;
+    vat_amount?: number;
+    withholding_amount?: number;
+    retention_amount?: number;
+    advance_recovery_amount?: number;
+    net_amount: number;
 }
 
 export interface UpdateInvoiceInput {
     id?: string;
-    projectId?: string;
+    project_id?: string;
+    created_by?: string;
+    type?: "income" | "expense";
     amount?: number;
-    dueDate?: Date;
-    status?: "Pending" | "Paid" | "Overdue";
+    due_date?: Date;
+    status?: "pending" | "paid" | "overdue";
+    description?: string;
+    gross_amount?: number;
+    vat_amount?: number;
+    withholding_amount?: number;
+    retention_amount?: number;
+    advance_recovery_amount?: number;
+    net_amount?: number;
 }
 
 // =======================
@@ -35,28 +63,47 @@ export interface UpdateInvoiceInput {
 // =======================
 export interface Payment {
     id: string;
-    projectId: string;
-    project?: Project;
-    amount: number;
-    method: "Cash" | "Bank Transfer" | "Credit Card" | "Mobile Money";
-    date: Date;
+    invoice_id: string;
+    invoice?: Invoice;
+    recorded_by: string;
+    user?: User;
+    amount_paid: number;
+    payment_date: Date;
+    method: "cash" | "bank_transfer" | "check" | "mobile_money";
+    reference_number?: string;
+    reason?: string;
+    vat_amount?: number;
+    withholding_amount?: number;
+    attachment_url?: string;
     createdAt?: Date;
     updatedAt?: Date;
 }
 
 export interface CreatePaymentInput {
-    projectId: string;
-    amount: number;
-    method: "Cash" | "Bank Transfer" | "Credit Card" | "Mobile Money";
-    date: Date;
+    invoice_id: string;
+    recorded_by: string;
+    amount_paid: number;
+    payment_date: Date;
+    method: "cash" | "bank_transfer" | "check" | "mobile_money";
+    reference_number?: string;
+    reason?: string;
+    vat_amount?: number;
+    withholding_amount?: number;
+    attachment_url?: string;
 }
 
 export interface UpdatePaymentInput {
     id?: string;
-    projectId?: string;
-    amount?: number;
-    method?: "Cash" | "Bank Transfer" | "Credit Card" | "Mobile Money";
-    date?: Date;
+    invoice_id?: string;
+    recorded_by?: string;
+    amount_paid?: number;
+    payment_date?: Date;
+    method?: "cash" | "bank_transfer" | "check" | "mobile_money";
+    reference_number?: string;
+    reason?: string;
+    vat_amount?: number;
+    withholding_amount?: number;
+    attachment_url?: string;
 }
 
 // =======================
@@ -64,31 +111,34 @@ export interface UpdatePaymentInput {
 // =======================
 export interface Budget {
     id: string;
-    projectId: string;
+    project_id: string;
     project?: Project;
-    total: number;
-    allocated: number;
-    spent: number;
-    remaining: number;
+    allocated_amount: number;
+    spent_amount: number;
+    remaining_amount: number;
+    description?: string;
+    status: "planned" | "active" | "closed";
     createdAt?: Date;
     updatedAt?: Date;
 }
 
 export interface CreateBudgetInput {
-    projectId: string;
-    total: number;
-    allocated: number;
-    spent: number;
-    remaining: number;
+    project_id: string;
+    allocated_amount: number;
+    spent_amount: number;
+    remaining_amount: number;
+    description?: string;
+    status?: "planned" | "active" | "closed";
 }
 
 export interface UpdateBudgetInput {
     id?: string;
-    projectId?: string;
-    total?: number;
-    allocated?: number;
-    spent?: number;
-    remaining?: number;
+    project_id?: string;
+    allocated_amount?: number;
+    spent_amount?: number;
+    remaining_amount?: number;
+    description?: string;
+    status?: "planned" | "active" | "closed";
 }
 
 // =======================
@@ -96,26 +146,51 @@ export interface UpdateBudgetInput {
 // =======================
 export interface Payroll {
     id: string;
-    userId: string;
-    user?: User;
-    salary: number;
-    month: string; // e.g. "2025-09"
-    status: "Pending" | "Paid";
+    project_id: string;
+    project?: Project; // Project model type
+    user_id: string;
+    user?: User; // User model type
+    amount: number;
+    pay_period: string;
+    status: "pending" | "paid";
+    basic_salary: number;
+    allowances: number;
+    gross_salary: number;
+    income_tax: number;
+    pension_employee: number;
+    pension_employer: number;
+    net_pay: number;
     createdAt?: Date;
     updatedAt?: Date;
 }
 
 export interface CreatePayrollInput {
-    userId: string;
-    salary: number;
-    month: string;
-    status?: "Pending" | "Paid";
+    project_id: string;
+    user_id: string;
+    amount: number;
+    pay_period: string;
+    status?: "pending" | "paid";
+    basic_salary: number;
+    allowances: number;
+    gross_salary: number;
+    income_tax: number;
+    pension_employee: number;
+    pension_employer: number;
+    net_pay: number;
 }
 
 export interface UpdatePayrollInput {
     id?: string;
-    userId?: string;
-    salary?: number;
-    month?: string;
-    status?: "Pending" | "Paid";
+    project_id?: string;
+    user_id?: string;
+    amount?: number;
+    pay_period?: string;
+    status?: "pending" | "paid";
+    basic_salary?: number;
+    allowances?: number;
+    gross_salary?: number;
+    income_tax?: number;
+    pension_employee?: number;
+    pension_employer?: number;
+    net_pay?: number;
 }
