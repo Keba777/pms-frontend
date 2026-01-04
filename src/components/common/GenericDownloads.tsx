@@ -4,7 +4,8 @@ import { jsPDF } from "jspdf";
 import autoTable, { RowInput } from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
-import logo from "@/../public/images/logo.jpg";
+import logo from "@/../public/images/logo.svg";
+import { useOrganizationStore } from "@/store/organizationStore";
 
 export interface Column<T> {
   header: string;
@@ -24,6 +25,7 @@ interface GenericDownloadsProps<T> {
 }
 
 const GenericDownloads = <T,>({ data, title, columns, secondTable }: GenericDownloadsProps<T>) => {
+  const { organization } = useOrganizationStore();
   const getTableRows = () =>
     data.map((row, index) =>
       columns.map((col) => {
@@ -40,19 +42,30 @@ const GenericDownloads = <T,>({ data, title, columns, secondTable }: GenericDown
 
   const getTodayString = () => new Date().toISOString().split("T")[0];
 
-  // Helper: Convert image URL to base64
-  const urlToBase64 = async (url: string): Promise<string> => {
-    try {
-      const res = await fetch(url);
-      const blob = await res.blob();
-      return new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result as string);
-        reader.readAsDataURL(blob);
-      });
-    } catch {
-      return ""; // fallback
-    }
+  // Helper: Rasterize image to PNG base64 using Canvas
+  // This ensures SVGs and other formats are converted to a format jsPDF can handle (PNG)
+  const rasterizeImage = async (url: string): Promise<string> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.crossOrigin = "Anonymous";
+      img.src = url;
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(img, 0, 0);
+          resolve(canvas.toDataURL("image/png"));
+        } else {
+          resolve("");
+        }
+      };
+      img.onerror = () => {
+        // Fallback or retry? for now resolve empty
+        resolve("");
+      };
+    });
   };
 
   // === EXPORT TO PDF WITH IMAGES ===
@@ -63,12 +76,15 @@ const GenericDownloads = <T,>({ data, title, columns, secondTable }: GenericDown
     const startY = 52;
 
     // Logo
-    const logoData = await urlToBase64(logo.src ?? logo);
-    doc.addImage(logoData, "JPEG", 10, 10, 30, 30);
+    const logoUrl = organization?.logo || logo.src || logo;
+    const logoData = await rasterizeImage(logoUrl);
+    if (logoData) {
+      doc.addImage(logoData, "PNG", 10, 10, 45, 30);
+    }
 
     // Header
     doc.setFontSize(16).setTextColor(0, 102, 204);
-    doc.text("Raycon Construction Plc", 105, 20, { align: "center" });
+    doc.text(organization?.orgName || "Raycon Construction Plc", 105, 20, { align: "center" });
     doc.setFontSize(10).setTextColor(0, 0, 0);
     doc.text("TIN: 00526272778 | VAT Reg No: N53737", 105, 26, { align: "center" });
     doc.text("Phone1: 0923666575 | Phone2: 09255564865", 105, 31, { align: "center" });
@@ -105,7 +121,8 @@ const GenericDownloads = <T,>({ data, title, columns, secondTable }: GenericDown
           value = (row as any)[col.accessor];
         }
         if (typeof value === "string" && value.startsWith("http")) {
-          return await urlToBase64(value);
+          // Profile pictures are small, 100px is plenty
+          return await rasterizeImage(value);
         }
         return "";
       })
@@ -133,7 +150,7 @@ const GenericDownloads = <T,>({ data, title, columns, secondTable }: GenericDown
     }
 
     let currentY = startY;
-    
+
     // First table (Planned)
     autoTable(doc, {
       startY: currentY,
@@ -150,7 +167,7 @@ const GenericDownloads = <T,>({ data, title, columns, secondTable }: GenericDown
       didDrawCell: (data) => {
         if (data.column.index === profileColIdx && data.row.section === "body" && profileBase64s[data.row.index]) {
           const { x, y, width, height } = data.cell;
-          doc.addImage(profileBase64s[data.row.index], "JPEG", x + (width - imgWidth) / 2, y + (height - imgHeight) / 2, imgWidth, imgHeight);
+          doc.addImage(profileBase64s[data.row.index], "PNG", x + (width - imgWidth) / 2, y + (height - imgHeight) / 2, imgWidth, imgHeight);
         }
       },
     });
@@ -160,7 +177,7 @@ const GenericDownloads = <T,>({ data, title, columns, secondTable }: GenericDown
       // Get the final Y position from the last autoTable
       const lastAutoTable = (doc as any).lastAutoTable;
       currentY = lastAutoTable ? lastAutoTable.finalY + 20 : startY + 100; // Add spacing
-      
+
       // Add section title for second table
       doc.setFontSize(13).setTextColor(40, 40, 40);
       doc.text(secondTable.title, 105, currentY, { align: "center" });
@@ -179,7 +196,7 @@ const GenericDownloads = <T,>({ data, title, columns, secondTable }: GenericDown
             value = (row as any)[col.accessor];
           }
           if (typeof value === "string" && value.startsWith("http")) {
-            return await urlToBase64(value);
+            return await rasterizeImage(value);
           }
           return "";
         })
@@ -224,7 +241,7 @@ const GenericDownloads = <T,>({ data, title, columns, secondTable }: GenericDown
         didDrawCell: (data) => {
           if (data.column.index === secondProfileColIdx && data.row.section === "body" && secondProfileBase64s[data.row.index]) {
             const { x, y, width, height } = data.cell;
-            doc.addImage(secondProfileBase64s[data.row.index], "JPEG", x + (width - imgWidth) / 2, y + (height - imgHeight) / 2, imgWidth, imgHeight);
+            doc.addImage(secondProfileBase64s[data.row.index], "PNG", x + (width - imgWidth) / 2, y + (height - imgHeight) / 2, imgWidth, imgHeight);
           }
         },
       });
@@ -292,7 +309,7 @@ const GenericDownloads = <T,>({ data, title, columns, secondTable }: GenericDown
       // Add spacing rows
       wsData.push([]);
       wsData.push([]);
-      
+
       // Second table title
       wsData.push([secondTable.title]);
       wsData.push(secondTable.columns.map(c => c.header));
@@ -356,10 +373,13 @@ const GenericDownloads = <T,>({ data, title, columns, secondTable }: GenericDown
 
   // === PRINT WITH IMAGES ===
   const printTable = async () => {
+    const logoUrl = organization?.logo || logo.src || logo;
+    const logoData = await rasterizeImage(logoUrl);
+
     const headerHtml = `
       <div style="text-align:center; margin-bottom:20px;">
-        <img src="${logo.src ?? logo}" style="width:60px; height:60px;" alt="Logo" />
-        <h1 style="margin:5px 0;">Raycon Construction Plc</h1>
+        <img src="${logoData || logoUrl}" style="width:90px; height:60px;" alt="Logo" />
+        <h1 style="margin:5px 0;">${organization?.orgName || "Raycon Construction Plc"}</h1>
         <p style="margin:2px 0; font-size:12px;">
           TIN: 00526272778 | VAT Reg No: N53737<br/>
           Phone1: 0923666575 | Phone2: 09255564865<br/>
@@ -379,7 +399,7 @@ const GenericDownloads = <T,>({ data, title, columns, secondTable }: GenericDown
           columns.map(async (col) => {
             let value: any = typeof col.accessor === "function" ? col.accessor(row, idx) : (row as any)[col.accessor];
             if (col.header === "Profile Picture" && typeof value === "string" && value.startsWith("http")) {
-              const base64 = await urlToBase64(value);
+              const base64 = await rasterizeImage(value);
               return `<td style="padding:6px; border:1px solid #ddd; text-align:center;"><img src="${base64}" width="40" height="40" style="border-radius:50%;" /></td>`;
             }
             return `<td style="padding:6px; border:1px solid #ddd;">${value ?? ""}</td>`;
@@ -400,7 +420,7 @@ const GenericDownloads = <T,>({ data, title, columns, secondTable }: GenericDown
             secondTable.columns.map(async (col) => {
               let value: any = typeof col.accessor === "function" ? col.accessor(row, idx) : (row as any)[col.accessor];
               if (col.header === "Profile Picture" && typeof value === "string" && value.startsWith("http")) {
-                const base64 = await urlToBase64(value);
+                const base64 = await rasterizeImage(value);
                 return `<td style="padding:6px; border:1px solid #ddd; text-align:center;"><img src="${base64}" width="40" height="40" style="border-radius:50%;" /></td>`;
               }
               return `<td style="padding:6px; border:1px solid #ddd;">${value ?? ""}</td>`;

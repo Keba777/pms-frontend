@@ -8,7 +8,7 @@ import MenuItem from "@/components/common/ui/MenuItem";
 import menuItems, { systemAdminMenuItems, superAdminMenuItems } from "./menuItems";
 import { useAuthStore } from "@/store/authStore";
 import { supabase } from "@/lib/supabase";
-import logo from "@/../public/images/logo.jpg";
+import logo from "@/../public/images/logo.svg";
 import { useOrganizationStore } from "@/store/organizationStore";
 
 interface SidebarProps {
@@ -146,7 +146,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
             alt="Logo"
             width={200}
             height={50}
-            className="w-24 h-auto object-contain"
+            className="w-32 h-auto object-contain"
             unoptimized={!!organization?.logo}
           />
         </Link>

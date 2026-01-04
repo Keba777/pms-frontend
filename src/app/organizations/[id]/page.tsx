@@ -146,7 +146,6 @@ const OrganizationDetailPage = () => {
         formData.append("backgroundColor", parseInt(formState.backgroundColor, 16).toString());
         formData.append("cardColor", parseInt(formState.cardColor, 16).toString());
         formData.append("borderColor", parseInt(formState.borderColor, 16).toString());
-        formData.append("borderColor", parseInt(formState.borderColor, 16).toString());
         formData.append("secondaryColor", parseInt(formState.secondaryColor, 16).toString());
         formData.append("mutedColor", parseInt(formState.mutedColor, 16).toString());
         formData.append("accentColor", parseInt(formState.accentColor, 16).toString());
