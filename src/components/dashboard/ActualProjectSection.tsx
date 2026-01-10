@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useRef, useEffect } from "react";
-import { Menu, MenuButton, MenuItems, MenuItem } from "@headlessui/react";
+import React, { useState, useMemo } from "react";
 import { ChevronDown } from "lucide-react";
 import { FaEdit, FaTrash, FaEye, FaTasks } from "react-icons/fa";
 import { useRouter } from "next/navigation";
@@ -11,17 +10,12 @@ import {
   useUpdateProject,
   useUpdateProjectActuals,
 } from "@/hooks/useProjects";
-import { UpdateProjectInput, Project, ProjectActuals } from "@/types/project";
-import { User } from "@/types/user";
+import { Project, ProjectActuals, UpdateProjectInput } from "@/types/project";
 import { useUsers } from "@/hooks/useUsers";
 import EditProjectForm from "../forms/EditProjectForm";
 import ManageProjectForm from "../forms/ManageProjectForm";
 import ConfirmModal from "../common/ui/ConfirmModal";
-import { AgGridReact } from "ag-grid-react";
-import "ag-grid-community/styles/ag-grid.css";
-import "ag-grid-community/styles/ag-theme-alpine.css";
 import Link from "next/link";
-import SearchInput from "../common/ui/SearchInput";
 import ProfileAvatar from "../common/ProfileAvatar";
 import {
   formatDate,
@@ -29,75 +23,46 @@ import {
   getDuration as calcRemaining,
 } from "@/utils/dateUtils";
 import { toast } from "react-toastify";
-
+import { ReusableTable, ColumnConfig } from "../common/ReusableTable";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 
 interface ActualProjectSectionProps {
   externalFilters?: Record<string, any>;
 }
 
-const ActualProjectSection: React.FC<ActualProjectSectionProps> = ({ externalFilters }) => {
+const statusBadgeClasses: Record<string, string> = {
+  "Not Started": "bg-gray-100 text-gray-800",
+  Started: "bg-blue-100 text-blue-800",
+  InProgress: "bg-yellow-100 text-yellow-800",
+  Onhold: "bg-amber-100 text-amber-800",
+  Canceled: "bg-red-100 text-red-800",
+  Completed: "bg-green-100 text-green-800",
+};
 
+const ActualProjectSection: React.FC<ActualProjectSectionProps> = ({ externalFilters }) => {
   const router = useRouter();
   const { data: projects, isLoading, isError } = useProjects();
   const { data: users } = useUsers();
-  const gridRef = useRef<AgGridReact>(null);
 
   const { mutate: deleteProject } = useDeleteProject();
   const { mutate: updateProject } = useUpdateProject();
-  const { mutate: updateProjectActuals } = useUpdateProjectActuals();
+  const { mutateAsync: updateProjectActuals } = useUpdateProjectActuals();
 
-  // Column-customization state
-  const columnOptions: Record<string, string> = {
-    id: "ID",
-    title: "Project",
-    members: "Assigned To",
-    client: "Client",
-    priority: "Priority",
-    budget: "Budget",
-    start_date: "Starts At",
-    end_date: "Ends At",
-    duration: "Duration",
-    remaining: "Remaining",
-    progress: "Progress",
-    status: "Status",
-    actions: "Actions",
-  };
-  const [selectedColumns, setSelectedColumns] = useState<string[]>(
-    Object.keys(columnOptions)
-  );
-  const [showColumnMenu, setShowColumnMenu] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
   const [searchTerm, setSearchTerm] = useState<string>("");
 
   // Edit/manage/delete modals state
   const [showEditForm, setShowEditForm] = useState(false);
-  const [projectToEdit, setProjectToEdit] = useState<UpdateProjectInput | null>(
-    null
-  );
+  const [projectToEdit, setProjectToEdit] = useState<UpdateProjectInput | null>(null);
   const [showManageForm, setShowManageForm] = useState(false);
   const [projectToManage, setProjectToManage] = useState<UpdateProjectInput | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
-    null
-  );
-
-  // Handle outside-click for column menu
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setShowColumnMenu(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  // Search integration with AG Grid quick filter
-  useEffect(() => {
-    if (gridRef.current?.api) {
-      gridRef.current.api.getQuickFilter();
-    }
-  }, [searchTerm]);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
 
   const defaultActuals: ProjectActuals = {
     start_date: null,
@@ -107,7 +72,6 @@ const ActualProjectSection: React.FC<ActualProjectSectionProps> = ({ externalFil
     budget: null,
   };
 
-  // Extended projects with actuals handling and filtering
   const extendedProjects = useMemo(() => {
     if (!projects) return [];
 
@@ -115,7 +79,6 @@ const ActualProjectSection: React.FC<ActualProjectSectionProps> = ({ externalFil
       .filter((project) => {
         if (!externalFilters) return true;
 
-        // External filters
         const matchesStatus =
           !externalFilters.status ||
           externalFilters.status.length === 0 ||
@@ -146,19 +109,10 @@ const ActualProjectSection: React.FC<ActualProjectSectionProps> = ({ externalFil
       }));
   }, [projects, externalFilters]);
 
-  // Column toggle
-  const toggleColumn = (col: string) =>
-    setSelectedColumns((prev) =>
-      prev.includes(col) ? prev.filter((c) => c !== col) : [...prev, col]
-    );
-
-  // Handlers
   const handleDeleteProjectClick = (projectId: string) => {
     const project = projects?.find((p) => p.id === projectId);
     if (project?.tasks && project.tasks.length > 0) {
-      toast.error(
-        "Cannot delete project with tasks. Please delete all tasks first."
-      );
+      toast.error("Cannot delete project with tasks. Please delete all tasks first.");
       return;
     }
     setSelectedProjectId(projectId);
@@ -170,10 +124,6 @@ const ActualProjectSection: React.FC<ActualProjectSectionProps> = ({ externalFil
       deleteProject(selectedProjectId);
       setIsDeleteModalOpen(false);
     }
-  };
-
-  const handleViewProject = (projectId: string) => {
-    router.push(`/projects/${projectId}`);
   };
 
   const handleEditClick = (proj: Project) => {
@@ -202,105 +152,6 @@ const ActualProjectSection: React.FC<ActualProjectSectionProps> = ({ externalFil
     setShowManageForm(true);
   };
 
-  // Custom cell renderer for progress bar
-  const ProgressRenderer = (params: any) => {
-    return (
-      <div className="relative h-full bg-gray-200 rounded">
-        <div
-          className="absolute h-full bg-primary rounded"
-          style={{ width: `${params.value}%` }}
-        >
-          <span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-white">
-            {params.value}%
-          </span>
-        </div>
-      </div>
-    );
-  };
-
-  // Custom cell renderer for members avatars
-  const MembersRenderer = (params: any) => {
-    const members = params.value || [];
-    if (!members.length) return <span>N/A</span>;
-    return (
-      <div className="flex -space-x-2">
-        {members.map((user: User) => (
-          <ProfileAvatar key={user.id} user={user} />
-        ))}
-      </div>
-    );
-  };
-
-  // Custom cell renderer for project title link
-  const TitleRenderer = (params: any) => {
-    return (
-      <Link
-        href={`/projects/${params.data.id}`}
-        className="text-primary hover:underline"
-      >
-        {params.value}
-      </Link>
-    );
-  };
-
-  // Custom cell renderer for actions menu
-  const ActionsRenderer = (params: any) => {
-    return (
-      <Menu as="div" className="relative inline-block text-left">
-        <MenuButton className="flex items-center gap-1 px-3 py-1 text-sm bg-primary text-primary-foreground rounded hover:bg-primary/90">
-          Action <ChevronDown className="w-4 h-4" />
-        </MenuButton>
-        <MenuItems className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-10">
-          <MenuItem>
-            {({ active }) => (
-              <button
-                onClick={() => handleEditClick(params.data)}
-                className={`block w-full px-4 py-2 text-left ${active ? "bg-accent text-accent-foreground" : ""
-                  }`}
-              >
-                <FaEdit className="inline mr-2" /> Edit
-              </button>
-            )}
-          </MenuItem>
-          <MenuItem>
-            {({ active }) => (
-              <button
-                onClick={() => handleDeleteProjectClick(params.data.id)}
-                className={`block w-full px-4 py-2 text-left ${active ? "bg-accent text-accent-foreground" : ""
-                  }`}
-              >
-                <FaTrash className="inline mr-2" /> Delete
-              </button>
-            )}
-          </MenuItem>
-          <MenuItem>
-            {({ active }) => (
-              <button
-                onClick={() => handleViewProject(params.data.id)}
-                className={`block w-full px-4 py-2 text-left ${active ? "bg-accent text-accent-foreground" : ""
-                  }`}
-              >
-                <FaEye className="inline mr-2" /> Quick View
-              </button>
-            )}
-          </MenuItem>
-          <MenuItem>
-            {({ active }) => (
-              <button
-                onClick={() => handleManageClick(params.data)}
-                className={`block w-full px-4 py-2 text-left ${active ? "bg-accent text-accent-foreground" : ""
-                  }`}
-              >
-                <FaTasks className="inline mr-2" /> Manage
-              </button>
-            )}
-          </MenuItem>
-        </MenuItems>
-      </Menu>
-    );
-  };
-
-  // Sanitize actuals before sending to API
   const sanitizeProjectActualsForApi = (raw: any): ProjectActuals => {
     const safe = { ...(raw || {}) } as any;
     const toIso = (v: any) => {
@@ -326,252 +177,180 @@ const ActualProjectSection: React.FC<ActualProjectSectionProps> = ({ externalFil
     return safe as ProjectActuals;
   };
 
-  // Handle cell edit: Update actuals and save via API (sanitized)
-  const handleCellValueChanged = (params: any) => {
-    const { data, colDef, newValue } = params;
-    const fieldParts = (colDef.field || "").split(".");
-    if (fieldParts[0] === "actuals") {
-      data.actuals = { ...(data.actuals || {}), [fieldParts[1]]: newValue };
-      const sanitized = sanitizeProjectActualsForApi(data.actuals);
-      data.actuals = sanitized;
-      updateProjectActuals(
-        { id: data.id, actuals: sanitized },
-        {
-          onError: (err: any) => {
-            console.error("Failed to update actuals:", err);
-          },
-        }
+  const handleSaveActuals = async (projectsToUpdate: Project[]) => {
+    try {
+      await Promise.all(
+        projectsToUpdate.map((p) => {
+          const sanitized = sanitizeProjectActualsForApi(p.actuals);
+          return updateProjectActuals({ id: p.id, actuals: sanitized });
+        })
       );
+      toast.success("Project actuals updated successfully");
+    } catch (error) {
+      console.error("Failed to update actuals:", error);
+      toast.error("Failed to update project actuals");
     }
-    params.api.refreshCells({ rowNodes: [params.node], force: true });
   };
 
-  // Dynamic columnDefs based on selectedColumns
-  const columnDefs = useMemo(() => {
-    const allDefs: any[] = [
-      {
-        headerName: "ID",
-        valueGetter: (params: any) => params.node.rowIndex + 1,
-        hide: !selectedColumns.includes("id"),
+  const columns: ColumnConfig<Project>[] = [
+    {
+      key: "id",
+      label: "ID",
+      render: (_, index) => index + 1,
+    },
+    {
+      key: "title",
+      label: "Project",
+      render: (p) => (
+        <Link href={`/projects/${p.id}`} className="text-primary hover:underline font-medium">
+          {p.title}
+        </Link>
+      ),
+    },
+    {
+      key: "members",
+      label: "Assigned To",
+      render: (p) => (
+        <div className="flex -space-x-2">
+          {p.members?.map((user) => (
+            <ProfileAvatar key={user.id} user={user} />
+          )) || "---"}
+        </div>
+      ),
+    },
+    {
+      key: "client",
+      label: "Client",
+      render: (p) => p.clientInfo?.companyName || "---",
+    },
+    {
+      key: "priority",
+      label: "Priority",
+    },
+    {
+      key: "actuals.budget",
+      label: "Actual Budget",
+      editable: true,
+      inputType: "number",
+      render: (p) => p.actuals?.budget ?? "---",
+    },
+    {
+      key: "budget_diff",
+      label: "Budget +/-",
+      render: (p) => {
+        const actual = Number(p.actuals?.budget || 0);
+        const planned = Number(p.budget || 0);
+        const diff = actual - planned;
+        return diff !== 0 ? (diff > 0 ? `+${diff}` : diff) : "0";
       },
-      {
-        headerName: "Project",
-        field: "title",
-        cellRenderer: TitleRenderer,
-        hide: !selectedColumns.includes("title"),
+    },
+    {
+      key: "actuals.start_date",
+      label: "Starts At",
+      editable: true,
+      inputType: "date",
+      render: (p) => (p.actuals?.start_date ? formatDate(p.actuals.start_date) : "---"),
+    },
+    {
+      key: "actuals.end_date",
+      label: "Ends At",
+      editable: true,
+      inputType: "date",
+      render: (p) => (p.actuals?.end_date ? formatDate(p.actuals.end_date) : "---"),
+    },
+    {
+      key: "duration",
+      label: "Duration",
+      render: (p) => getDateDuration(p.actuals?.start_date, p.actuals?.end_date),
+    },
+    {
+      key: "remaining",
+      label: "Remaining",
+      render: (p) => {
+        const end = p.actuals?.end_date;
+        if (end && new Date(end) > new Date()) {
+          return calcRemaining(new Date(), end);
+        }
+        return "---";
       },
-      {
-        headerName: "Assigned To",
-        field: "members",
-        cellRenderer: MembersRenderer,
-        hide: !selectedColumns.includes("members"),
-      },
-      {
-        headerName: "Client",
-        field: "client",
-        hide: !selectedColumns.includes("client"),
-      },
-      {
-        headerName: "Priority",
-        field: "priority",
-        hide: !selectedColumns.includes("priority"),
-      },
-      {
-        headerName: "Budget",
-        hide: !selectedColumns.includes("budget"),
-        children: [
-          {
-            headerName: "Actual",
-            field: "actuals.budget",
-            valueGetter: (params: any) => params.data.actuals?.budget ?? "",
-            valueSetter: (params: any) => {
-              const v = params.newValue;
-              params.data.actuals.budget = v === "" ? null : parseFloat(v);
-              return true;
-            },
-            editable: true,
-          },
-          {
-            headerName: "+/-",
-            valueGetter: (params: any) =>
-              (params.data.actuals?.budget || 0) - (params.data.budget || 0),
-          },
-        ],
-      },
-      {
-        headerName: "Starts At",
-        field: "actuals.start_date",
-        valueGetter: (params: any) => {
-          const date = params.data.actuals?.start_date;
-          if (!date) return "";
-          const d = new Date(date);
-          return isNaN(d.getTime()) ? "" : formatDate(date);
-        },
-        valueSetter: (params: any) => {
-          params.data.actuals.start_date = params.newValue || null;
-          return true;
-        },
-        editable: true,
-        cellEditor: "agDateCellEditor",
-        hide: !selectedColumns.includes("start_date"),
-      },
-      {
-        headerName: "Ends At",
-        field: "actuals.end_date",
-        valueGetter: (params: any) => {
-          const date = params.data.actuals?.end_date;
-          if (!date) return "";
-          const d = new Date(date);
-          return isNaN(d.getTime()) ? "" : formatDate(date);
-        },
-        valueSetter: (params: any) => {
-          params.data.actuals.end_date = params.newValue || null;
-          return true;
-        },
-        editable: true,
-        cellEditor: "agDateCellEditor",
-        hide: !selectedColumns.includes("end_date"),
-      },
-      {
-        headerName: "Duration",
-        valueGetter: (params: any) => {
-          const start = params.data.actuals?.start_date;
-          const end = params.data.actuals?.end_date;
-          const duration = getDateDuration(start, end);
-          return `${duration}`;
-        },
-        hide: !selectedColumns.includes("duration"),
-      },
-      {
-        headerName: "Remaining",
-        valueGetter: (params: any) => {
-          const end = params.data.actuals?.end_date;
-          if (end && new Date(end) > new Date()) {
-            return calcRemaining(new Date(), end);
-          }
-          return "N/A";
-        },
-        hide: !selectedColumns.includes("remaining"),
-      },
-      {
-        headerName: "Progress",
-        field: "actuals.progress",
-        valueGetter: (params: any) => params.data.actuals?.progress ?? 0,
-        valueSetter: (params: any) => {
-          const v = params.newValue;
-          params.data.actuals.progress = v === "" ? null : parseInt(v);
-          return true;
-        },
-        editable: true,
-        cellRenderer: ProgressRenderer,
-        hide: !selectedColumns.includes("progress"),
-      },
-      {
-        headerName: "Status",
-        field: "actuals.status",
-        valueGetter: (params: any) => params.data.actuals?.status ?? "",
-        valueSetter: (params: any) => {
-          params.data.actuals.status = params.newValue || null;
-          return true;
-        },
-        editable: true,
-        cellEditor: "agSelectCellEditor",
-        cellEditorParams: {
-          values: [
-            "Not Started",
-            "Started",
-            "InProgress",
-            "Canceled",
-            "Onhold",
-            "Completed",
-          ],
-        },
-        hide: !selectedColumns.includes("status"),
-      },
-      {
-        headerName: "Actions",
-        cellRenderer: ActionsRenderer,
-        hide: !selectedColumns.includes("actions"),
-      },
-    ];
-    return allDefs;
-  }, [selectedColumns]);
-
-  if (isLoading) return <div>Loading projects…</div>;
-  if (isError) return <div>Error loading projects.</div>;
+    },
+    {
+      key: "actuals.progress",
+      label: "Progress",
+      editable: true,
+      inputType: "number",
+      render: (p) => (
+        <div className="relative h-6 w-full bg-gray-200 rounded overflow-hidden">
+          <div
+            className="absolute h-full bg-primary flex items-center justify-center text-[10px] text-white font-bold transition-all"
+            style={{ width: `${p.actuals?.progress || 0}%` }}
+          >
+            {p.actuals?.progress || 0}%
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "actuals.status",
+      label: "Status",
+      editable: true,
+      inputType: "select",
+      options: [
+        { label: "Not Started", value: "Not Started" },
+        { label: "Started", value: "Started" },
+        { label: "InProgress", value: "InProgress" },
+        { label: "Canceled", value: "Canceled" },
+        { label: "Onhold", value: "Onhold" },
+        { label: "Completed", value: "Completed" },
+      ],
+      render: (p) => (
+        <span
+          className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${statusBadgeClasses[p.actuals?.status || ""] || "bg-gray-100 text-gray-800"
+            }`}
+        >
+          {p.actuals?.status || "---"}
+        </span>
+      ),
+    },
+    {
+      key: "actions",
+      label: "Actions",
+      render: (p, _, { toggleEdit }) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="bg-primary text-white hover:bg-primary/90 h-8 px-3 text-xs">
+              Action <ChevronDown className="ml-1 h-3 w-3" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => toggleEdit()}>
+              <FaEdit className="mr-2 h-4 w-4" /> Edit
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push(`/projects/${p.id}`)}>
+              <FaEye className="mr-2 h-4 w-4" /> View
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+    },
+  ];
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row items-baseline gap-2 mt-6">
-        <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">
-          Actual Project Statistics
-        </h2>
-        <span className="text-sm text-muted-foreground font-medium">({extendedProjects.length} total)</span>
-      </div>
+      <ReusableTable
+        title="Actual Project Statistics"
+        data={extendedProjects}
+        columns={columns}
+        isLoading={isLoading}
+        isError={isError}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        placeholder="Search projects..."
+        isEditable={true}
+        onSave={handleSaveActuals}
+        onRowSave={async (p) => handleSaveActuals([p])}
+      />
 
-      <div ref={menuRef} className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-lg shadow-sm border border-border">
-        <div className="relative w-full sm:w-auto">
-          <button
-            onClick={() => setShowColumnMenu((prev) => !prev)}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2 text-sm bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors shadow-sm"
-          >
-            Customize Columns <ChevronDown className="w-4 h-4" />
-          </button>
-          {showColumnMenu && (
-            <div className="absolute left-0 mt-2 w-56 bg-white border border-border rounded-lg shadow-xl z-20 py-2">
-              <div className="px-4 py-2 border-b border-border mb-1">
-                <span className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">Visible Columns</span>
-              </div>
-              {Object.entries(columnOptions).map(([key, label]) => (
-                <label
-                  key={key}
-                  className="flex items-center w-full px-4 py-2 hover:bg-accent hover:text-accent-foreground cursor-pointer transition-colors"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedColumns.includes(key)}
-                    onChange={() => toggleColumn(key)}
-                    className="w-4 h-4 rounded border-gray-300 text-cyan-600 focus:ring-cyan-500 mr-3"
-                  />
-                  <span className="text-sm text-gray-700 font-medium">{label}</span>
-                </label>
-              ))}
-            </div>
-          )}
-        </div>
-        <div className="w-full sm:w-auto">
-          <SearchInput
-            placeholder="Search projects..."
-            value={searchTerm}
-            onChange={setSearchTerm}
-          />
-        </div>
-      </div>
-
-      {/* AG Grid Table */}
-      <div
-        className="ag-theme-alpine custom-grid"
-        style={{ height: 400, width: "100%" }}
-      >
-        <AgGridReact
-          ref={gridRef}
-          rowData={extendedProjects}
-          columnDefs={columnDefs}
-          onCellValueChanged={handleCellValueChanged}
-          domLayout="autoHeight"
-          theme="legacy"
-          defaultColDef={{
-            sortable: true,
-            filter: true,
-            resizable: true,
-            flex: 1,
-            minWidth: 100,
-            cellStyle: { border: "1px solid #d1d5db" },
-          }}
-        />
-      </div>
-
-      {/* Delete Modal */}
       {isDeleteModalOpen && (
         <ConfirmModal
           isVisible={isDeleteModalOpen}
@@ -585,10 +364,9 @@ const ActualProjectSection: React.FC<ActualProjectSectionProps> = ({ externalFil
         />
       )}
 
-      {/* Edit Modal */}
       {showEditForm && projectToEdit && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-xl m-4 max-h-[90vh] overflow-y-auto">
+        <div className="modal-overlay">
+          <div className="modal-content">
             <EditProjectForm
               project={projectToEdit}
               onSubmit={handleEditSubmit}
@@ -599,61 +377,13 @@ const ActualProjectSection: React.FC<ActualProjectSectionProps> = ({ externalFil
         </div>
       )}
 
-      {/* Manage Modal */}
-      {/* {showManageForm && projectToManage && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md m-4">
-            <ManageProjectForm
-              project={projectToManage}
-              onSubmit={handleManageSubmit}
-              onClose={() => setShowManageForm(false)}
-            />
+      {showManageForm && projectToManage && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <ManageProjectForm onClose={() => setShowManageForm(false)} project={projectToManage as any} />
           </div>
         </div>
-      )} */}
-
-      {/* Footer */}
-      <div className="flex items-center justify-between p-4">
-        <span className="text-sm text-muted-foreground">
-          Showing {extendedProjects.length} rows
-        </span>
-      </div>
-
-      <style jsx global>{`
-        .custom-grid .ag-header-cell {
-          background-color: var(--primary) !important; /* cyan-700 */
-          color: var(--primary-foreground) !important; /* gray-100 */
-          border: 1px solid #d1d5db !important; /* gray-300 */
-        }
-        .custom-grid .ag-header-cell:hover {
-          opacity: 0.9 !important;
-        }
-
-        /* group headers (Budget) */
-        .custom-grid .ag-header-group-cell {
-          background-color: var(--primary) !important; /* cyan-700 */
-          color: var(--primary-foreground) !important; /* gray-100 */
-          border: 1px solid #d1d5db !important;
-        }
-        .custom-grid .ag-header-group-cell:hover {
-          opacity: 0.9 !important;
-        }
-
-        /* Filter icon color - target svg, font icons and path fill/stroke */
-        .custom-grid .ag-header-cell .ag-icon,
-        .custom-grid .ag-header-cell .ag-icon-filter,
-        .custom-grid .ag-header-cell .ag-filter-button svg,
-        .custom-grid .ag-header-cell .ag-filter-button path {
-          color: var(--primary-foreground) !important;
-          fill: var(--primary-foreground) !important;
-          stroke: var(--primary-foreground) !important;
-        }
-
-        /* ensure header text for group looks same */
-        .custom-grid .ag-header-group-cell .ag-header-group-cell-label {
-          color: var(--primary-foreground) !important;
-        }
-      `}</style>
+      )}
     </div>
   );
 };

@@ -57,3 +57,10 @@ export const getDateDuration = (
 
   return parts.join(", ");
 };
+
+export const formatDateForInput = (date: Date | string | null | undefined): string => {
+  if (!date) return "";
+  const d = typeof date === "string" ? new Date(date) : date;
+  if (isNaN(d.getTime())) return "";
+  return d.toISOString().split("T")[0];
+};

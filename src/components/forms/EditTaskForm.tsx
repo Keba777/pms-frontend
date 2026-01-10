@@ -323,10 +323,10 @@ const EditTaskForm: React.FC<EditTaskFormProps> = ({
 
       <div className="flex items-start space-x-4">
         <label className="w-32 text-sm font-medium text-gray-700">
-          Description<span className="text-red-500">*</span>
+          Description
         </label>
         <textarea
-          {...register("description", { required: "Description is required" })}
+          {...register("description")}
           rows={3}
           className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
         />

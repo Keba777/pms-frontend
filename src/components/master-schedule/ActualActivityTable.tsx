@@ -1,96 +1,48 @@
 "use client";
 
-import React, { useState, useMemo, useRef, useEffect } from "react";
-import { Menu, MenuButton, MenuItems, MenuItem } from "@headlessui/react";
+import React, { useState, useMemo } from "react";
 import { ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { FaEdit, FaEye } from "react-icons/fa";
 import {
   useActivities,
-  useDeleteActivity,
-  useUpdateActivity,
   useUpdateActivityActuals,
 } from "@/hooks/useActivities";
-import { UpdateActivityInput, Activity, Actuals } from "@/types/activity";
-import EditActivityForm from "../forms/EditActivityForm";
-import ConfirmModal from "../common/ui/ConfirmModal";
-import ActivityTableSkeleton from "../activities/ActivityTableSkeleton";
+import { Activity, Actuals } from "@/types/activity";
+import { ReusableTable, ColumnConfig } from "../common/ReusableTable";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { formatDate } from "@/utils/dateUtils";
 import Link from "next/link";
-import { AgGridReact } from "ag-grid-react";
-import "ag-grid-community/styles/ag-grid.css";
-import "ag-grid-community/styles/ag-theme-alpine.css";
-import { formatDate as format } from "@/utils/dateUtils";
+import { toast } from "react-toastify";
 
 interface ActualActivityTableProps {
-  taskId?: string; // made optional
+  taskId?: string;
 }
 
 interface ExtendedActivity extends Activity {
   actuals: Actuals;
 }
 
+const statusBadgeClasses: Record<string, string> = {
+  "Not Started": "bg-gray-100 text-gray-800",
+  Started: "bg-blue-100 text-blue-800",
+  InProgress: "bg-yellow-100 text-yellow-800",
+  Onhold: "bg-amber-100 text-amber-800",
+  Canceled: "bg-red-100 text-red-800",
+  Completed: "bg-green-100 text-green-800",
+};
+
 const ActualActivityTable: React.FC<ActualActivityTableProps> = ({ taskId }) => {
-
-  const {
-    data: activities,
-    isLoading: loadingAct,
-    error: errorAct,
-  } = useActivities();
-  const { mutate: deleteActivity } = useDeleteActivity();
-  const { mutate: updateActivity } = useUpdateActivity();
-  const { mutate: updateActivityActuals } = useUpdateActivityActuals();
+  const { data: activities, isLoading, isError } = useActivities();
+  const { mutateAsync: updateActivityActuals } = useUpdateActivityActuals();
   const router = useRouter();
-  const gridRef = useRef<AgGridReact>(null);
-
-  // Column-customization state (kept for custom menu; AG Grid has built-in too)
-  const columnOptions: Record<string, string> = {
-    id: "ID",
-    activity_name: "Activities",
-    unit: "Unit",
-    quantity: "Qty",
-    start_date: "Start Date",
-    end_date: "End Date",
-    duration: "Duration",
-    progress: "Progress",
-    status: "Status",
-    labor: "Labor",
-    material: "Material",
-    equipment: "Equipment",
-    total: "Total",
-    overUnder: "Over/Under",
-    actions: "Actions",
-  };
-  const [selectedColumns, setSelectedColumns] = useState<string[]>(
-    Object.keys(columnOptions)
-  );
-  const [showColumnMenu, setShowColumnMenu] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  // Edit/delete modals state
-  const [showEditForm, setShowEditForm] = useState(false);
-  const [activityToEdit, setActivityToEdit] =
-    useState<UpdateActivityInput | null>(null);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [selectedActivityId, setSelectedActivityId] = useState<string | null>(
-    null
-  );
-
-  // Dirty tracking for saves
-  const [dirtyRows, setDirtyRows] = useState<Set<string>>(new Set());
-  const [isSaving, setIsSaving] = useState(false);
-
-  // Grid data state to hold local edits
-  const [gridData, setGridData] = useState<ExtendedActivity[]>([]);
-
-  // Handle outside-click for column menu
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setShowColumnMenu(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const defaultActuals: Actuals = {
     quantity: null,
@@ -108,10 +60,8 @@ const ActualActivityTable: React.FC<ActualActivityTableProps> = ({ taskId }) => 
     materials_list: null,
   };
 
-  // Derived extendedActivities with actuals handling
   const extendedActivities: ExtendedActivity[] = useMemo(() => {
     if (!activities) return [];
-    // If taskId provided, filter, otherwise use all activities
     const base = !taskId
       ? activities
       : activities.filter((a) => a.task_id === taskId);
@@ -122,117 +72,8 @@ const ActualActivityTable: React.FC<ActualActivityTableProps> = ({ taskId }) => 
     }));
   }, [activities, taskId]);
 
-  // Sync gridData when extendedActivities change (e.g., after refetch)
-  useEffect(() => {
-    setGridData(extendedActivities);
-    setDirtyRows(new Set()); // Clear dirty on refetch
-  }, [extendedActivities]);
-
-  // Column toggle (updates visibility in AG Grid)
-  const toggleColumn = (col: string) =>
-    setSelectedColumns((prev) =>
-      prev.includes(col) ? prev.filter((c) => c !== col) : [...prev, col]
-    );
-
-  // Edit/delete handlers
-  const handleDeleteClick = (id: string) => {
-    setSelectedActivityId(id);
-    setIsDeleteModalOpen(true);
-  };
-
-  const confirmDelete = () => {
-    if (selectedActivityId) deleteActivity(selectedActivityId);
-    setIsDeleteModalOpen(false);
-  };
-
-  const handleEditClick = (item: ExtendedActivity) => {
-    setActivityToEdit({
-      ...item,
-      assignedUsers: item.assignedUsers?.map((u) => u.id) || [],
-    });
-    setShowEditForm(true);
-  };
-  const handleEditSubmit = (data: UpdateActivityInput) => {
-    updateActivity(data);
-    setShowEditForm(false);
-  };
-
-  // Custom cell renderer for progress bar
-  const ProgressRenderer = (params: any) => {
-    const value = params.value ?? 0;
-    return (
-      <div className="relative h-full bg-gray-200 rounded">
-        <div
-          className="absolute h-full bg-blue-600 rounded"
-          style={{ width: `${value}%` }}
-        >
-          <span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-white">
-            {value}%
-          </span>
-        </div>
-      </div>
-    );
-  };
-
-  // Custom cell renderer for actions menu
-  const ActionsRenderer = (params: any) => {
-    return (
-      <Menu as="div" className="relative inline-block text-left">
-        <MenuButton className="flex items-center gap-1 px-3 py-1 text-sm bg-cyan-700 text-white rounded hover:bg-cyan-800">
-          Action <ChevronDown className="w-4 h-4" />
-        </MenuButton>
-        <MenuItems className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-10">
-          <MenuItem>
-            {({ active }) => (
-              <button
-                className={`block w-full px-4 py-2 text-left ${active ? "bg-blue-100" : ""
-                  }`}
-                onClick={() => router.push(`/activities/${params.data.id}`)}
-              >
-                Quick View
-              </button>
-            )}
-          </MenuItem>
-          <MenuItem>
-            {({ active }) => (
-              <button
-                className={`block w-full px-4 py-2 text-left ${active ? "bg-blue-100" : ""
-                  }`}
-                onClick={() => handleEditClick(params.data)}
-              >
-                Update
-              </button>
-            )}
-          </MenuItem>
-          <MenuItem>
-            {({ active }) => (
-              <button
-                className={`block w-full px-4 py-2 text-left ${active ? "bg-blue-100" : ""
-                  }`}
-                onClick={() => handleDeleteClick(params.data.id)}
-              >
-                Delete
-              </button>
-            )}
-          </MenuItem>
-        </MenuItems>
-      </Menu>
-    );
-  };
-
-  // Custom cell renderer for activity name link
-  const NameRenderer = (params: any) => {
-    return (
-      <Link href={`/activities/${params.data.id}`} className="hover:underline">
-        {params.value}
-      </Link>
-    );
-  };
-
-  // Helper: sanitize actuals before sending to API
   const sanitizeActualsForApi = (raw: any): Actuals => {
     const safe = { ...(raw || {}) } as any;
-
     const toIso = (v: any) => {
       if (!v && v !== 0) return null;
       try {
@@ -257,408 +98,225 @@ const ActualActivityTable: React.FC<ActualActivityTableProps> = ({ taskId }) => 
     safe.total_cost = toNumberOrNull(safe.total_cost);
     safe.quantity = toNumberOrNull(safe.quantity);
     safe.progress = toNumberOrNull(safe.progress);
-
     safe.unit = safe.unit ?? null;
     safe.status = safe.status ?? null;
-    safe.work_force = safe.work_force ?? null;
-    safe.machinery_list = safe.machinery_list ?? null;
-    safe.materials_list = safe.materials_list ?? null;
-
     return safe as Actuals;
   };
 
-  // Handle cell edit: Mark dirty and refresh computed cells
-  const handleCellValueChanged = (params: any) => {
-    const { colDef } = params;
-    const fieldParts = (colDef.field || "").split("."); // e.g., ['actuals','labor_cost']
-    if (fieldParts[0] === "actuals") {
-      setDirtyRows((prev) => {
-        const newSet = new Set(prev);
-        newSet.add(params.data.id);
-        return newSet;
-      });
+  const handleSaveActuals = async (activitiesToUpdate: ExtendedActivity[]) => {
+    try {
+      await Promise.all(
+        activitiesToUpdate.map((act) => {
+          const sanitized = sanitizeActualsForApi(act.actuals);
+          return updateActivityActuals({ id: act.id, actuals: sanitized });
+        })
+      );
+      toast.success("Activity actuals updated successfully");
+    } catch (error) {
+      console.error("Failed to update activity actuals:", error);
+      toast.error("Failed to update activity actuals");
     }
-
-    // Refresh row to update calculated fields (e.g., diffs)
-    params.api.refreshCells({ rowNodes: [params.node], force: true });
   };
 
-  // Handle save changes
-  const handleSave = () => {
-    setIsSaving(true);
-    Array.from(dirtyRows).forEach((id) => {
-      const row = gridData.find((r) => r.id === id);
-      if (row) {
-        const sanitized = sanitizeActualsForApi(row.actuals);
-        updateActivityActuals({ id, actuals: sanitized });
-      }
-    });
-    setDirtyRows(new Set());
-    setIsSaving(false);
-  };
-
-  // Dynamic columnDefs based on selectedColumns
-  const columnDefs = useMemo(() => {
-    const allDefs: any[] = [
-      {
-        headerName: "ID",
-        valueGetter: (params: any) =>
-          `RC${String(params.node.rowIndex + 1).padStart(3, "0")}`,
-        hide: !selectedColumns.includes("id"),
+  const columns: ColumnConfig<ExtendedActivity>[] = [
+    {
+      key: "id",
+      label: "ID",
+      render: (_, index) => `RC${String(index + 1).padStart(3, "0")}`,
+    },
+    {
+      key: "activity_name",
+      label: "Activity",
+      render: (act) => (
+        <Link href={`/activities/${act.id}`} className="text-primary hover:underline font-medium">
+          {act.activity_name}
+        </Link>
+      ),
+    },
+    {
+      key: "actuals.unit",
+      label: "Unit",
+      editable: true,
+      render: (act) => act.actuals?.unit || "---",
+    },
+    {
+      key: "actuals.quantity",
+      label: "Qty",
+      editable: true,
+      inputType: "number",
+      render: (act) => act.actuals?.quantity ?? "---",
+    },
+    {
+      key: "actuals.start_date",
+      label: "Start Date",
+      editable: true,
+      inputType: "date",
+      render: (act) => (act.actuals?.start_date ? formatDate(act.actuals.start_date) : "---"),
+    },
+    {
+      key: "actuals.end_date",
+      label: "End Date",
+      editable: true,
+      inputType: "date",
+      render: (act) => (act.actuals?.end_date ? formatDate(act.actuals.end_date) : "---"),
+    },
+    {
+      key: "duration",
+      label: "Duration",
+      render: (act) => {
+        const start = act.actuals?.start_date;
+        const end = act.actuals?.end_date;
+        if (!start || !end) return "---";
+        const diff = Math.ceil((new Date(end).getTime() - new Date(start).getTime()) / (1000 * 3600 * 24));
+        return `${diff} Days`;
       },
-      {
-        headerName: "Activities",
-        field: "activity_name",
-        cellRenderer: NameRenderer,
-        hide: !selectedColumns.includes("activity_name"),
-      },
-      {
-        headerName: "Unit",
-        field: "actuals.unit",
-        valueGetter: (params: any) => params.data.actuals?.unit ?? "",
-        valueSetter: (params: any) => {
-          params.data.actuals.unit = params.newValue || null;
-          return true;
-        },
-        editable: true,
-        hide: !selectedColumns.includes("unit"),
-      },
-      {
-        headerName: "Qty",
-        field: "actuals.quantity",
-        valueGetter: (params: any) => params.data.actuals?.quantity ?? "",
-        valueSetter: (params: any) => {
-          const v = params.newValue;
-          params.data.actuals.quantity = v === "" ? null : parseFloat(v);
-          return true;
-        },
-        editable: true,
-        hide: !selectedColumns.includes("quantity"),
-      },
-      {
-        headerName: "Start Date",
-        field: "actuals.start_date",
-        valueGetter: (params: any) => {
-          const date = params.data.actuals?.start_date;
-          if (!date) return "";
-          return format(date);
-        },
-        valueSetter: (params: any) => {
-          params.data.actuals.start_date = params.newValue || null;
-          return true;
-        },
-        editable: true,
-        cellEditor: "agDateCellEditor",
-        hide: !selectedColumns.includes("start_date"),
-      },
-      {
-        headerName: "End Date",
-        field: "actuals.end_date",
-        valueGetter: (params: any) => {
-          const date = params.data.actuals?.end_date;
-          if (!date) return "";
-          return format(date);
-        },
-        valueSetter: (params: any) => {
-          params.data.actuals.end_date = params.newValue || null;
-          return true;
-        },
-        editable: true,
-        cellEditor: "agDateCellEditor",
-        hide: !selectedColumns.includes("end_date"),
-      },
-      {
-        headerName: "Duration",
-        valueGetter: (params: any) => {
-          const start = params.data.actuals?.start_date;
-          const end = params.data.actuals?.end_date;
-          if (!start || !end) return "";
-          const diff = Math.ceil(
-            (new Date(end).getTime() - new Date(start).getTime()) /
-            (1000 * 3600 * 24)
-          );
-          return isNaN(diff) ? "" : diff;
-        },
-        hide: !selectedColumns.includes("duration"),
-      },
-      {
-        headerName: "Progress",
-        field: "actuals.progress",
-        valueGetter: (params: any) => params.data.actuals?.progress ?? 0,
-        valueSetter: (params: any) => {
-          const v = params.newValue;
-          params.data.actuals.progress = v === "" ? null : parseInt(v);
-          return true;
-        },
-        editable: true,
-        cellRenderer: ProgressRenderer,
-        hide: !selectedColumns.includes("progress"),
-      },
-      {
-        headerName: "Status",
-        field: "actuals.status",
-        valueGetter: (params: any) => params.data.actuals?.status ?? "",
-        valueSetter: (params: any) => {
-          params.data.actuals.status = params.newValue || null;
-          return true;
-        },
-        editable: true,
-        cellEditor: "agSelectCellEditor",
-        cellEditorParams: {
-          values: [
-            "Not Started",
-            "Started",
-            "InProgress",
-            "Canceled",
-            "Onhold",
-            "Completed",
-            null,
-          ],
-        },
-        hide: !selectedColumns.includes("status"),
-      },
-      {
-        headerName: "Labor",
-        hide: !selectedColumns.includes("labor"),
-        children: [
-          {
-            headerName: "cost",
-            field: "actuals.labor_cost",
-            valueGetter: (params: any) => params.data.actuals?.labor_cost ?? "",
-            valueSetter: (params: any) => {
-              const v = params.newValue;
-              params.data.actuals.labor_cost = v === "" ? null : parseFloat(v);
-              return true;
-            },
-            editable: true,
-          },
-          {
-            headerName: "+/-",
-            valueGetter: (params: any) =>
-              (params.data.actuals?.labor_cost || 0) -
-              (params.data.labor_cost || 0),
-          },
-        ],
-      },
-      {
-        headerName: "Material",
-        hide: !selectedColumns.includes("material"),
-        children: [
-          {
-            headerName: "cost",
-            field: "actuals.material_cost",
-            valueGetter: (params: any) =>
-              params.data.actuals?.material_cost ?? "",
-            valueSetter: (params: any) => {
-              const v = params.newValue;
-              params.data.actuals.material_cost =
-                v === "" ? null : parseFloat(v);
-              return true;
-            },
-            editable: true,
-          },
-          {
-            headerName: "+/-",
-            valueGetter: (params: any) =>
-              (params.data.actuals?.material_cost || 0) -
-              (params.data.material_cost || 0),
-          },
-        ],
-      },
-      {
-        headerName: "Equipment",
-        hide: !selectedColumns.includes("equipment"),
-        children: [
-          {
-            headerName: "cost",
-            field: "actuals.equipment_cost",
-            valueGetter: (params: any) =>
-              params.data.actuals?.equipment_cost ?? "",
-            valueSetter: (params: any) => {
-              const v = params.newValue;
-              params.data.actuals.equipment_cost =
-                v === "" ? null : parseFloat(v);
-              return true;
-            },
-            editable: true,
-          },
-          {
-            headerName: "+/-",
-            valueGetter: (params: any) =>
-              (params.data.actuals?.equipment_cost || 0) -
-              (params.data.equipment_cost || 0),
-          },
-        ],
-      },
-      {
-        headerName: "Total",
-        valueGetter: (params: any) =>
-          (params.data.actuals?.labor_cost || 0) +
-          (params.data.actuals?.material_cost || 0) +
-          (params.data.actuals?.equipment_cost || 0),
-        hide: !selectedColumns.includes("total"),
-      },
-      {
-        headerName: "Over/Under",
-        valueGetter: (params: any) => {
-          const laborDiff = (params.data.actuals?.labor_cost ?? 0) - (params.data.labor_cost ?? 0);
-          const materialDiff = (params.data.actuals?.material_cost ?? 0) - (params.data.material_cost ?? 0);
-          const equipmentDiff = (params.data.actuals?.equipment_cost ?? 0) - (params.data.equipment_cost ?? 0);
-          const totalDiff = laborDiff + materialDiff + equipmentDiff;
-          return `$${totalDiff.toFixed(2)}`;
-        },
-        hide: !selectedColumns.includes("overUnder"),
-      },
-      {
-        headerName: "Actions",
-        cellRenderer: ActionsRenderer,
-        hide: !selectedColumns.includes("actions"),
-      },
-    ];
-    return allDefs;
-  }, [selectedColumns, router]);
-
-  // Render
-  return loadingAct ? (
-    <ActivityTableSkeleton />
-  ) : errorAct ? (
-    <div className="p-4 text-red-600">Error fetching activities.</div>
-  ) : (
-    <div>
-      {/* Edit Modal */}
-      {showEditForm && activityToEdit && (
-        <div className="modal-overlay fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="modal-content bg-white rounded-lg shadow-xl p-6">
-            <EditActivityForm
-              activity={activityToEdit}
-              onSubmit={handleEditSubmit}
-              onClose={() => setShowEditForm(false)}
-            />
+    },
+    {
+      key: "actuals.progress",
+      label: "Progress",
+      editable: true,
+      inputType: "number",
+      render: (act) => (
+        <div className="relative h-6 w-full bg-gray-200 rounded overflow-hidden text-center text-[10px] leading-6 font-bold">
+          <div
+            className="absolute h-full bg-primary flex items-center justify-center text-white transition-all"
+            style={{ width: `${act.actuals?.progress || 0}%` }}
+          >
+            {act.actuals?.progress || 0}%
           </div>
+          <span className="relative z-10">{act.actuals?.progress || 0}%</span>
         </div>
-      )}
-
-      {/* Customize Columns and Save */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 bg-gray-50 p-4 rounded-xl border border-gray-100">
-        <div ref={menuRef} className="relative w-full sm:w-auto">
-          <button
-            onClick={() => setShowColumnMenu((prev) => !prev)}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-700 text-white rounded-lg hover:bg-emerald-800 transition-colors shadow-sm font-bold text-sm"
-          >
-            Customize Columns <ChevronDown className="w-4 h-4" />
-          </button>
-          {showColumnMenu && (
-            <div className="absolute left-0 mt-2 w-56 bg-white border border-gray-200 rounded-xl shadow-xl z-50 py-2">
-              <div className="px-4 py-2 border-b border-gray-100 mb-1">
-                <span className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">Visible Columns</span>
-              </div>
-              {Object.entries(columnOptions).map(([key, label]) => (
-                <label
-                  key={key}
-                  className="flex items-center w-full px-4 py-2 hover:bg-gray-50 cursor-pointer transition-colors"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedColumns.includes(key)}
-                    onChange={() => toggleColumn(key)}
-                    className="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 mr-3"
-                  />
-                  <span className="text-sm text-gray-700 font-bold">{label}</span>
-                </label>
-              ))}
-            </div>
-          )}
-        </div>
-        {dirtyRows.size > 0 && (
-          <button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-all font-black uppercase text-xs tracking-widest shadow-md"
-          >
-            {isSaving ? "Saving..." : "Save Changes"}
-          </button>
-        )}
-      </div>
-
-      {/* AG Grid Table */}
-      <div
-        className="ag-theme-alpine custom-grid"
-        style={{ height: 400, width: "100%" }}
-      >
-        <AgGridReact
-          ref={gridRef}
-          rowData={gridData}
-          columnDefs={columnDefs}
-          onCellValueChanged={handleCellValueChanged}
-          domLayout="autoHeight"
-          defaultColDef={{
-            sortable: true,
-            filter: true,
-            resizable: true,
-            flex: 1,
-            minWidth: 100,
-            cellStyle: { border: "1px solid #d1d5db" },
-          }}
-        />
-      </div>
-
-      {/* Delete Modal */}
-      {isDeleteModalOpen && (
-        <ConfirmModal
-          isVisible={isDeleteModalOpen}
-          title="Confirm Deletion"
-          message="Are you sure you want to delete this activity?"
-          showInput={false}
-          confirmText="DELETE"
-          confirmButtonText="Delete"
-          onClose={() => setIsDeleteModalOpen(false)}
-          onConfirm={confirmDelete}
-        />
-      )}
-
-      {/* Footer */}
-      <div className="flex items-center justify-between p-4">
-        <span className="text-sm text-gray-700">
-          Showing {gridData.length} rows
+      ),
+    },
+    {
+      key: "actuals.status",
+      label: "Status",
+      editable: true,
+      inputType: "select",
+      options: [
+        { label: "Not Started", value: "Not Started" },
+        { label: "Started", value: "Started" },
+        { label: "InProgress", value: "InProgress" },
+        { label: "Onhold", value: "Onhold" },
+        { label: "Canceled", value: "Canceled" },
+        { label: "Completed", value: "Completed" },
+      ],
+      render: (act) => (
+        <span
+          className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${statusBadgeClasses[act.actuals?.status || ""] || "bg-gray-100 text-gray-800"}`}
+        >
+          {act.actuals?.status || "---"}
         </span>
-      </div>
+      ),
+    },
+    {
+      key: "actuals.material_cost",
+      label: "Material",
+      groupName: "Costs",
+      editable: true,
+      inputType: "number",
+      render: (act) => act.actuals?.material_cost ?? "---",
+    },
+    {
+      key: "material_diff",
+      label: "+/-",
+      groupName: "Costs",
+      render: (act) => {
+        const diff = (act.actuals?.material_cost || 0) - (act.material_cost || 0);
+        return (
+          <span className={diff > 0 ? "text-red-600 font-bold" : "text-green-600 font-bold"}>
+            {diff.toFixed(2)}
+          </span>
+        );
+      },
+    },
+    {
+      key: "actuals.equipment_cost",
+      label: "Equipments",
+      groupName: "Costs",
+      editable: true,
+      inputType: "number",
+      render: (act) => act.actuals?.equipment_cost ?? "---",
+    },
+    {
+      key: "equipment_diff",
+      label: "+/-",
+      groupName: "Costs",
+      render: (act) => {
+        const diff = (act.actuals?.equipment_cost || 0) - (act.equipment_cost || 0);
+        return (
+          <span className={diff > 0 ? "text-red-600 font-bold" : "text-green-600 font-bold"}>
+            {diff.toFixed(2)}
+          </span>
+        );
+      },
+    },
+    {
+      key: "actuals.labor_cost",
+      label: "Labor",
+      groupName: "Costs",
+      editable: true,
+      inputType: "number",
+      render: (act) => act.actuals?.labor_cost ?? "---",
+    },
+    {
+      key: "labor_diff",
+      label: "+/-",
+      groupName: "Costs",
+      render: (act) => {
+        const diff = (act.actuals?.labor_cost || 0) - (act.labor_cost || 0);
+        return (
+          <span className={diff > 0 ? "text-red-600 font-bold" : "text-green-600 font-bold"}>
+            {diff.toFixed(2)}
+          </span>
+        );
+      },
+    },
+    {
+      key: "total_cost",
+      label: "Total Cost",
+      render: (act) => {
+        const total = (act.actuals?.labor_cost || 0) + (act.actuals?.material_cost || 0) + (act.actuals?.equipment_cost || 0);
+        return total.toFixed(2);
+      },
+    },
+    {
+      key: "actions",
+      label: "Actions",
+      render: (act, _, { toggleEdit }) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="bg-primary text-white hover:bg-primary/90 h-8 px-3 text-xs">
+              Action <ChevronDown className="ml-1 h-3 w-3" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => toggleEdit()}>
+              <FaEdit className="mr-2 h-4 w-4" /> Edit
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push(`/activities/${act.id}`)}>
+              <FaEye className="mr-2 h-4 w-4" /> View
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+    },
+  ];
 
-      <style jsx global>{`
-        .custom-grid .ag-header-cell {
-          background-color: #0e7490 !important; /* cyan-700 */
-          color: #f3f4f6 !important; /* gray-100 */
-          border: 1px solid #d1d5db !important; /* gray-300 */
-        }
-        .custom-grid .ag-header-cell:hover {
-          background-color: #155e75 !important; /* cyan-800 */
-        }
-
-        /* group headers (Labor / Material / Equipment) */
-        .custom-grid .ag-header-group-cell {
-          background-color: #0e7490 !important; /* cyan-700 */
-          color: #f3f4f6 !important; /* gray-100 */
-          border: 1px solid #d1d5db !important;
-        }
-        .custom-grid .ag-header-group-cell:hover {
-          background-color: #155e75 !important; /* cyan-800 */
-        }
-
-        /* Filter icon color - target svg, font icons and path fill/stroke */
-        .custom-grid .ag-header-cell .ag-icon,
-        .custom-grid .ag-header-cell .ag-icon-filter,
-        .custom-grid .ag-header-cell .ag-filter-button svg,
-        .custom-grid .ag-header-cell .ag-filter-button path {
-          color: #f3f4f6 !important;
-          fill: #f3f4f6 !important;
-          stroke: #f3f4f6 !important;
-        }
-
-        /* ensure header text for group looks same */
-        .custom-grid .ag-header-group-cell .ag-header-group-cell-label {
-          color: #f3f4f6 !important;
-        }
-      `}</style>
-    </div>
+  return (
+    <ReusableTable
+      title="Actual Activities"
+      data={extendedActivities}
+      columns={columns}
+      isLoading={isLoading}
+      isError={isError}
+      searchTerm={searchTerm}
+      onSearchChange={setSearchTerm}
+      placeholder="Search activities..."
+      isEditable={true}
+      onSave={handleSaveActuals}
+      onRowSave={async (act) => handleSaveActuals([act])}
+    />
   );
 };
 

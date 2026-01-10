@@ -1,9 +1,9 @@
 // components/layout/Header.tsx
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
-import { MenuIcon, Search, Bell, LogOut, User } from "lucide-react";
+import { MenuIcon, Search, Bell, LogOut, User, CheckCircle, AlertCircle, FileText, Users, DollarSign, Activity as ActivityIcon } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
@@ -43,16 +43,43 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
   );
 
   // notification hooks & store
-  const { data: notifications = [], isLoading } = useNotifications();
+  const { data: notifications = [], isLoading, refetch } = useNotifications();
   const unreadCount = useNotificationStore((s) => s.unreadCount);
   const markAllAsReadMutation = useMarkAllAsRead();
   const markAsReadMutation = useMarkAsRead();
+
+  // Poll for new notifications every 30 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      refetch();
+    }, 30000); // 30 seconds
+
+    return () => clearInterval(interval);
+  }, [refetch]);
 
   // dropdown visibility
   const [showNotifications, setShowNotifications] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
 
   const { searchQuery, setSearchQuery } = useSearchStore();
+
+  // Helper to get icon for notification type
+  const getNotificationIcon = (type: string) => {
+    if (type.includes('task')) return <CheckCircle className="w-4 h-4" />;
+    if (type.includes('project')) return <FileText className="w-4 h-4" />;
+    if (type.includes('activity')) return <ActivityIcon className="w-4 h-4" />;
+    if (type.includes('approval')) return <AlertCircle className="w-4 h-4" />;
+    if (type.includes('budget') || type.includes('invoice') || type.includes('payment')) return <DollarSign className="w-4 h-4" />;
+    if (type.includes('collaboration')) return <Users className="w-4 h-4" />;
+    return <Bell className="w-4 h-4" />;
+  };
+
+  // Helper to get priority color
+  const getPriorityColor = (priority?: string) => {
+    if (priority === 'high') return 'text-red-600';
+    if (priority === 'medium') return 'text-yellow-600';
+    return 'text-gray-600';
+  };
 
   const handleLogout = () => {
     logout();
@@ -71,16 +98,14 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
           >
             <MenuIcon className="w-10 h-10 text-muted-foreground" />
           </Button>
-          <span className="text-lg font-semibold text-foreground hidden sm:block">
-            Dashboard
-          </span>
+
         </div>
 
         {/* Center: Search - hidden on mobile, toggleable */}
         <div className="hidden md:flex flex-1 max-w-md mx-4">
           <Input
             type="text"
-            placeholder="Search..."
+            placeholder="Search projects, tasks, users..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full py-2 px-4 text-sm border-border focus:border-primary"
@@ -94,6 +119,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
             variant="ghost"
             className="p-2 md:hidden"
             onClick={() => setSearchOpen(!searchOpen)}
+            title="Search across all modules"
           >
             <Search className="w-6 h-6 text-muted-foreground" />
           </Button>
@@ -104,8 +130,8 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
             onOpenChange={setShowNotifications}
           >
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="p-2 relative">
-                <Bell className="w-8 h-8 text-muted-foreground" />
+              <Button variant="ghost" className="p-2 relative" title="Notifications">
+                <Bell className="w-10 h-10 sm:w-10 sm:h-10 text-muted-foreground" />
                 {unreadCount > 0 && (
                   <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center border-2 border-white">
                     {unreadCount}
@@ -203,7 +229,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
         <div className="mt-3 md:hidden">
           <Input
             type="text"
-            placeholder="Search..."
+            placeholder="Search projects, tasks, users..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full py-2 px-4 text-sm border-border focus:border-primary"

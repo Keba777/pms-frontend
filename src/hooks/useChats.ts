@@ -249,7 +249,6 @@ export const useSendChatMessage = (room_id: string) => {
     return useMutation<ChatMessage, Error, SendMessageInput & { file?: Blob }>({
         mutationFn: sendChatMessage,
         onSuccess: () => {
-            toast.success("Message sent successfully!");
             queryClient.invalidateQueries({ queryKey: ["chat_messages", room_id] });
         },
         onError: () => {
@@ -265,7 +264,6 @@ export const useDeleteChatMessage = (room_id: string) => {
     return useMutation({
         mutationFn: deleteChatMessage,
         onSuccess: (_, id) => {
-            toast.success("Message deleted successfully!");
             queryClient.invalidateQueries({ queryKey: ["chat_messages", room_id] });
         },
         onError: () => {
