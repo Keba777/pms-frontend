@@ -292,6 +292,11 @@ const menuItems = [
         iconColor: "text-rose-600",
       },
       {
+        title: "Roles",
+        link: "/roles",
+        icon: Users,
+      },
+      {
         title: "Users",
         link: "/users",
         icon: Users,
