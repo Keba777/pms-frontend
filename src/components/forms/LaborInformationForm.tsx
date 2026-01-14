@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
-import { useImportLabors } from "@/hooks/useLabors";
+import { useImportLabors, useUpdateLaborInformation } from "@/hooks/useLabors";
 import "react-datepicker/dist/react-datepicker.css";
 import { toast } from "react-toastify";
 import ReactDatePicker from "react-datepicker";
@@ -10,6 +10,8 @@ import ReactDatePicker from "react-datepicker";
 interface LaborFormProps {
   siteId: string;
   onClose: () => void;
+  initialData?: any; // Flattened row data for editing
+  isEditMode?: boolean;
 }
 
 type FormData = {
@@ -24,8 +26,7 @@ type FormData = {
   skill_level?: string;
   allocationStatus?: "Allocated" | "Unallocated" | "OnLeave";
   status?: "Active" | "InActive";
-  startingDate?: string;
-  dueDate?: string;
+  responsiblePerson?: string;
   firstName?: string;
   lastName?: string;
   position?: string;
@@ -36,9 +37,10 @@ type FormData = {
   startsAt?: string;
   endsAt?: string;
   infoStatus?: "Allocated" | "Unallocated" | "OnLeave";
+  phone?: string;
 };
 
-const LaborForm: React.FC<LaborFormProps> = ({ siteId, onClose }) => {
+const LaborForm: React.FC<LaborFormProps> = ({ siteId, onClose, initialData, isEditMode }) => {
 
   const {
     register,
@@ -46,11 +48,60 @@ const LaborForm: React.FC<LaborFormProps> = ({ siteId, onClose }) => {
     watch,
     setValue,
     control,
+    reset,
     formState: { errors },
-  } = useForm<FormData>();
+  } = useForm<FormData>({
+    defaultValues: initialData ? {
+      role: initialData.role,
+      unit: initialData.unit,
+      quantity: initialData.quantity,
+      minQuantity: initialData.minQuantity,
+      responsiblePerson: initialData.responsiblePerson,
+      firstName: initialData.firstName,
+      lastName: initialData.lastName,
+      position: initialData.position,
+      sex: initialData.sex,
+      terms: initialData.terms,
+      estSalary: initialData.estSalary,
+      educationLevel: initialData.educationLevel,
+      startsAt: initialData.startsAt,
+      endsAt: initialData.endsAt,
+      infoStatus: initialData.infoStatus || initialData.allocationStatus,
+      estimatedHours: initialData.estimatedHours,
+      rate: initialData.rate,
+      overtimeRate: initialData.overtimeRate,
+      skill_level: initialData.skill_level, // Ensure simple mapping
+      phone: initialData.phone,
+    } : undefined
+  });
 
-  const { mutateAsync: importLabors, isPending } = useImportLabors();
+  const { mutateAsync: importLabors, isPending: isCreating } = useImportLabors();
+  const { mutateAsync: updateLaborInfo, isPending: isUpdating } = useUpdateLaborInformation();
+  const isPending = isCreating || isUpdating;
+
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+  useEffect(() => {
+    if (initialData) {
+      // Ensure date fields are properly set if they come as strings
+      if (initialData.startsAt) setValue("startsAt", initialData.startsAt);
+      if (initialData.endsAt) setValue("endsAt", initialData.endsAt);
+      // Trigger recalc of total if needed, or set it directly
+      const total = (Number(initialData.rate) || 0) * (Number(initialData.estimatedHours) || 0) + (Number(initialData.overtimeRate) || 0);
+      setValue("totalAmount", total);
+    }
+  }, [initialData, setValue]);
+
+
+
+  const estimatedHours = watch("estimatedHours");
+  const rate = watch("rate");
+  const overtimeRate = watch("overtimeRate");
+
+  useEffect(() => {
+    const total = (Number(rate) || 0) * (Number(estimatedHours) || 0) + (Number(overtimeRate) || 0);
+    setValue("totalAmount", total);
+  }, [rate, estimatedHours, overtimeRate, setValue]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files ? event.target.files[0] : null;
@@ -59,77 +110,116 @@ const LaborForm: React.FC<LaborFormProps> = ({ siteId, onClose }) => {
 
   const onSubmit = async (data: FormData) => {
     try {
-      const formData = new FormData();
+      if (isEditMode && initialData?.id) {
+        // EDIT MODE
+        const updatePayload: any = {};
+        updatePayload.firstName = data.firstName;
+        updatePayload.lastName = data.lastName;
+        updatePayload.position = data.position;
+        updatePayload.sex = data.sex;
+        updatePayload.terms = data.terms;
+        updatePayload.estSalary = data.estSalary;
+        updatePayload.educationLevel = data.educationLevel;
+        updatePayload.startsAt = data.startsAt;
+        updatePayload.endsAt = data.endsAt;
+        updatePayload.status = data.infoStatus;
+        updatePayload.estimatedHours = data.estimatedHours;
+        updatePayload.rate = data.rate;
+        updatePayload.overtimeRate = data.overtimeRate;
+        updatePayload.totalAmount = data.totalAmount;
+        updatePayload.skill_level = data.skill_level;
+        updatePayload.phone = data.phone;
 
-      const laborObj: any = {
-        role: (data.role || "").trim(),
-        unit: data.unit,
-        siteId,
-      };
+        let finalPayload: any = updatePayload;
 
-      const numberFields = [
-        "quantity",
-        "minQuantity",
-        "estimatedHours",
-        "rate",
-        "overtimeRate",
-        "totalAmount",
-      ];
-      numberFields.forEach((nf) => {
-        const val = data[nf as keyof FormData];
-        if (val !== undefined && val !== null && val !== "") {
-          const num = Number(val);
-          if (!isNaN(num)) laborObj[nf] = num;
+        if (selectedFile) {
+          const fd = new FormData();
+          Object.keys(updatePayload).forEach(key => {
+            if (updatePayload[key] !== undefined && updatePayload[key] !== null) {
+              fd.append(key, updatePayload[key].toString());
+            }
+          });
+          fd.append("profile_picture", selectedFile);
+          finalPayload = fd;
         }
-      });
 
-      if (data.startingDate) {
-        laborObj.startingDate = data.startingDate;
-      }
-      if (data.dueDate) {
-        laborObj.dueDate = data.dueDate;
-      }
+        await updateLaborInfo({ id: initialData.id, data: finalPayload });
+        onClose();
 
-      if (data.allocationStatus) laborObj.allocationStatus = data.allocationStatus;
+      } else {
+        // CREATE MODE
+        const formData = new FormData();
 
-      const info: any = {};
-      if (data.firstName) info.firstName = data.firstName;
-      if (data.lastName) info.lastName = data.lastName;
-      if (data.position) info.position = data.position;
-      if (data.sex) info.sex = data.sex;
-      if (data.terms) info.terms = data.terms;
-      if (data.estSalary !== undefined && data.estSalary !== null) {
-        const num = Number(data.estSalary);
-        if (!isNaN(num)) info.estSalary = num;
-      }
-      if (data.educationLevel) info.educationLevel = data.educationLevel;
-      if (data.startsAt) {
-        info.startsAt = data.startsAt;
-      }
-      if (data.endsAt) {
-        info.endsAt = data.endsAt;
-      }
-      if (data.infoStatus) info.status = data.infoStatus;
+        const laborObj: any = {
+          role: (data.role || "").trim(),
+          unit: data.unit,
+          siteId,
+        };
 
-      if (selectedFile) {
-        formData.append("files", selectedFile);
-        info.fileName = selectedFile.name;
+        const numberFields = [
+          "quantity",
+          "minQuantity",
+          "estimatedHours",
+          "rate",
+          "overtimeRate",
+          "totalAmount",
+        ];
+        numberFields.forEach((nf) => {
+          const val = data[nf as keyof FormData];
+          if (val !== undefined && val !== null && val !== "") {
+            const num = Number(val);
+            if (!isNaN(num)) laborObj[nf] = num;
+          }
+        });
+
+        if (data.responsiblePerson) {
+          laborObj.responsiblePerson = data.responsiblePerson;
+        }
+
+        if (data.allocationStatus) laborObj.allocationStatus = data.allocationStatus;
+
+        const info: any = {};
+        if (data.firstName) info.firstName = data.firstName;
+        if (data.lastName) info.lastName = data.lastName;
+        if (data.position) info.position = data.position;
+        if (data.sex) info.sex = data.sex;
+        if (data.terms) info.terms = data.terms;
+        if (data.estSalary !== undefined && data.estSalary !== null) {
+          const num = Number(data.estSalary);
+          if (!isNaN(num)) info.estSalary = num;
+        }
+        if (data.educationLevel) info.educationLevel = data.educationLevel;
+        if (data.startsAt) {
+          info.startsAt = data.startsAt;
+        }
+        if (data.endsAt) {
+          info.endsAt = data.endsAt;
+        }
+        if (data.infoStatus) info.status = data.infoStatus;
+        if (data.phone) info.phone = data.phone;
+
+        if (selectedFile) {
+          formData.append("profile_picture", selectedFile);
+          info.fileName = selectedFile.name;
+        }
+
+        if (Object.keys(info).length > 0) {
+          laborObj.laborInformations = [info];
+        }
+
+        formData.append("labors", JSON.stringify([laborObj]));
+
+        await importLabors(formData);
+        toast.success("Labor created successfully!");
+        onClose();
       }
-
-      if (Object.keys(info).length > 0) {
-        laborObj.laborInformations = [info];
-      }
-
-      formData.append("labors", JSON.stringify([laborObj]));
-
-      await importLabors(formData);
-      toast.success("Labor created successfully!");
-      onClose();
     } catch (err: any) {
-      console.error("Create error:", err);
-      toast.error(err.message || "Failed to create labor");
+      console.error("Submit error:", err);
+      toast.error(err.message || "Operation failed");
     }
   };
+
+  const inputClass = "w-full px-3 py-2 border border-primary/40 rounded-md focus:outline-none focus:ring-2 focus:ring-primary";
 
   return (
     <form
@@ -137,7 +227,7 @@ const LaborForm: React.FC<LaborFormProps> = ({ siteId, onClose }) => {
       className="bg-white rounded-lg shadow-xl p-6 space-y-6"
     >
       <div className="flex justify-between items-center pb-4 border-b">
-        <h3 className="text-lg font-semibold text-gray-800">Create Labor</h3>
+        <h3 className="text-lg font-semibold text-gray-800">{isEditMode ? "Edit Labor" : "Create Labor"}</h3>
         <button
           type="button"
           className="text-3xl text-red-500 hover:text-red-600"
@@ -158,7 +248,7 @@ const LaborForm: React.FC<LaborFormProps> = ({ siteId, onClose }) => {
             type="text"
             {...register("role", { required: "Role is required" })}
             placeholder="Enter Role"
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+            className={inputClass}
           />
           {errors.role && (
             <p className="text-red-500 text-sm mt-1">{errors.role.message}</p>
@@ -173,7 +263,7 @@ const LaborForm: React.FC<LaborFormProps> = ({ siteId, onClose }) => {
             type="text"
             {...register("unit", { required: "Unit is required" })}
             placeholder="Enter Unit (e.g., hrs)"
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+            className={inputClass}
           />
           {errors.unit && (
             <p className="text-red-500 text-sm mt-1">{errors.unit.message}</p>
@@ -188,23 +278,22 @@ const LaborForm: React.FC<LaborFormProps> = ({ siteId, onClose }) => {
             type="number"
             {...register("quantity", { valueAsNumber: true })}
             placeholder="Enter Quantity"
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+            className={inputClass}
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Min Quantity <span className="text-red-500">*</span>
+              Min Quantity
             </label>
             <input
               type="number"
               {...register("minQuantity", {
-                required: "Minimum quantity is required",
                 valueAsNumber: true,
               })}
               placeholder="Enter Min Quantity"
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+              className={inputClass}
             />
             {errors.minQuantity && (
               <p className="text-red-500 text-sm mt-1">
@@ -212,171 +301,18 @@ const LaborForm: React.FC<LaborFormProps> = ({ siteId, onClose }) => {
               </p>
             )}
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Estimated Hours <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="number"
-              {...register("estimatedHours", {
-                required: "Estimated hours are required",
-                valueAsNumber: true,
-              })}
-              placeholder="Enter Estimated Hours"
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-            />
-            {errors.estimatedHours && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.estimatedHours.message}
-              </p>
-            )}
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Rate <span className="text-red-500">*</span>
-            </label>
-            <div className="flex">
-              <span className="inline-flex items-center px-3 border border-r-0 rounded-l-md bg-gray-50 text-gray-500">
-                ETB
-              </span>
-              <input
-                type="number"
-                {...register("rate", {
-                  required: "Rate is required",
-                  valueAsNumber: true,
-                })}
-                placeholder="Enter Rate"
-                className="flex-1 px-3 py-2 border rounded-r-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-              />
-            </div>
-            {errors.rate && (
-              <p className="text-red-500 text-sm mt-1">{errors.rate.message}</p>
-            )}
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Overtime Rate
-            </label>
-            <div className="flex">
-              <span className="inline-flex items-center px-3 border border-r-0 rounded-l-md bg-gray-50 text-gray-500">
-                ETB
-              </span>
-              <input
-                type="number"
-                {...register("overtimeRate", { valueAsNumber: true })}
-                placeholder="Enter Overtime Rate"
-                className="flex-1 px-3 py-2 border rounded-r-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Total Amount
-          </label>
-          <div className="flex">
-            <span className="inline-flex items-center px-3 border border-r-0 rounded-l-md bg-gray-50 text-gray-500">
-              ETB
-            </span>
-            <input
-              type="number"
-              {...register("totalAmount", { valueAsNumber: true })}
-              readOnly
-              className="flex-1 px-3 py-2 bg-gray-100 border rounded-r-md focus:outline-none"
-            />
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Skill Level
-          </label>
-          <input
-            type="text"
-            {...register("skill_level")}
-            placeholder="Enter Skill Level (optional)"
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-          />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Allocation Status
+              Responsible Person
             </label>
-            <select
-              {...register("allocationStatus")}
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-            >
-              <option value="">Select Allocation Status</option>
-              <option value="Allocated">Allocated</option>
-              <option value="Unallocated">Unallocated</option>
-              <option value="OnLeave">On Leave</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Status
-            </label>
-            <select
-              {...register("status")}
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-            >
-              <option value="">Select Status</option>
-              <option value="Active">Active</option>
-              <option value="InActive">In Active</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Starting Date
-            </label>
-            <Controller
-              name="startingDate"
-              control={control}
-              render={({ field }) => (
-                <>
-                  <ReactDatePicker
-                    showFullMonthYearPicker
-                    showYearDropdown
-                    selected={field.value ? new Date(field.value) : undefined}
-                    onChange={(date: any, event?: any) => {
-                      const d = Array.isArray(date) ? date[0] : date;
-                      field.onChange(d ? d.toISOString() : undefined);
-                    }}
-                    placeholderText="Enter Starting Date"
-                    className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-                  />
-                </>
-              )}
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Due Date
-            </label>
-            <Controller
-              name="dueDate"
-              control={control}
-              render={({ field }) => (
-                <>
-                  <ReactDatePicker
-                    showFullMonthYearPicker
-                    showYearDropdown
-                    selected={field.value ? new Date(field.value) : undefined}
-                    onChange={(date: any, event?: any) => {
-                      const d = Array.isArray(date) ? date[0] : date;
-                      field.onChange(d ? d.toISOString() : undefined);
-                    }}
-                    placeholderText="Enter Due Date"
-                    className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
-                  />
-                </>
-              )}
+            <input
+              type="text"
+              {...register("responsiblePerson")}
+              placeholder="Enter Responsible Person"
+              className={inputClass}
             />
           </div>
         </div>
@@ -394,7 +330,7 @@ const LaborForm: React.FC<LaborFormProps> = ({ siteId, onClose }) => {
               type="text"
               {...register("firstName")}
               placeholder="Enter First Name"
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+              className={inputClass}
             />
           </div>
           <div>
@@ -405,7 +341,21 @@ const LaborForm: React.FC<LaborFormProps> = ({ siteId, onClose }) => {
               type="text"
               {...register("lastName")}
               placeholder="Enter Last Name"
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+              className={inputClass}
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Phone
+            </label>
+            <input
+              type="text"
+              {...register("phone")}
+              placeholder="Enter Phone Number"
+              className={inputClass}
             />
           </div>
         </div>
@@ -419,7 +369,7 @@ const LaborForm: React.FC<LaborFormProps> = ({ siteId, onClose }) => {
               type="text"
               {...register("position")}
               placeholder="Enter Position"
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+              className={inputClass}
             />
           </div>
           <div>
@@ -428,7 +378,7 @@ const LaborForm: React.FC<LaborFormProps> = ({ siteId, onClose }) => {
             </label>
             <select
               {...register("sex")}
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+              className={inputClass}
             >
               <option value="">Select Sex</option>
               <option value="Male">Male</option>
@@ -444,7 +394,7 @@ const LaborForm: React.FC<LaborFormProps> = ({ siteId, onClose }) => {
             </label>
             <select
               {...register("terms")}
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+              className={inputClass}
             >
               <option value="">Select Terms</option>
               <option value="Part Time">Part Time</option>
@@ -465,11 +415,91 @@ const LaborForm: React.FC<LaborFormProps> = ({ siteId, onClose }) => {
                 type="number"
                 {...register("estSalary", { valueAsNumber: true })}
                 placeholder="Enter Estimated Salary"
-                className="flex-1 px-3 py-2 border rounded-r-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+                className={`flex-1 px-3 py-2 border border-primary/40 rounded-r-md focus:outline-none focus:ring-2 focus:ring-primary`}
               />
             </div>
           </div>
         </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Estimated Hours
+            </label>
+            <input
+              type="number"
+              {...register("estimatedHours", { valueAsNumber: true })}
+              placeholder="Enter Estimated Hours"
+              className={inputClass}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Rate
+            </label>
+            <div className="flex">
+              <span className="inline-flex items-center px-3 border border-r-0 rounded-l-md bg-gray-50 text-gray-500">
+                ETB
+              </span>
+              <input
+                type="number"
+                {...register("rate", { valueAsNumber: true })}
+                placeholder="Enter Rate"
+                className={`flex-1 px-3 py-2 border border-primary/40 rounded-r-md focus:outline-none focus:ring-2 focus:ring-primary`}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Overtime Rate
+            </label>
+            <div className="flex">
+              <span className="inline-flex items-center px-3 border border-r-0 rounded-l-md bg-gray-50 text-gray-500">
+                ETB
+              </span>
+              <input
+                type="number"
+                {...register("overtimeRate", { valueAsNumber: true })}
+                placeholder="Enter Overtime Rate"
+                className={`flex-1 px-3 py-2 border border-primary/40 rounded-r-md focus:outline-none focus:ring-2 focus:ring-primary`}
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Total Amount
+            </label>
+            <div className="flex">
+              <span className="inline-flex items-center px-3 border border-r-0 rounded-l-md bg-gray-50 text-gray-500">
+                ETB
+              </span>
+              <input
+                type="number"
+                {...register("totalAmount", { valueAsNumber: true })}
+                placeholder="Calculated Amount"
+                readOnly
+                className="flex-1 px-3 py-2 border rounded-r-md bg-gray-50 text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary cursor-not-allowed"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Skill Level
+          </label>
+          <input
+            type="text"
+            {...register("skill_level")}
+            placeholder="Enter Skill Level"
+            className={inputClass}
+          />
+        </div>
+
+
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
@@ -480,7 +510,7 @@ const LaborForm: React.FC<LaborFormProps> = ({ siteId, onClose }) => {
               type="text"
               {...register("educationLevel")}
               placeholder="Enter Education Level"
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+              className={inputClass}
             />
           </div>
           <div>
@@ -489,7 +519,7 @@ const LaborForm: React.FC<LaborFormProps> = ({ siteId, onClose }) => {
             </label>
             <select
               {...register("infoStatus")}
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+              className={inputClass}
             >
               <option value="">Select Info Status</option>
               <option value="Allocated">Allocated</option>
@@ -518,7 +548,7 @@ const LaborForm: React.FC<LaborFormProps> = ({ siteId, onClose }) => {
                       field.onChange(d ? d.toISOString() : undefined);
                     }}
                     placeholderText="Enter Starts At"
-                    className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+                    className={inputClass}
                   />
                 </>
               )}
@@ -542,7 +572,7 @@ const LaborForm: React.FC<LaborFormProps> = ({ siteId, onClose }) => {
                       field.onChange(d ? d.toISOString() : undefined);
                     }}
                     placeholderText="Enter Ends At"
-                    className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+                    className={inputClass}
                   />
                 </>
               )}
@@ -558,7 +588,7 @@ const LaborForm: React.FC<LaborFormProps> = ({ siteId, onClose }) => {
             type="file"
             onChange={handleFileChange}
             accept="image/*"
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+            className={inputClass}
           />
           {selectedFile && (
             <p className="mt-2 text-sm text-gray-500">
@@ -578,7 +608,7 @@ const LaborForm: React.FC<LaborFormProps> = ({ siteId, onClose }) => {
         </button>
         <button
           type="submit"
-          className="px-4 py-2 bg-bs-primary text-white rounded-md hover:bg-bs-primary"
+          className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
           disabled={isPending}
         >
           {isPending ? "Saving..." : "Save"}

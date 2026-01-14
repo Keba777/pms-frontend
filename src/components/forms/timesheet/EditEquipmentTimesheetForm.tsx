@@ -40,7 +40,7 @@ const EditEquipmentTimesheetForm: React.FC<EditEquipmentTimesheetFormProps> = ({
     formState: { errors },
   } = useForm<updateEquipmentTimesheetInput>({
     defaultValues: initialData || {
-      equipmentId: "",
+      equipmentId: null as any,
       date: new Date(),
       morningIn: "",
       morningOut: "",
@@ -117,7 +117,7 @@ const EditEquipmentTimesheetForm: React.FC<EditEquipmentTimesheetFormProps> = ({
             <Select
               disabled={isReadOnly}
               onValueChange={field.onChange}
-              value={field.value}
+              value={field.value || ""}
             >
               <SelectTrigger className="flex-1">
                 <SelectValue placeholder="Select equipment" />

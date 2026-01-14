@@ -239,3 +239,79 @@ export const useDeleteLabor = () => {
     },
   });
 };
+
+// ----------------------------
+// Labor Information API & Hooks
+// ----------------------------
+
+import { LaborInformation } from "@/types/laborInformation";
+
+// Fetch labor information by ID
+export const fetchLaborInformationById = async (id: string): Promise<LaborInformation | null> => {
+  try {
+    const response = await apiClient.get<ApiResponse<LaborInformation>>(`/labors/info/${id}`);
+    return response.data.data;
+  } catch (error) {
+    console.log(error);
+    throw new Error("Failed to fetch labor information");
+  }
+};
+
+// Update labor information
+const updateLaborInformation = async ({ id, data }: { id: string; data: FormData | any }): Promise<LaborInformation> => {
+  const isFormData = data instanceof FormData;
+  const config = isFormData ? { headers: { "Content-Type": "multipart/form-data" } } : undefined;
+  const response = await apiClient.put<ApiResponse<LaborInformation>>(`/labors/info/${id}`, data, config);
+  return response.data.data;
+};
+
+// Delete labor information
+const deleteLaborInformation = async (id: string): Promise<{ message: string }> => {
+  const response = await apiClient.delete<ApiResponse<{ message: string }>>(`/labors/info/${id}`);
+  return response.data.data;
+};
+
+// Hook to fetch user labor information
+export const useLaborInformation = (id: string | null) => {
+  return useQuery<LaborInformation | null, Error>({
+    queryKey: ["laborInformation", id],
+    queryFn: () => (id ? fetchLaborInformationById(id) : Promise.resolve(null)),
+    enabled: !!id,
+  });
+};
+
+// Hook to update labor information
+export const useUpdateLaborInformation = (onSuccess?: () => void) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: updateLaborInformation,
+    onSuccess: () => {
+      toast.success("Labor information updated successfully!");
+      queryClient.invalidateQueries({ queryKey: ["labors"] }); // Refresh main list
+      if (onSuccess) onSuccess();
+    },
+    onError: (err: any) => {
+      console.error(err);
+      toast.error(err.response?.data?.message || "Failed to update labor information");
+    },
+  });
+};
+
+// Hook to delete labor information
+export const useDeleteLaborInformation = (onSuccess?: () => void) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: deleteLaborInformation,
+    onSuccess: () => {
+      toast.success("Labor information deleted successfully!");
+      queryClient.invalidateQueries({ queryKey: ["labors"] }); // Refresh main list
+      if (onSuccess) onSuccess();
+    },
+    onError: (err: any) => {
+      console.error(err);
+      toast.error(err.response?.data?.message || "Failed to delete labor information");
+    },
+  });
+};

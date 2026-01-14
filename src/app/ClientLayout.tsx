@@ -100,7 +100,8 @@ export default function ClientLayout({
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const logoutTimer = useRef<number | null>(null);
 
-  const publicPaths = ["/login", "/reset-password"];
+  const guestOnlyPaths = ["/login", "/reset-password"];
+  const publicPaths = [...guestOnlyPaths, "/guide"];
 
   // Register AG Grid modules globally
   useEffect(() => {
@@ -149,7 +150,7 @@ export default function ClientLayout({
     if (!user && !publicPaths.includes(pathname)) {
       router.push("/login");
     }
-    else if (user && publicPaths.includes(pathname)) {
+    else if (user && guestOnlyPaths.includes(pathname)) {
       router.push("/");
     }
 

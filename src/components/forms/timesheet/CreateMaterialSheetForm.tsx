@@ -32,7 +32,7 @@ const CreateMaterialSheetForm: React.FC<CreateMaterialSheetFormProps> = ({
     formState: { errors },
   } = useForm<createMaterialBalanceSheetInput>({
     defaultValues: {
-      materialId: "",
+      materialId: null as any,
       date: new Date(),
       receivedQty: 0,
       utilizedQty: 0,
@@ -78,7 +78,7 @@ const CreateMaterialSheetForm: React.FC<CreateMaterialSheetFormProps> = ({
           control={control}
           rules={{ required: "Material is required" }}
           render={({ field }) => (
-            <Select onValueChange={field.onChange} value={field.value}>
+            <Select onValueChange={field.onChange} value={field.value || ""}>
               <SelectTrigger className="flex-1">
                 <SelectValue placeholder="Select material" />
               </SelectTrigger>

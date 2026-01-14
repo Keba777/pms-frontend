@@ -236,6 +236,8 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
               options={genderOptions}
               onChange={(o) => field.onChange(o?.value)}
               value={genderOptions.find((o) => o.value === field.value) || null}
+              menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
+              styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
             />
             {errors.gender && (
               <p className="text-red-500 text-sm">{errors.gender.message}</p>
@@ -265,6 +267,8 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
               options={termsOptions}
               onChange={(o) => field.onChange(o?.value)}
               value={termsOptions.find((o) => o.value === field.value) || null}
+              menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
+              styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
             />
           </div>
         )}
@@ -353,6 +357,8 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
                 options={siteOptions}
                 onChange={(o) => field.onChange(o?.value)}
                 value={siteOptions.find((o) => o.value === field.value) || null}
+                menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
+                styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
               />
             </div>
           )}
@@ -370,6 +376,8 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
                 value={
                   departmentOptions.find((o) => o.value === field.value) || null
                 }
+                menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
+                styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
               />
             </div>
           )}
@@ -391,6 +399,8 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
                 options={roleOptions}
                 onChange={(o) => field.onChange(o?.value)}
                 value={roleOptions.find((o) => o.value === field.value) || null}
+                menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
+                styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
               />
               {errors.role_id && (
                 <p className="text-red-500 text-sm">{errors.role_id.message}</p>
@@ -411,6 +421,8 @@ const EditUserForm: React.FC<EditUserFormProps> = ({
                 value={
                   statusOptions.find((o) => o.value === field.value) || null
                 }
+                menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
+                styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
               />
             </div>
           )}

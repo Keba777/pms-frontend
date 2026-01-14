@@ -6,7 +6,16 @@ export enum TimeSheetStatus {
 
 export interface LaborTimesheet {
     id: string;
-    userId: string;
+    userId?: string;
+    laborInformationId?: string;
+    user?: {
+        first_name: string;
+        last_name: string;
+    };
+    laborInformation?: {
+        firstName: string;
+        lastName: string;
+    };
     date: Date;
     morningIn: string;
     morningOut: string;
@@ -23,7 +32,8 @@ export interface LaborTimesheet {
 }
 
 export interface createLaborTimesheetInput {
-    userId: string;
+    userId?: string;
+    laborInformationId?: string;
     date: Date;
     morningIn: string;
     morningOut: string;
@@ -42,6 +52,7 @@ export interface createLaborTimesheetInput {
 export interface updateLaborTimesheetInput {
     id?: string;
     userId?: string;
+    laborInformationId?: string;
     date?: Date;
     morningIn?: string;
     morningOut?: string;

@@ -10,9 +10,9 @@ import { MaterialSheet } from "./MaterialSheet";
 
 const Timesheet: React.FC = () => {
   return (
-    <div className="w-full px-2 sm:px-4 py-3 sm:py-6">
-      <Card className="shadow-lg rounded-2xl w-full">
-        <CardContent className="px-2 py-3 sm:px-6 sm:py-6">
+    <div className="w-full px-0 py-3 sm:py-6">
+      <Card className="shadow-lg rounded-2xl w-full border-none sm:border">
+        <CardContent className="p-4">
           <Tabs defaultValue="labor" className="w-full">
             {/* Tabs header */}
             <TabsList className="flex w-full overflow-x-auto sm:overflow-visible gap-1 sm:gap-4 border-b border-border pb-1 sm:pb-2 no-scrollbar">

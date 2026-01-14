@@ -30,6 +30,7 @@ import {
   Star,
   Inbox,
   Building,
+  BookOpen,
 } from "lucide-react";
 
 const menuItems = [
@@ -344,6 +345,12 @@ const menuItems = [
         icon: Languages,
         iconColor: "text-cyan-600",
       },
+      {
+        title: "User Guide",
+        link: "/guide",
+        icon: BookOpen,
+        iconColor: "text-indigo-600",
+      },
     ],
   },
 
@@ -385,6 +392,12 @@ export const systemAdminMenuItems = [
         link: "/settings/languages",
         icon: Languages,
         iconColor: "text-cyan-600",
+      },
+      {
+        title: "User Guide",
+        link: "/guide",
+        icon: BookOpen,
+        iconColor: "text-indigo-600",
       },
     ],
   },

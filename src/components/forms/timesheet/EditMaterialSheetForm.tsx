@@ -84,7 +84,7 @@ const EditMaterialSheetForm: React.FC<EditMaterialSheetFormProps> = ({
             <Select
               disabled={isReadOnly}
               onValueChange={field.onChange}
-              value={field.value}
+              value={field.value || ""}
             >
               <SelectTrigger className="flex-1">
                 <SelectValue placeholder="Select material" />

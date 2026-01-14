@@ -32,7 +32,7 @@ const CreateEquipmentTimesheetForm: React.FC<
     formState: { errors },
   } = useForm<createEquipmentTimesheetInput>({
     defaultValues: {
-      equipmentId: "",
+      equipmentId: null as any,
       date: new Date(),
       morningIn: "",
       morningOut: "",
@@ -104,7 +104,7 @@ const CreateEquipmentTimesheetForm: React.FC<
           control={control}
           rules={{ required: "Equipment is required" }}
           render={({ field }) => (
-            <Select onValueChange={field.onChange} value={field.value}>
+            <Select onValueChange={field.onChange} value={field.value || ""}>
               <SelectTrigger className="flex-1">
                 <SelectValue placeholder="Select equipment" />
               </SelectTrigger>

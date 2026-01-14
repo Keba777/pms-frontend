@@ -9,20 +9,9 @@ export interface Labor {
     unit: string;
     quantity?: number
     minQuantity?: number;
-    estimatedHours?: number;
-    rate?: number;
-    overtimeRate?: number
-    totalAmount?: number;
-    skill_level?: string;
-    responsiblePerson?: string
     laborInformations?: LaborInformation[];
-    allocationStatus?: "Allocated" | "Unallocated" | "OnLeave"
     status?: "Active" | "InActive"
-    utilization_factor?: number;
-    totalTime?: number;
-    startingDate?: Date;
-    dueDate?: Date;
-    shiftingDate?: Date;
+    responsiblePerson?: string;
     createdAt?: Date;
     updatedAt?: Date;
 }
@@ -34,38 +23,26 @@ export interface CreateLaborInput {
     unit: string;
     quantity?: number
     minQuantity?: number;
-    estimatedHours?: number;
-    rate?: number;
-    overtimeRate?: number
-    totalAmount?: number;
-    skill_level?: string;
-    responsiblePerson?: string
-    allocationStatus?: "Allocated" | "Unallocated" | "OnLeave"
     status?: "Active" | "InActive"
-    utilization_factor?: number;
-    totalTime?: number;
-    startingDate?: Date;
-    dueDate?: Date;
-    shiftingDate?: Date;
+    responsiblePerson?: string;
 }
 
 export interface LooseLaborInput {
-  role?: string;
-  unit?: string;
-  quantity?: string;
-  minQuantity?: string;
-  estimatedHours?: string;
-  rate?: string;
-  overtimeRate?: string;
-  totalAmount?: string;
-  startingDate?: string;
-  dueDate?: string;
-  allocationStatus?: string;
-  position?: string;
-  sex?: 'Male' | 'Female';
-  terms?: 'Part Time' | 'Contract' | 'Temporary' | 'Permanent';
-  estSalary?: number;
-  educationLevel?: string
+    role?: string;
+    unit?: string;
+    quantity?: string;
+    minQuantity?: string;
+    estimatedHours?: string;
+    rate?: string;
+    overtimeRate?: string;
+    totalAmount?: string;
+    responsiblePerson?: string;
+    allocationStatus?: string;
+    position?: string;
+    sex?: 'Male' | 'Female';
+    terms?: 'Part Time' | 'Contract' | 'Temporary' | 'Permanent';
+    estSalary?: number;
+    educationLevel?: string
 }
 
 export interface UpdateLaborInput {
@@ -76,17 +53,6 @@ export interface UpdateLaborInput {
     unit: string;
     quantity?: number
     minQuantity?: number;
-    estimatedHours?: number;
-    rate?: number;
-    overtimeRate?: number
-    totalAmount?: number;
-    skill_level?: string;
-    responsiblePerson?: string
-    allocationStatus?: "Allocated" | "Unallocated" | "OnLeave"
     status?: "Active" | "InActive"
-    utilization_factor?: number;
-    totalTime?: number;
-    startingDate?: Date;
-    dueDate?: Date;
-    shiftingDate?: Date;
+    responsiblePerson?: string;
 }

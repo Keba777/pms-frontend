@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { updateLaborTimesheetInput, LaborTimesheet } from "@/types/timesheet";
 import { useUsers } from "@/hooks/useUsers";
+import { useLabors } from "@/hooks/useLabors";
 import {
   Select,
   SelectContent,
@@ -13,11 +14,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { TimeSheetStatus } from "@/types/timesheet";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface EditLaborTimesheetFormProps {
   onClose: () => void;
   mode: "edit" | "view";
-  initialData?: Partial<LaborTimesheet>;
+  initialData?: LaborTimesheet;
   onSubmit: (data: updateLaborTimesheetInput) => void;
 }
 
@@ -28,12 +30,22 @@ const EditLaborTimesheetForm: React.FC<EditLaborTimesheetFormProps> = ({
   onSubmit,
 }) => {
   const { data: users } = useUsers();
+  const { data: labors } = useLabors();
+
+  const laborInfos = useMemo(() => {
+    return labors?.flatMap(l => l.laborInformations) || [];
+  }, [labors]);
+
+  // Determine initial type
+  const initialType = initialData?.userId ? "User" : "Labor";
+  const [resourceType, setResourceType] = useState<"User" | "Labor">(initialType);
 
   const {
     register,
     handleSubmit,
     control,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<updateLaborTimesheetInput>({
     defaultValues: {
@@ -41,6 +53,17 @@ const EditLaborTimesheetForm: React.FC<EditLaborTimesheetFormProps> = ({
       date: initialData?.date ? new Date(initialData.date) : undefined,
     },
   });
+
+  // Clear other ID when type changes (only in edit mode)
+  useEffect(() => {
+    if (mode === 'edit') {
+      if (resourceType === "User") {
+        setValue("laborInformationId", null as any);
+      } else {
+        setValue("userId", null as any);
+      }
+    }
+  }, [resourceType, setValue, mode]);
 
   const calculateHours = (inTime: string, outTime: string): number => {
     if (!inTime || !outTime) return 0;
@@ -90,36 +113,78 @@ const EditLaborTimesheetForm: React.FC<EditLaborTimesheetFormProps> = ({
         </button>
       </div>
 
-      <div className="flex items-center space-x-4">
-        <Label className="w-32 text-sm font-medium text-gray-700">
-          User{!isReadOnly && <span className="text-red-500">*</span>}
-        </Label>
-        <Controller
-          name="userId"
-          control={control}
-          rules={{ required: !isReadOnly ? "User is required" : false }}
-          render={({ field }) => (
-            <Select
-              disabled={isReadOnly}
-              onValueChange={field.onChange}
-              value={field.value}
-            >
-              <SelectTrigger className="flex-1">
-                <SelectValue placeholder="Select user" />
-              </SelectTrigger>
-              <SelectContent>
-                {users?.map((u) => (
-                  <SelectItem key={u.id} value={u.id}>
-                    {u.first_name} {u.last_name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-        />
+      <div className="flex items-center space-x-4 mb-4">
+        <Label className="w-32 text-sm font-medium text-gray-700">Type</Label>
+        <Tabs value={resourceType} onValueChange={(v) => !isReadOnly && setResourceType(v as "User" | "Labor")} className="flex-1">
+          <TabsList>
+            <TabsTrigger value="User" disabled={isReadOnly}>Staff</TabsTrigger>
+            <TabsTrigger value="Labor" disabled={isReadOnly}>Labor</TabsTrigger>
+          </TabsList>
+        </Tabs>
       </div>
-      {errors.userId && (
-        <p className="text-red-500 text-sm ml-32">{errors.userId.message}</p>
+
+      {resourceType === "User" ? (
+        <div className="flex items-center space-x-4">
+          <Label className="w-32 text-sm font-medium text-gray-700">
+            User{!isReadOnly && <span className="text-red-500">*</span>}
+          </Label>
+          <Controller
+            name="userId"
+            control={control}
+            rules={{ required: (!isReadOnly && resourceType === 'User') ? "User is required" : false }}
+            render={({ field }) => (
+              <Select
+                disabled={isReadOnly}
+                onValueChange={field.onChange}
+                value={field.value || ""}
+              >
+                <SelectTrigger className="flex-1">
+                  <SelectValue placeholder="Select user" />
+                </SelectTrigger>
+                <SelectContent>
+                  {users?.map((u) => (
+                    <SelectItem key={u.id} value={u.id}>
+                      {u.first_name} {u.last_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          />
+        </div>
+      ) : (
+        <div className="flex items-center space-x-4">
+          <Label className="w-32 text-sm font-medium text-gray-700">
+            Laborer{!isReadOnly && <span className="text-red-500">*</span>}
+          </Label>
+          <Controller
+            name="laborInformationId"
+            control={control}
+            rules={{ required: (!isReadOnly && resourceType === 'Labor') ? "Laborer is required" : false }}
+            render={({ field }) => (
+              <Select
+                disabled={isReadOnly}
+                onValueChange={field.onChange}
+                value={field.value || ""}
+              >
+                <SelectTrigger className="flex-1">
+                  <SelectValue placeholder="Select laborer" />
+                </SelectTrigger>
+                <SelectContent>
+                  {laborInfos?.map((info) => info && (
+                    <SelectItem key={info.id} value={info.id}>
+                      {info.firstName} {info.lastName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          />
+        </div>
+      )}
+
+      {((!isReadOnly && resourceType === "User" && errors.userId) || (!isReadOnly && resourceType === "Labor" && errors.laborInformationId)) && (
+        <p className="text-red-500 text-sm ml-32">Selection is required</p>
       )}
 
       <div className="flex items-center space-x-4">
@@ -264,61 +329,6 @@ const EditLaborTimesheetForm: React.FC<EditLaborTimesheetFormProps> = ({
               </SelectContent>
             </Select>
           )}
-        />
-      </div>
-
-      <div className="flex items-center space-x-4">
-        <Label className="w-32 text-sm font-medium text-gray-700">
-          Utilization Factor
-        </Label>
-        <Input
-          type="number"
-          disabled={isReadOnly}
-          className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
-        />
-      </div>
-
-      <div className="flex items-center space-x-4">
-        <Label className="w-32 text-sm font-medium text-gray-700">
-          Total Time
-        </Label>
-        <Input
-          type="number"
-          disabled={isReadOnly}
-          className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
-        />
-      </div>
-
-      <div className="flex items-center space-x-4">
-        <Label className="w-32 text-sm font-medium text-gray-700">
-          Starting Date
-        </Label>
-        <Input
-          type="date"
-          disabled={isReadOnly}
-          className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
-        />
-      </div>
-
-      <div className="flex items-center space-x-4">
-        <Label className="w-32 text-sm font-medium text-gray-700">
-          Due Date
-        </Label>
-        <Input
-          type="date"
-          disabled={isReadOnly}
-          className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
-        />
-      </div>
-
-      <div className="flex items-center space-x-4">
-        <Label className="w-32 text-sm font-medium text-gray-700">
-          Shifting Date
-        </Label>
-        <Input
-          type="date"
-          disabled={isReadOnly}
-          className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-700"
         />
       </div>
 

@@ -256,7 +256,7 @@ const GenericDownloads = <T,>({ data, title, columns, secondTable }: GenericDown
     const wsData: any[][] = [];
 
     // First table (Planned) - Header
-    wsData.push([title]); // Section title
+    // wsData.push([title]); // Section title - REMOVED to align with import headers
     wsData.push(columns.map(c => c.header)); // Column headers
 
     const images: any[] = [];
@@ -289,8 +289,8 @@ const GenericDownloads = <T,>({ data, title, columns, secondTable }: GenericDown
               opts: { base64: true },
               position: {
                 type: 'twoCellAnchor',
-                from: { col: profileColIdx + 1, row: index + 3 }, // +3 because of title row and header row
-                to: { col: profileColIdx + 2, row: index + 4 }
+                from: { col: profileColIdx + 1, row: index + 2 }, // +2 because of header row only
+                to: { col: profileColIdx + 2, row: index + 3 }
               }
             });
             excelRow.push({ t: "s", v: "Image", l: { Target: value, Tooltip: "Profile Picture" } });
@@ -311,7 +311,7 @@ const GenericDownloads = <T,>({ data, title, columns, secondTable }: GenericDown
       wsData.push([]);
 
       // Second table title
-      wsData.push([secondTable.title]);
+      // wsData.push([secondTable.title]); // REMOVED to align with import logic
       wsData.push(secondTable.columns.map(c => c.header));
 
       const secondProfileColIdx = secondTable.columns.findIndex(c => c.header === "Profile Picture");
@@ -344,8 +344,8 @@ const GenericDownloads = <T,>({ data, title, columns, secondTable }: GenericDown
                 opts: { base64: true },
                 position: {
                   type: 'twoCellAnchor',
-                  from: { col: secondProfileColIdx + 1, row: startRow + index + 2 }, // +2 for title and header rows
-                  to: { col: secondProfileColIdx + 2, row: startRow + index + 3 }
+                  from: { col: secondProfileColIdx + 1, row: startRow + index + 1 }, // +1 for header row only
+                  to: { col: secondProfileColIdx + 2, row: startRow + index + 2 }
                 }
               });
               excelRow.push({ t: "s", v: "Image", l: { Target: value, Tooltip: "Profile Picture" } });

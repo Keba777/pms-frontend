@@ -31,6 +31,10 @@ const UserForm: React.FC<UserFormProps> = ({ onClose }) => {
     defaultValues: {
       responsibilities: [],
       gender: 'Male',
+      status: "Active",
+      siteId: null as any,
+      department_id: null as any,
+      role_name: null as any,
     },
   });
 
@@ -444,6 +448,8 @@ const UserForm: React.FC<UserFormProps> = ({ onClose }) => {
                   value={
                     siteOptions.find((opt) => opt.value === field.value) || null
                   }
+                  menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
+                  styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
                 />
               )}
             />
@@ -471,6 +477,8 @@ const UserForm: React.FC<UserFormProps> = ({ onClose }) => {
                       (opt) => opt.value === field.value
                     ) || null
                   }
+                  menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
+                  styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
                 />
               )}
             />
@@ -500,6 +508,8 @@ const UserForm: React.FC<UserFormProps> = ({ onClose }) => {
                   value={
                     roleOptions.find((opt) => opt.value === field.value) || null
                   }
+                  menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
+                  styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
                 />
               )}
             />
@@ -525,6 +535,8 @@ const UserForm: React.FC<UserFormProps> = ({ onClose }) => {
                     statusOptions.find((opt) => opt.value === field.value) ||
                     null
                   }
+                  menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
+                  styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
                 />
               )}
             />

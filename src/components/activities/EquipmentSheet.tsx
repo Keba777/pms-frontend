@@ -1,7 +1,7 @@
-import React, { useState } from "react";
-import { ChevronDown } from "lucide-react";
-import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
+"use client";
 
+import React, { useState, useMemo } from "react";
+import { ChevronDown, Plus, Edit, Trash, Eye } from "lucide-react";
 import {
   useEquipmentTimesheets,
   useCreateEquipmentTimesheet,
@@ -14,19 +14,20 @@ import {
   updateEquipmentTimesheetInput,
   EquipmentTimesheet,
 } from "@/types/timesheet";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import ConfirmModal from "../common/ui/ConfirmModal";
 import CreateEquipmentTimesheetForm from "../forms/timesheet/CreateEquipmentTimesheetForm";
 import EditEquipmentTimesheetForm from "../forms/timesheet/EditEquipmentTimesheetForm";
 import { formatDate as format } from "@/utils/dateUtils";
+import { ReusableTable, ColumnConfig } from "@/components/common/ReusableTable";
+import GenericDownloads, { Column as DownloadColumn } from "@/components/common/GenericDownloads";
+import { getBreakTime } from "./breakUtils";
 
 export const EquipmentSheet: React.FC = () => {
   const {
@@ -39,8 +40,6 @@ export const EquipmentSheet: React.FC = () => {
   const {
     data: equipment,
     isLoading: isLoadingEquipment,
-    isError: isErrorEquipment,
-    error: equipmentError,
   } = useEquipments();
 
   const createMutation = useCreateEquipmentTimesheet();
@@ -48,52 +47,12 @@ export const EquipmentSheet: React.FC = () => {
   const deleteMutation = useDeleteEquipmentTimesheet();
 
   const [showModal, setShowModal] = useState(false);
-  const [modalMode, setModalMode] = useState<"create" | "edit" | "view">(
-    "create"
-  );
-  const [selectedItem, setSelectedItem] = useState<EquipmentTimesheet | null>(
-    null
-  );
+  const [modalMode, setModalMode] = useState<"create" | "edit" | "view">("create");
+  const [selectedItem, setSelectedItem] = useState<EquipmentTimesheet | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const columns = [
-    "#",
-    "Equipment",
-    "Date",
-    "Morning In",
-    "Morning Out",
-    "Morning Hrs",
-    "Break Time",
-    "Afternoon In",
-    "Afternoon Out",
-    "Afternoon Hrs",
-    "OT",
-    // "DT",
-    "Rate",
-    "Total Cost",
-    "Status",
-  ];
-
-  const calculateHours = (inTime: string, outTime: string): number => {
-    if (!inTime || !outTime) return 0;
-    const [inHour, inMinute] = inTime.split(":").map(Number);
-    const [outHour, outMinute] = outTime.split(":").map(Number);
-    const inDate = new Date(0, 0, 0, inHour, inMinute);
-    const outDate = new Date(0, 0, 0, outHour, outMinute);
-    const diffMs = outDate.getTime() - inDate.getTime();
-    const diffHours = diffMs / (1000 * 60 * 60);
-    return diffHours > 0 ? diffHours : 0;
-  };
-
-  const calculateBreak = (morningOut: string, afternoonIn: string): number => {
-    if (!morningOut || !afternoonIn) return 0;
-    return calculateHours(morningOut, afternoonIn);
-  };
-
-  const handleOpenModal = (
-    mode: "create" | "edit" | "view",
-    item?: EquipmentTimesheet
-  ) => {
+  const handleOpenModal = (mode: "create" | "edit" | "view", item?: EquipmentTimesheet) => {
     setModalMode(mode);
     setSelectedItem(item || null);
     setShowModal(true);
@@ -114,192 +73,196 @@ export const EquipmentSheet: React.FC = () => {
     }
   };
 
-  const handleFormSubmit = (
-    data: createEquipmentTimesheetInput | updateEquipmentTimesheetInput
-  ) => {
-    const mornHrs = calculateHours(data.morningIn ?? "", data.morningOut ?? "");
-    const aftHrs = calculateHours(
-      data.afternoonIn ?? "",
-      data.afternoonOut ?? ""
-    );
-    const breakTime = calculateBreak(
-      data.morningOut ?? "",
-      data.afternoonIn ?? ""
-    );
-    const ot = Number(data.ot) || 0;
-    const dt = Number(data.dt) || 0;
-    const rate = Number(data.rate) || 0;
-    const totalCost = (mornHrs + aftHrs) * rate + ot;
-
-    const input = {
-      equipmentId: data.equipmentId,
-      date: data.date ? new Date(data.date) : new Date(),
-      morningIn: data.morningIn,
-      morningOut: data.morningOut,
-      mornHrs,
-      bt: breakTime,
-      afternoonIn: data.afternoonIn,
-      afternoonOut: data.afternoonOut,
-      aftHrs,
-      ot,
-      dt,
-      rate,
-      totalPay: totalCost,
-      status: data.status,
-    };
-
+  const handleFormSubmit = (data: any) => {
     if (modalMode === "create") {
-      createMutation.mutate(input as createEquipmentTimesheetInput, {
+      createMutation.mutate(data as createEquipmentTimesheetInput, {
         onSuccess: () => setShowModal(false),
       });
     } else if (modalMode === "edit" && selectedItem?.id) {
       updateMutation.mutate(
-        { ...input, id: selectedItem.id } as updateEquipmentTimesheetInput & {
-          id: string;
-        },
-        {
-          onSuccess: () => setShowModal(false),
-        }
+        { ...data, id: selectedItem.id } as updateEquipmentTimesheetInput & { id: string },
+        { onSuccess: () => setShowModal(false) }
       );
     }
   };
 
-  if (isLoadingTimes || isLoadingEquipment) {
-    return <p className="p-4">Loading equipment timesheets or equipment...</p>;
-  }
+  const columns: ColumnConfig<EquipmentTimesheet>[] = [
+    {
+      key: "index",
+      label: "#",
+      render: (_, idx) => idx + 1,
+      isDefault: true,
+    },
+    {
+      key: "equipment",
+      label: "Equipment",
+      render: (row) => {
+        const name = equipment?.find((e) => e.id === row.equipmentId)?.item || row.equipmentId;
+        return <span className="font-bold text-gray-800">{name}</span>;
+      },
+      isDefault: true,
+    },
+    {
+      key: "date",
+      label: "Date",
+      render: (row) => format(row.date),
+      isDefault: true,
+    },
+    {
+      key: "morningIn",
+      label: "Morning In",
+      render: (row) => row.morningIn || "-",
+      isDefault: true,
+    },
+    {
+      key: "morningOut",
+      label: "Morning Out",
+      render: (row) => row.morningOut || "-",
+      isDefault: true,
+    },
+    {
+      key: "bt",
+      label: "Break",
+      render: (row) => {
+        const breakTime = getBreakTime(row.morningOut || "", row.afternoonIn || "");
+        return <span className="font-medium text-gray-600">{breakTime.toFixed(2)}</span>;
+      },
+      isDefault: true,
+    },
+    {
+      key: "afternoonIn",
+      label: "Afternoon In",
+      render: (row) => row.afternoonIn || "-",
+      isDefault: true,
+    },
+    {
+      key: "afternoonOut",
+      label: "Afternoon Out",
+      render: (row) => row.afternoonOut || "-",
+      isDefault: true,
+    },
+    {
+      key: "totalHrs",
+      label: "Total Hrs",
+      render: (row) => {
+        const total = (row.mornHrs || 0) + (row.aftHrs || 0);
+        return <span className="font-bold text-gray-900">{total.toFixed(2)}</span>;
+      },
+      isDefault: true,
+    },
+    {
+      key: "totalPay",
+      label: "Total Cost",
+      render: (row) => <span className="font-mono text-gray-600">${row.totalPay.toFixed(2)}</span>,
+      isDefault: true,
+    },
+    {
+      key: "status",
+      label: "Status",
+      render: (row) => (
+        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${row.status === 'Approved' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600'}`}>
+          {row.status}
+        </span>
+      ),
+      isDefault: true,
+    },
+    {
+      key: "menu",
+      label: "Menu",
+      render: (row) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              className="text-primary-foreground p-0 bg-primary hover:bg-primary/90 h-8 px-2"
+            >
+              Action
+              <ChevronDown className="h-4 w-4 ml-1" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => handleOpenModal("view", row)}>
+              <Eye className="mr-2 h-4 w-4" /> View Details
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleOpenModal("edit", row)}>
+              <Edit className="mr-2 h-4 w-4" /> Edit
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleDeleteClick(row)} className="text-red-600">
+              <Trash className="mr-2 h-4 w-4" /> Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+      isDefault: true,
+    },
+  ];
 
-  if (isErrorTimes) {
-    return (
-      <p className="p-4 text-destructive">
-        Error loading equipment timesheets: {timesError?.message}
-      </p>
-    );
-  }
+  const downloadColumns: DownloadColumn<EquipmentTimesheet>[] = [
+    { header: "Equipment", accessor: (row) => equipment?.find((e) => e.id === row.equipmentId)?.item || row.equipmentId },
+    { header: "Date", accessor: (row) => format(row.date) },
+    { header: "Morning In", accessor: "morningIn" },
+    { header: "Morning Out", accessor: "morningOut" },
+    { header: "Break", accessor: (row) => getBreakTime(row.morningOut || "", row.afternoonIn || "").toFixed(2) },
+    { header: "Afternoon In", accessor: "afternoonIn" },
+    { header: "Afternoon Out", accessor: "afternoonOut" },
+    { header: "Total Hrs", accessor: (row) => ((row.mornHrs || 0) + (row.aftHrs || 0)).toFixed(2) },
+    { header: "Total Cost", accessor: (row) => row.totalPay.toFixed(2) },
+    { header: "Status", accessor: "status" },
+  ];
 
-  if (isErrorEquipment) {
-    return (
-      <p className="p-4 text-destructive">
-        Error loading equipment: {equipmentError?.message}
-      </p>
-    );
-  }
+  const filteredData = useMemo(() => {
+    if (!equipmentTimesheets) return [];
+    if (!searchTerm) return equipmentTimesheets;
+    return equipmentTimesheets.filter((row) => {
+      const name = equipment?.find((e) => e.id === row.equipmentId)?.item || "";
+      return name.toLowerCase().includes(searchTerm.toLowerCase());
+    });
+  }, [equipmentTimesheets, searchTerm, equipment]);
 
   return (
-    <div>
-      <Button
-        onClick={() => handleOpenModal("create")}
-        className="mb-2 bg-primary text-primary-foreground hover:bg-primary/90"
-      >
-        Add New
-      </Button>
-
-      <div className="overflow-x-auto">
-        <Table className="min-w-full border border-border divide-y divide-border table-auto">
-          <TableHeader className="bg-primary">
-            <TableRow>
-              {columns.map((col) => (
-                <TableHead
-                  key={col}
-                  className="text-primary-foreground px-5 py-3 text-left text-sm font-medium truncate"
-                >
-                  {col}
-                </TableHead>
-              ))}
-              <TableHead className="text-primary-foreground px-5 py-3 text-left text-sm font-medium w-32 truncate">
-                Action
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody className="bg-white divide-y divide-border">
-            {equipmentTimesheets?.map((row, idx) => {
-              const equipmentName =
-                equipment?.find((e) => e.id === row.equipmentId)?.item ||
-                row.equipmentId;
-
-              return (
-                <TableRow key={row.id} className="hover:bg-accent">
-                  <TableCell className="px-5 py-2">{idx + 1}</TableCell>
-                  <TableCell className="px-5 py-2">{equipmentName}</TableCell>
-                  <TableCell className="px-5 py-2">
-                    {format(row.date)}
-                  </TableCell>
-                  <TableCell className="px-5 py-2">{row.morningIn}</TableCell>
-                  <TableCell className="px-5 py-2">{row.morningOut}</TableCell>
-                  <TableCell className="px-5 py-2">
-                    {row.mornHrs.toFixed(2)}
-                  </TableCell>
-                  <TableCell className="px-5 py-2">
-                    {row.bt.toFixed(2)}
-                  </TableCell>
-                  <TableCell className="px-5 py-2">{row.afternoonIn}</TableCell>
-                  <TableCell className="px-5 py-2">
-                    {row.afternoonOut}
-                  </TableCell>
-                  <TableCell className="px-5 py-2">
-                    {row.aftHrs.toFixed(2)}
-                  </TableCell>
-                  <TableCell className="px-5 py-2">
-                    {row.ot.toFixed(2)}
-                  </TableCell>
-                  <TableCell className="px-5 py-2">
-                    {row.rate.toFixed(2)}
-                  </TableCell>
-                  <TableCell className="px-5 py-2">
-                    {row.totalPay.toFixed(2)}
-                  </TableCell>
-                  <TableCell className="px-5 py-2">{row.status}</TableCell>
-                  <TableCell className="px-5 py-2 w-32">
-                    <Menu as="div" className="relative inline-block text-left">
-                      <MenuButton className="flex items-center gap-1 px-3 py-1 text-sm bg-primary text-primary-foreground rounded hover:bg-primary/90 w-full">
-                        Action <ChevronDown className="w-4 h-4" />
-                      </MenuButton>
-                      <MenuItems className="absolute left-0 mt-2 w-40 bg-white border divide-y divide-gray-100 rounded-md shadow-lg z-50">
-                        <MenuItem>
-                          {({ active }) => (
-                            <button
-                              onClick={() => handleOpenModal("view", row)}
-                              className={`w-full text-left px-3 py-2 text-sm ${active ? "bg-gray-100" : ""
-                                }`}
-                            >
-                              View
-                            </button>
-                          )}
-                        </MenuItem>
-                        <MenuItem>
-                          {({ active }) => (
-                            <button
-                              onClick={() => handleOpenModal("edit", row)}
-                              className={`w-full text-left px-3 py-2 text-sm ${active ? "bg-accent" : ""
-                                }`}
-                            >
-                              Edit
-                            </button>
-                          )}
-                        </MenuItem>
-                        <MenuItem>
-                          {({ active }) => (
-                            <button
-                              onClick={() => handleDeleteClick(row)}
-                              className={`w-full text-left px-3 py-2 text-sm text-destructive ${active ? "bg-accent" : ""
-                                }`}
-                            >
-                              Delete
-                            </button>
-                          )}
-                        </MenuItem>
-                      </MenuItems>
-                    </Menu>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
+    <div className="space-y-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <h2 className="text-2xl font-bold text-gray-800">Equipment Timesheets</h2>
+        <div className="flex flex-wrap gap-2">
+          <GenericDownloads
+            data={filteredData}
+            title="Equipment Timesheet"
+            columns={downloadColumns}
+          />
+          <Button
+            onClick={() => handleOpenModal("create")}
+            className="bg-primary text-primary-foreground hover:bg-primary/90 flex gap-2"
+          >
+            <Plus className="w-4 h-4" /> New Entry
+          </Button>
+        </div>
       </div>
 
+      <ReusableTable
+        title="Equipment Timesheets"
+        data={filteredData}
+        columns={columns}
+        isLoading={isLoadingTimes || isLoadingEquipment}
+        isError={isErrorTimes}
+        errorMessage={timesError?.message}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        placeholder="Search equipment..."
+        pageSize={10}
+        hideTitle={true}
+      />
+
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-4xl overflow-y-auto max-h-[90vh]">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+          <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-2xl overflow-y-auto max-h-[90vh]">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold text-gray-800">
+                {modalMode === 'create' ? 'Create Timesheet Entry' : modalMode === 'edit' ? 'Edit Entry' : 'Entry Details'}
+              </h3>
+              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600 text-2xl font-bold">
+                &times;
+              </button>
+            </div>
             {modalMode === "create" ? (
               <CreateEquipmentTimesheetForm
                 onClose={() => setShowModal(false)}
