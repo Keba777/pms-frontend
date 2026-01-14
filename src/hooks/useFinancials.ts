@@ -138,7 +138,7 @@ export const usePayrolls = () => {
                 const q = searchQuery.toLowerCase();
                 return (
                     p.status.toLowerCase().includes(q) ||
-                    p.month.toLowerCase().includes(q)
+                    p.pay_period.toLowerCase().includes(q)
                 );
             });
             return filtered;

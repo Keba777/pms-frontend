@@ -52,7 +52,10 @@ const ResourceLaborsPage: React.FC = () => {
         };
       }
       map[site.id].total += 1;
-      switch (lab.allocationStatus) {
+      const currentInfo = lab.laborInformations?.find(i => i.status === 'Allocated' || i.status === 'OnLeave') || lab.laborInformations?.[0];
+      const allocationStatus = currentInfo?.status;
+
+      switch (allocationStatus) {
         case 'Allocated':
           map[site.id].allocated += 1;
           break;

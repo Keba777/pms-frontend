@@ -12,6 +12,18 @@ interface LaborFormProps {
   onClose: () => void;
 }
 
+interface LaborFormValues extends CreateLaborInput {
+  estimatedHours?: number;
+  rate?: number;
+  overtimeRate?: number;
+  totalAmount?: number;
+  allocationStatus?: string;
+  startingDate?: string;
+  dueDate?: string;
+  totalTime?: number;
+  skill_level?: string;
+}
+
 const LaborForm: React.FC<LaborFormProps> = ({ siteId, onClose }) => {
 
   const {
@@ -21,7 +33,7 @@ const LaborForm: React.FC<LaborFormProps> = ({ siteId, onClose }) => {
     setValue,
     control,
     formState: { errors },
-  } = useForm<CreateLaborInput>();
+  } = useForm<LaborFormValues>();
 
   const { mutate: createLabor, isPending } = useCreateLabor();
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
@@ -45,7 +57,7 @@ const LaborForm: React.FC<LaborFormProps> = ({ siteId, onClose }) => {
     [estimatedHours, setValue]
   );
 
-  const onSubmit = (data: CreateLaborInput) => {
+  const onSubmit = (data: LaborFormValues) => {
     createLabor(
       { ...data, siteId },
       {

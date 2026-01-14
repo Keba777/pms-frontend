@@ -91,7 +91,8 @@ const LaborTable: React.FC<LaborTableProps> = ({
     useState<typeof newFieldsTemplate>(newFieldsTemplate);
 
   const totalAmountSum = labor.reduce((sum, l) => {
-    const amt = parseFloat(String(l.totalAmount)) || 0;
+    const info = l.laborInformations?.[0];
+    const amt = parseFloat(String(info?.totalAmount)) || 0;
     return sum + amt;
   }, 0);
 
@@ -171,9 +172,9 @@ const LaborTable: React.FC<LaborTableProps> = ({
                       l.minQuantity ?? 0
                     )}
                   </td>
-                  <td className="border px-3 py-2">{l.rate ?? "-"}</td>
-                  <td className="border px-3 py-2">{l.overtimeRate}</td>
-                  <td className="border px-3 py-2">{l.totalAmount}</td>
+                  <td className="border px-3 py-2">{l.laborInformations?.[0]?.rate ?? "-"}</td>
+                  <td className="border px-3 py-2">{l.laborInformations?.[0]?.overtimeRate}</td>
+                  <td className="border px-3 py-2">{l.laborInformations?.[0]?.totalAmount}</td>
                 </tr>
               );
             })}

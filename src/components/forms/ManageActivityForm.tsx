@@ -1,5 +1,5 @@
 "use client";
-import { UpdateActivityInput } from "@/types/activity";
+
 import React, { useEffect, useMemo, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -48,13 +48,15 @@ type Row = {
   isNew?: boolean;
 };
 
+import { UpdateActivityInput, Activity } from "@/types/activity";
+// ...
 const ManageActivityForm: React.FC<{
   onClose: () => void;
-  activity: UpdateActivityInput & { id: string; name?: string; progressUpdates?: ProgressUpdateItem[] | null };
+  activity: Activity;
 }> = ({ onClose, activity }) => {
 
   const { handleSubmit, control, setValue } = useForm<UpdateActivityInput>({
-    defaultValues: activity,
+    defaultValues: { ...activity, assignedUsers: activity.assignedUsers?.map(u => u.id) } as any,
   });
   const [rows, setRows] = useState<Row[]>([]);
   const [newRow, setNewRow] = useState<Row | null>(null);
@@ -223,7 +225,7 @@ const ManageActivityForm: React.FC<{
         }
       `}</style>
       <div className="flex justify-between items-center border-b pb-2 mb-4">
-        <h3 className="text-lg font-semibold text-gray-800">Manage {activity.name ?? "Activity"} Progress</h3>
+        <h3 className="text-lg font-semibold text-gray-800">Manage {activity.activity_name ?? "Activity"} Progress</h3>
         <Button
           type="button"
           variant="ghost"

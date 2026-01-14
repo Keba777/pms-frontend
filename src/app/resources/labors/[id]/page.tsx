@@ -103,16 +103,16 @@ export default function LaborDetailPage() {
                         {l.minQuantity ?? "-"}
                       </td> */}
                       <td className="px-4 py-2 border border-border">
-                        {l.estimatedHours ?? "-"}
+                        {info.estimatedHours ?? "-"}
                       </td>
                       <td className="px-4 py-2 border border-border">
-                        {l.rate ?? "-"}
+                        {info.rate ?? "-"}
                       </td>
                       <td className="px-4 py-2 border border-border">
-                        {l.overtimeRate ?? "-"}
+                        {info.overtimeRate ?? "-"}
                       </td>
                       <td className="px-4 py-2 border border-border">
-                        {l.totalAmount ?? "-"}
+                        {info.totalAmount ?? "-"}
                       </td>
                       <td className="px-4 py-2 border border-border">
                         {info.startsAt

@@ -55,7 +55,7 @@ const ActivityTable: React.FC<ActivityTableProps> = ({
   const [showEditForm, setShowEditForm] = useState(false);
   const [showManageForm, setShowManageForm] = useState(false);
   const [activityToEdit, setActivityToEdit] =
-    useState<UpdateActivityInput | null>(null);
+    useState<Activity | null>(null);
   const [dropdownActivityId, setDropdownActivityId] = useState<string | null>(
     null
   );
@@ -147,8 +147,8 @@ const ActivityTable: React.FC<ActivityTableProps> = ({
 
   const handleView = (id: string) => router.push(`/activities/${id}`);
 
-  const handleEditSubmit = (data: UpdateActivityInput) => {
-    updateActivity(data);
+  const handleEditSubmit = (data: UpdateActivityInput | FormData) => {
+    updateActivity(data as any); // Cast to any if inference fails, or just pass it if types align
     setShowEditForm(false);
   };
 
@@ -548,12 +548,7 @@ const ActivityTable: React.FC<ActivityTableProps> = ({
                               <button
                                 onClick={() => {
                                   setDropdownActivityId(null);
-                                  setActivityToEdit({
-                                    ...activity,
-                                    assignedUsers: activity.assignedUsers?.map(
-                                      (u) => u.id
-                                    ),
-                                  });
+                                  setActivityToEdit(activity);
                                   setShowEditForm(true);
                                 }}
                                 className="w-full text-left px-3 py-2 hover:bg-gray-100"
@@ -572,12 +567,7 @@ const ActivityTable: React.FC<ActivityTableProps> = ({
                               <button
                                 onClick={() => {
                                   setDropdownActivityId(null);
-                                  setActivityToEdit({
-                                    ...activity,
-                                    assignedUsers: activity.assignedUsers?.map(
-                                      (u) => u.id
-                                    ),
-                                  });
+                                  setActivityToEdit(activity);
                                   setShowManageForm(true);
                                 }}
                                 className="w-full text-left px-3 py-2 hover:bg-gray-100"

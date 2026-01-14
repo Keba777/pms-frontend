@@ -57,7 +57,7 @@ const DataTableActivities: React.FC<DataTableActivitiesProps> = ({ externalFilte
   const [showEditForm, setShowEditForm] = useState(false);
   const [activityToEdit, setActivityToEdit] = useState<Activity | null>(null);
   const [showManageForm, setShowManageForm] = useState(false);
-  const [activityToManage, setActivityToManage] = useState<UpdateActivityInput | null>(null);
+  const [activityToManage, setActivityToManage] = useState<Activity | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedActivityId, setSelectedActivityId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -82,7 +82,7 @@ const DataTableActivities: React.FC<DataTableActivitiesProps> = ({ externalFilte
     setShowEditForm(false);
   };
   const handleManageClick = (activity: Activity) => {
-    setActivityToManage(activity as any);
+    setActivityToManage(activity);
     setShowManageForm(true);
   };
 

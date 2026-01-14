@@ -10,6 +10,13 @@ interface EditLaborFormProps {
   labor: UpdateLaborInput;
 }
 
+interface EditLaborFormValues extends UpdateLaborInput {
+  estimatedHours?: number;
+  rate?: number;
+  totalAmount?: number;
+  skill_level?: string;
+}
+
 const EditLaborForm: React.FC<EditLaborFormProps> = ({
   onSubmit,
   onClose,
@@ -21,7 +28,7 @@ const EditLaborForm: React.FC<EditLaborFormProps> = ({
     watch,
     setValue,
     formState: { errors },
-  } = useForm<UpdateLaborInput>({ defaultValues: labor });
+  } = useForm<EditLaborFormValues>({ defaultValues: labor as any });
 
   // Recompute totalAmount when minQuantity, estimatedHours, or rate changes
   const minQuantity = watch("minQuantity");
