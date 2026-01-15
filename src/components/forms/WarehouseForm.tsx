@@ -4,6 +4,7 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import { CreateWarehouseInput } from "@/types/warehouse";
 import { useCreateWarehouse } from "@/hooks/useWarehouses";
+import { useSites } from "@/hooks/useSites";
 
 interface WarehouseFormProps {
   onClose: () => void;
@@ -17,12 +18,13 @@ const WarehouseForm: React.FC<WarehouseFormProps> = ({ onClose }) => {
   } = useForm<CreateWarehouseInput>();
 
   const { mutate: createWarehouse, isPending } = useCreateWarehouse();
+  const { data: sites, isLoading: isLoadingSites } = useSites();
 
   const onSubmit = (data: CreateWarehouseInput) => {
     createWarehouse(data, {
       onSuccess: () => {
         onClose();
-        window.location.reload();
+        // window.location.reload(); // Usually better to rely on React Query cache invalidation
       },
     });
   };
@@ -47,6 +49,28 @@ const WarehouseForm: React.FC<WarehouseFormProps> = ({ onClose }) => {
       </div>
 
       <div className="space-y-4">
+        {/* Site Selection */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Site <span className="text-red-500">*</span>
+          </label>
+          <select
+            {...register("siteId", { required: "Site is required" })}
+            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+            disabled={isLoadingSites}
+          >
+            <option value="">Select a site</option>
+            {sites?.map((site) => (
+              <option key={site.id} value={site.id}>
+                {site.name}
+              </option>
+            ))}
+          </select>
+          {errors.siteId && (
+            <p className="text-red-500 text-sm mt-1">{errors.siteId.message}</p>
+          )}
+        </div>
+
         {/* Type */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -56,7 +80,7 @@ const WarehouseForm: React.FC<WarehouseFormProps> = ({ onClose }) => {
             type="text"
             {...register("type", { required: "Type is required" })}
             placeholder="Enter warehouse type"
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
           />
           {errors.type && (
             <p className="text-red-500 text-sm mt-1">{errors.type.message}</p>
@@ -72,7 +96,7 @@ const WarehouseForm: React.FC<WarehouseFormProps> = ({ onClose }) => {
             type="text"
             {...register("owner", { required: "Owner is required" })}
             placeholder="Enter owner name"
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
           />
           {errors.owner && (
             <p className="text-red-500 text-sm mt-1">{errors.owner.message}</p>
@@ -88,7 +112,7 @@ const WarehouseForm: React.FC<WarehouseFormProps> = ({ onClose }) => {
             {...register("workingStatus", {
               required: "Working status is required",
             })}
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
           >
             <option value="">Select status</option>
             <option value="Operational">Operational</option>
@@ -110,7 +134,7 @@ const WarehouseForm: React.FC<WarehouseFormProps> = ({ onClose }) => {
             type="text"
             {...register("approvedBy")}
             placeholder="Enter approver name (optional)"
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </div>
 
@@ -122,7 +146,7 @@ const WarehouseForm: React.FC<WarehouseFormProps> = ({ onClose }) => {
           <textarea
             {...register("remark")}
             placeholder="Enter remarks (optional)"
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
           ></textarea>
         </div>
 
@@ -133,7 +157,7 @@ const WarehouseForm: React.FC<WarehouseFormProps> = ({ onClose }) => {
           </label>
           <select
             {...register("status", { required: "Status is required" })}
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
           >
             <option value="">Select status</option>
             <option value="Active">Active</option>
@@ -156,7 +180,7 @@ const WarehouseForm: React.FC<WarehouseFormProps> = ({ onClose }) => {
           </button>
           <button
             type="submit"
-            className="px-4 py-2 bg-bs-primary text-white rounded-md hover:bg-bs-primary"
+            className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
             disabled={isPending}
           >
             {isPending ? "Saving..." : "Save"}

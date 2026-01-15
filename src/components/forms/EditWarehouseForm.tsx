@@ -3,6 +3,7 @@
 import React from "react";
 import { useForm } from "react-hook-form";
 import { Warehouse } from "@/types/warehouse";
+import { useSites } from "@/hooks/useSites";
 
 interface EditWarehouseFormProps {
   onSubmit: (data: Warehouse) => void;
@@ -22,6 +23,8 @@ const EditWarehouseForm: React.FC<EditWarehouseFormProps> = ({
   } = useForm<Warehouse>({
     defaultValues: warehouse,
   });
+
+  const { data: sites, isLoading: isLoadingSites } = useSites();
 
   const handleFormSubmit = (data: Warehouse) => {
     onSubmit(data);
@@ -45,6 +48,28 @@ const EditWarehouseForm: React.FC<EditWarehouseFormProps> = ({
 
       <input type="hidden" {...register("id")} />
 
+      {/* Site Selection */}
+      <div className="flex items-center space-x-4">
+        <label className="w-32 text-sm font-medium text-gray-700">
+          Site<span className="text-red-500">*</span>
+        </label>
+        <select
+          {...register("siteId", { required: "Site is required" })}
+          className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+          disabled={isLoadingSites}
+        >
+          <option value="">Select a site</option>
+          {sites?.map((site) => (
+            <option key={site.id} value={site.id}>
+              {site.name}
+            </option>
+          ))}
+        </select>
+      </div>
+      {errors.siteId && (
+        <p className="text-red-500 text-sm ml-32">{errors.siteId.message}</p>
+      )}
+
       {/* Type */}
       <div className="flex items-center space-x-4">
         <label className="w-32 text-sm font-medium text-gray-700">
@@ -53,7 +78,7 @@ const EditWarehouseForm: React.FC<EditWarehouseFormProps> = ({
         <input
           type="text"
           {...register("type", { required: "Type is required" })}
-          className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+          className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
         />
       </div>
       {errors.type && (
@@ -68,7 +93,7 @@ const EditWarehouseForm: React.FC<EditWarehouseFormProps> = ({
         <input
           type="text"
           {...register("owner", { required: "Owner is required" })}
-          className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+          className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
         />
       </div>
       {errors.owner && (
@@ -84,7 +109,7 @@ const EditWarehouseForm: React.FC<EditWarehouseFormProps> = ({
           {...register("workingStatus", {
             required: "Working status is required",
           })}
-          className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+          className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
         >
           <option value="">Select status</option>
           <option value="Operational">Operational</option>
@@ -107,7 +132,7 @@ const EditWarehouseForm: React.FC<EditWarehouseFormProps> = ({
           {...register("currentWorkingSite", {
             required: "Current working site is required",
           })}
-          className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+          className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
         />
       </div>
       {errors.currentWorkingSite && (
@@ -124,7 +149,7 @@ const EditWarehouseForm: React.FC<EditWarehouseFormProps> = ({
         <input
           type="text"
           {...register("approvedBy")}
-          className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+          className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
         />
       </div>
 
@@ -134,7 +159,7 @@ const EditWarehouseForm: React.FC<EditWarehouseFormProps> = ({
         <textarea
           {...register("remark")}
           rows={2}
-          className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+          className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
         />
       </div>
 
@@ -145,7 +170,7 @@ const EditWarehouseForm: React.FC<EditWarehouseFormProps> = ({
         </label>
         <select
           {...register("status", { required: "Status is required" })}
-          className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-bs-primary"
+          className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
         >
           <option value="">Select status</option>
           <option value="Active">Active</option>
@@ -168,7 +193,7 @@ const EditWarehouseForm: React.FC<EditWarehouseFormProps> = ({
         </button>
         <button
           type="submit"
-          className="px-4 py-2 bg-bs-primary text-white rounded-md hover:bg-bs-primary"
+          className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
         >
           Update
         </button>

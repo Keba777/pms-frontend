@@ -27,7 +27,7 @@ export const useAuthStore = create<AuthStore>()(
             _hasHydrated: false,
 
             login: (user, token) => {
-                const expiresAt = Date.now() + 24 * 60 * 60 * 1000;
+                const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000;
                 set({
                     user,
                     token,
