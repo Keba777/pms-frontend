@@ -613,6 +613,28 @@ const UsersPage = () => {
           onConfirm={handleDeleteUser}
         />
       )}
+
+      {/* User Form Modal */}
+      {showForm && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <UserForm onClose={() => setShowForm(false)} />
+          </div>
+        </div>
+      )}
+
+      {/* Edit User Form Modal */}
+      {showEditForm && userToEdit && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <EditUserForm
+              user={userToEdit}
+              onClose={() => setShowEditForm(false)}
+              onSubmit={handleUpdateUser}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

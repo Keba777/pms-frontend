@@ -236,8 +236,8 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
         getDateDuration(new Date().toISOString(), row.end_date),
     },
     {
-      header: "Budget (Random)",
-      accessor: () => Math.floor(1000000 + Math.random() * 9000000).toString(),
+      header: "Budget",
+      accessor: (row: Task) => (row.actuals?.budget ?? row.budget ?? 0).toString(),
     },
     { header: "Progress", accessor: (row) => `${row.progress}%` },
     { header: "Status", accessor: "status" },
@@ -345,7 +345,7 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
           <div ref={menuRef} className="relative w-full lg:w-auto">
             <button
               onClick={() => setShowColumnMenu((v) => !v)}
-              className="w-full lg:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-700 text-white rounded-lg hover:bg-emerald-800 transition-colors shadow-sm font-bold text-sm"
+              className="w-full lg:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors shadow-sm font-bold text-sm"
             >
               Customize Columns <ChevronDown className="w-4 h-4" />
             </button>
@@ -363,7 +363,7 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
                       type="checkbox"
                       checked={selectedColumns.includes(key)}
                       onChange={() => toggleColumn(key)}
-                      className="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 mr-3"
+                      className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary mr-3"
                     />
                     <span className="text-sm text-gray-700 font-bold">{label}</span>
                   </label>
@@ -420,7 +420,7 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
       {/* Table */}
       <div className="overflow-x-auto">
         <table className="min-w-full border border-gray-200 divide-y divide-gray-200 table-auto">
-          <thead className="bg-teal-700">
+          <thead className="bg-primary">
             <tr>
               {selectedColumns.includes("no") && (
                 <th className="border px-4 py-3 text-left text-sm font-medium text-gray-50 w-16 truncate-ellipsis">
@@ -490,9 +490,7 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
                   new Date().toISOString(),
                   task.end_date
                 );
-                const randomBudget = Math.floor(
-                  1000000 + Math.random() * 9000000
-                );
+                const budget = task.actuals?.budget ?? task.budget ?? 0;
                 return (
                   <tr key={task.id} className="hover:bg-gray-50 relative">
                     {selectedColumns.includes("no") && (
@@ -537,11 +535,9 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
                         {remaining}
                       </td>
                     )}
-                    {selectedColumns.includes("budget") && (
-                      <td className="border px-4 py-2 w-24 truncate-ellipsis">
-                        {randomBudget}
-                      </td>
-                    )}
+                    <td className="border px-4 py-2 w-24 truncate-ellipsis">
+                      {budget}
+                    </td>
                     {selectedColumns.includes("progress") && (
                       <td className="border px-4 py-2 w-20 truncate-ellipsis">
                         {task.progress}%
@@ -567,7 +563,7 @@ export default function TaskTable({ tasks, projectId }: TaskTableProps) {
                                 dropdownTaskId === task.id ? null : task.id
                               );
                             }}
-                            className="flex items-center justify-between gap-1 px-3 py-1 bg-teal-700 text-white rounded w-full"
+                            className="flex items-center justify-between gap-1 px-3 py-1 bg-primary text-white rounded w-full hover:bg-primary/90 transition-colors"
                           >
                             Actions
                             <ChevronDown className="w-4 h-4" />

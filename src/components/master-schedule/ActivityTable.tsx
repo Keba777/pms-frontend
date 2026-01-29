@@ -200,7 +200,7 @@ const ActivityTable: React.FC<ActivityTableProps> = ({
           <div ref={menuRef} className="relative w-full sm:w-auto">
             <button
               onClick={() => setShowColumnMenu((v) => !v)}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-700 text-white rounded-lg hover:bg-emerald-800 transition-colors shadow-sm font-bold text-sm"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors shadow-sm font-bold text-sm"
             >
               Customize Columns <ChevronDown className="w-4 h-4" />
             </button>
@@ -218,7 +218,7 @@ const ActivityTable: React.FC<ActivityTableProps> = ({
                       type="checkbox"
                       checked={selectedColumns.includes(key)}
                       onChange={() => toggleColumn(key)}
-                      className="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 mr-3"
+                      className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary mr-3"
                     />
                     <span className="text-sm text-gray-700 font-bold">{label}</span>
                   </label>
@@ -233,7 +233,7 @@ const ActivityTable: React.FC<ActivityTableProps> = ({
             </div>
             <button
               onClick={() => setShowForm(true)}
-              className="w-full sm:w-auto px-6 py-2.5 bg-emerald-700 text-white rounded-lg hover:bg-emerald-800 transition-all font-black uppercase text-xs tracking-widest shadow-sm"
+              className="w-full sm:w-auto px-6 py-2.5 bg-primary text-white rounded-lg hover:bg-primary/90 transition-all font-black uppercase text-xs tracking-widest shadow-sm"
             >
               Create Activity
             </button>
@@ -279,12 +279,12 @@ const ActivityTable: React.FC<ActivityTableProps> = ({
       {/* Activity Table */}
       <div className="overflow-x-auto">
         <table className="min-w-full border border-gray-200 divide-y divide-gray-200 table-auto">
-          <thead className="bg-emerald-700 text-gray-200">
+          <thead className="bg-primary text-gray-50">
             <tr>
               {selectedColumns.includes("no") && (
                 <th
                   rowSpan={2}
-                  className="border border-emerald-600 px-4 py-2 text-left text-sm font-medium w-16 truncate-ellipsis"
+                  className="border border-primary/20 px-4 py-2 text-left text-sm font-medium w-16 truncate-ellipsis"
                 >
                   No
                 </th>
@@ -292,7 +292,7 @@ const ActivityTable: React.FC<ActivityTableProps> = ({
               {selectedColumns.includes("activity_name") && (
                 <th
                   rowSpan={2}
-                  className="border border-emerald-600 px-4 py-2 text-left text-sm font-medium min-w-[200px]"
+                  className="border border-primary/20 px-4 py-2 text-left text-sm font-medium min-w-[200px]"
                 >
                   Activity
                 </th>
@@ -300,7 +300,7 @@ const ActivityTable: React.FC<ActivityTableProps> = ({
               {selectedColumns.includes("priority") && (
                 <th
                   rowSpan={2}
-                  className="border border-emerald-600 px-4 py-2 text-left text-sm font-medium w-24 truncate-ellipsis"
+                  className="border border-primary/20 px-4 py-2 text-left text-sm font-medium w-24 truncate-ellipsis"
                 >
                   Priority
                 </th>
@@ -308,7 +308,7 @@ const ActivityTable: React.FC<ActivityTableProps> = ({
               {selectedColumns.includes("unit") && (
                 <th
                   rowSpan={2}
-                  className="border border-emerald-600 px-4 py-2 text-left text-sm font-medium w-20 truncate-ellipsis"
+                  className="border border-primary/20 px-4 py-2 text-left text-sm font-medium w-20 truncate-ellipsis"
                 >
                   Unit
                 </th>
@@ -316,7 +316,7 @@ const ActivityTable: React.FC<ActivityTableProps> = ({
               {selectedColumns.includes("quantity") && (
                 <th
                   rowSpan={2}
-                  className="border border-emerald-600 px-4 py-2 text-left text-sm font-medium w-20 truncate-ellipsis"
+                  className="border border-primary/20 px-4 py-2 text-left text-sm font-medium w-20 truncate-ellipsis"
                 >
                   QTY
                 </th>
@@ -324,7 +324,7 @@ const ActivityTable: React.FC<ActivityTableProps> = ({
               {selectedColumns.includes("start_date") && (
                 <th
                   rowSpan={2}
-                  className="border border-emerald-600 px-4 py-2 text-left text-sm font-medium w-28 truncate-ellipsis"
+                  className="border border-primary/20 px-4 py-2 text-left text-sm font-medium w-28 truncate-ellipsis"
                 >
                   Start Date
                 </th>
@@ -332,7 +332,7 @@ const ActivityTable: React.FC<ActivityTableProps> = ({
               {selectedColumns.includes("end_date") && (
                 <th
                   rowSpan={2}
-                  className="border border-emerald-600 px-4 py-2 text-left text-sm font-medium w-28 truncate-ellipsis"
+                  className="border border-primary/20 px-4 py-2 text-left text-sm font-medium w-28 truncate-ellipsis"
                 >
                   End Date
                 </th>
@@ -340,7 +340,7 @@ const ActivityTable: React.FC<ActivityTableProps> = ({
               {selectedColumns.includes("duration") && (
                 <th
                   rowSpan={2}
-                  className="border border-emerald-600 px-4 py-2 text-left text-sm font-medium w-24 truncate-ellipsis"
+                  className="border border-primary/20 px-4 py-2 text-left text-sm font-medium w-24 truncate-ellipsis"
                 >
                   Duration
                 </th>
@@ -348,7 +348,7 @@ const ActivityTable: React.FC<ActivityTableProps> = ({
               {selectedColumns.includes("remaining") && (
                 <th
                   rowSpan={2}
-                  className="border border-emerald-600 px-4 py-2 text-left text-sm font-medium w-24 truncate-ellipsis"
+                  className="border border-primary/20 px-4 py-2 text-left text-sm font-medium w-24 truncate-ellipsis"
                 >
                   Remaining
                 </th>
@@ -356,7 +356,7 @@ const ActivityTable: React.FC<ActivityTableProps> = ({
               {showResourceCost && (
                 <th
                   colSpan={resourceColSpan}
-                  className="border border-emerald-600 px-4 py-2 text-center text-sm font-medium"
+                  className="border border-primary/20 px-4 py-2 text-center text-sm font-medium"
                 >
                   Resource Cost
                 </th>
@@ -364,7 +364,7 @@ const ActivityTable: React.FC<ActivityTableProps> = ({
               {selectedColumns.includes("request") && (
                 <th
                   rowSpan={2}
-                  className="border border-emerald-600 px-4 py-2 text-left text-sm font-medium w-24 truncate-ellipsis"
+                  className="border border-primary/20 px-4 py-2 text-left text-sm font-medium w-24 truncate-ellipsis"
                 >
                   Request Resource
                 </th>
@@ -372,7 +372,7 @@ const ActivityTable: React.FC<ActivityTableProps> = ({
               {selectedColumns.includes("status") && (
                 <th
                   rowSpan={2}
-                  className="border border-emerald-600 px-4 py-2 text-left text-sm font-medium w-28 truncate-ellipsis"
+                  className="border border-primary/20 px-4 py-2 text-left text-sm font-medium w-28 truncate-ellipsis"
                 >
                   Status
                 </th>
@@ -380,7 +380,7 @@ const ActivityTable: React.FC<ActivityTableProps> = ({
               {selectedColumns.includes("actions") && (
                 <th
                   rowSpan={2}
-                  className="border border-emerald-600 px-4 py-2 text-left text-sm font-medium w-32 truncate-ellipsis"
+                  className="border border-primary/20 px-4 py-2 text-left text-sm font-medium w-32 truncate-ellipsis"
                 >
                   Actions
                 </th>
@@ -389,17 +389,17 @@ const ActivityTable: React.FC<ActivityTableProps> = ({
             {showResourceCost && (
               <tr>
                 {selectedColumns.includes("materials") && (
-                  <th className="border border-emerald-600 px-4 py-2 text-left text-sm font-medium w-24 truncate-ellipsis">
+                  <th className="border border-primary/20 px-4 py-2 text-left text-sm font-medium w-24 truncate-ellipsis">
                     Materials
                   </th>
                 )}
                 {selectedColumns.includes("equipments") && (
-                  <th className="border border-emerald-600 px-4 py-2 text-left text-sm font-medium w-24 truncate-ellipsis">
+                  <th className="border border-primary/20 px-4 py-2 text-left text-sm font-medium w-24 truncate-ellipsis">
                     Equipments
                   </th>
                 )}
                 {selectedColumns.includes("labors") && (
-                  <th className="border border-emerald-600 px-4 py-2 text-left text-sm font-medium w-24 truncate-ellipsis">
+                  <th className="border border-primary/20 px-4 py-2 text-left text-sm font-medium w-24 truncate-ellipsis">
                     Labors
                   </th>
                 )}
@@ -499,7 +499,7 @@ const ActivityTable: React.FC<ActivityTableProps> = ({
                       <td className="border px-4 py-2 w-24 truncate-ellipsis">
                         <Link
                           href={`/resources/${activity.id}`}
-                          className="text-emerald-700 hover:underline"
+                          className="text-primary hover:underline"
                         >
                           Request
                         </Link>
@@ -527,7 +527,7 @@ const ActivityTable: React.FC<ActivityTableProps> = ({
                                   : activity.id
                               );
                             }}
-                            className="flex items-center gap-1 px-3 py-1 bg-emerald-700 text-white rounded w-full"
+                            className="flex items-center gap-1 px-3 py-1 bg-primary text-white rounded w-full hover:bg-primary/90 transition-colors"
                           >
                             Actions <ChevronDown className="w-4 h-4" />
                           </button>

@@ -1,22 +1,41 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { useTaskStore } from "@/store/taskStore";
+import { useTask } from "@/hooks/useTasks";
 import { Task } from "@/types/task";
 import WorkflowLogTable from "@/components/common/WorkflowLogTable";
+import ActivityTable from "@/components/master-schedule/ActivityTable";
+import ActualActivityTable from "@/components/master-schedule/ActualActivityTable";
+import { Activity } from "@/types/activity";
 
 export default function TaskPage() {
   const router = useRouter();
   const params = useParams();
   const taskId = params.id as string;
-  const tasks = useTaskStore((state) => state.tasks);
-  const task = tasks.find((t: Task) => t.id === taskId);
+  const { data: task, isLoading } = useTask(taskId);
+  const [activeTab, setActiveTab] = useState<"planned" | "actual" | "workflow">("planned");
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   if (!task) {
     return (
-      <div className="text-center text-destructive mt-10">Task not found.</div>
+      <div className="text-center text-destructive mt-10 p-10 bg-white shadow rounded-lg">
+        <h2 className="text-2xl font-bold mb-4">Task not found</h2>
+        <button
+          onClick={() => router.push("/tasks")}
+          className="text-primary hover:underline"
+        >
+          Back to Tasks
+        </button>
+      </div>
     );
   }
 
@@ -120,9 +139,61 @@ export default function TaskPage() {
             </div>
           )}
         </div>
+        {/* Tabs for Activities and Workflow */}
+        <div className="mt-12">
+          <div className="border-b border-border mb-6">
+            <nav className="-mb-px flex space-x-8">
+              <button
+                onClick={() => setActiveTab("planned")}
+                className={`pb-4 px-1 text-sm font-bold uppercase tracking-wider border-b-2 transition-colors ${activeTab === "planned"
+                  ? "border-primary text-primary"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+                  }`}
+              >
+                Planned Activities
+              </button>
+              <button
+                onClick={() => setActiveTab("actual")}
+                className={`pb-4 px-1 text-sm font-bold uppercase tracking-wider border-b-2 transition-colors ${activeTab === "actual"
+                  ? "border-primary text-primary"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+                  }`}
+              >
+                Actual Activities
+              </button>
+              <button
+                onClick={() => setActiveTab("workflow")}
+                className={`pb-4 px-1 text-sm font-bold uppercase tracking-wider border-b-2 transition-colors ${activeTab === "workflow"
+                  ? "border-primary text-primary"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+                  }`}
+              >
+                Workflow Logs
+              </button>
+            </nav>
+          </div>
+
+          <div className="mt-4">
+            {activeTab === "planned" && (
+              <div>
+                <ActivityTable
+                  taskId={task.id}
+                  filteredActivities={task.activities || []}
+                />
+              </div>
+            )}
+            {activeTab === "actual" && (
+              <ActualActivityTable taskId={task.id} />
+            )}
+            {activeTab === "workflow" && (
+              <div>
+                <h1 className="text-2xl font-semibold text-primary mb-6">Task Workflow Logs</h1>
+                <WorkflowLogTable entityType="Task" entityId={taskId} />
+              </div>
+            )}
+          </div>
+        </div>
       </div>
-      <h1 className="text-2xl font-semibold text-primary mb-6 mt-8">Task Workflow Logs</h1>
-      <WorkflowLogTable entityType="Task" entityId={taskId} />
     </div>
   );
 }

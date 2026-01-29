@@ -215,11 +215,11 @@ const TodosPage = () => {
       {/* Status Summary */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
         {[
-          { label: "Total", value: total, color: "text-cyan-600", bg: "bg-cyan-50" },
+          { label: "Total", value: total, color: "text-gray-600", bg: "bg-gray-50" },
           { label: "Not Started", value: notStartedCount, color: "text-gray-600", bg: "bg-gray-50" },
-          { label: "In Progress", value: inProgressCount, color: "text-amber-600", bg: "bg-amber-50" },
-          { label: "Pending", value: pendingCount, color: "text-rose-600", bg: "bg-rose-50" },
-          { label: "Completed", value: completedCount, color: "text-emerald-600", bg: "bg-emerald-50" },
+          { label: "In Progress", value: inProgressCount, color: "text-gray-600", bg: "bg-gray-50" },
+          { label: "Pending", value: pendingCount, color: "text-gray-600", bg: "bg-gray-50" },
+          { label: "Completed", value: completedCount, color: "text-gray-600", bg: "bg-gray-50" },
         ].map((item) => (
           <div
             key={item.label}
